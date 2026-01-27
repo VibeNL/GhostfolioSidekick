@@ -261,10 +261,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 
 			// Act
 			_context.SymbolProfiles.Add(symbolProfile);
-			await _context.SaveChangesAsync();
+			await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 			// Assert
-			var saved = await _context.SymbolProfiles.FindAsync("TEST", Datasource.MANUAL);
+		var saved = await _context.SymbolProfiles.FindAsync(["TEST", Datasource.MANUAL], TestContext.Current.CancellationToken);
 			Assert.NotNull(saved);
 			Assert.Equal("TEST", saved.Symbol);
 			Assert.Equal("Test Company", saved.Name);
@@ -285,10 +285,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			// Verify it can interact with the context (basic operation)
 			var symbolProfile = CreateTestSymbolProfile("CONSTRUCT", "Constructor Test");
 			_context.SymbolProfiles.Add(symbolProfile);
-			await _context.SaveChangesAsync();
+			await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 			// Basic verification that context is working
-			var count = await _context.SymbolProfiles.CountAsync();
+			var count = await _context.SymbolProfiles.CountAsync(TestContext.Current.CancellationToken);
 			Assert.True(count >= 1);
 		}
 

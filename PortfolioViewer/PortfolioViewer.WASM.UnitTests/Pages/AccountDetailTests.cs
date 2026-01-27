@@ -11,8 +11,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using xRetry;
-
+using xRetry.v3;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
 	public class AccountDetailTests : BunitContext
@@ -316,7 +315,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			filterState.StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-30));
 
 			// Wait for any changes to propagate
-			await Task.Delay(200);
+			await Task.Delay(200, CancellationToken.None);
 			component.Render();
 
 			// Assert - Component should remain functional and not crash
@@ -359,7 +358,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			try
 			{
 				var component = testContext.Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
-				await Task.Delay(100);
+				await Task.Delay(100, CancellationToken.None);
 				component.Render();
 
 				// If we get here without exception, the component handled it gracefully
@@ -489,7 +488,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 					// Ignore rendering exceptions during async operations
 				}
 
-				await Task.Delay(waitInterval);
+				await Task.Delay(waitInterval, CancellationToken.None);
 			}
 		}
 
@@ -548,3 +547,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		}
 	}
 }
+
+
+
+

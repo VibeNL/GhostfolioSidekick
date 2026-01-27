@@ -1,14 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<OutputType>Exe</OutputType>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.4">
 			<PrivateAssets>all</PrivateAssets>
@@ -17,19 +16,16 @@
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
 		<PackageReference Include="Microsoft.SemanticKernel" Version="1.70.0" />
 		<PackageReference Include="Moq" Version="4.20.72" />
-		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.v3" Version="3.2.2" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\AI.Functions\AI.Functions.csproj" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<Using Include="Xunit" />
 	</ItemGroup>
-
 </Project>

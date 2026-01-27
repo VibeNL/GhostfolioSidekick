@@ -45,7 +45,7 @@ namespace PortfolioViewer.WASM.UITests
 			{
 				await page.ScreenshotAsync(new PageScreenshotOptions { Path = errorScreenshotPath });
 				var html = await page.ContentAsync();
-				await File.WriteAllTextAsync(errorHtmlPath, html);
+			await File.WriteAllTextAsync(errorHtmlPath, html, TestContext.Current.CancellationToken);
 				Console.WriteLine($"Exception: {ex}");
 				throw;
 			}
@@ -67,8 +67,8 @@ namespace PortfolioViewer.WASM.UITests
 			var healthUrl = "api/auth/health";
 			try
 			{
-				var response = await apiClient.GetAsync(healthUrl);
-				var content = await response.Content.ReadAsStringAsync();
+				var response = await apiClient.GetAsync(healthUrl, TestContext.Current.CancellationToken);
+				var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 				Console.WriteLine($"Status: {response.StatusCode}, Content: {content}");
 				Assert.True(response.IsSuccessStatusCode, $"API health endpoint failed: {response.StatusCode} {content}");
 			}
@@ -79,3 +79,5 @@ namespace PortfolioViewer.WASM.UITests
 		}
 	}
 }
+
+

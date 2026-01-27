@@ -1,4 +1,4 @@
-using xRetry;
+using xRetry.v3;
 
 namespace GhostfolioSidekick.UnitTests
 {
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.UnitTests
 			_ = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
 
 			// Act
-			await Task.Delay(1000);
+			await Task.Delay(1000, TestContext.Current.CancellationToken);
 
 			// Assert
 			loggerMock.Verify(logger => logger.Log(
@@ -91,7 +91,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100);
+			await Task.Delay(100, TestContext.Current.CancellationToken);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(500); // Reduced delay to make test faster
+			await Task.Delay(500, TestContext.Current.CancellationToken); // Reduced delay to make test faster
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.AtLeast(2)); // Should execute multiple times
@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100);
+			await Task.Delay(100, TestContext.Current.CancellationToken);
 			await service.StopAsync(CancellationToken.None);
 
 			// Assert
@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100);
+			await Task.Delay(100, TestContext.Current.CancellationToken);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
@@ -220,3 +220,5 @@ namespace GhostfolioSidekick.UnitTests
 		}
 	}
 }
+
+
