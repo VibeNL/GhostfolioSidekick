@@ -203,11 +203,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task GetHoldingsAsync_WithCancellationToken_ShouldPassTokenToDatabase()
-		{
-			// Arrange
-			var cancellationToken = new CancellationToken();
-			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated>());
+	public async Task GetHoldingsAsync_WithCancellationToken_ShouldPassTokenToDatabase()
+	{
+		// Arrange
+		_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated>());
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 
 			// Act
@@ -496,16 +495,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		[Fact]
 		public async Task GetHoldingPriceHistoryAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
-			// Arrange
-			var symbol = "AAPL";
-			var startDate = new DateOnly(2023, 1, 1);
-			var endDate = new DateOnly(2023, 1, 31);
-			var cancellationToken = new CancellationToken();
+		// Arrange
+		var symbol = "AAPL";
+		var startDate = new DateOnly(2023, 1, 1);
+		var endDate = new DateOnly(2023, 1, 31);
 
-			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated>());
+		_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated>());
 
 			// Act
-			await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, cancellationToken, TestContext.Current.CancellationToken);
+		await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, TestContext.Current.CancellationToken);
 
 			// Assert
 			_mockDatabaseContext.Verify(x => x.HoldingAggregateds, Times.AtLeastOnce);
@@ -675,12 +673,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		[Fact]
 		public async Task GetPortfolioValueHistoryAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
-			// Arrange
-			var startDate = new DateOnly(2023, 1, 1);
-			var endDate = new DateOnly(2023, 1, 31);
-			var cancellationToken = new CancellationToken();
+		// Arrange
+		var startDate = new DateOnly(2023, 1, 1);
+		var endDate = new DateOnly(2023, 1, 31);
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
+		_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 
 			// Act
 			await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, TestContext.Current.CancellationToken);

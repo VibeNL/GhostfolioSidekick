@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests
 			.ReturnsAsync(response);
 			var client = CreateClient(handler.Object);
 			var messages = new[] { new ChatMessage(ChatRole.User, "Hi") };
-		var result = await client.GetResponseAsync(messages, TestContext.Current.CancellationToken);
+			var result = await client.GetResponseAsync(messages, cancellationToken: TestContext.Current.CancellationToken);
 
 			var message = result.Messages.SingleOrDefault();
 
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests
 			var client = CreateClient(handler.Object);
 			var messages = new[] { new ChatMessage(ChatRole.User, "Hi") };
 			var updates = new List<ChatResponseUpdate>();
-		await foreach (var update in client.GetStreamingResponseAsync(messages, TestContext.Current.CancellationToken))
+			await foreach (var update in client.GetStreamingResponseAsync(messages, cancellationToken: TestContext.Current.CancellationToken))
 			{
 				updates.Add(update);
 			}

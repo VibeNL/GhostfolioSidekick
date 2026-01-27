@@ -235,7 +235,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			_mockTransactionService.Verify(x => x.GetTransactionsPaginatedAsync(
 				It.Is<TransactionQueryParameters>(p =>
-					p.AccountId == 1, TestContext.Current.CancellationToken),
+					p.AccountId == 1),
 				It.IsAny<CancellationToken>()), Times.AtLeastOnce);
 		}
 
@@ -430,7 +430,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 					// Ignore rendering exceptions during async operations
 				}
 
-			await Task.Delay(waitInterval, Xunit.TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
+			await Task.Delay(waitInterval, Xunit.TestContext.Current.CancellationToken);
 			}
 		}
 

@@ -196,13 +196,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		[Fact]
 		public async Task GetAccountsAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
-			// Arrange
-			var cancellationToken = new CancellationToken();
-			var accounts = new List<Account>();
+		// Arrange
+		var accounts = new List<Account>();
 			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
 			// Act
-			await _accountDataService.GetAccountsAsync(null, cancellationToken, TestContext.Current.CancellationToken);
+		await _accountDataService.GetAccountsAsync(null, TestContext.Current.CancellationToken);
 
 			// Assert
 			_mockDatabaseContext.Verify(x => x.Accounts, Times.AtLeastOnce);
@@ -389,16 +388,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		[Fact]
 		public async Task GetAccountValueHistoryAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
-			// Arrange
-			var startDate = new DateOnly(2023, 1, 1);
-			var endDate = new DateOnly(2023, 1, 31);
-			var cancellationToken = new CancellationToken();
+		// Arrange
+		var startDate = new DateOnly(2023, 1, 1);
+		var endDate = new DateOnly(2023, 1, 31);
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
+		_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(new List<BalancePrimaryCurrency>());
 
 			// Act
-			await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, cancellationToken, TestContext.Current.CancellationToken);
+		await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, TestContext.Current.CancellationToken);
 
 			// Assert
 			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
@@ -599,12 +597,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		[Fact]
 		public async Task GetSymbolProfilesAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
-			// Arrange
-			var cancellationToken = new CancellationToken();
-			_mockDatabaseContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile>());
+		// Arrange
+		_mockDatabaseContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile>());
 
 			// Act
-			await _accountDataService.GetSymbolProfilesAsync(null, cancellationToken, TestContext.Current.CancellationToken);
+		await _accountDataService.GetSymbolProfilesAsync(null, TestContext.Current.CancellationToken);
 
 			// Assert
 			_mockDatabaseContext.Verify(x => x.SymbolProfiles, Times.AtLeastOnce);
