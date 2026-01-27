@@ -178,7 +178,7 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		private void AddPartialIdentifiersToMap(
+		private static void AddPartialIdentifiersToMap(
 			Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
 			IList<PartialSymbolIdentifier> partialIdentifiers, 
 			Holding existingHolding)
@@ -192,7 +192,7 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		private bool FindHolding(
+		private static bool FindHolding(
 			Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
 			IList<PartialSymbolIdentifier> partialIdentifiers,
 			out Holding? existingHolding)

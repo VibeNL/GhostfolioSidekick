@@ -257,10 +257,12 @@ namespace GhostfolioSidekick.UnitTests.Activities.Comparer
 			var profile2 = CreateSymbolProfile("aapl", AssetClass.Equity, AssetSubClass.Stock); // Different case and sub-class
 			var profile3 = CreateSymbolProfile("GOOGL", AssetClass.Equity, AssetSubClass.Stock);
 			
-			var hashSet = new HashSet<SymbolProfile>(_symbolComparer);
+			var hashSet = new HashSet<SymbolProfile>(_symbolComparer)
+			{
+				// Act
+				profile1
+			};
 
-			// Act
-			hashSet.Add(profile1);
 			var addResult1 = hashSet.Add(profile2); // Should not be added as it's considered equal
 			var addResult2 = hashSet.Add(profile3); // Should be added as it's different
 
@@ -300,12 +302,13 @@ namespace GhostfolioSidekick.UnitTests.Activities.Comparer
 			var profile2 = CreateSymbolProfile("aapl", AssetClass.Equity, AssetSubClass.Stock); // Different case and sub-class
 			var profile3 = CreateSymbolProfile("GOOGL", AssetClass.Equity, AssetSubClass.Stock);
 			
-			var dictionary = new Dictionary<SymbolProfile, string>(_symbolComparer);
-
-			// Act
-			dictionary[profile1] = "Apple Stock";
-			dictionary[profile2] = "Apple ETF"; // Should overwrite the previous entry
-			dictionary[profile3] = "Google";
+			var dictionary = new Dictionary<SymbolProfile, string>(_symbolComparer)
+			{
+				// Act
+				[profile1] = "Apple Stock",
+				[profile2] = "Apple ETF", // Should overwrite the previous entry
+				[profile3] = "Google"
+			};
 
 			// Assert
 			dictionary.Count.Should().Be(2);
