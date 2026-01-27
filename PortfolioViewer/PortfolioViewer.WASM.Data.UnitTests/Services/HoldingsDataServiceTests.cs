@@ -35,7 +35,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				_mockServerConfigurationService.Object);
 		}
 
-		#region GetHoldingsAsync() Tests
+		#region GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken) Tests
 
 		[Fact]
 		public async Task GetHoldingsAsync_WithoutAccountId_ShouldReturnAllHoldings()
@@ -54,7 +54,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync(cancellationToken);
+			var result = await _holdingsDataService.GetHoldingsAsync(cancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -72,7 +72,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync();
+			var result = await _holdingsDataService.GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -101,7 +101,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync();
+			var result = await _holdingsDataService.GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -130,7 +130,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync();
+			var result = await _holdingsDataService.GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -157,7 +157,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync();
+			var result = await _holdingsDataService.GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -192,7 +192,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync();
+			var result = await _holdingsDataService.GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -211,7 +211,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 
 			// Act
-			await _holdingsDataService.GetHoldingsAsync(cancellationToken);
+			await _holdingsDataService.GetHoldingsAsync(cancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			_mockDatabaseContext.Verify(x => x.HoldingAggregateds, Times.AtLeastOnce);
@@ -220,7 +220,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		#endregion
 
-		#region GetHoldingsAsync(int accountId) Tests
+		#region GetHoldingsAsync(int accountId, TestContext.Current.CancellationToken) Tests
 
 		[Fact]
 		public async Task GetHoldingsAsync_WithAccountId_ShouldReturnFilteredHoldings()
@@ -239,7 +239,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync(accountId);
+			var result = await _holdingsDataService.GetHoldingsAsync(accountId, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -263,7 +263,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync(0);
+			var result = await _holdingsDataService.GetHoldingsAsync(0, TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -286,7 +286,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync(999);
+			var result = await _holdingsDataService.GetHoldingsAsync(999, TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -319,7 +319,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingAsync("AAPL");
+			var result = await _holdingsDataService.GetHoldingAsync("AAPL", TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -343,7 +343,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingAsync("GOOGL");
+			var result = await _holdingsDataService.GetHoldingAsync("GOOGL", TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().BeNull();
@@ -357,7 +357,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingAsync("AAPL");
+			var result = await _holdingsDataService.GetHoldingAsync("AAPL", TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().BeNull();
@@ -532,7 +532,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId);
+			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -568,7 +568,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, null);
+			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, null, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -595,7 +595,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 0);
+		var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 0, TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -620,7 +620,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId);
+			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -645,7 +645,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
 
 			// Act
-			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1);
+			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -665,7 +665,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 
 			// Act
-			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1);
+			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -683,7 +683,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
 
 			// Act
-			await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, cancellationToken);
+			await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, cancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
@@ -709,7 +709,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync();
+			var result = await _holdingsDataService.GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -734,7 +734,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { snapshot });
 
 			// Act
-			var result = await _holdingsDataService.GetHoldingsAsync();
+			var result = await _holdingsDataService.GetHoldingsAsync(TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -827,3 +827,5 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		#endregion
 	}
 }
+
+

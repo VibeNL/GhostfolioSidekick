@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.IntegrationTests
 
 			while (!testLogger.IsTriggered)
 			{
-				await Task.Delay(1000, TestContext.Current.CancellationToken);
+				await Task.Delay(1000, TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 			}
 
 			// Assert
@@ -220,4 +220,5 @@ namespace GhostfolioSidekick.IntegrationTests
 
 	}
 }
+
 

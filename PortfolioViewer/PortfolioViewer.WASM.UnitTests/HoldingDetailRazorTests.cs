@@ -156,12 +156,12 @@
 //                DateTime startDate,
 //                DateTime endDate,
 //                int accountId,
-//                CancellationToken cancellationToken = default)
+//                CancellationToken cancellationToken = default, TestContext.Current.CancellationToken)
 //            {
 //                return Task.FromResult(new List<PortfolioValueHistoryPoint>());
 //            }
 
-//            public Task<List<Account>> GetAccountsAsync()
+//            public Task<List<Account>> GetAccountsAsync(, TestContext.Current.CancellationToken)
 //            {
 //                return Task.FromResult(new List<Account>());
 //            }
@@ -209,7 +209,7 @@
 //                Currency targetCurrency,
 //                DateTime startDate,
 //                DateTime endDate,
-//                CancellationToken cancellationToken = default)
+//                CancellationToken cancellationToken = default, TestContext.Current.CancellationToken)
 //            {
 //                // Return empty list for testing
 //                return Task.FromResult(new List<AccountValueHistoryPoint>());

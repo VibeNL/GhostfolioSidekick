@@ -46,7 +46,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -75,7 +75,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -100,7 +100,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -122,7 +122,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -146,7 +146,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -181,7 +181,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -221,7 +221,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -257,7 +257,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -273,7 +273,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				.Throws(new InvalidOperationException("Database connection failed"));
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -312,7 +312,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -332,7 +332,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -380,7 +380,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -404,7 +404,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -426,7 +426,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -474,7 +474,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -514,7 +514,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -533,7 +533,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -562,7 +562,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync();
+			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(TestContext.Current.CancellationToken);
 
 			// Assert
 			result.Should().NotBeNull();

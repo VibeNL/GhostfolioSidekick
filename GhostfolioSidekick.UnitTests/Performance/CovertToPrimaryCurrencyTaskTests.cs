@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		public async Task DoWork_UsesRealSqliteDatabase()
 		{
 			var connection = new SqliteConnection("Filename=:memory:");
-			await connection.OpenAsync();
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
 
 			var options = new DbContextOptionsBuilder<DatabaseContext>()
 				.UseSqlite(connection)
@@ -60,4 +60,5 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		}
 	}
 }
+
 

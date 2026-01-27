@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		public async Task DoWork_RemovesObsoleteHoldings()
 		{
 			using var connection = new SqliteConnection("Filename=:memory:");
-			await connection.OpenAsync();
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
 			var options = CreateOptions(connection);
 			var dbContext = new DatabaseContext(options);
 			await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		public async Task DoWork_UpdatesExistingHoldingSnapshots()
 		{
 			using var connection = new SqliteConnection("Filename=:memory:");
-			await connection.OpenAsync();
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
 			var options = CreateOptions(connection);
 			var dbContext = new DatabaseContext(options);
 			await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
 			// Assert
 			var verifyContext = new DatabaseContext(options);
-			var updated = await verifyContext.HoldingAggregateds.Include(h => h.CalculatedSnapshots).FirstAsync(h => h.Symbol == "A");
+		var updated = await verifyContext.HoldingAggregateds.Include(h => h.CalculatedSnapshots).FirstAsync(h => h.Symbol == "A", TestContext.Current.CancellationToken);
 			Assert.Equal(2, updated.CalculatedSnapshots.First().Quantity);
 			await dbContext.DisposeAsync();
 			await verifyContext.DisposeAsync();
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		public async Task DoWork_DeletesAllHoldings_WhenNoNewHoldings()
 		{
 			using var connection = new SqliteConnection("Filename=:memory:");
-			await connection.OpenAsync();
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
 			var options = CreateOptions(connection);
 			var dbContext = new DatabaseContext(options);
 			await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
@@ -167,7 +167,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		public async Task DoWork_AddsOnlyNewHoldings()
 		{
 			using var connection = new SqliteConnection("Filename=:memory:");
-			await connection.OpenAsync();
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
 			var options = CreateOptions(connection);
 			var dbContext = new DatabaseContext(options);
 			await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
@@ -196,4 +196,5 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		}
 	}
 }
+
 

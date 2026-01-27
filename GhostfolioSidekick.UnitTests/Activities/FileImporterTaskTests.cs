@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			using (var setupContext = _dbContextFactory.CreateDbContext())
 			{
 				// Load the account from this context to ensure proper tracking
-				var trackedAccount = await setupContext.Accounts.FindAsync(accountId, TestContext.Current.CancellationToken);
+			var trackedAccount = await setupContext.Accounts.FindAsync([accountId], TestContext.Current.CancellationToken);
 
 				var existingActivities = new List<Activity>
 				{
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Act & Assert - Use a fresh context for the StoreAll operation
 			using var testContext = _dbContextFactory.CreateDbContext();
 			// Load the account in this context to ensure proper tracking
-			var accountForTest = await testContext.Accounts.FindAsync(accountId, TestContext.Current.CancellationToken);
+		var accountForTest = await testContext.Accounts.FindAsync([accountId], TestContext.Current.CancellationToken);
 
 			// Create new activities using the properly tracked account
 			var newActivities = new List<Activity>

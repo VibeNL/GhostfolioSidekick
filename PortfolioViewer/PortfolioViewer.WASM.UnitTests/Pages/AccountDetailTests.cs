@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
 				.ReturnsAsync([]);
 
-			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(, TestContext.Current.CancellationToken), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 
 			SetupBasicTransactionService();
@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			};
 
 			SetupAccountMocks([testAccount], accountHistory);
-			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()))
+			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(, TestContext.Current.CancellationToken), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(paginatedResult);
 
 			// Act
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			await WaitForComponentToFinishLoading(component, containsText: "Test Account", maxWaitMs: 1000);
 
 			// Assert - Verify transactions are loaded by checking if the transaction service was called
-			_mockTransactionService.Verify(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+			_mockTransactionService.Verify(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(, TestContext.Current.CancellationToken), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
 		}
 
 		[Fact]
@@ -266,7 +266,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
 				.ThrowsAsync(new Exception("Database connection failed"));
 
-			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(, TestContext.Current.CancellationToken), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new Exception("Database connection failed"));
 
 			SetupBasicTransactionService();
@@ -314,7 +314,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			filterState.StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-30));
 
 			// Wait for any changes to propagate
-			await Task.Delay(200, Xunit.TestContext.Current.CancellationToken);
+			await Task.Delay(200, Xunit.TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 			component.Render();
 
 			// Assert - Component should remain functional and not crash
@@ -357,7 +357,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			try
 			{
 				var component = testContext.Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
-				await Task.Delay(100, Xunit.TestContext.Current.CancellationToken);
+				await Task.Delay(100, Xunit.TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 				component.Render();
 
 				// If we get here without exception, the component handled it gracefully
@@ -391,10 +391,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
 				.ReturnsAsync([testAccount]);
 
-			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(, TestContext.Current.CancellationToken), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(accountHistory);
 
-			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()))
+			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(, TestContext.Current.CancellationToken), It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new Exception("Transaction service error"));
 
 			// Act
@@ -416,7 +416,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
 				.ReturnsAsync([validAccount]);
 
-			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(, TestContext.Current.CancellationToken), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 
 			SetupBasicTransactionService();
@@ -441,7 +441,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
 				.ReturnsAsync([testAccount]);
 
-			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(, TestContext.Current.CancellationToken), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]); // No history data
 
 			SetupBasicTransactionService();
@@ -487,7 +487,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 					// Ignore rendering exceptions during async operations
 				}
 
-				await Task.Delay(waitInterval, Xunit.TestContext.Current.CancellationToken);
+				await Task.Delay(waitInterval, Xunit.TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
 			}
 		}
 
@@ -496,7 +496,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
 				.ReturnsAsync([]);
 
-			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(, TestContext.Current.CancellationToken), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 
 			SetupBasicTransactionService();
@@ -504,7 +504,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 		private void SetupBasicTransactionService()
 		{
-			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()))
+			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(, TestContext.Current.CancellationToken), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new PaginatedTransactionResult
 				{
 					Transactions = [],
@@ -519,7 +519,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
 				.ReturnsAsync(accounts);
 
-			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(, TestContext.Current.CancellationToken), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(history);
 
 			SetupBasicTransactionService();
@@ -546,4 +546,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		}
 	}
 }
+
+
 
