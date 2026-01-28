@@ -1,35 +1,39 @@
-﻿namespace GhostfolioSidekick.Model.Market
+namespace GhostfolioSidekick.Model.Market
 {
 	public record MarketData
 	{
 		public MarketData(
-			Money close,
-			Money open,
-			Money high,
-			Money low,
+			Currency currency,
+			decimal close,
+			decimal open,
+			decimal high,
+			decimal low,
 			decimal tradingVolume,
 			DateOnly date)
 		{
-			Close = close ?? throw new ArgumentNullException(nameof(close));
-			Open = open ?? throw new ArgumentNullException(nameof(open));
-			High = high ?? throw new ArgumentNullException(nameof(high));
-			Low = low ?? throw new ArgumentNullException(nameof(low));
+			Currency = currency;
+			Close = close;
+			Open = open;
+			High = high;
+			Low = low;
 			TradingVolume = tradingVolume;
 			Date = date;
 		}
 
 		public MarketData() // EF Core
 		{
+			Currency = default!;
 			Close = default!;
 			Open = default!;
 			High = default!;
 			Low = default!;
 		}
 
-		public Money Close { get; set; }
-		public Money Open { get; set; }
-		public Money High { get; set; }
-		public Money Low { get; set; }
+		public Currency Currency { get; set; }
+		public decimal Close { get; set; }
+		public decimal Open { get; set; }
+		public decimal High { get; set; }
+		public decimal Low { get; set; }
 		public decimal TradingVolume { get; set; }
 		public DateOnly Date { get; set; }
 

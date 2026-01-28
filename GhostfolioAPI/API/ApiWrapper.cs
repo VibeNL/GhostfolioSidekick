@@ -362,7 +362,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			foreach (var marketData in list)
 			{
-				var amount = (await currencyExchange.ConvertMoney(marketData.Close, profile.Currency, marketData.Date)).Amount;
+				var amount = (await currencyExchange.ConvertMoney(new Money(marketData.Currency, marketData.Close), profile.Currency, marketData.Date)).Amount;
 				var value = existingData?.FirstOrDefault(x => x.Date == marketData.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc))?.MarketPrice ?? 0;
 				if (Math.Abs(value - amount) < 0.000001m)
 				{
@@ -388,7 +388,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					throw new NotSupportedException($"SetMarketPrice failed {profile.Symbol} {marketData.Date}");
 				}
 
-				logger.LogDebug("SetMarketPrice symbol {Symbol} {Date} @ {Amount}", profile.Symbol, marketData.Date, marketData.Close.Amount);
+				logger.LogDebug("SetMarketPrice symbol {Symbol} {Date} @ {Amount}", profile.Symbol, marketData.Date, marketData.Close);
 			}
 		}
 

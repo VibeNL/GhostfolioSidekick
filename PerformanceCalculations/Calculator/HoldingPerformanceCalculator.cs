@@ -9,14 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 {
-	public class HoldingPerformanceCalculator(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IHoldingPerformanceCalculator
+	public class PerformanceCalculator(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IPerformanceCalculator
 	{
-		public async Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings()
+		public async Task<IEnumerable<CalculatedSnapshot>> GetCalculatedSnapshots(Holding holding)
 		{
 			// Step 1: Get Holdings with SymbolProfiles (optimized projection)
 			var holdingData = await databaseContext
 				.Holdings
-				.Where(x => x.SymbolProfiles.Any())
+				.Where(x => x.Id == holding.Id && x.SymbolProfiles.Any())
 				.AsNoTracking()
 				.Select(x => new
 				{
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				.Distinct()
 				.ToList();
 
-			var allMarketData = new Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>>();
+			var allMarketData = new Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>>();
 
 			if (symbolProfileKeys.Count != 0)
 			{
@@ -101,8 +101,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				}
 			}
 
-			// Step 4: Build result
-			var returnList = new List<HoldingAggregated>(holdingData.Count);
+			// Step 4: Build result - return flat list of all snapshots
+			var allSnapshots = new List<CalculatedSnapshot>();
+
 			foreach (var data in holdingData)
 			{
 				var defaultSymbolProfile = data
@@ -136,43 +137,29 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				var accountIds = activities.Select(x => x.AccountId)
 					.Distinct()
 					.ToList();
-				var snapshots = new List<CalculatedSnapshot>();
 
 				foreach (var accountId in accountIds)
 				{
 					ICollection<Activity> activitiesForAccount = [.. activities.Where(x => x.AccountId == accountId).Select(x => x.Activity)];
-					var lst = await CalculateSnapShots(
+					var snapshots = await CalculateSnapShots(
 						defaultSymbolProfile.Currency,
 						accountId,
 						symbolProfiles,
 						activitiesForAccount,
 						allMarketData).ConfigureAwait(false);
-					snapshots.AddRange(lst);
+					allSnapshots.AddRange(snapshots);
 				}
-
-				returnList.Add(new HoldingAggregated
-				{
-					ActivityCount = activities.Count,
-					Symbol = defaultSymbolProfile.Symbol,
-					Name = defaultSymbolProfile.Name,
-					DataSource = defaultSymbolProfile.DataSource,
-					AssetClass = defaultSymbolProfile.AssetClass,
-					AssetSubClass = defaultSymbolProfile.AssetSubClass,
-					CountryWeight = defaultSymbolProfile.CountryWeight,
-					SectorWeights = defaultSymbolProfile.SectorWeights,
-					CalculatedSnapshots = snapshots
-				});
 			}
 
-			return returnList;
+			return allSnapshots;
 		}
 
 		private async Task<ICollection<CalculatedSnapshot>> CalculateSnapShots(
-		Currency targetCurrency,
-		int accountId,
-		IList<SymbolProfile> symbolProfiles,
-		ICollection<Activity> activities,
-		Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>> preLoadedMarketData)
+			Currency targetCurrency,
+			int accountId,
+			IList<SymbolProfile> symbolProfiles,
+			ICollection<Activity> activities,
+			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>> preLoadedMarketData)
 		{
 			if (activities.Count == 0)
 			{
@@ -190,10 +177,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			.GroupBy(x => DateOnly.FromDateTime(x.Date))
 			.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 
-			var previousSnapshot = new CalculatedSnapshot(0, accountId, minDate.AddDays(-1), 0, Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency));
+			var previousSnapshot = new CalculatedSnapshot(0, accountId, minDate.AddDays(-1), 0, targetCurrency, 0, 0, 0, 0);
 
 			// Use pre-loaded market data instead of querying database
-			Dictionary<DateOnly, Money> marketData = new(dayCount);
+			Dictionary<DateOnly, decimal> marketData = new(dayCount);
 			foreach (SymbolProfile symbolProfile in symbolProfiles)
 			{
 				if (preLoadedMarketData.TryGetValue((symbolProfile.Symbol, symbolProfile.DataSource), out var symbolMarketData))
@@ -209,7 +196,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			.Where(x => x.Key <= minDate)
 			.OrderByDescending(x => x.Key)
 			.Select(x => x.Value)
-			.FirstOrDefault() ?? Money.Zero(targetCurrency);
+			.FirstOrDefault();
 
 			for (var date = minDate; date <= maxDate; date = date.AddDays(1))
 			{
@@ -228,12 +215,13 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 				var marketPrice = marketData.TryGetValue(date, out var closePrice) ? closePrice : lastKnownMarketPrice;
 				lastKnownMarketPrice = marketPrice;
+				var marketPriceMoney = new Money(targetCurrency, marketPrice);
 				var marketPriceConverted = await currencyExchange.ConvertMoney(
-					marketPrice,
-					targetCurrency,
+					marketPriceMoney,
+						targetCurrency,
 					date).ConfigureAwait(false);
-				snapshot.CurrentUnitPrice = marketPriceConverted;
-				snapshot.TotalValue = marketPriceConverted.Times(snapshot.Quantity);
+				snapshot.CurrentUnitPrice = marketPriceConverted.Amount;
+				snapshot.TotalValue = marketPriceConverted.Amount * snapshot.Quantity;
 
 				snapshots.Add(snapshot);
 				previousSnapshot = snapshot;
@@ -242,10 +230,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			// Round the values to avoid floating point issues
 			foreach (var snapshot in snapshots)
 			{
-				snapshot.AverageCostPrice = new Money(targetCurrency, Math.Round(snapshot.AverageCostPrice.Amount, Constants.NumberOfDecimals));
-				snapshot.CurrentUnitPrice = new Money(targetCurrency, Math.Round(snapshot.CurrentUnitPrice.Amount, Constants.NumberOfDecimals));
-				snapshot.TotalInvested = new Money(targetCurrency, Math.Round(snapshot.TotalInvested.Amount, Constants.NumberOfDecimals));
-				snapshot.TotalValue = new Money(targetCurrency, Math.Round(snapshot.TotalValue.Amount, Constants.NumberOfDecimals));
+				snapshot.AverageCostPrice = Math.Round(snapshot.AverageCostPrice, Constants.NumberOfDecimals);
+				snapshot.CurrentUnitPrice = Math.Round(snapshot.CurrentUnitPrice, Constants.NumberOfDecimals);
+				snapshot.TotalInvested = Math.Round(snapshot.TotalInvested, Constants.NumberOfDecimals);
+				snapshot.TotalValue = Math.Round(snapshot.TotalValue, Constants.NumberOfDecimals);
 				snapshot.Quantity = Math.Round(snapshot.Quantity, Constants.NumberOfDecimals);
 			}
 
@@ -283,34 +271,35 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				if (sign == 1)
 				{
 					// For buy/receive/gift/staking, add the invested amount and update average cost price
-					snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
+					snapshot.TotalInvested += convertedTotal.Amount;
 					snapshot.Quantity += activity.AdjustedQuantity;
 					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
 				}
 				else
 				{
 					// For sell/send, first calculate cost basis reduction using current average cost price
-					var costBasisReduction = snapshot.AverageCostPrice.Times(activity.AdjustedQuantity);
-					snapshot.TotalInvested = snapshot.TotalInvested.Subtract(costBasisReduction);
+					var costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
+					snapshot.TotalInvested -= costBasisReduction;
 					snapshot.Quantity -= activity.AdjustedQuantity;
 
 					// Average cost price remains the same after a sell (unless quantity becomes zero)
 					if (snapshot.Quantity <= 0)
 					{
-						snapshot.AverageCostPrice = Money.Zero(targetCurrency);
+						snapshot.AverageCostPrice = 0;
 					}
 				}
 			}
 		}
 
-		private static Money CalculateAverageCostPrice(CalculatedSnapshot snapshot)
+		private static decimal CalculateAverageCostPrice(CalculatedSnapshot snapshot)
 		{
 			if (snapshot.Quantity == 0)
 			{
-				return Money.Zero(snapshot.TotalInvested.Currency);
+				return 0;
 			}
 
-			return snapshot.TotalInvested.SafeDivide(snapshot.Quantity);
+			return snapshot.TotalInvested / snapshot.Quantity;
 		}
+
 	}
 }

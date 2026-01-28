@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -130,15 +130,15 @@ namespace GhostfolioSidekick.Database.Repository
 					profile.SourceCurrency,
 					profile.TargetCurrency,
 					rate.Date,
-					rate.Close.Amount
+					rate.Close
 				})
 				.ToListAsync();
 
-				foreach (var group in allExchangeRateData.Where(x => x.Amount != 0).GroupBy(x => new { x.SourceCurrency, x.TargetCurrency }))
+				foreach (var group in allExchangeRateData.Where(x => x.Close != 0).GroupBy(x => new { x.SourceCurrency, x.TargetCurrency }))
 				{
 					memoryCache.Set(
 						new ExchangeRateKey(group.Key.SourceCurrency, group.Key.TargetCurrency),
-						group.ToDictionary(x => x.Date, x => x.Amount));
+						group.ToDictionary(x => x.Date, x => x.Close));
 				}
 			}
 			catch (Exception ex)

@@ -77,10 +77,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 				list.Add(new MarketData
 				{
 					Date = DateOnly.FromDateTime(date),
-					Close = new Model.Money(fromActivity.UnitPrice!.Currency, expectedPrice),
-					Open = new Model.Money(fromActivity.UnitPrice.Currency, expectedPrice),
-					High = new Model.Money(fromActivity.UnitPrice.Currency, expectedPrice),
-					Low = new Model.Money(fromActivity.UnitPrice.Currency, expectedPrice),
+					Currency = fromActivity.UnitPrice!.Currency,
+					Close = expectedPrice,
+					Open = expectedPrice,
+					High = expectedPrice,
+					Low = expectedPrice,
 					IsGenerated = true,
 				});
 			}

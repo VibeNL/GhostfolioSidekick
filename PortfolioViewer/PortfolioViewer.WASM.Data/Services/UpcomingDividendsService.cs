@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
             var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
             
             // Get the latest date for calculated snapshots
-            var lastKnownDate = await databaseContext.CalculatedSnapshotPrimaryCurrencies
+            var lastKnownDate = await databaseContext.CalculatedSnapshots
                 .MaxAsync(x => (DateOnly?)x.Date);
 
             if (lastKnownDate == null)
@@ -27,10 +27,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
             }
 
             // Get all holdings quantities summed across all accounts for the latest date
-            var holdings = await databaseContext.HoldingAggregateds
+            var holdings = await databaseContext.Holdings
                 .Select(h => new {
-                    h.Symbol,
-                    Quantity = h.CalculatedSnapshotsPrimaryCurrency
+                    h.SymbolProfiles,
+                    Quantity = h.CalculatedSnapshots
                         .Where(s => s.Date == lastKnownDate)
                         .Sum(s => s.Quantity)
                 })
