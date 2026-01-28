@@ -1,9 +1,10 @@
-﻿using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Performance;
 
 namespace GhostfolioSidekick.PerformanceCalculations
 {
-	public interface IHoldingPerformanceCalculator
+	public interface IPerformanceCalculator
 	{
-		Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings();
+		Task<IEnumerable<CalculatedSnapshot>> GetCalculatedSnapshots(Holding holding);
 	}
 }
