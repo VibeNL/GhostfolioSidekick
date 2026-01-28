@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -33,13 +33,7 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<MarketData> MarketDatas { get; set; }
 
 		// Performance sets
-		public virtual DbSet<HoldingAggregated> HoldingAggregateds { get; set; }
-
 		public virtual DbSet<CalculatedSnapshot> CalculatedSnapshots { get; set; }
-
-		public virtual DbSet<CalculatedSnapshotPrimaryCurrency> CalculatedSnapshotPrimaryCurrencies { get; set; }
-
-		public virtual DbSet<BalancePrimaryCurrency> BalancePrimaryCurrencies { get; set; }
 
 		public virtual DbSet<TaskRun> Tasks { get; set; }
 		public virtual DbSet<TaskRunLog> TaskRunLogs { get; set; }
