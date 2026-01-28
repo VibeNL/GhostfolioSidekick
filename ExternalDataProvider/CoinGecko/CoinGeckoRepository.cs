@@ -103,10 +103,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			foreach (var candle in ((longRange?.Data) ?? []).Union((shortRange?.Data ?? [])))
 			{
 				var item = new MarketData(
-									new Money(Currency.USD with { }, candle.Close),
-									new Money(Currency.USD with { }, candle.Open),
-									new Money(Currency.USD with { }, candle.High),
-									new Money(Currency.USD with { }, candle.Low),
+									Currency.USD,
+									candle.Close,
+									candle.Open,
+									candle.High,
+									candle.Low,
 									0,
 									DateOnly.FromDateTime(candle.Timestamp.Date));
 				list.Add(item);

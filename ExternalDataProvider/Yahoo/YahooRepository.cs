@@ -28,6 +28,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			var result = marketData.Select(x => new CurrencyExchangeRate
 			{
 				Date = x.Date,
+				Currency = x.Currency,
 				Close = x.Close,
 				High = x.High,
 				Low = x.Low,
