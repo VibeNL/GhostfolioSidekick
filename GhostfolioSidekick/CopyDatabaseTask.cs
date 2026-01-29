@@ -18,7 +18,7 @@ namespace GhostfolioSidekick
 
 		public bool ExceptionsAreFatal => false;
 
-		public string Name => "Copy Database";
+		public string Name => "Copy & Backup Database";
 
 		public async Task DoWork(ILogger logger)
 		{
