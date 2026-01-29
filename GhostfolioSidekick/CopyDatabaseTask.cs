@@ -39,6 +39,9 @@ namespace GhostfolioSidekick
 				// Use SQLite's BackupDatabase API to safely backup while database is in use
 				await BackupDatabaseUsingSqliteApi(sourceFile, destinationFile, logger);
 
+				// Wait longer to ensure file locks are fully released (especially important on network shares)
+				await Task.Delay(500);
+
 				logger.LogInformation($"Database copied successfully to '{destinationFile}'.");
 
 				// Create compressed backup in subfolder (only once per day)
@@ -60,24 +63,37 @@ namespace GhostfolioSidekick
 
 		private async Task BackupDatabaseUsingSqliteApi(string sourceFile, string destinationFile, ILogger logger)
 		{
-			var sourceConnectionString = $"Data Source={sourceFile}";
-			var destinationConnectionString = $"Data Source={destinationFile}";
+			// Disable pooling and set cache mode to ensure file locks are released immediately
+			var sourceConnectionString = $"Data Source={sourceFile};Pooling=False;Cache=Shared";
+			var destinationConnectionString = $"Data Source={destinationFile};Pooling=False;Cache=Private";
 
-			await using var sourceConnection = new SqliteConnection(sourceConnectionString);
-			await using var destinationConnection = new SqliteConnection(destinationConnectionString);
+			SqliteConnection? sourceConnection = null;
+			SqliteConnection? destinationConnection = null;
 
-			await sourceConnection.OpenAsync();
-			await destinationConnection.OpenAsync();
+			try
+			{
+				sourceConnection = new SqliteConnection(sourceConnectionString);
+				destinationConnection = new SqliteConnection(destinationConnectionString);
+				
+				await sourceConnection.OpenAsync();
+				await destinationConnection.OpenAsync();
 
-			// Use SQLite's backup API - this works even when the database is in use
-			sourceConnection.BackupDatabase(destinationConnection);
+				// Use SQLite's backup API - this works even when the database is in use
+				sourceConnection.BackupDatabase(destinationConnection);
 
-			// Explicitly close connections to release file locks
-			await destinationConnection.CloseAsync();
-			await sourceConnection.CloseAsync();
-
-			// Give SQLite a moment to fully release the file lock
-			await Task.Delay(100);
+				// Explicitly close connections to release file locks
+				await destinationConnection.CloseAsync();
+				await sourceConnection.CloseAsync();
+			}
+			finally
+			{
+				// Dispose in reverse order to ensure proper cleanup
+				destinationConnection?.Dispose();
+				sourceConnection?.Dispose();
+				
+				// Give SQLite a moment to fully release file handles at the OS level
+				await Task.Delay(100);
+			}
 		}
 
 		private bool ShouldCreateDailyBackup(ILogger logger)
@@ -103,60 +119,41 @@ namespace GhostfolioSidekick
 		}
 
 
-	private async Task CreateCompressedBackup(string sourceFile, ILogger logger)
-	{
-		try
+		private async Task CreateCompressedBackup(string sourceFile, ILogger logger)
 		{
-			// Ensure backup folder exists
-			if (!Directory.Exists(settings.BackupFolderName))
+			try
 			{
-				Directory.CreateDirectory(settings.BackupFolderName);
-				logger.LogInformation($"Created backup folder '{settings.BackupFolderName}'.");
-			}
-
-			// Create timestamped backup filename
-			var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-			var backupFileName = $"GhostfolioSidekick_backup_{timestamp}.db.gz";
-			var backupFilePath = Path.Combine(settings.BackupFolderName, backupFileName);
-
-			// Retry logic to handle file lock issues (especially on network shares)
-			const int maxRetries = 5;
-			Exception? lastException = null;
-
-			for (int attempt = 0; attempt < maxRetries; attempt++)
-			{
-				try
+				// Ensure backup folder exists
+				if (!Directory.Exists(settings.BackupFolderName))
 				{
-					// Compress and save backup using async streams
-					await using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 81920, useAsync: true);
-					await using var destinationStream = new FileStream(backupFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: true);
-					await using var compressionStream = new GZipStream(destinationStream, CompressionLevel.Optimal);
+					Directory.CreateDirectory(settings.BackupFolderName);
+					logger.LogInformation($"Created backup folder '{settings.BackupFolderName}'.");
+				}
+
+				// Create timestamped backup filename
+				var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+				var backupFileName = $"GhostfolioSidekick_backup_{timestamp}.db.gz";
+				var backupFilePath = Path.Combine(settings.BackupFolderName, backupFileName);
+
+				// Compress the backup file (sourceFile is already a complete backup)
+				await using (var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 81920, useAsync: true))
+				await using (var destinationStream = new FileStream(backupFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: true))
+				await using (var compressionStream = new GZipStream(destinationStream, CompressionLevel.Optimal))
+				{
 					await sourceStream.CopyToAsync(compressionStream);
-
-					logger.LogInformation($"Compressed backup created: '{backupFilePath}'.");
-
-					// Clean up old backups, keeping only the last 5
-					await CleanupOldBackups(logger);
-					return; // Success
 				}
-				catch (IOException ex) when (attempt < maxRetries - 1)
-				{
-					lastException = ex;
-					var delayMs = (attempt + 1) * 500; // 500ms, 1000ms, 1500ms, 2000ms
-					logger.LogWarning($"File lock detected on attempt {attempt + 1}/{maxRetries}. Retrying in {delayMs}ms...");
-					await Task.Delay(delayMs);
-				}
+
+				logger.LogInformation($"Compressed backup created: '{backupFilePath}'.");
+
+				// Clean up old backups, keeping only the last 5
+				await CleanupOldBackups(logger);
 			}
-
-			// If we get here, all retries failed
-			throw lastException ?? new IOException("Failed to create compressed backup after all retries.");
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to create compressed backup.");
+				// Don't throw - the main backup already succeeded
+			}
 		}
-		catch (Exception ex)
-		{
-			logger.LogError(ex, "Failed to create compressed backup.");
-			// Don't throw - the main backup already succeeded
-		}
-	}
 
 		private Task CleanupOldBackups(ILogger logger)
 		{
