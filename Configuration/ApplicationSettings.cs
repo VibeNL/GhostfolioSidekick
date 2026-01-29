@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.Configuration
 		/// </summary>
 		public int DatabaseQueryTimeoutSeconds => GetDatabaseQueryTimeout();
 
-	/// <summary>
+		/// <summary>
 		/// Whether to enable detailed database performance logging. Default is false.
 		/// </summary>
 		public bool EnableDatabasePerformanceLogging => GetDatabasePerformanceLogging();
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.Configuration
 			return 120; // Default 2 minutes for complex portfolio queries
 		}
 
-	private static bool GetDatabasePerformanceLogging()
+		private static bool GetDatabasePerformanceLogging()
 		{
 			if (bool.TryParse(Environment.GetEnvironmentVariable(ENABLE_DATABASE_PERFORMANCE_LOGGING), out bool enabled))
 			{
@@ -121,10 +121,12 @@ namespace GhostfolioSidekick.Configuration
 			return false; // Default disabled
 		}
 
-		private static string GetBackupFolderName()
+		private string GetBackupFolderName()
 		{
+			var baseLocation = Path.GetDirectoryName(DatabaseFilePath);
 			var folderName = Environment.GetEnvironmentVariable(BACKUP_FOLDER_NAME);
-			return string.IsNullOrEmpty(folderName) ? "Backups" : folderName;
+			var backupFolderName = string.IsNullOrEmpty(folderName) ? "GHOSTFOLIOSIDEKICKBACKUPS" : folderName;
+			return Path.Combine(baseLocation!, backupFolderName);
 		}
 
 		private static int GetMaxBackupCount()
