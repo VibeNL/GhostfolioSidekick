@@ -8,7 +8,6 @@ using System.IO.Compression;
 namespace GhostfolioSidekick
 {
 	public class CopyDatabaseTask(
-		//IDbContextFactory<DatabaseContext> dbContextFactory,
 		IApplicationSettings settings) : IScheduledWork
 	{
 		private const string BackupFileName = "GhostfolioSidekick_backup.db";
