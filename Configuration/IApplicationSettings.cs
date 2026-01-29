@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Configuration
+namespace GhostfolioSidekick.Configuration
 {
 	public interface IApplicationSettings
 	{
@@ -23,6 +23,16 @@
 		/// Whether to enable detailed database performance logging. Default is false.
 		/// </summary>
 		bool EnableDatabasePerformanceLogging { get; }
+
+		/// <summary>
+		/// Folder name for database backups. Default is "Backups".
+		/// </summary>
+		string BackupFolderName { get; }
+
+		/// <summary>
+		/// Maximum number of compressed backups to keep. Default is 5.
+		/// </summary>
+		int MaxBackupCount { get; }
 
 		ConfigurationInstance ConfigurationInstance { get; }
 

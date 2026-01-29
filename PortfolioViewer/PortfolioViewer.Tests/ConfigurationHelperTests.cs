@@ -290,6 +290,8 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 			public int TrottleTimeout { get; set; }
 			public int DatabaseQueryTimeoutSeconds { get; set; } = 120;
 			public bool EnableDatabasePerformanceLogging { get; set; }
+			public string BackupFolderName { get; set; } = "Backups";
+			public int MaxBackupCount { get; set; } = 5;
 			public ConfigurationInstance ConfigurationInstance { get; set; } = new();
 			public bool AllowAdminCalls { get; set; }
 		}

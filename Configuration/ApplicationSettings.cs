@@ -12,6 +12,9 @@ namespace GhostfolioSidekick.Configuration
 		private const string TROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
 		private const string DATABASE_QUERY_TIMEOUT = "DATABASE_QUERY_TIMEOUT_SECONDS";
 		private const string ENABLE_DATABASE_PERFORMANCE_LOGGING = "ENABLE_DATABASE_PERFORMANCE_LOGGING";
+		private const string BACKUP_FOLDER_NAME = "BACKUP_FOLDER_NAME";
+		private const string MAX_BACKUP_COUNT = "MAX_BACKUP_COUNT";
+		private const string DEFAULT_DB_NAME = "ghostfolio.db";
 
 		public ApplicationSettings(ILogger<ApplicationSettings> logger)
 		{
@@ -43,7 +46,7 @@ namespace GhostfolioSidekick.Configuration
 
 				if (!dbPath.EndsWith(".db", StringComparison.OrdinalIgnoreCase))
 				{
-					dbPath = Path.Combine(dbPath, "ghostfolio.db");
+					dbPath = Path.Combine(dbPath, DEFAULT_DB_NAME);
 				}
 
 				return dbPath;
@@ -73,10 +76,20 @@ namespace GhostfolioSidekick.Configuration
 		/// </summary>
 		public int DatabaseQueryTimeoutSeconds => GetDatabaseQueryTimeout();
 
-		/// <summary>
+	/// <summary>
 		/// Whether to enable detailed database performance logging. Default is false.
 		/// </summary>
 		public bool EnableDatabasePerformanceLogging => GetDatabasePerformanceLogging();
+
+		/// <summary>
+		/// Folder name for database backups. Default is "Backups".
+		/// </summary>
+		public string BackupFolderName => GetBackupFolderName();
+
+		/// <summary>
+		/// Maximum number of compressed backups to keep. Default is 5.
+		/// </summary>
+		public int MaxBackupCount => GetMaxBackupCount();
 
 		private static int GetTimeout()
 		{
@@ -98,7 +111,7 @@ namespace GhostfolioSidekick.Configuration
 			return 120; // Default 2 minutes for complex portfolio queries
 		}
 
-		private static bool GetDatabasePerformanceLogging()
+	private static bool GetDatabasePerformanceLogging()
 		{
 			if (bool.TryParse(Environment.GetEnvironmentVariable(ENABLE_DATABASE_PERFORMANCE_LOGGING), out bool enabled))
 			{
@@ -106,6 +119,22 @@ namespace GhostfolioSidekick.Configuration
 			}
 
 			return false; // Default disabled
+		}
+
+		private static string GetBackupFolderName()
+		{
+			var folderName = Environment.GetEnvironmentVariable(BACKUP_FOLDER_NAME);
+			return string.IsNullOrEmpty(folderName) ? "Backups" : folderName;
+		}
+
+		private static int GetMaxBackupCount()
+		{
+			if (int.TryParse(Environment.GetEnvironmentVariable(MAX_BACKUP_COUNT), out int count) && count > 0)
+			{
+				return count;
+			}
+
+			return 5; // Default keep last 5 backups
 		}
 
 		public ConfigurationInstance ConfigurationInstance

@@ -1,4 +1,6 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.IO.Compression;
@@ -6,11 +8,10 @@ using System.IO.Compression;
 namespace GhostfolioSidekick
 {
 	public class CopyDatabaseTask(
-		DatabaseContext dbContext) : IScheduledWork
+		//IDbContextFactory<DatabaseContext> dbContextFactory,
+		IApplicationSettings settings) : IScheduledWork
 	{
 		private const string BackupFileName = "GhostfolioSidekick_backup.db";
-		private const string BackupFolderName = "Backups";
-		private const int MaxBackupCount = 5;
 
 		public TaskPriority Priority => TaskPriority.BackupDatabase;
 
@@ -26,8 +27,8 @@ namespace GhostfolioSidekick
 
 			try
 			{
-				var sourceFile = DatabaseContext.DbFileName;
-				var destinationFile = BackupFileName;
+				var sourceFile = settings.DatabaseFilePath;
+				var destinationFile = Path.Combine(Path.GetDirectoryName(sourceFile)!, BackupFileName);
 
 				if (!File.Exists(sourceFile))
 				{
@@ -35,20 +36,15 @@ namespace GhostfolioSidekick
 					return;
 				}
 
-				// Close any open connections to ensure clean copy
-				await dbContext.Database.CloseConnectionAsync();
-
-				// Copy the database file, overwriting if it already exists (runs every hour)
-				await using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 81920, useAsync: true);
-				await using var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: true);
-				await sourceStream.CopyToAsync(destinationStream);
+				// Use SQLite's BackupDatabase API to safely backup while database is in use
+				await BackupDatabaseUsingSqliteApi(sourceFile, destinationFile, logger);
 
 				logger.LogInformation($"Database copied successfully to '{destinationFile}'.");
 
 				// Create compressed backup in subfolder (only once per day)
 				if (ShouldCreateDailyBackup(logger))
 				{
-					await CreateCompressedBackup(sourceFile, logger);
+					await CreateCompressedBackup(destinationFile, logger);
 				}
 				else
 				{
@@ -62,18 +58,33 @@ namespace GhostfolioSidekick
 			}
 		}
 
-		private static bool ShouldCreateDailyBackup(ILogger logger)
+		private async Task BackupDatabaseUsingSqliteApi(string sourceFile, string destinationFile, ILogger logger)
+		{
+			var sourceConnectionString = $"Data Source={sourceFile}";
+			var destinationConnectionString = $"Data Source={destinationFile}";
+
+			await using var sourceConnection = new SqliteConnection(sourceConnectionString);
+			await using var destinationConnection = new SqliteConnection(destinationConnectionString);
+
+			await sourceConnection.OpenAsync();
+			await destinationConnection.OpenAsync();
+
+			// Use SQLite's backup API - this works even when the database is in use
+			sourceConnection.BackupDatabase(destinationConnection);
+		}
+
+		private bool ShouldCreateDailyBackup(ILogger logger)
 		{
 			try
 			{
-				if (!Directory.Exists(BackupFolderName))
+				if (!Directory.Exists(settings.BackupFolderName))
 				{
 					return true;
 				}
 
 				var todayDate = DateTime.UtcNow.ToString("yyyyMMdd");
 				var todayBackupPattern = $"GhostfolioSidekick_backup_{todayDate}_*.db.gz";
-				var existingTodayBackups = Directory.GetFiles(BackupFolderName, todayBackupPattern);
+				var existingTodayBackups = Directory.GetFiles(settings.BackupFolderName, todayBackupPattern);
 
 				return existingTodayBackups.Length == 0;
 			}
@@ -84,21 +95,22 @@ namespace GhostfolioSidekick
 			}
 		}
 
-		private static async Task CreateCompressedBackup(string sourceFile, ILogger logger)
+
+		private async Task CreateCompressedBackup(string sourceFile, ILogger logger)
 		{
 			try
 			{
 				// Ensure backup folder exists
-				if (!Directory.Exists(BackupFolderName))
+				if (!Directory.Exists(settings.BackupFolderName))
 				{
-					Directory.CreateDirectory(BackupFolderName);
-					logger.LogInformation($"Created backup folder '{BackupFolderName}'.");
+					Directory.CreateDirectory(settings.BackupFolderName);
+					logger.LogInformation($"Created backup folder '{settings.BackupFolderName}'.");
 				}
 
 				// Create timestamped backup filename
 				var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
 				var backupFileName = $"GhostfolioSidekick_backup_{timestamp}.db.gz";
-				var backupFilePath = Path.Combine(BackupFolderName, backupFileName);
+				var backupFilePath = Path.Combine(settings.BackupFolderName, backupFileName);
 
 				// Compress and save backup using async streams
 				await using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 81920, useAsync: true);
@@ -118,25 +130,25 @@ namespace GhostfolioSidekick
 			}
 		}
 
-		private static Task CleanupOldBackups(ILogger logger)
+		private Task CleanupOldBackups(ILogger logger)
 		{
 			try
 			{
-				var backupFiles = Directory.GetFiles(BackupFolderName, "GhostfolioSidekick_backup_*.db.gz")
+				var backupFiles = Directory.GetFiles(settings.BackupFolderName, "GhostfolioSidekick_backup_*.db.gz")
 					.Select(f => new FileInfo(f))
 					.OrderByDescending(f => f.CreationTimeUtc)
 					.ToList();
 
-				if (backupFiles.Count > MaxBackupCount)
+				if (backupFiles.Count > settings.MaxBackupCount)
 				{
-					var filesToDelete = backupFiles.Skip(MaxBackupCount).ToList();
+					var filesToDelete = backupFiles.Skip(settings.MaxBackupCount).ToList();
 					foreach (var file in filesToDelete)
 					{
 						file.Delete();
 						logger.LogInformation($"Deleted old backup: '{file.Name}'.");
 					}
 
-					logger.LogInformation($"Cleaned up {filesToDelete.Count} old backup(s). Kept the last {MaxBackupCount}.");
+					logger.LogInformation($"Cleaned up {filesToDelete.Count} old backup(s). Kept the last {settings.MaxBackupCount}.");
 				}
 			}
 			catch (Exception ex)

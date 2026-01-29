@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Database
 {
 	public class DatabaseContext : DbContext
 	{
-		public const string DbFileName = "GhostfolioSidekick.db";
+		public const string DbFileName = "ghostfolio.db";
 
 		public virtual DbSet<Platform> Platforms { get; set; }
 
