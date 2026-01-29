@@ -38,18 +38,49 @@ namespace GhostfolioSidekick
 				// Close any open connections to ensure clean copy
 				await dbContext.Database.CloseConnectionAsync();
 
-				// Copy the database file, overwriting if it already exists
-				await Task.Run(() => File.Copy(sourceFile, destinationFile, overwrite: true));
+				// Copy the database file, overwriting if it already exists (runs every hour)
+				await using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 81920, useAsync: true);
+				await using var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: true);
+				await sourceStream.CopyToAsync(destinationStream);
 
 				logger.LogInformation($"Database copied successfully to '{destinationFile}'.");
 
-				// Create compressed backup in subfolder
-				await CreateCompressedBackup(sourceFile, logger);
+				// Create compressed backup in subfolder (only once per day)
+				if (ShouldCreateDailyBackup(logger))
+				{
+					await CreateCompressedBackup(sourceFile, logger);
+				}
+				else
+				{
+					logger.LogInformation("Compressed backup already exists for today. Skipping.");
+				}
 			}
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Failed to copy database.");
 				throw;
+			}
+		}
+
+		private static bool ShouldCreateDailyBackup(ILogger logger)
+		{
+			try
+			{
+				if (!Directory.Exists(BackupFolderName))
+				{
+					return true;
+				}
+
+				var todayDate = DateTime.UtcNow.ToString("yyyyMMdd");
+				var todayBackupPattern = $"GhostfolioSidekick_backup_{todayDate}_*.db.gz";
+				var existingTodayBackups = Directory.GetFiles(BackupFolderName, todayBackupPattern);
+
+				return existingTodayBackups.Length == 0;
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error checking for existing daily backup. Will attempt to create backup.");
+				return true;
 			}
 		}
 
