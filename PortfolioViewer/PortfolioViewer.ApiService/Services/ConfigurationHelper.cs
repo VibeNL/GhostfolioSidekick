@@ -23,6 +23,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			return path;
 		}
 
+		public string GetConnectionStringBackup()
+		{
+			var path = applicationSettings.BackupDatabaseFilePath;
+			return path;
+		}
+
 		public string GetConfigurationValue(string key, string? defaultValue = null)
 		{
 			ArgumentException.ThrowIfNullOrWhiteSpace(key);

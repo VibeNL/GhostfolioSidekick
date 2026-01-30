@@ -54,13 +54,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			builder.Services.AddDbContext<DatabaseContext>((serviceProvider, options) =>
 			{
 				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
-				var connectionString = "Data Source=" + configHelper.GetConnectionString();
+				var connectionString = "Data Source=" + configHelper.GetConnectionStringBackup();
 				options.UseSqlite(connectionString);
 			});
 			builder.Services.AddDbContextFactory<DatabaseContext>((serviceProvider, options) =>
 			{
 				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
-				var connectionString = "Data Source=" + configHelper.GetConnectionString();
+				var connectionString = "Data Source=" + configHelper.GetConnectionStringBackup();
 				options.UseSqlite(connectionString);
 			}, ServiceLifetime.Scoped);
 
