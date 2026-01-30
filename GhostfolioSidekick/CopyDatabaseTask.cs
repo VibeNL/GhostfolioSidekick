@@ -36,7 +36,7 @@ namespace GhostfolioSidekick
 				}
 
 				// Use SQLite's BackupDatabase API to safely backup while database is in use
-				await BackupDatabaseUsingSqliteApi(sourceFile, destinationFile, logger);
+				await BackupDatabaseUsingSqliteApi(sourceFile, destinationFile);
 
 				// Wait longer to ensure file locks are fully released (especially important on network shares)
 				await Task.Delay(500);
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick
 			}
 		}
 
-		private async Task BackupDatabaseUsingSqliteApi(string sourceFile, string destinationFile, ILogger logger)
+		private static async Task BackupDatabaseUsingSqliteApi(string sourceFile, string destinationFile)
 		{
 			// Disable pooling and set cache mode to ensure file locks are released immediately
 			var sourceConnectionString = $"Data Source={sourceFile};Pooling=False;Cache=Shared";
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick
 			{
 				sourceConnection = new SqliteConnection(sourceConnectionString);
 				destinationConnection = new SqliteConnection(destinationConnectionString);
-				
+
 				await sourceConnection.OpenAsync();
 				await destinationConnection.OpenAsync();
 
@@ -86,10 +86,17 @@ namespace GhostfolioSidekick
 			}
 			finally
 			{
-				// Dispose in reverse order to ensure proper cleanup
-				destinationConnection?.Dispose();
-				sourceConnection?.Dispose();
-				
+				// Dispose in reverse order to ensure proper cleanup using async disposal
+				if (destinationConnection != null)
+				{
+					await destinationConnection.DisposeAsync();
+				}
+
+				if (sourceConnection != null)
+				{
+					await sourceConnection.DisposeAsync();
+				}
+
 				// Give SQLite a moment to fully release file handles at the OS level
 				await Task.Delay(100);
 			}

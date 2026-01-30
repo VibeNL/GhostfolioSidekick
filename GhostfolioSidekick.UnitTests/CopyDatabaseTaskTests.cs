@@ -270,7 +270,7 @@ namespace GhostfolioSidekick.UnitTests
 			Assert.Equal(2, allBackups.Length);
 		}
 
-		private async Task CreateTestDatabase(string path)
+		private static async Task CreateTestDatabase(string path)
 		{
 			// Create a minimal SQLite database
 			var connectionString = $"Data Source={path}";
