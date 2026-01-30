@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.Configuration
 		public bool EnableDatabasePerformanceLogging => GetDatabasePerformanceLogging();
 
 		/// <summary>
-		/// Folder name for database backups. Default is "Backups".
+		/// Folder name for database backups. Default is "GHOSTFOLIOSIDEKICKBACKUPS".
 		/// </summary>
 		public string BackupFolderName => GetBackupFolderName();
 

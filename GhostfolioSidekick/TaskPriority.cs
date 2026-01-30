@@ -2,8 +2,6 @@ namespace GhostfolioSidekick
 {
 	public enum TaskPriority
 	{
-		BackupDatabase,
-
 		DisplayInformation,
 
 		AccountMaintainer,
@@ -41,8 +39,8 @@ namespace GhostfolioSidekick
 		SyncActivitiesWithGhostfolio,
 
 		CleanupGhostfolio,
-
 		
+		BackupDatabase,
 
 		//SetManualPrices,
 
