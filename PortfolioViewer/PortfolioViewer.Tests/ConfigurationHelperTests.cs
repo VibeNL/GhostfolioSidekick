@@ -294,6 +294,8 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 			public int MaxBackupCount { get; set; } = 5;
 			public ConfigurationInstance ConfigurationInstance { get; set; } = new();
 			public bool AllowAdminCalls { get; set; }
+
+			public string BackupDatabaseFilePath => string.Empty;
 		}
 	}
 }

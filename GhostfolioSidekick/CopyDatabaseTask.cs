@@ -1,5 +1,4 @@
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,8 +9,6 @@ namespace GhostfolioSidekick
 	public class CopyDatabaseTask(
 		IApplicationSettings settings) : IScheduledWork
 	{
-		private const string BackupFileName = "GhostfolioSidekick_backup.db";
-
 		public TaskPriority Priority => TaskPriority.BackupDatabase;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
@@ -27,7 +24,7 @@ namespace GhostfolioSidekick
 			try
 			{
 				var sourceFile = settings.DatabaseFilePath;
-				var destinationFile = Path.Combine(Path.GetDirectoryName(sourceFile)!, BackupFileName);
+				var destinationFile = settings.BackupDatabaseFilePath;
 
 				if (!File.Exists(sourceFile))
 				{

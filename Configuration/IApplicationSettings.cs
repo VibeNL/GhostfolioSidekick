@@ -8,6 +8,8 @@ namespace GhostfolioSidekick.Configuration
 
 		string DatabaseFilePath { get; }
 
+		string BackupDatabaseFilePath { get; }
+
 		string GhostfolioUrl { get; }
 
 		string GhostfolioAccessToken { get; }

@@ -15,6 +15,7 @@ namespace GhostfolioSidekick.Configuration
 		private const string BACKUP_FOLDER_NAME = "BACKUP_FOLDER_NAME";
 		private const string MAX_BACKUP_COUNT = "MAX_BACKUP_COUNT";
 		private const string DEFAULT_DB_NAME = "ghostfolio.db";
+		private const string DEFAULT_DB_BACKUP_NAME = "ghostfolio_backup.db";
 
 		public ApplicationSettings(ILogger<ApplicationSettings> logger)
 		{
@@ -50,6 +51,14 @@ namespace GhostfolioSidekick.Configuration
 				}
 
 				return dbPath;
+			}
+		}
+
+		public string BackupDatabaseFilePath
+		{
+			get
+			{
+				return DatabaseFilePath.Replace(DEFAULT_DB_NAME, DEFAULT_DB_BACKUP_NAME, StringComparison.OrdinalIgnoreCase);
 			}
 		}
 
