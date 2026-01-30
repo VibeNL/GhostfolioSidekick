@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.UnitTests
 		private readonly CopyDatabaseTask copyDatabaseTask;
 		private readonly string tempDirectory;
 		private readonly string testDbPath;
+		private readonly string backupDbPath;
 		private readonly string backupFolderPath;
 
 		public CopyDatabaseTaskTests()
@@ -22,9 +23,11 @@ namespace GhostfolioSidekick.UnitTests
 			Directory.CreateDirectory(tempDirectory);
 
 			testDbPath = Path.Combine(tempDirectory, "test.db");
+			backupDbPath = Path.Combine(tempDirectory, "GhostfolioSidekick_backup.db");
 			backupFolderPath = Path.Combine(tempDirectory, "backups");
 
 			applicationSettingsMock.Setup(x => x.DatabaseFilePath).Returns(testDbPath);
+			applicationSettingsMock.Setup(x => x.BackupDatabaseFilePath).Returns(backupDbPath);
 			applicationSettingsMock.Setup(x => x.BackupFolderName).Returns(backupFolderPath);
 			applicationSettingsMock.Setup(x => x.MaxBackupCount).Returns(5);
 
@@ -76,8 +79,7 @@ namespace GhostfolioSidekick.UnitTests
 			await copyDatabaseTask.DoWork(loggerMock.Object);
 
 			// Assert
-			var backupFile = Path.Combine(Path.GetDirectoryName(testDbPath)!, "GhostfolioSidekick_backup.db");
-			Assert.True(File.Exists(backupFile), "Backup file should be created");
+			Assert.True(File.Exists(backupDbPath), "Backup file should be created");
 
 			loggerMock.Verify(
 				x => x.Log(
@@ -175,7 +177,7 @@ namespace GhostfolioSidekick.UnitTests
 			// Act
 			await copyDatabaseTask.DoWork(loggerMock.Object);
 
-			// Assert - should keep only 5 most recent backups
+			// Assert - should keep only 5 most recent backups (the 6 old ones + 1 new one = 7 total, keep 5)
 			var remainingBackups = Directory.GetFiles(backupFolderPath, "GhostfolioSidekick_backup_*.db.gz");
 			Assert.Equal(5, remainingBackups.Length);
 
@@ -234,8 +236,7 @@ namespace GhostfolioSidekick.UnitTests
 			await copyDatabaseTask.DoWork(loggerMock.Object);
 
 			// Assert - main backup should succeed
-			var backupFile = Path.Combine(Path.GetDirectoryName(testDbPath)!, "GhostfolioSidekick_backup.db");
-			Assert.True(File.Exists(backupFile), "Main backup file should be created even if compressed backup fails");
+			Assert.True(File.Exists(backupDbPath), "Main backup file should be created even if compressed backup fails");
 
 			// Compressed backup failure should be logged but not throw
 			loggerMock.Verify(
