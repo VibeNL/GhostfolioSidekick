@@ -199,9 +199,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				AssetClass = AssetClass.Equity,
 				MarketData =
 				[
-					new(new Money(Currency.USD, 100), new Money(Currency.USD, 95),
-						new Money(Currency.USD, 105), new Money(Currency.USD, 90),
-						1000, DateOnly.FromDateTime(DateTime.Today))
+					new MarketData(Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today))
 				]
 			};
 
@@ -270,12 +268,8 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			var marketDataList = new List<MarketData>
 			{
-				new(new Money(Currency.USD, 100), new Money(Currency.USD, 95),
-					new Money(Currency.USD, 105), new Money(Currency.USD, 90),
-					1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-29))),
-				new(new Money(Currency.USD, 102), new Money(Currency.USD, 98),
-					new Money(Currency.USD, 107), new Money(Currency.USD, 95),
-					1200, DateOnly.FromDateTime(DateTime.Today.AddDays(-28)))
+				new MarketData(Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-29))),
+				new MarketData(Currency.USD, 102, 98, 107, 95, 1200, DateOnly.FromDateTime(DateTime.Today.AddDays(-28)))
 			};
 
 			var mockDbContext1 = new Mock<DatabaseContext>();
@@ -341,9 +335,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var holdings = new List<Holding> { holding };
 
 			var updatedMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
-				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
+				Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
 			var marketDataList = new List<MarketData> { updatedMarketData };
 
@@ -369,7 +361,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			// Assert
 			symbolProfile.MarketData.Count.Should().Be(1);
-			existingMarketData.Close.Amount.Should().Be(100); // Verify it was updated
+			existingMarketData.Close.Should().Be(100); // Verify it was updated
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 		}
 
@@ -403,9 +395,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			// Same market data as existing
 			var sameMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
-				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
+				Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
 			var marketDataList = new List<MarketData> { sameMarketData };
 
@@ -440,9 +430,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// Arrange
 			var activityDate = DateTime.Today.AddDays(-50);
 			var existingMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
-				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-40)));
+				Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-40)));
 
 			var symbolProfile = new SymbolProfile
 			{
@@ -533,9 +521,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			var marketDataList = new List<MarketData>
 			{
-				new(new Money(Currency.USD, 100), new Money(Currency.USD, 95),
-					new Money(Currency.USD, 105), new Money(Currency.USD, 90),
-					1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-29)))
+				new MarketData(Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-29)))
 			};
 
 			var mockDbContext1 = new Mock<DatabaseContext>();
@@ -579,9 +565,9 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var date2 = DateOnly.FromDateTime(DateTime.Today.AddDays(-2));
 			var date3 = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
 
-			var md1 = new MarketData(new Money(Currency.USD, 100), new Money(Currency.USD, 95), new Money(Currency.USD, 105), new Money(Currency.USD, 90), 1000, date1);
-			var md2 = new MarketData(new Money(Currency.USD, 0), new Money(Currency.USD, 0), new Money(Currency.USD, 0), new Money(Currency.USD, 0), 1100, date2);
-			var md3 = new MarketData(new Money(Currency.USD, 200), new Money(Currency.USD, 195), new Money(Currency.USD, 205), new Money(Currency.USD, 190), 1200, date3);
+			var md1 = new MarketData(Currency.USD, 100, 95, 105, 90, 1000, date1);
+			var md2 = new MarketData(Currency.USD, 0, 0, 0, 0, 1100, date2);
+			var md3 = new MarketData(Currency.USD, 200, 195, 205, 190, 1200, date3);
 
 			var symbolProfile = new SymbolProfile
 			{
@@ -621,7 +607,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			// Assert
 			// Time-weighted average: since dates are consecutive, should be (100+200)/2 = 150
-			md2.Close.Amount.Should().BeApproximately(150, 0.0001m);
+			md2.Close.Should().BeApproximately(150, 0.0001m);
 			md2.IsGenerated.Should().BeTrue();
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 		}

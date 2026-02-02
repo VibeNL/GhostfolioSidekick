@@ -219,20 +219,20 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var endDate = new DateOnly(2023, 1, 31);
 			var accountId = 1;
 
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateCalculatedSnapshot(startDate, accountId, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate.AddDays(1), accountId, 1100m, 850m)
 			};
 
-			var balances = new List<BalancePrimaryCurrency>
+			var balances = new List<Balance>
 			{
 				CreateBalance(startDate, accountId, 200m),
 				CreateBalance(startDate.AddDays(1), accountId, 250m)
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
-			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(balances);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
 
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
@@ -265,15 +265,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var endDate = new DateOnly(2023, 1, 31);
 			var accountId = 1;
 
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>(); // Empty snapshots
+			var snapshots = new List<CalculatedSnapshot>(); // Empty snapshots
 
-			var balances = new List<BalancePrimaryCurrency>
+			var balances = new List<Balance>
 			{
 				CreateBalance(startDate, accountId, 200m)
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
-			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(balances);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
 
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
@@ -298,20 +298,20 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var startDate = new DateOnly(2023, 1, 1);
 			var endDate = new DateOnly(2023, 1, 31);
 
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateCalculatedSnapshot(startDate, 1, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate, 2, 2000m, 1600m)
 			};
 
-			var balances = new List<BalancePrimaryCurrency>
+			var balances = new List<Balance>
 			{
 				CreateBalance(startDate, 1, 200m),
 				CreateBalance(startDate, 2, 400m)
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
-			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(balances);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
 
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
@@ -330,7 +330,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var startDate = new DateOnly(2023, 1, 1);
 			var endDate = new DateOnly(2023, 1, 3);
 
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateCalculatedSnapshot(startDate.AddDays(1), 2, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate, 1, 1000m, 800m),
@@ -338,7 +338,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateCalculatedSnapshot(startDate, 2, 1000m, 800m)
 			};
 
-			var balances = new List<BalancePrimaryCurrency>
+			var balances = new List<Balance>
 			{
 				CreateBalance(startDate.AddDays(1), 2, 200m),
 				CreateBalance(startDate, 1, 200m),
@@ -346,8 +346,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateBalance(startDate, 2, 200m)
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
-			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(balances);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
 
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
@@ -374,8 +374,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var startDate = new DateOnly(2023, 1, 1);
 			var endDate = new DateOnly(2023, 1, 31);
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
-			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(new List<BalancePrimaryCurrency>());
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
@@ -392,15 +392,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var startDate = new DateOnly(2023, 1, 1);
 			var endDate = new DateOnly(2023, 1, 31);
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
-			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(new List<BalancePrimaryCurrency>());
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
 
 			// Assert
-			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
-			_mockDatabaseContext.Verify(x => x.BalancePrimaryCurrencies, Times.AtLeastOnce);
+			_mockDatabaseContext.Verify(x => x.CalculatedSnapshots, Times.AtLeastOnce);
+			_mockDatabaseContext.Verify(x => x.Balances, Times.AtLeastOnce);
 		}
 
 		[Fact]
@@ -414,18 +414,18 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var expectedCurrency = Currency.EUR;
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(expectedCurrency);
 
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateCalculatedSnapshot(startDate, accountId, 1000m, 800m)
 			};
 
-			var balances = new List<BalancePrimaryCurrency>
+			var balances = new List<Balance>
 			{
 				CreateBalance(startDate, accountId, 200m)
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
-			_mockDatabaseContext.Setup(x => x.BalancePrimaryCurrencies).ReturnsDbSet(balances);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
 
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
@@ -450,14 +450,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var expectedMinDate = new DateOnly(2020, 1, 1);
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateCalculatedSnapshot(new DateOnly(2023, 1, 1), 1, 1000m, 800m),
 				CreateCalculatedSnapshot(expectedMinDate, 1, 500m, 400m),
 				CreateCalculatedSnapshot(new DateOnly(2022, 6, 15), 1, 750m, 600m)
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 
 			// Act
 			var result = await _accountDataService.GetMinDateAsync(CancellationToken.None);
@@ -470,7 +470,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetMinDateAsync_WithEmptyDatabase_ShouldThrowInvalidOperationException()
 		{
 			// Arrange
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			// Act & Assert
 			var action = () => _accountDataService.GetMinDateAsync(CancellationToken.None);
@@ -483,18 +483,18 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var cancellationToken = new CancellationToken();
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateCalculatedSnapshot(new DateOnly(2023, 1, 1), 1, 1000m, 800m)
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 
 			// Act
 			await _accountDataService.GetMinDateAsync(cancellationToken);
 
 			// Assert
-			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
+			_mockDatabaseContext.Verify(x => x.CalculatedSnapshots, Times.AtLeastOnce);
 		}
 
 		#endregion
@@ -698,9 +698,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				"Test activity");
 		}
 
-		private static CalculatedSnapshotPrimaryCurrency CreateCalculatedSnapshot(DateOnly date, int accountId, decimal totalValue, decimal totalInvested)
+		private static CalculatedSnapshot CreateCalculatedSnapshot(DateOnly date, int accountId, decimal totalValue, decimal totalInvested)
 		{
-			return new CalculatedSnapshotPrimaryCurrency
+			return new CalculatedSnapshot
 			{
 				Date = date,
 				AccountId = accountId,
@@ -709,14 +709,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 		}
 
-		private static BalancePrimaryCurrency CreateBalance(DateOnly date, int accountId, decimal money)
+		private static Balance CreateBalance(DateOnly date, int accountId, decimal money)
 		{
-			return new BalancePrimaryCurrency
-			{
-				Date = date,
-				AccountId = accountId,
-				Money = money
-			};
+			return new Balance(date, new Money(Currency.USD, money));
 		}
 
 		#endregion

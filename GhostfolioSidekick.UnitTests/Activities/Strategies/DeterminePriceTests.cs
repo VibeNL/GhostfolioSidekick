@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			// Arrange
 			var activityDate = DateTime.Now;
 			var marketDataDate = DateOnly.FromDateTime(activityDate);
-			var marketData = new MarketData { Date = marketDataDate, Close = new Money(Currency.USD, 100) };
+			var marketData = new MarketData { Date = marketDataDate, Close = 100m };
 
 			var symbolProfile = new SymbolProfile
 			{
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			await _determinePrice.Execute(holding);
 
 			// Assert
-			activity.AdjustedUnitPrice.Should().Be(marketData.Close);
+			activity.AdjustedUnitPrice.Should().Be(100m);
 			activity.AdjustedUnitPriceSource.Should().ContainSingle(trace => trace.Reason == "Determine price" && trace.NewQuantity == activity.AdjustedQuantity && trace.NewPrice == activity.AdjustedUnitPrice);
 		}
 
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			// Arrange
 			var activityDate = DateTime.Now;
 			var marketDataDate = DateOnly.FromDateTime(activityDate);
-			var marketData = new MarketData { Date = marketDataDate, Close = new Money(Currency.USD, 100) };
+			var marketData = new MarketData { Date = marketDataDate, Close = 100m };
 
 			var symbolProfile = new SymbolProfile
 			{
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			await _determinePrice.Execute(holding);
 
 			// Assert
-			activity.AdjustedUnitPrice.Amount.Should().Be(0);
+			activity.AdjustedUnitPrice.Should().Be(0m);
 			activity.AdjustedUnitPriceSource.Should().BeEmpty();
 		}
 	}
