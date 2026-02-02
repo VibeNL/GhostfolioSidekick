@@ -27,13 +27,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
             }
 
             // Get all holdings quantities summed across all accounts for the latest date
+            // Flatten the many-to-many relationship between Holdings and SymbolProfiles
             var holdings = await databaseContext.Holdings
-                .Select(h => new {
-                    h.SymbolProfiles,
+                .SelectMany(h => h.SymbolProfiles.Select(sp => new
+                {
+                    Symbol = sp.Symbol,
                     Quantity = h.CalculatedSnapshots
                         .Where(s => s.Date == lastKnownDate)
                         .Sum(s => s.Quantity)
-                })
+                }))
                 .Where(h => h.Quantity > 0)
                 .ToListAsync();
 
