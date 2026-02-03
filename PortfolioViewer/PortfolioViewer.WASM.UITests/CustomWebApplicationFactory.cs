@@ -4,12 +4,15 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting.Server;
+using GhostfolioSidekick.Configuration;
+using Moq;
 
 namespace PortfolioViewer.WASM.UITests
 {
 	// https://danieldonbavand.com/2022/06/13/using-playwright-with-the-webapplicationfactory-to-test-a-blazor-application/
 	public class CustomWebApplicationFactory : WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program>
 	{
+		public const string TestAccessToken = "test-token-12345";
 		private IHost? _host;
 
 		public CustomWebApplicationFactory()
@@ -37,7 +40,21 @@ namespace PortfolioViewer.WASM.UITests
 			// of TestServer so we can listen on a real address.
 			builder.ConfigureWebHost(webHostBuilder => webHostBuilder
 														.UseKestrel()
-														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production"));
+														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
+														.ConfigureServices(services =>
+														{
+															// Replace IApplicationSettings with a mock that provides the test token
+															var mockSettings = new Mock<IApplicationSettings>();
+															mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
+															
+															// Remove existing registration and add our mock
+															var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
+															if (descriptor != null)
+															{
+																services.Remove(descriptor);
+															}
+															services.AddSingleton(mockSettings.Object);
+														}));
 
 
 			// Create and start the Kestrel server before the test server,

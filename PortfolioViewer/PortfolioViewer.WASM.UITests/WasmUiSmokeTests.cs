@@ -33,19 +33,38 @@ namespace PortfolioViewer.WASM.UITests
 
 			try
 			{
+				// Navigate to the login page
 				Console.WriteLine($"Navigating to: {serverAddress}");
 				await page.GotoAsync(serverAddress);
 				await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+				// Wait for the login form to appear
 				await page.WaitForSelectorAsync("input#accessToken", new PageWaitForSelectorOptions { Timeout = 10000 });
+				Console.WriteLine("Login form loaded successfully");
+
+				// Fill in the access token
+				await page.FillAsync("input#accessToken", CustomWebApplicationFactory.TestAccessToken);
+				Console.WriteLine("Access token filled in");
+
+				// Click the submit button
+				await page.ClickAsync("button[type='submit']");
+				Console.WriteLine("Login button clicked");
+
+				// Wait for navigation after successful login (should redirect to home page)
+				await page.WaitForURLAsync(url => url.Contains("/") && !url.Contains("/login"), new PageWaitForURLOptions { Timeout = 10000 });
+				Console.WriteLine($"Successfully logged in and redirected to: {page.Url}");
+
+				// Take a screenshot of the logged-in state
 				await page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath });
-				var loginInput = await page.QuerySelectorAsync("input#accessToken");
-				Assert.NotNull(loginInput);
+
+				// Verify we're no longer on the login page
+				Assert.DoesNotContain("/login", page.Url);
 			}
 			catch (Exception ex)
 			{
 				await page.ScreenshotAsync(new PageScreenshotOptions { Path = errorScreenshotPath });
 				var html = await page.ContentAsync();
-			await File.WriteAllTextAsync(errorHtmlPath, html, TestContext.Current.CancellationToken);
+				await File.WriteAllTextAsync(errorHtmlPath, html, TestContext.Current.CancellationToken);
 				Console.WriteLine($"Exception: {ex}");
 				throw;
 			}
