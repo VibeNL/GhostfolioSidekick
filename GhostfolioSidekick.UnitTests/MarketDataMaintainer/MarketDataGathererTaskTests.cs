@@ -310,10 +310,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldUpdateExistingMarketDataWhenDifferent()
 		{
 			// Arrange
-			var existingMarketData = new MarketData(
-				new Money(Currency.USD, 95), new Money(Currency.USD, 90),
-				new Money(Currency.USD, 100), new Money(Currency.USD, 85),
-				800, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
+			var existingMarketData = new MarketData(Currency.USD, 95, 90, 100, 85, 800, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
 			var symbolProfile = new SymbolProfile
 			{
@@ -369,10 +366,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldSkipUpdatingWhenMarketDataIsSame()
 		{
 			// Arrange
-			var existingMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
-				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
+			var existingMarketData = new MarketData(Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
 			var symbolProfile = new SymbolProfile
 			{

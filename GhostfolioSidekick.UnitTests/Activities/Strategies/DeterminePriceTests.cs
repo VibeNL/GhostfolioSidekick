@@ -65,18 +65,19 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			// Arrange
 			var activityDate = DateTime.Now;
 			var marketDataDate = DateOnly.FromDateTime(activityDate);
-			var marketData = new MarketData { Date = marketDataDate, Close = 100m };
+		var marketData = new MarketData { Date = marketDataDate, Close = 100m, Currency = Currency.USD };
 
-			var symbolProfile = new SymbolProfile
-			{
-				MarketData = [marketData]
-			};
+		var symbolProfile = new SymbolProfile
+		{
+			MarketData = [marketData],
+			Currency = Currency.USD
+		};
 
-			var activity = new ReceiveActivity
-			{
-				Date = activityDate,
-				AdjustedQuantity = 10
-			};
+		var activity = new ReceiveActivity
+		{
+			Date = activityDate,
+			AdjustedQuantity = 10
+		};
 
 			var holding = new Holding
 			{
@@ -88,7 +89,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			await _determinePrice.Execute(holding);
 
 			// Assert
-			activity.AdjustedUnitPrice.Should().Be(100m);
+		activity.AdjustedUnitPrice.Should().Be(new Money(Currency.USD, 100m));
 			activity.AdjustedUnitPriceSource.Should().ContainSingle(trace => trace.Reason == "Determine price" && trace.NewQuantity == activity.AdjustedQuantity && trace.NewPrice == activity.AdjustedUnitPrice);
 		}
 
@@ -98,18 +99,19 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			// Arrange
 			var activityDate = DateTime.Now;
 			var marketDataDate = DateOnly.FromDateTime(activityDate);
-			var marketData = new MarketData { Date = marketDataDate, Close = 100m };
+		var marketData = new MarketData { Date = marketDataDate, Close = 100m, Currency = Currency.USD };
 
-			var symbolProfile = new SymbolProfile
-			{
-				MarketData = [marketData]
-			};
+		var symbolProfile = new SymbolProfile
+		{
+			MarketData = [marketData],
+			Currency = Currency.USD
+		};
 
-			var activity = new BuyActivity
-			{
-				Date = activityDate,
-				AdjustedQuantity = 10
-			};
+		var activity = new BuyActivity
+		{
+			Date = activityDate,
+			AdjustedQuantity = 10
+		};
 
 			var holding = new Holding
 			{
@@ -121,7 +123,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 			await _determinePrice.Execute(holding);
 
 			// Assert
-			activity.AdjustedUnitPrice.Should().Be(0m);
+		activity.AdjustedUnitPrice.Should().Be(new Money(Currency.USD, 0m));
 			activity.AdjustedUnitPriceSource.Should().BeEmpty();
 		}
 	}

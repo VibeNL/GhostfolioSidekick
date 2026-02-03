@@ -155,9 +155,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				// Current market price trace
 				var priceTrace = new Scatter
 				{
-					X = dates,
-					Y = [.. PriceHistory.OrderBy(p => p.Date).Select(p => (object)p.Price.Amount)],
-					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+				X = dates,
+				Y = [.. PriceHistory.OrderBy(p => p.Date).Select(p => (object)p.Price)],
+				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = $"Market Price",
 					Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#007bff", Width = 2 },
 					Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#007bff", Size = 4 }
@@ -166,9 +166,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				// Average paid price trace
 				var averagePriceTrace = new Scatter
 				{
-					X = dates,
-					Y = [.. PriceHistory.OrderBy(p => p.Date).Select(p => (object)p.AveragePrice.Amount)],
-					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+				X = dates,
+				Y = [.. PriceHistory.OrderBy(p => p.Date).Select(p => (object)p.AveragePrice)],
+				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = $"Average Paid Price",
 					Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#28a745", Width = 2 },
 					Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 4 }

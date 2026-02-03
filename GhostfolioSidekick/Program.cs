@@ -1,4 +1,4 @@
-﻿using CoinGecko.Net.Clients;
+using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Options;
 using GhostfolioSidekick.Activities.Strategies;
@@ -128,15 +128,15 @@ namespace GhostfolioSidekick
 
 							services.AddHttpClient<IDividendRepository, DividendMaxScraper>();
 
-							services.AddScoped<IHostedService, TimedHostedService>();
-							RegisterAllWithInterface<IScheduledWork>(services);
-							RegisterAllWithInterface<IHoldingStrategy>(services);
-							RegisterAllWithInterface<IFileImporter>(services);
-							RegisterAllWithInterface<ITradeRepublicActivityParser>(services);
+					services.AddScoped<IHostedService, TimedHostedService>();
+					RegisterAllWithInterface<IScheduledWork>(services);
+					RegisterAllWithInterface<IHoldingStrategy>(services);
+					RegisterAllWithInterface<IFileImporter>(services);
+					RegisterAllWithInterface<ITradeRepublicActivityParser>(services);
 
-							services.AddScoped<IHoldingPerformanceCalculator, HoldingPerformanceCalculator>();
+					services.AddScoped<IPerformanceCalculator, PerformanceCalculator>();
 
-							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
+					services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 						});
 		}
 

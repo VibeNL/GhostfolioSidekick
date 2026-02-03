@@ -35,26 +35,23 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
                 SymbolProfileDataSource = "TestSource"
             };
 
-            var calculatedSnapshot = new CalculatedSnapshotPrimaryCurrency 
+            var calculatedSnapshot = new CalculatedSnapshot 
             { 
                 Date = DateOnly.FromDateTime(DateTime.Today), 
                 Quantity = 10m 
             };
 
-            var holdingAggregated = new HoldingAggregated
+            var holding = new Holding
             {
-                Symbol = "AAPL",
-                CalculatedSnapshotsPrimaryCurrency =
-				[
-					calculatedSnapshot
-                ]
+                SymbolProfiles = [symbolProfile],
+                CalculatedSnapshots = [calculatedSnapshot]
             };
 
             var mockContext = new Mock<DatabaseContext>();
             mockContext.Setup(x => x.Dividends).ReturnsDbSet(new List<Dividend> { dividend });
             mockContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile> { symbolProfile });
-            mockContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated> { holdingAggregated });
-            mockContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot });
+            mockContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding> { holding });
+            mockContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { calculatedSnapshot });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
@@ -114,26 +111,23 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
                 SymbolProfileDataSource = "TestSource"
             };
 
-            var calculatedSnapshot = new CalculatedSnapshotPrimaryCurrency 
+            var calculatedSnapshot = new CalculatedSnapshot 
             { 
                 Date = DateOnly.FromDateTime(DateTime.Today), 
                 Quantity = 5m 
             };
 
-            var holdingAggregated = new HoldingAggregated
+            var holding = new Holding
             {
-                Symbol = "ASML",
-                CalculatedSnapshotsPrimaryCurrency =
-				[
-					calculatedSnapshot
-                ]
+                SymbolProfiles = [symbolProfile],
+                CalculatedSnapshots = [calculatedSnapshot]
             };
 
             var mockContext = new Mock<DatabaseContext>();
             mockContext.Setup(x => x.Dividends).ReturnsDbSet(new List<Dividend> { dividend });
             mockContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile> { symbolProfile });
-            mockContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated> { holdingAggregated });
-            mockContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot });
+            mockContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding> { holding });
+            mockContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { calculatedSnapshot });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))

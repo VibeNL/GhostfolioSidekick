@@ -173,15 +173,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 					if (priceHistory.Count != 0)
 					{
-						// Get start and end prices
-						var startPrice = priceHistory.OrderBy(p => p.Date).First()?.Price;
-						var endPrice = priceHistory.OrderByDescending(p => p.Date).First()?.Price;
+				// Get start and end prices
+				var startPricePoint = priceHistory.OrderBy(p => p.Date).First();
+				var endPricePoint = priceHistory.OrderByDescending(p => p.Date).First();
 
-						if (startPrice != null && endPrice != null && startPrice.Amount > 0)
-						{
-							// Calculate percentage change over the time range
-							var percentageChange = (endPrice.Amount - startPrice.Amount) / startPrice.Amount;
-							var absoluteChange = endPrice.Subtract(startPrice);
+				if (startPricePoint != null && endPricePoint != null && startPricePoint.Price > 0)
+				{
+					var currency = holding.CurrentPrice.Currency;
+					var startPrice = new Money(currency, startPricePoint.Price);
+					var endPrice = new Money(currency, endPricePoint.Price);
+					
+					// Calculate percentage change over the time range
+					var percentageChange = (endPricePoint.Price - startPricePoint.Price) / startPricePoint.Price;
+					var absoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price);
 
 							timeRangePerformances.Add(new HoldingTimeRangePerformance
 							{
