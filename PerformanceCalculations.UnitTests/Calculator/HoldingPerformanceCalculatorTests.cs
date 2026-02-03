@@ -139,15 +139,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			// Add market data
-			var marketData = new MarketData
-			{
-				Date = DateOnly.FromDateTime(buyDate),
-				Close = 155,
-				Open = 150,
-				High = 160,
-				Low = 145,
-				TradingVolume = 1000000
-			};
+			var marketData = new MarketData(
+				Currency.USD,
+				155,
+				150,
+				160,
+				145,
+				1000000,
+				DateOnly.FromDateTime(buyDate));
 			symbolProfile.MarketData.Add(marketData);
 
 			context.Holdings.Add(holding);
@@ -189,9 +188,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			// Add market data for both dates and today
-			symbolProfile.MarketData.Add(new MarketData { Date = DateOnly.FromDateTime(firstBuyDate), Close = 155, Open = 150, High = 160, Low = 145, TradingVolume = 1000000 });
-			symbolProfile.MarketData.Add(new MarketData { Date = DateOnly.FromDateTime(secondBuyDate), Close = 165, Open = 160, High = 170, Low = 155, TradingVolume = 800000 });
-			symbolProfile.MarketData.Add(new MarketData { Date = DateOnly.FromDateTime(DateTime.Today), Close = 155, Open = 160, High = 170, Low = 150, TradingVolume = 900000 });
+			symbolProfile.MarketData.Add(new MarketData(Currency.USD, 155, 150, 160, 145, 1000000, DateOnly.FromDateTime(firstBuyDate)));
+			symbolProfile.MarketData.Add(new MarketData(Currency.USD, 165, 160, 170, 155, 800000, DateOnly.FromDateTime(secondBuyDate)));
+			symbolProfile.MarketData.Add(new MarketData(Currency.USD, 155, 160, 170, 150, 900000, DateOnly.FromDateTime(DateTime.Today)));
 
 			context.Holdings.Add(holding);
 			await context.SaveChangesAsync(CancellationToken.None);
@@ -231,8 +230,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			// Add market data
-			symbolProfile.MarketData.Add(new MarketData { Date = DateOnly.FromDateTime(buyDate), Close = 155, Open = 150, High = 160, Low = 145, TradingVolume = 1000000 });
-			symbolProfile.MarketData.Add(new MarketData { Date = DateOnly.FromDateTime(sellDate), Close = 165, Open = 160, High = 170, Low = 155, TradingVolume = 800000 });
+			symbolProfile.MarketData.Add(new MarketData(Currency.USD, 155, 150, 160, 145, 1000000, DateOnly.FromDateTime(buyDate)));
+			symbolProfile.MarketData.Add(new MarketData(Currency.USD, 165, 160, 170, 155, 800000, DateOnly.FromDateTime(sellDate)));
 
 			context.Holdings.Add(holding);
 			await context.SaveChangesAsync(CancellationToken.None);
@@ -266,7 +265,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			// Add market data for a date before the buy date
-			symbolProfile.MarketData.Add(new MarketData { Date = DateOnly.FromDateTime(buyDate.AddDays(-2)), Close = 145, Open = 140, High = 150, Low = 135, TradingVolume = 1000000 });
+			symbolProfile.MarketData.Add(new MarketData(Currency.USD, 145, 140, 150, 135, 1000000, DateOnly.FromDateTime(buyDate.AddDays(-2))));
 
 			context.Holdings.Add(holding);
 			await context.SaveChangesAsync(CancellationToken.None);
