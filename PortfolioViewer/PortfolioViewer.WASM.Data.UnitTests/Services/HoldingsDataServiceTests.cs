@@ -754,36 +754,40 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result[0].Price.Should().Be(0); // Should handle null CurrentUnitPrice
 		}
 
-		private static Holding CreateTestHolding(string symbol, string? name)
-		{
-			var holding = new Holding { Id = Random.Shared.Next(1, 1000), SymbolProfiles = [new SymbolProfile(symbol: symbol, name: name, identifiers: [], currency: Currency.USD, dataSource: "YAHOO", assetClass: AssetClass.Equity, assetSubClass: null, countries: [], sectors: [new SectorWeight { Name = "Technology" }])], CalculatedSnapshots = [] }; return holding;
-		}
+	private static int _holdingIdCounter = 0;
 
-		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
-			int? accountId,
-			DateOnly? date,
-			decimal quantity = 10,
-			decimal averageCostPrice = 100,
-			decimal currentUnitPrice = 110,
-			decimal totalInvested = 1000,
-			decimal totalValue = 1100)
-		{
-			return new CalculatedSnapshot(id: Random.Shared.Next(1, 1000), accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
-		}
+	private static Holding CreateTestHolding(string symbol, string? name)
+	{
+		var holding = new Holding { Id = ++_holdingIdCounter, SymbolProfiles = [new SymbolProfile(symbol: symbol, name: name, identifiers: [], currency: Currency.USD, dataSource: "YAHOO", assetClass: AssetClass.Equity, assetSubClass: null, countries: [], sectors: [new SectorWeight { Name = "Technology" }])], CalculatedSnapshots = [] }; return holding;
+	}
 
-		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
-			DateOnly date,
-			decimal quantity,
-			Money averageCostPrice,
-			Money? currentUnitPrice)
-		{
-			return new CalculatedSnapshot(
-				id: Random.Shared.Next(1, 1000),
-				accountId: 1,
-				date: date,
-				quantity: quantity,
-				currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0);
-		}
+	private static int _snapshotIdCounter = 0;
+
+	private static CalculatedSnapshot CreateTestCalculatedSnapshot(
+		int? accountId,
+		DateOnly? date,
+		decimal quantity = 10,
+		decimal averageCostPrice = 100,
+		decimal currentUnitPrice = 110,
+		decimal totalInvested = 1000,
+		decimal totalValue = 1100)
+	{
+		return new CalculatedSnapshot(id: ++_snapshotIdCounter, accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
+	}
+
+	private static CalculatedSnapshot CreateTestCalculatedSnapshot(
+		DateOnly date,
+		decimal quantity,
+		Money averageCostPrice,
+		Money? currentUnitPrice)
+	{
+		return new CalculatedSnapshot(
+			id: ++_snapshotIdCounter,
+			accountId: 1,
+			date: date,
+			quantity: quantity,
+			currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0);
+	}
 	}
 }
 

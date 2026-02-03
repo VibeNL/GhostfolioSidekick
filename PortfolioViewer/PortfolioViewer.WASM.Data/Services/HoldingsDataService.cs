@@ -148,12 +148,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					else
 					{
 						x.GainLossPercentage = gainloss / (x.AveragePrice.Amount * x.Quantity);
-					}
 				}
 			}
-
-			return result;
 		}
+
+		return [.. result.OrderBy(x => x.Symbol)];
+	}
 
 		private Money ConvertToMoney(decimal? amount)
 		{

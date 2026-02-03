@@ -711,7 +711,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static Balance CreateBalance(DateOnly date, int accountId, decimal money)
 		{
-			return new Balance(date, new Money(Currency.USD, money));
+			return new Balance(date, new Money(Currency.USD, money))
+			{
+				AccountId = accountId
+			};
 		}
 
 		#endregion
