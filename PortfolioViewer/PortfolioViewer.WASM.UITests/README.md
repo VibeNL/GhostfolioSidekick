@@ -18,6 +18,10 @@ The tests use the Page Object pattern to encapsulate page interactions and impro
   - Handles home page and sync functionality
   - Methods: `ClickSyncButtonAsync()`, `WaitForSyncToCompleteAsync()`, `GetProgressPercentageAsync()`
 
+- **TransactionsPage** (`PageObjects/TransactionsPage.cs`)
+  - Handles transactions page interactions
+  - Methods: `NavigateViaMenuAsync()`, `WaitForPageLoadAsync()`, `HasTransactionsAsync()`, `GetTransactionRowsAsync()`
+
 ### Base Test Class
 
 **PlaywrightTestBase** (`PlaywrightTestBase.cs`) provides common functionality:
@@ -44,7 +48,23 @@ The tests use the Page Object pattern to encapsulate page interactions and impro
    - Verifies sync completion indicators
    - Takes screenshots at different stages (before, during, after sync)
 
-4. **DebugApiHealthEndpoint**
+4. **ComprehensiveSmokeTest_LoginSyncAndViewTransactions** 🌟 **RECOMMENDED**
+   - **End-to-end comprehensive test covering the full user workflow**
+   - **Steps:**
+     1. Login with valid credentials
+     2. Verify home page loads
+     3. Start data sync
+     4. Monitor sync progress with real-time updates
+     5. Verify sync completion
+     6. Navigate to Transactions page via menu
+     7. Wait for transactions to load
+     8. Verify transaction data is displayed correctly
+   - **Duration:** 30 seconds - 3 minutes (depending on data volume)
+   - **Screenshots:** 6 screenshots captured at each major step
+   - **Comprehensive logging:** Detailed console output for each step
+   - **Validates:** Login → Sync → Navigation → Data Display
+
+5. **DebugApiHealthEndpoint**
    - Helper test to verify API connectivity
 
 ## Running Tests
