@@ -1,8 +1,5 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Performance;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Tools.Database.UnitTests
@@ -27,10 +24,17 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 			var pendingMigrations = await context.Database.GetPendingMigrationsAsync(CancellationToken.None);
 			pendingMigrations.Should().BeEmpty();
 
-			// Check if table Holding exists
-			var tableExists = await context.Database.ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Holdings';", CancellationToken.None);
+			// Debug: Get all existing tables
+			var allTables = await context.Database.SqlQueryRaw<string>(
+				"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;")
+				.ToListAsync(CancellationToken.None);
+			
+			// Output for debugging
+			var tablesOutput = string.Join(", ", allTables);
+			Console.WriteLine($"Existing tables: {tablesOutput}");
 
-			tableExists.Should().BeGreaterThan(0);
+			// Check if Holdings table exists in the list
+			allTables.Should().Contain("Holdings");
 		}
 	}
 }
