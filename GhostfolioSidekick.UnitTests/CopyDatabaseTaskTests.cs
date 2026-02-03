@@ -229,8 +229,11 @@ namespace GhostfolioSidekick.UnitTests
 			// Arrange
 			await CreateTestDatabase(testDbPath);
 			
-			// Set an invalid backup folder path to cause compressed backup to fail
-			applicationSettingsMock.Setup(x => x.BackupFolderName).Returns("C:\0Invalid:\0Path");
+		
+		// Set an invalid backup folder path to cause compressed backup to fail
+		// Use null character which is invalid on all platforms (Windows, Linux, macOS)
+		var invalidPath = Path.Combine(tempDirectory, "\0InvalidPath");
+		applicationSettingsMock.Setup(x => x.BackupFolderName).Returns(invalidPath);
 
 			// Act - should not throw, main backup should still succeed
 			await copyDatabaseTask.DoWork(loggerMock.Object);
