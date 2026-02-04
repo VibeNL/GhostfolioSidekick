@@ -1,9 +1,8 @@
-﻿namespace GhostfolioSidekick.Tools.ScraperUtilities
+namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
 	public enum SupportedBrokers
 	{
 		ScalableCapital,
-		TradeRepublic,
-		CentraalBeheer
+		TradeRepublic
 	}
 }
