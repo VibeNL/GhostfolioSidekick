@@ -202,10 +202,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-	public async Task GetHoldingsAsync_WithCancellationToken_ShouldPassTokenToDatabase()
-	{
-		// Arrange
-		_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding>());
+		public async Task GetHoldingsAsync_WithCancellationToken_ShouldPassTokenToDatabase()
+		{
+			// Arrange
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding>());
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			// Act
@@ -229,9 +229,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var snapshot = CreateTestCalculatedSnapshot(accountId, testDate);
 
 			holding.CalculatedSnapshots = [snapshot];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
 
 			// Act
@@ -253,9 +253,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var snapshot = CreateTestCalculatedSnapshot(1, testDate);
 
 			holding.CalculatedSnapshots = [snapshot];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
 
 			// Act
@@ -276,9 +276,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var snapshot = CreateTestCalculatedSnapshot(1, testDate);
 
 			holding.CalculatedSnapshots = [snapshot];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
 
 			// Act
@@ -306,10 +306,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			holdingAAPL.CalculatedSnapshots = [snapshotAAPL];
 			holdingMSFT.CalculatedSnapshots = [snapshotMSFT];
 
-			var Holdings = new List<Holding> { holdingAAPL, holdingMSFT };
+			var holdings = new List<Holding> { holdingAAPL, holdingMSFT };
 			var snapshots = new List<CalculatedSnapshot> { snapshotAAPL, snapshotMSFT };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 
 			// Act
@@ -331,9 +331,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var snapshot = CreateTestCalculatedSnapshot(1, testDate);
 
 			holding.CalculatedSnapshots = [snapshot];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
 
 			// Act
@@ -388,9 +388,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var calculatedSnapshot2 = CreateTestCalculatedSnapshot(startDate.AddDays(1), 15, new Money(Currency.USD, 105), new Money(Currency.USD, 115));
 
 			holding.CalculatedSnapshots = [calculatedSnapshot1, calculatedSnapshot2];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 
 			// Act
 			var result = await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, CancellationToken.None);
@@ -424,9 +424,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var calculatedSnapshot2 = CreateTestCalculatedSnapshot(testDate, 20, new Money(Currency.USD, 105), new Money(Currency.USD, 105)); // Lower price
 
 			holding.CalculatedSnapshots = [calculatedSnapshot1, calculatedSnapshot2];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 
 			// Act
 			var result = await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, CancellationToken.None);
@@ -438,7 +438,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var point = result[0];
 			point.Date.Should().Be(testDate);
 			point.Price.Should().Be(105); // Min price
-												 // Average price should be weighted: (100*10 + 105*20) / (10+20) = 103.33...
+										  // Average price should be weighted: (100*10 + 105*20) / (10+20) = 103.33...
 			point.AveragePrice.Should().BeApproximately(103.33m, 0.01m);
 		}
 
@@ -473,9 +473,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var calculatedSnapshot = CreateTestCalculatedSnapshot(dataDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110));
 
 			holding.CalculatedSnapshots = [calculatedSnapshot];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 
 			// Act
 			var result = await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, CancellationToken.None);
@@ -488,15 +488,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		[Fact]
 		public async Task GetHoldingPriceHistoryAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
-		// Arrange
-		var symbol = "AAPL";
-		var startDate = new DateOnly(2023, 1, 1);
-		var endDate = new DateOnly(2023, 1, 31);
+			// Arrange
+			var symbol = "AAPL";
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
 
-		_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding>());
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding>());
 
 			// Act
-		await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, CancellationToken.None);
+			await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, CancellationToken.None);
 
 			// Assert
 			_mockDatabaseContext.Verify(x => x.Holdings, Times.AtLeastOnce);
@@ -664,11 +664,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		[Fact]
 		public async Task GetPortfolioValueHistoryAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
-		// Arrange
-		var startDate = new DateOnly(2023, 1, 1);
-		var endDate = new DateOnly(2023, 1, 31);
+			// Arrange
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
 
-		_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			// Act
 			await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, CancellationToken.None);
@@ -741,9 +741,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var calculatedSnapshot = CreateTestCalculatedSnapshot(startDate, 10, new Money(Currency.USD, 100), null);
 
 			holding.CalculatedSnapshots = [calculatedSnapshot];
-			var Holdings = new List<Holding> { holding };
+			var holdings = new List<Holding> { holding };
 
-			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(Holdings);
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 
 			// Act
 			var result = await _holdingsDataService.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, CancellationToken.None);
@@ -754,40 +754,40 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result[0].Price.Should().Be(0); // Should handle null CurrentUnitPrice
 		}
 
-	private static int _holdingIdCounter = 0;
+		private static int _holdingIdCounter = 0;
 
-	private static Holding CreateTestHolding(string symbol, string? name)
-	{
-		var holding = new Holding { Id = ++_holdingIdCounter, SymbolProfiles = [new SymbolProfile(symbol: symbol, name: name, identifiers: [], currency: Currency.USD, dataSource: "YAHOO", assetClass: AssetClass.Equity, assetSubClass: null, countries: [], sectors: [new SectorWeight { Name = "Technology" }])], CalculatedSnapshots = [] }; return holding;
-	}
+		private static Holding CreateTestHolding(string symbol, string? name)
+		{
+			var holding = new Holding { Id = ++_holdingIdCounter, SymbolProfiles = [new SymbolProfile(symbol: symbol, name: name, identifiers: [], currency: Currency.USD, dataSource: "YAHOO", assetClass: AssetClass.Equity, assetSubClass: null, countries: [], sectors: [new SectorWeight { Name = "Technology" }])], CalculatedSnapshots = [] }; return holding;
+		}
 
-	private static int _snapshotIdCounter = 0;
+		private static int _snapshotIdCounter = 0;
 
-	private static CalculatedSnapshot CreateTestCalculatedSnapshot(
-		int? accountId,
-		DateOnly? date,
-		decimal quantity = 10,
-		decimal averageCostPrice = 100,
-		decimal currentUnitPrice = 110,
-		decimal totalInvested = 1000,
-		decimal totalValue = 1100)
-	{
-		return new CalculatedSnapshot(id: ++_snapshotIdCounter, accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
-	}
+		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
+			int? accountId,
+			DateOnly? date,
+			decimal quantity = 10,
+			decimal averageCostPrice = 100,
+			decimal currentUnitPrice = 110,
+			decimal totalInvested = 1000,
+			decimal totalValue = 1100)
+		{
+			return new CalculatedSnapshot(id: ++_snapshotIdCounter, accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
+		}
 
-	private static CalculatedSnapshot CreateTestCalculatedSnapshot(
-		DateOnly date,
-		decimal quantity,
-		Money averageCostPrice,
-		Money? currentUnitPrice)
-	{
-		return new CalculatedSnapshot(
-			id: ++_snapshotIdCounter,
-			accountId: 1,
-			date: date,
-			quantity: quantity,
-			currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0);
-	}
+		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
+			DateOnly date,
+			decimal quantity,
+			Money averageCostPrice,
+			Money? currentUnitPrice)
+		{
+			return new CalculatedSnapshot(
+				id: ++_snapshotIdCounter,
+				accountId: 1,
+				date: date,
+				quantity: quantity,
+				currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0);
+		}
 	}
 }
 
