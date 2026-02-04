@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="Microsoft.Playwright" Version="1.57.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -26,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
     <ProjectReference Include="..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
+    <ProjectReference Include="..\..\Configuration\Configuration.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\" />
