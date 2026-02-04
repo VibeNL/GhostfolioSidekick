@@ -28,10 +28,9 @@ namespace PortfolioViewer.WASM.UITests
 			// Ensure WASM publish/copy target is executed
 			EnsureWasmPublishedToApiStaticFiles();
 
-			// Create and open in-memory SQLite connection with shared cache
-			// Keep it open for the lifetime of the factory to maintain the in-memory database
-			// Using "DataSource=file::memory:?cache=shared" would allow multiple connections,
-			// but we use a single connection and share it across all DbContext instances
+			// Create and open an in-memory SQLite connection using a named in-memory database ("TestDb")
+			// with a shared cache. We keep a single connection open for the lifetime of the factory
+			// and share that connection across all DbContext instances.
 			_connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=TestDb;Mode=Memory;Cache=Shared");
 			_connection.Open();
 		}
