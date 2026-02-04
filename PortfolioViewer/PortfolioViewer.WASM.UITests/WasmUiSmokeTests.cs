@@ -11,7 +11,7 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			// Log the API base address
 			var apiClient = Fixture.CreateDefaultClient();
-			
+
 			// Try to call the health endpoint directly
 			var healthUrl = "api/auth/health";
 			try
@@ -118,19 +118,19 @@ namespace PortfolioViewer.WASM.UITests
 
 				await transactionsPage.WaitForPageLoadAsync(timeout: 30000);
 
-			var hasTransactions = await transactionsPage.HasTransactionsAsync();
-			var isEmpty = await transactionsPage.IsEmptyStateDisplayedAsync();
-			var hasError = await transactionsPage.IsErrorDisplayedAsync();
+				var hasTransactions = await transactionsPage.HasTransactionsAsync();
+				var isEmpty = await transactionsPage.IsEmptyStateDisplayedAsync();
+				var hasError = await transactionsPage.IsErrorDisplayedAsync();
 
-			Assert.False(hasError, "Transaction page should not show an error after successful sync");
-			Assert.True(hasTransactions, "Transaction page should show transactions after successful sync (test data should be seeded)");
-			Assert.False(isEmpty, "Transaction page should not be empty after successful sync with seeded test data");
+				Assert.False(hasError, "Transaction page should not show an error after successful sync");
+				Assert.True(hasTransactions, "Transaction page should show transactions after successful sync (test data should be seeded)");
+				Assert.False(isEmpty, "Transaction page should not be empty after successful sync with seeded test data");
 
-			var isTableDisplayed = await transactionsPage.IsTableDisplayedAsync();
-			Assert.True(isTableDisplayed, "Transaction table should be visible");
+				var isTableDisplayed = await transactionsPage.IsTableDisplayedAsync();
+				Assert.True(isTableDisplayed, "Transaction table should be visible");
 
-			var hasValidData = await transactionsPage.VerifyTransactionDataAsync();
-			Assert.True(hasValidData, "Transactions should have valid data (date, type, symbol)");
+				var hasValidData = await transactionsPage.VerifyTransactionDataAsync();
+				Assert.True(hasValidData, "Transactions should have valid data (date, type, symbol)");
 			}
 			catch
 			{
