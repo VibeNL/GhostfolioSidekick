@@ -28,9 +28,11 @@ namespace PortfolioViewer.WASM.UITests
 			// Ensure WASM publish/copy target is executed
 			EnsureWasmPublishedToApiStaticFiles();
 
-			// Create and open in-memory SQLite connection
+			// Create and open in-memory SQLite connection with shared cache
 			// Keep it open for the lifetime of the factory to maintain the in-memory database
-			_connection = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=:memory:");
+			// Using "DataSource=file::memory:?cache=shared" would allow multiple connections,
+			// but we use a single connection and share it across all DbContext instances
+			_connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=TestDb;Mode=Memory;Cache=Shared");
 			_connection.Open();
 		}
 
@@ -51,56 +53,67 @@ namespace PortfolioViewer.WASM.UITests
 
 			// Modify the host builder to use Kestrel instead
 			// of TestServer so we can listen on a real address.
-		builder.ConfigureWebHost(webHostBuilder => webHostBuilder
-													.UseKestrel()
-													.UseUrls("http://127.0.0.1:0") // Use dynamic port (0 = auto-select available port)
-													.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
-														.ConfigureServices(services =>
-														{
-															// Replace IApplicationSettings with a mock that provides the test token
-															var mockSettings = new Mock<IApplicationSettings>();
-															mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
-															
-															// Remove existing registration and add our mock
-															var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
-															if (descriptor != null)
+			builder.ConfigureWebHost(webHostBuilder => webHostBuilder
+														.UseKestrel()
+														.UseUrls("http://127.0.0.1:0") // Use dynamic port (0 = auto-select available port)
+														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
+															.ConfigureServices(services =>
 															{
-																services.Remove(descriptor);
-															}
-														services.AddSingleton(mockSettings.Object);
+																// Replace IApplicationSettings with a mock that provides the test token
+																var mockSettings = new Mock<IApplicationSettings>();
+																mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
 
-														// Remove existing DbContext registrations and replace with in-memory SQLite
-														var dbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<DatabaseContext>));
-														if (dbContextDescriptor != null)
-														{
-															services.Remove(dbContextDescriptor);
-														}
-														var dbContextServiceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DatabaseContext));
-														if (dbContextServiceDescriptor != null)
-														{
-															services.Remove(dbContextServiceDescriptor);
-														}
+																// Remove existing registration and add our mock
+																var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
+																if (descriptor != null)
+																{
+																	services.Remove(descriptor);
+																}
+																services.AddSingleton(mockSettings.Object);
 
-														// Register in-memory SQLite database for testing
-														services.AddDbContext<DatabaseContext>(options =>
-														{
-															options.UseSqlite(_connection!);
-														});
-													}));
+																// Remove existing DbContext registrations and replace with in-memory SQLite
+																var dbContextDescriptors = services.Where(d =>
+																	d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
+																	d.ServiceType == typeof(DatabaseContext) ||
+																	d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
+																	.ToList();
 
 
-		// Create and start the Kestrel server before the test server,
-		// otherwise due to the way the deferred host builder works
-		// for minimal hosting, the server will not get "initialized
-		// enough" for the address it is listening on to be available.
-		// See https://github.com/dotnet/aspnetcore/issues/33846.
-		_host = builder.Build();
-		_host.Start();
+																foreach (var desc in dbContextDescriptors)
+																{
+																	services.Remove(desc);
+																}
 
-		// Seed test data
-		SeedTestData(_host.Services);
+																// Register in-memory SQLite database for testing
+																// Important: Share the same connection across all DbContext instances
+																// to ensure in-memory database persists
+																services.AddDbContext<DatabaseContext>(options =>
+																{
+																	// Use the shared in-memory connection
+																	// Don't let EF Core manage the connection (we keep it open)
+																	options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
+																}, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
 
-		// Extract the selected dynamic port out of the Kestrel server
+																// Also register DbContextFactory with the same connection
+																services.AddDbContextFactory<DatabaseContext>(options =>
+																{
+																	options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
+																}, ServiceLifetime.Scoped);
+															}));
+
+
+			// Create and start the Kestrel server before the test server,
+			// otherwise due to the way the deferred host builder works
+			// for minimal hosting, the server will not get "initialized
+			// enough" for the address it is listening on to be available.
+			// See https://github.com/dotnet/aspnetcore/issues/33846.
+			_host = builder.Build();
+			_host.Start();
+
+			// Seed test data
+			SeedTestData(_host.Services);
+
+			// Extract the selected dynamic port out of the Kestrel server
 			// and assign it onto the client options for convenience so it
 			// "just works" as otherwise it'll be the default http://localhost
 			// URL, which won't route to the Kestrel-hosted HTTP server.
@@ -119,12 +132,12 @@ namespace PortfolioViewer.WASM.UITests
 			return testHost;
 		}
 
-	protected override void Dispose(bool disposing)
-	{
-		_host?.Dispose();
-		_connection?.Dispose();
-		base.Dispose(disposing);
-	}
+		protected override void Dispose(bool disposing)
+		{
+			_host?.Dispose();
+			_connection?.Dispose();
+			base.Dispose(disposing);
+		}
 
 		private void EnsureServer()
 		{
@@ -200,45 +213,46 @@ namespace PortfolioViewer.WASM.UITests
 
 			foreach (var newPath in Directory.GetFiles(tempFolder, "*.*", SearchOption.AllDirectories))
 			{
-			File.Copy(newPath, newPath.Replace(tempFolder, apiWwwroot), true);
+				File.Copy(newPath, newPath.Replace(tempFolder, apiWwwroot), true);
+			}
 		}
-	}
 
-	private static void SeedTestData(IServiceProvider services)
-	{
-		try
+		private void SeedTestData(IServiceProvider services)
 		{
-	using var scope = services.CreateScope();
-	var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+			try
+			{
+				using var scope = services.CreateScope();
+				var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
 
-	// Apply all pending migrations to the in-memory database
-	dbContext.Database.Migrate();
+				// Create the database schema for the in-memory database
+				// Note: The connection is already open and shared across all DbContext instances
+				dbContext.Database.EnsureCreated();
 
-	// Seed test data
-	// Create test account
-	var testAccount = new Account("Test Account");
-		dbContext.Accounts.Add(testAccount);
-		dbContext.SaveChanges();
+				// Seed test data
+				// Create test account
+				var testAccount = new Account("Test Account");
+				dbContext.Accounts.Add(testAccount);
+				dbContext.SaveChanges();
 
-		// Create test symbol profile
-		var testSymbolProfile = new SymbolProfile(
-			"AAPL",
-			"Apple Inc.",
-			[],
-			Currency.USD,
-			"NASDAQ",
-			AssetClass.Equity,
-			null,
-			[],
-			[]);
+				// Create test symbol profile
+				var testSymbolProfile = new SymbolProfile(
+					"AAPL",
+					"Apple Inc.",
+					[],
+					Currency.USD,
+					"NASDAQ",
+					AssetClass.Equity,
+					null,
+					[],
+					[]);
 
-		// Create test holding
-		var testHolding = new Holding();
-		testHolding.SymbolProfiles.Add(testSymbolProfile);
-		dbContext.Holdings.Add(testHolding);
+				// Create test holding
+				var testHolding = new Holding();
+				testHolding.SymbolProfiles.Add(testSymbolProfile);
+				dbContext.Holdings.Add(testHolding);
 
-			// Create some test activities
-			var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
+				// Create some test activities
+				var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
 		{
 			new CashDepositActivity(
 				testAccount,
@@ -285,17 +299,37 @@ namespace PortfolioViewer.WASM.UITests
 				"Dividend payment")
 			};
 
-			dbContext.Activities.AddRange(activities);
-			dbContext.SaveChanges();
+				dbContext.Activities.AddRange(activities);
+				dbContext.SaveChanges();
 
-		Console.WriteLine($"Test data seeded successfully: {activities.Count} activities created");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Error seeding test data: {ex.Message}");
-			Console.WriteLine($"Stack trace: {ex.StackTrace}");
-			throw;
+				Console.WriteLine($"Test data seeded successfully: {activities.Count} activities created");
+
+				// Verify the data was actually saved
+				var activityCount = dbContext.Activities.Count();
+				var accountCount = dbContext.Accounts.Count();
+				var holdingCount = dbContext.Holdings.Count();
+				Console.WriteLine($"Verification - Activities: {activityCount}, Accounts: {accountCount}, Holdings: {holdingCount}");
+
+				// List all tables in the database
+				using var connection = dbContext.Database.GetDbConnection();
+				connection.Open();
+				using var command = connection.CreateCommand();
+				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
+				using var reader = command.ExecuteReader();
+				Console.WriteLine("Database tables:");
+				while (reader.Read())
+				{
+					Console.WriteLine($"  - {reader.GetString(0)}");
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error seeding test data: {ex.Message}");
+				Console.WriteLine($"Stack trace: {ex.StackTrace}");
+				throw;
+			}
 		}
 	}
 }
-}
+
+
