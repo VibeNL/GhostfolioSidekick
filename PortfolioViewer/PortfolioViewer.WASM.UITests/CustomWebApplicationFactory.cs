@@ -21,11 +21,17 @@ namespace PortfolioViewer.WASM.UITests
 	{
 		public const string TestAccessToken = "test-token-12345";
 		private IHost? _host;
+		private Microsoft.Data.Sqlite.SqliteConnection? _connection;
 
 		public CustomWebApplicationFactory()
 		{
 			// Ensure WASM publish/copy target is executed
 			EnsureWasmPublishedToApiStaticFiles();
+
+			// Create and open in-memory SQLite connection
+			// Keep it open for the lifetime of the factory to maintain the in-memory database
+			_connection = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=:memory:");
+			_connection.Open();
 		}
 
 		public string ServerAddress
@@ -45,9 +51,10 @@ namespace PortfolioViewer.WASM.UITests
 
 			// Modify the host builder to use Kestrel instead
 			// of TestServer so we can listen on a real address.
-			builder.ConfigureWebHost(webHostBuilder => webHostBuilder
-														.UseKestrel()
-														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
+		builder.ConfigureWebHost(webHostBuilder => webHostBuilder
+													.UseKestrel()
+													.UseUrls("http://127.0.0.1:0") // Use dynamic port (0 = auto-select available port)
+													.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
 														.ConfigureServices(services =>
 														{
 															// Replace IApplicationSettings with a mock that provides the test token
@@ -60,8 +67,26 @@ namespace PortfolioViewer.WASM.UITests
 															{
 																services.Remove(descriptor);
 															}
-															services.AddSingleton(mockSettings.Object);
-														}));
+														services.AddSingleton(mockSettings.Object);
+
+														// Remove existing DbContext registrations and replace with in-memory SQLite
+														var dbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<DatabaseContext>));
+														if (dbContextDescriptor != null)
+														{
+															services.Remove(dbContextDescriptor);
+														}
+														var dbContextServiceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DatabaseContext));
+														if (dbContextServiceDescriptor != null)
+														{
+															services.Remove(dbContextServiceDescriptor);
+														}
+
+														// Register in-memory SQLite database for testing
+														services.AddDbContext<DatabaseContext>(options =>
+														{
+															options.UseSqlite(_connection!);
+														});
+													}));
 
 
 		// Create and start the Kestrel server before the test server,
@@ -94,10 +119,12 @@ namespace PortfolioViewer.WASM.UITests
 			return testHost;
 		}
 
-		protected override void Dispose(bool disposing)
-		{
-			_host?.Dispose();
-		}
+	protected override void Dispose(bool disposing)
+	{
+		_host?.Dispose();
+		_connection?.Dispose();
+		base.Dispose(disposing);
+	}
 
 		private void EnsureServer()
 		{
@@ -179,21 +206,19 @@ namespace PortfolioViewer.WASM.UITests
 
 	private static void SeedTestData(IServiceProvider services)
 	{
-		using var scope = services.CreateScope();
-		var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-
-		// Ensure database is created and migrations are applied
-		dbContext.Database.Migrate();
-
-		// Check if data already exists
-		if (dbContext.Activities.Any())
+		try
 		{
-			return; // Data already seeded
-		}
+	using var scope = services.CreateScope();
+	var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
 
-		// Create test account
-		var testAccount = new Account("Test Account");
+	// Apply all pending migrations to the in-memory database
+	dbContext.Database.Migrate();
+
+	// Seed test data
+	// Create test account
+	var testAccount = new Account("Test Account");
 		dbContext.Accounts.Add(testAccount);
+		dbContext.SaveChanges();
 
 		// Create test symbol profile
 		var testSymbolProfile = new SymbolProfile(
@@ -212,8 +237,8 @@ namespace PortfolioViewer.WASM.UITests
 		testHolding.SymbolProfiles.Add(testSymbolProfile);
 		dbContext.Holdings.Add(testHolding);
 
-		// Create some test activities
-		var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
+			// Create some test activities
+			var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
 		{
 			new CashDepositActivity(
 				testAccount,
@@ -258,10 +283,19 @@ namespace PortfolioViewer.WASM.UITests
 				"DIV-001",
 				null,
 				"Dividend payment")
-		};
+			};
 
-		dbContext.Activities.AddRange(activities);
-		dbContext.SaveChanges();
+			dbContext.Activities.AddRange(activities);
+			dbContext.SaveChanges();
+
+		Console.WriteLine($"Test data seeded successfully: {activities.Count} activities created");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error seeding test data: {ex.Message}");
+			Console.WriteLine($"Stack trace: {ex.StackTrace}");
+			throw;
+		}
 	}
 }
 }

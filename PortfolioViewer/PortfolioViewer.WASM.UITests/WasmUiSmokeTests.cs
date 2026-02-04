@@ -2,6 +2,7 @@ using PortfolioViewer.WASM.UITests.PageObjects;
 
 namespace PortfolioViewer.WASM.UITests
 {
+	[Collection("WebApplicationFactory")]
 	public class WasmUiSmokeTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
 	{
 

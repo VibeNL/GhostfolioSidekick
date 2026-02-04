@@ -2,10 +2,10 @@ using Microsoft.Playwright;
 
 namespace PortfolioViewer.WASM.UITests
 {
-	public abstract class PlaywrightTestBase : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
+	public abstract class PlaywrightTestBase : IAsyncLifetime
 	{
 		protected readonly CustomWebApplicationFactory Fixture;
-		protected readonly string ServerAddress;
+		protected string ServerAddress => Fixture.ServerAddress;
 		protected IPlaywright? Playwright;
 		protected IBrowser? Browser;
 		protected IBrowserContext? Context;
@@ -17,7 +17,6 @@ namespace PortfolioViewer.WASM.UITests
 		protected PlaywrightTestBase(CustomWebApplicationFactory fixture)
 		{
 			Fixture = fixture;
-			ServerAddress = fixture.ServerAddress;
 		}
 
 		public virtual async ValueTask InitializeAsync()
