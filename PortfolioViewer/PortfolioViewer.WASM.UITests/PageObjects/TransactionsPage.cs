@@ -2,10 +2,8 @@ using Microsoft.Playwright;
 
 namespace PortfolioViewer.WASM.UITests.PageObjects
 {
-	public class TransactionsPage(IPage page)
+	public class TransactionsPage(IPage page) : BasePageObject(page)
 	{
-		private readonly IPage _page = page;
-
 		private const string PageHeadingSelector = "h5.card-title:has-text('Transactions')";
 		private const string TableSelector = "table.table";
 		private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Transaction Data')";
@@ -16,50 +14,59 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 
 		public async Task NavigateViaMenuAsync()
 		{
-			// Click the Transactions dropdown
-			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
-			await _page.WaitForTimeoutAsync(500); // Wait for dropdown to open
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				// Click the Transactions dropdown
+				await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
+				await _page.WaitForTimeoutAsync(500); // Wait for dropdown to open
 
-			// Click the Transaction History link
-			await _page.ClickAsync(TransactionsLinkSelector);
-			// Wait for navigation to complete
-			await _page.WaitForTimeoutAsync(1000);
+				// Click the Transaction History link
+				await _page.ClickAsync(TransactionsLinkSelector);
+				// Wait for navigation to complete
+				await _page.WaitForTimeoutAsync(1000);
+			});
 		}
 
 		public async Task NavigateDirectAsync()
 		{
-			await _page.GotoAsync("/transactions");
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				await _page.GotoAsync("/transactions");
+			});
 		}
 
 		public async Task WaitForPageLoadAsync(int timeout = 30000)
 		{
-			// Wait for loading spinner to appear (optional - it might load too fast)
-			try
+			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
-				Console.WriteLine("Loading spinner appeared");
-			}
-			catch
-			{
-				// Loading was too fast, that's okay
-			}
+				// Wait for loading spinner to appear (optional - it might load too fast)
+				try
+				{
+					await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
+					Console.WriteLine("Loading spinner appeared");
+				}
+				catch
+				{
+					// Loading was too fast, that's okay
+				}
 
-			// Wait for loading spinner to disappear OR for content to appear
-			try
-			{
-				await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
-				Console.WriteLine("Loading spinner disappeared");
-			}
-			catch
-			{
-				// Loading spinner might not have appeared
-			}
+				// Wait for loading spinner to disappear OR for content to appear
+				try
+				{
+					await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
+					Console.WriteLine("Loading spinner disappeared");
+				}
+				catch
+				{
+					// Loading spinner might not have appeared
+				}
 
-			// Wait for either the table, empty state, or error state
-			await _page.WaitForSelectorAsync(
-				$"{PageHeadingSelector}, {EmptyStateSelector}, {ErrorAlertSelector}",
-				new PageWaitForSelectorOptions { Timeout = timeout }
-			);
+				// Wait for either the table, empty state, or error state
+				await _page.WaitForSelectorAsync(
+					$"{PageHeadingSelector}, {EmptyStateSelector}, {ErrorAlertSelector}",
+					new PageWaitForSelectorOptions { Timeout = timeout }
+				);
+			});
 		}
 
 		public async Task<bool> HasTransactionsAsync()
@@ -200,25 +207,34 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			return path;
 		}
 
-		public async Task SetDateFilterToAllAsync()
+	public async Task SetDateFilterToAllAsync()
+	{
+		try
 		{
 			// Click the "All" button in the date filter
-			try
+			await ExecuteWithErrorCheckAsync(async () =>
 			{
 				await _page.ClickAsync("button.btn:has-text('All')");
+			});
 
-				// Click the Apply button
-				await _page.ClickAsync("button.btn:has-text('Apply')");
-
-				// Wait for the filter to apply and data to reload
-				await _page.WaitForTimeoutAsync(1000);
-			}
-			catch (Exception ex)
+			// Click the Apply button
+			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				Console.WriteLine($"Failed to set date filter to All: {ex.Message}");
-				throw;
-			}
+				await _page.ClickAsync("button.btn:has-text('Apply')");
+			});
+
+			// Wait for the filter to apply and data to reload
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				await _page.WaitForTimeoutAsync(1000);
+			});
 		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Failed to set date filter to All: {ex.Message}");
+			throw;
+		}
+	}
 	}
 
 	public class TransactionRowData

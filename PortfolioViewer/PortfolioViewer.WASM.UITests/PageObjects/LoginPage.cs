@@ -2,23 +2,27 @@ using Microsoft.Playwright;
 
 namespace PortfolioViewer.WASM.UITests.PageObjects
 {
-	public class LoginPage(IPage page)
+	public class LoginPage(IPage page) : BasePageObject(page)
 	{
-		private readonly IPage _page = page;
-
 		private const string AccessTokenInputSelector = "input#accessToken";
 		private const string SubmitButtonSelector = "button[type='submit']";
 		private const string ErrorAlertSelector = ".alert-danger";
 
 		public async Task NavigateAsync(string serverAddress)
 		{
-			await _page.GotoAsync(serverAddress);
-			await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				await _page.GotoAsync(serverAddress);
+				await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+			});
 		}
 
 		public async Task WaitForPageLoadAsync(int timeout = 10000)
 		{
-			await _page.WaitForSelectorAsync(AccessTokenInputSelector, new PageWaitForSelectorOptions { Timeout = timeout });
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				await _page.WaitForSelectorAsync(AccessTokenInputSelector, new PageWaitForSelectorOptions { Timeout = timeout });
+			});
 		}
 
 		public async Task FillAccessTokenAsync(string token)
@@ -28,7 +32,10 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 
 		public async Task ClickLoginAsync()
 		{
-			await _page.ClickAsync(SubmitButtonSelector);
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				await _page.ClickAsync(SubmitButtonSelector);
+			});
 		}
 
 		public async Task<bool> IsErrorDisplayedAsync()
@@ -67,7 +74,10 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 
 		public async Task WaitForSuccessfulLoginAsync(int timeout = 10000)
 		{
-			await _page.WaitForURLAsync(url => url.Contains("/") && !url.Contains("/login"), new PageWaitForURLOptions { Timeout = timeout });
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				await _page.WaitForURLAsync(url => url.Contains("/") && !url.Contains("/login"), new PageWaitForURLOptions { Timeout = timeout });
+			});
 		}
 
 		public bool IsOnLoginPage()

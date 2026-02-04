@@ -2,10 +2,8 @@ using Microsoft.Playwright;
 
 namespace PortfolioViewer.WASM.UITests.PageObjects
 {
-	public class HomePage(IPage page)
+	public class HomePage(IPage page) : BasePageObject(page)
 	{
-		private readonly IPage _page = page;
-
 		private const string SyncButtonSelector = "button.btn-primary:has-text('Sync')";
 		private const string ProgressBarSelector = ".progress-bar";
 		private const string CurrentActionSelector = "p:near(.progress)";
@@ -17,9 +15,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 
 		public async Task WaitForPageLoadAsync(int timeout = 10000)
 		{
-			// Wait for either the sync button or the start page heading
-			await _page.WaitForSelectorAsync("h1:has-text('Start page')", new PageWaitForSelectorOptions { Timeout = timeout });
-			await _page.WaitForSelectorAsync(SyncButtonSelector, new PageWaitForSelectorOptions { Timeout = timeout });
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				// Wait for either the sync button or the start page heading
+				await _page.WaitForSelectorAsync("h1:has-text('Start page')", new PageWaitForSelectorOptions { Timeout = timeout });
+				await _page.WaitForSelectorAsync(SyncButtonSelector, new PageWaitForSelectorOptions { Timeout = timeout });
+			});
 		}
 
 		public async Task<bool> IsSyncButtonVisibleAsync()
@@ -53,9 +54,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 
 		public async Task ClickSyncButtonAsync()
 		{
-			await _page.ClickAsync(SyncButtonSelector);
-			// Wait for sync to start
-			await _page.WaitForTimeoutAsync(1000);
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				await _page.ClickAsync(SyncButtonSelector);
+				// Wait for sync to start
+				await _page.WaitForTimeoutAsync(1000);
+			});
 		}
 
 		public async Task<string> GetSyncButtonTextAsync()
