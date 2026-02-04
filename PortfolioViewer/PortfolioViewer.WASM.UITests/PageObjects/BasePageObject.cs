@@ -5,7 +5,6 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 	public abstract class BasePageObject
 	{
 		protected readonly IPage _page;
-		private const string BlazorErrorSelector = "text=/An unhandled error has occurred.*Reload/i";
 
 		protected BasePageObject(IPage page)
 		{
@@ -23,7 +22,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			// Try multiple selectors for different ways Blazor might display errors
 			var selectors = new[]
 			{
-				BlazorErrorSelector,
+				"text=/An unhandled error has occurred.*Reload/i",
 				"text=/unhandled error/i",
 				"#blazor-error-ui",
 				".blazor-error-boundary",
