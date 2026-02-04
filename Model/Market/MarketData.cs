@@ -23,10 +23,10 @@ namespace GhostfolioSidekick.Model.Market
 		public MarketData() // EF Core
 		{
 			Currency = default!;
-			Close = default!;
-			Open = default!;
-			High = default!;
-			Low = default!;
+			Close = default;
+			Open = default;
+			High = default;
+			Low = default;
 		}
 
 		public Currency Currency { get; set; }
