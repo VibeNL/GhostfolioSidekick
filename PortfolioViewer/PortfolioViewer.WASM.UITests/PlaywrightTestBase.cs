@@ -40,7 +40,8 @@ namespace PortfolioViewer.WASM.UITests
 
 			Context = await Browser.NewContextAsync(new BrowserNewContextOptions
 			{
-				RecordVideoDir = VideoDir
+				RecordVideoDir = VideoDir,
+				ViewportSize = new ViewportSize { Width = 1920, Height = 1080 }
 			});
 
 			Page = await Context.NewPageAsync();
@@ -94,7 +95,7 @@ namespace PortfolioViewer.WASM.UITests
 			await File.WriteAllTextAsync(GetErrorHtmlPath(testName), html, TestContext.Current.CancellationToken);
 		}
 
-		private string GetCurrentTestName()
+		private static string GetCurrentTestName()
 		{
 			try
 			{

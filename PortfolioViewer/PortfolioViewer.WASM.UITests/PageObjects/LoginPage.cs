@@ -76,7 +76,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				await _page.WaitForURLAsync(url => url.Contains("/") && !url.Contains("/login"), new PageWaitForURLOptions { Timeout = timeout });
+				await _page.WaitForURLAsync(url => url.Contains('/') && !url.Contains("/login"), new PageWaitForURLOptions { Timeout = timeout });
 			});
 		}
 

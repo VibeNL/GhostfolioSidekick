@@ -21,7 +21,7 @@ namespace PortfolioViewer.WASM.UITests
 	{
 		public const string TestAccessToken = "test-token-12345";
 		private IHost? _host;
-		private Microsoft.Data.Sqlite.SqliteConnection? _connection;
+		private readonly Microsoft.Data.Sqlite.SqliteConnection? _connection;
 
 		public CustomWebApplicationFactory()
 		{
@@ -217,7 +217,7 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		private void SeedTestData(IServiceProvider services)
+		private static void SeedTestData(IServiceProvider services)
 		{
 			try
 			{
