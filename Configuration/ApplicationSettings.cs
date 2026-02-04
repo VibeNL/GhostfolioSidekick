@@ -12,6 +12,10 @@ namespace GhostfolioSidekick.Configuration
 		private const string TROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
 		private const string DATABASE_QUERY_TIMEOUT = "DATABASE_QUERY_TIMEOUT_SECONDS";
 		private const string ENABLE_DATABASE_PERFORMANCE_LOGGING = "ENABLE_DATABASE_PERFORMANCE_LOGGING";
+		private const string BACKUP_FOLDER_NAME = "BACKUP_FOLDER_NAME";
+		private const string MAX_BACKUP_COUNT = "MAX_BACKUP_COUNT";
+		private const string DEFAULT_DB_NAME = "ghostfolio.db";
+		private const string DEFAULT_DB_BACKUP_NAME = "ghostfolio_backup.db";
 
 		public ApplicationSettings(ILogger<ApplicationSettings> logger)
 		{
@@ -43,10 +47,18 @@ namespace GhostfolioSidekick.Configuration
 
 				if (!dbPath.EndsWith(".db", StringComparison.OrdinalIgnoreCase))
 				{
-					dbPath = Path.Combine(dbPath, "ghostfolio.db");
+					dbPath = Path.Combine(dbPath, DEFAULT_DB_NAME);
 				}
 
 				return dbPath;
+			}
+		}
+
+		public string BackupDatabaseFilePath
+		{
+			get
+			{
+				return DatabaseFilePath.Replace(DEFAULT_DB_NAME, DEFAULT_DB_BACKUP_NAME, StringComparison.OrdinalIgnoreCase);
 			}
 		}
 
@@ -78,6 +90,16 @@ namespace GhostfolioSidekick.Configuration
 		/// </summary>
 		public bool EnableDatabasePerformanceLogging => GetDatabasePerformanceLogging();
 
+		/// <summary>
+		/// Folder name for database backups. Default is "GHOSTFOLIOSIDEKICKBACKUPS".
+		/// </summary>
+		public string BackupFolderName => GetBackupFolderName();
+
+		/// <summary>
+		/// Maximum number of compressed backups to keep. Default is 5.
+		/// </summary>
+		public int MaxBackupCount => GetMaxBackupCount();
+
 		private static int GetTimeout()
 		{
 			if (int.TryParse(Environment.GetEnvironmentVariable(TROTTLETIMEOUT), out int timeoutInSeconds))
@@ -106,6 +128,24 @@ namespace GhostfolioSidekick.Configuration
 			}
 
 			return false; // Default disabled
+		}
+
+		private string GetBackupFolderName()
+		{
+			var baseLocation = Path.GetDirectoryName(DatabaseFilePath);
+			var folderName = Environment.GetEnvironmentVariable(BACKUP_FOLDER_NAME);
+			var backupFolderName = string.IsNullOrEmpty(folderName) ? "GHOSTFOLIOSIDEKICKBACKUPS" : folderName;
+			return Path.Combine(baseLocation!, backupFolderName);
+		}
+
+		private static int GetMaxBackupCount()
+		{
+			if (int.TryParse(Environment.GetEnvironmentVariable(MAX_BACKUP_COUNT), out int count) && count > 0)
+			{
+				return count;
+			}
+
+			return 5; // Default keep last 5 backups
 		}
 
 		public ConfigurationInstance ConfigurationInstance
