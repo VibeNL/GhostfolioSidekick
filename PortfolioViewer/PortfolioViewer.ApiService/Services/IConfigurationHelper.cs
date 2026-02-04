@@ -13,6 +13,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 		string GetConnectionString();
 
 		/// <summary>
+		/// Gets the backup database connection string from configuration or environment variable.
+		/// </summary>
+		/// <returns>The connection string value</returns>
+		string GetConnectionStringBackup();
+
+		/// <summary>
 		/// Gets a configuration value with fallback to environment variable.
 		/// </summary>
 		/// <param name="key">The configuration key</param>
@@ -42,6 +48,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 		/// </summary>
 		/// <param name="key">The configuration key to check</param>
 		/// <returns>True if the key exists, false otherwise</returns>
-		bool HasConfigurationValue(string key);
+		bool HasConfigurationValue(string key);		
 	}
 }
