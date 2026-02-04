@@ -11,6 +11,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		private const string ErrorAlertSelector = ".alert-danger";
 		private const string TransactionRowSelector = "tbody tr";
 		private const string TransactionsLinkSelector = "a.dropdown-item:has-text('Transaction History')";
+		private const string DateFilterAllButtonSelector = "button.btn:has-text('All')";
+		private const string DateFilterApplyButtonSelector = "button.btn:has-text('Apply')";
 
 		public async Task NavigateViaMenuAsync()
 		{
@@ -214,13 +216,13 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			// Click the "All" button in the date filter
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				await _page.ClickAsync("button.btn:has-text('All')");
+				await _page.ClickAsync(DateFilterAllButtonSelector);
 			});
 
 			// Click the Apply button
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				await _page.ClickAsync("button.btn:has-text('Apply')");
+				await _page.ClickAsync(DateFilterApplyButtonSelector);
 			});
 
 			// Wait for the filter to apply and data to reload
