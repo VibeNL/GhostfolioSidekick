@@ -5,6 +5,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting.Server;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Symbols;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 
 namespace PortfolioViewer.WASM.UITests
@@ -57,15 +64,18 @@ namespace PortfolioViewer.WASM.UITests
 														}));
 
 
-			// Create and start the Kestrel server before the test server,
-			// otherwise due to the way the deferred host builder works
-			// for minimal hosting, the server will not get "initialized
-			// enough" for the address it is listening on to be available.
-			// See https://github.com/dotnet/aspnetcore/issues/33846.
-			_host = builder.Build();
-			_host.Start();
+		// Create and start the Kestrel server before the test server,
+		// otherwise due to the way the deferred host builder works
+		// for minimal hosting, the server will not get "initialized
+		// enough" for the address it is listening on to be available.
+		// See https://github.com/dotnet/aspnetcore/issues/33846.
+		_host = builder.Build();
+		_host.Start();
 
-			// Extract the selected dynamic port out of the Kestrel server
+		// Seed test data
+		SeedTestData(_host.Services);
+
+		// Extract the selected dynamic port out of the Kestrel server
 			// and assign it onto the client options for convenience so it
 			// "just works" as otherwise it'll be the default http://localhost
 			// URL, which won't route to the Kestrel-hosted HTTP server.
@@ -163,8 +173,95 @@ namespace PortfolioViewer.WASM.UITests
 
 			foreach (var newPath in Directory.GetFiles(tempFolder, "*.*", SearchOption.AllDirectories))
 			{
-				File.Copy(newPath, newPath.Replace(tempFolder, apiWwwroot), true);
-			}
+			File.Copy(newPath, newPath.Replace(tempFolder, apiWwwroot), true);
 		}
 	}
+
+	private static void SeedTestData(IServiceProvider services)
+	{
+		using var scope = services.CreateScope();
+		var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+
+		// Ensure database is created and migrations are applied
+		dbContext.Database.Migrate();
+
+		// Check if data already exists
+		if (dbContext.Activities.Any())
+		{
+			return; // Data already seeded
+		}
+
+		// Create test account
+		var testAccount = new Account("Test Account");
+		dbContext.Accounts.Add(testAccount);
+
+		// Create test symbol profile
+		var testSymbolProfile = new SymbolProfile(
+			"AAPL",
+			"Apple Inc.",
+			[],
+			Currency.USD,
+			"NASDAQ",
+			AssetClass.Equity,
+			null,
+			[],
+			[]);
+
+		// Create test holding
+		var testHolding = new Holding();
+		testHolding.SymbolProfiles.Add(testSymbolProfile);
+		dbContext.Holdings.Add(testHolding);
+
+		// Create some test activities
+		var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
+		{
+			new CashDepositActivity(
+				testAccount,
+				null,
+				DateTime.Now.AddDays(-10),
+				new Money(Currency.USD, 10000m),
+				"DEPOSIT-001",
+				null,
+				"Initial deposit"),
+			new BuyActivity(
+				testAccount,
+				testHolding,
+				[],
+				DateTime.Now.AddDays(-9),
+				10m,
+				new Money(Currency.USD, 150m),
+				"BUY-001",
+				null,
+				"Buy Apple shares")
+			{
+				TotalTransactionAmount = new Money(Currency.USD, 1500m)
+			},
+			new BuyActivity(
+				testAccount,
+				testHolding,
+				[],
+				DateTime.Now.AddDays(-5),
+				5m,
+				new Money(Currency.USD, 155m),
+				"BUY-002",
+				null,
+				"Buy more Apple shares")
+			{
+				TotalTransactionAmount = new Money(Currency.USD, 775m)
+			},
+			new DividendActivity(
+				testAccount,
+				testHolding,
+				[],
+				DateTime.Now.AddDays(-2),
+				new Money(Currency.USD, 25m),
+				"DIV-001",
+				null,
+				"Dividend payment")
+		};
+
+		dbContext.Activities.AddRange(activities);
+		dbContext.SaveChanges();
+	}
+}
 }
