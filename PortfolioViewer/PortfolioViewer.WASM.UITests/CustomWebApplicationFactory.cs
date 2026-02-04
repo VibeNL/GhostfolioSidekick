@@ -252,12 +252,14 @@ namespace PortfolioViewer.WASM.UITests
 				dbContext.Holdings.Add(testHolding);
 
 				// Create some test activities
+				// Use fixed dates for deterministic test behavior
+				var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 				var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
 		{
 			new CashDepositActivity(
 				testAccount,
 				null,
-				DateTime.Now.AddDays(-10),
+				baseDate.AddDays(-10),
 				new Money(Currency.USD, 10000m),
 				"DEPOSIT-001",
 				null,
@@ -266,7 +268,7 @@ namespace PortfolioViewer.WASM.UITests
 				testAccount,
 				testHolding,
 				[],
-				DateTime.Now.AddDays(-9),
+				baseDate.AddDays(-9),
 				10m,
 				new Money(Currency.USD, 150m),
 				"BUY-001",
@@ -279,7 +281,7 @@ namespace PortfolioViewer.WASM.UITests
 				testAccount,
 				testHolding,
 				[],
-				DateTime.Now.AddDays(-5),
+				baseDate.AddDays(-5),
 				5m,
 				new Money(Currency.USD, 155m),
 				"BUY-002",
@@ -292,7 +294,7 @@ namespace PortfolioViewer.WASM.UITests
 				testAccount,
 				testHolding,
 				[],
-				DateTime.Now.AddDays(-2),
+				baseDate.AddDays(-2),
 				new Money(Currency.USD, 25m),
 				"DIV-001",
 				null,

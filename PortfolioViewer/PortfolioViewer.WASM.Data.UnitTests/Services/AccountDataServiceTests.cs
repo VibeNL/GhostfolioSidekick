@@ -446,18 +446,22 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		#region GetMinDateAsync Tests
 
 		[Fact]
-		public async Task GetMinDateAsync_WithCalculatedSnapshots_ShouldReturnMinimumDate()
+		public async Task GetMinDateAsync_WithActivities_ShouldReturnMinimumDate()
 		{
 			// Arrange
 			var expectedMinDate = new DateOnly(2020, 1, 1);
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var platform = CreateTestPlatform("Test Platform");
+			var account = CreateTestAccount("Test Account", 1, platform);
+			var holding = CreateTestHolding(CreateTestSymbolProfile("TEST"));
+
+			var activities = new List<BuyActivity>
 			{
-				CreateCalculatedSnapshot(new DateOnly(2023, 1, 1), 1, 1000m, 800m),
-				CreateCalculatedSnapshot(expectedMinDate, 1, 500m, 400m),
-				CreateCalculatedSnapshot(new DateOnly(2022, 6, 15), 1, 750m, 600m)
+				CreateTestActivity(holding, 1, new DateTime(2023, 1, 1)),
+				CreateTestActivity(holding, 1, expectedMinDate.ToDateTime(TimeOnly.MinValue)),
+				CreateTestActivity(holding, 1, new DateTime(2022, 6, 15))
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
 			var result = await _accountDataService.GetMinDateAsync(CancellationToken.None);
@@ -470,7 +474,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetMinDateAsync_WithEmptyDatabase_ShouldThrowInvalidOperationException()
 		{
 			// Arrange
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency>());
+			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<BuyActivity>());
 
 			// Act & Assert
 			var action = () => _accountDataService.GetMinDateAsync(CancellationToken.None);
@@ -483,18 +487,21 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var cancellationToken = new CancellationToken();
-			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
+			var platform = CreateTestPlatform("Test Platform");
+			var account = CreateTestAccount("Test Account", 1, platform);
+			var holding = CreateTestHolding(CreateTestSymbolProfile("TEST"));
+			var activities = new List<BuyActivity>
 			{
-				CreateCalculatedSnapshot(new DateOnly(2023, 1, 1), 1, 1000m, 800m)
+				CreateTestActivity(holding, 1, new DateTime(2023, 1, 1))
 			};
 
-			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
 			await _accountDataService.GetMinDateAsync(cancellationToken);
 
 			// Assert
-			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
+			_mockDatabaseContext.Verify(x => x.Activities, Times.AtLeastOnce);
 		}
 
 		#endregion
@@ -683,14 +690,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			return holding;
 		}
 
-		private static BuyActivity CreateTestActivity(Holding holding, int accountId = 1)
+		private static BuyActivity CreateTestActivity(Holding holding, int accountId = 1, DateTime? date = null)
 		{
 			var account = new Account("Test Account") { Id = accountId };
 			return new BuyActivity(
 				account,
 				holding,
 				[],
-				DateTime.Now,
+				date ?? DateTime.Now,
 				1m,
 				new Money(Currency.USD, 100m),
 				"TEST-001",
