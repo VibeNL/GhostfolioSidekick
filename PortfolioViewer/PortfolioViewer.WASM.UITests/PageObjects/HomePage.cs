@@ -54,6 +54,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		public async Task ClickSyncButtonAsync()
 		{
 			await _page.ClickAsync(SyncButtonSelector);
+			// Wait for sync to start
+			await _page.WaitForTimeoutAsync(1000);
 		}
 
 		public async Task<string> GetSyncButtonTextAsync()

@@ -20,11 +20,13 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
 			await _page.WaitForTimeoutAsync(500); // Wait for dropdown to open
 			
-			// Click the Transaction History link
-			await _page.ClickAsync(TransactionsLinkSelector);
-		}
+		// Click the Transaction History link
+		await _page.ClickAsync(TransactionsLinkSelector);
+		// Wait for navigation to complete
+		await _page.WaitForTimeoutAsync(1000);
+	}
 
-		public async Task NavigateDirectAsync()
+	public async Task NavigateDirectAsync()
 		{
 			await _page.GotoAsync("/transactions");
 		}
@@ -204,8 +206,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			try
 			{
 				await _page.ClickAsync("button.btn:has-text('All')");
-				// Wait a bit for the filter to apply
-				await _page.WaitForTimeoutAsync(500);
+				// Wait for the filter to apply and data to reload
+				await _page.WaitForTimeoutAsync(1000);
 				Console.WriteLine("Date filter set to 'All'");
 			}
 			catch (Exception ex)
