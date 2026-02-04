@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Model.Performance
 		// Parameterless constructor for EF Core
 		public CalculatedSnapshot()
 		{
-			Currency = default;
+			Currency = default!;
 			AverageCostPrice = default;
 			CurrentUnitPrice = default;
 			TotalInvested = default;
