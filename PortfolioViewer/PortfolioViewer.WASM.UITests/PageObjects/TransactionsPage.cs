@@ -19,14 +19,14 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			// Click the Transactions dropdown
 			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
 			await _page.WaitForTimeoutAsync(500); // Wait for dropdown to open
-			
-		// Click the Transaction History link
-		await _page.ClickAsync(TransactionsLinkSelector);
-		// Wait for navigation to complete
-		await _page.WaitForTimeoutAsync(1000);
-	}
 
-	public async Task NavigateDirectAsync()
+			// Click the Transaction History link
+			await _page.ClickAsync(TransactionsLinkSelector);
+			// Wait for navigation to complete
+			await _page.WaitForTimeoutAsync(1000);
+		}
+
+		public async Task NavigateDirectAsync()
 		{
 			await _page.GotoAsync("/transactions");
 		}
@@ -146,7 +146,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		public async Task<List<TransactionRowData>> GetTransactionRowsAsync(int maxRows = 10)
 		{
 			var transactions = new List<TransactionRowData>();
-			
+
 			try
 			{
 				var rows = await _page.QuerySelectorAllAsync(TransactionRowSelector);
@@ -156,7 +156,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				{
 					var row = rows[i];
 					var cells = await row.QuerySelectorAllAsync("td");
-					
+
 					if (cells.Count >= 6)
 					{
 						transactions.Add(new TransactionRowData
@@ -183,15 +183,15 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			// Verify that at least one transaction has non-empty data
 			var transactions = await GetTransactionRowsAsync(5);
-			
+
 			if (transactions.Count == 0)
 				return false;
 
 			// Check first transaction has reasonable data
 			var firstTransaction = transactions[0];
 			return !string.IsNullOrWhiteSpace(firstTransaction.Date) &&
-			       !string.IsNullOrWhiteSpace(firstTransaction.Type) &&
-			       !string.IsNullOrWhiteSpace(firstTransaction.Symbol);
+				   !string.IsNullOrWhiteSpace(firstTransaction.Type) &&
+				   !string.IsNullOrWhiteSpace(firstTransaction.Symbol);
 		}
 
 		public async Task<string> TakeScreenshotAsync(string path)
@@ -206,9 +206,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			try
 			{
 				await _page.ClickAsync("button.btn:has-text('All')");
+
+				// Click the Apply button
+				await _page.ClickAsync("button.btn:has-text('Apply')");
+
 				// Wait for the filter to apply and data to reload
 				await _page.WaitForTimeoutAsync(1000);
-				Console.WriteLine("Date filter set to 'All'");
 			}
 			catch (Exception ex)
 			{
