@@ -197,6 +197,23 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			await _page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
 			return path;
 		}
+
+		public async Task SetDateFilterToAllAsync()
+		{
+			// Click the "All" button in the date filter
+			try
+			{
+				await _page.ClickAsync("button.btn:has-text('All')");
+				// Wait a bit for the filter to apply
+				await _page.WaitForTimeoutAsync(500);
+				Console.WriteLine("Date filter set to 'All'");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed to set date filter to All: {ex.Message}");
+				throw;
+			}
+		}
 	}
 
 	public class TransactionRowData

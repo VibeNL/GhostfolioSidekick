@@ -118,6 +118,9 @@ namespace PortfolioViewer.WASM.UITests
 
 				await transactionsPage.WaitForPageLoadAsync(timeout: 30000);
 
+				await transactionsPage.SetDateFilterToAllAsync();
+				await Page.WaitForTimeoutAsync(1000);
+
 				var hasTransactions = await transactionsPage.HasTransactionsAsync();
 				var isEmpty = await transactionsPage.IsEmptyStateDisplayedAsync();
 				var hasError = await transactionsPage.IsErrorDisplayedAsync();
