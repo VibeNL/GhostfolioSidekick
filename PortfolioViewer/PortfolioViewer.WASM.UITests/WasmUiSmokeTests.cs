@@ -1,67 +1,16 @@
-using Microsoft.Playwright;
+using PortfolioViewer.WASM.UITests.PageObjects;
 
 namespace PortfolioViewer.WASM.UITests
 {
-	public class WasmUiSmokeTests(CustomWebApplicationFactory fixture) : IClassFixture<CustomWebApplicationFactory>
+	[Collection("WebApplicationFactory")]
+	public class WasmUiSmokeTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
 	{
-		private readonly string serverAddress = fixture.ServerAddress;
 
 		[Fact]
-		public async Task MainPage_ShouldLoadSuccessfully()
-		{
-			Console.WriteLine($"Current Directory: {Directory.GetCurrentDirectory()}");
-			using var playwright = await Playwright.CreateAsync();
-			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-			var videoDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-videos");
-			Directory.CreateDirectory(videoDir);
-			var context = await browser.NewContextAsync(new BrowserNewContextOptions
-			{
-				RecordVideoDir = videoDir
-			});
-			var page = await context.NewPageAsync();
-			var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
-			Directory.CreateDirectory(screenshotDir);
-			string screenshotPath = Path.Combine(screenshotDir, $"mainpage-loaded-{DateTime.Now:yyyyMMddHHmmss}.png");
-			string errorScreenshotPath = Path.Combine(screenshotDir, $"mainpage-error-{DateTime.Now:yyyyMMddHHmmss}.png");
-			string errorHtmlPath = Path.Combine(screenshotDir, $"mainpage-error-{DateTime.Now:yyyyMMddHHmmss}.html");
-
-			// Capture browser console logs for diagnostics
-			page.Console += (_, msg) =>
-			{
-				Console.WriteLine($"[Browser Console] {msg.Type}: {msg.Text}");
-			};
-
-			try
-			{
-				Console.WriteLine($"Navigating to: {serverAddress}");
-				await page.GotoAsync(serverAddress);
-				await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-				await page.WaitForSelectorAsync("input#accessToken", new PageWaitForSelectorOptions { Timeout = 10000 });
-				await page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath });
-				var loginInput = await page.QuerySelectorAsync("input#accessToken");
-				Assert.NotNull(loginInput);
-			}
-			catch (Exception ex)
-			{
-				await page.ScreenshotAsync(new PageScreenshotOptions { Path = errorScreenshotPath });
-				var html = await page.ContentAsync();
-			await File.WriteAllTextAsync(errorHtmlPath, html, TestContext.Current.CancellationToken);
-				Console.WriteLine($"Exception: {ex}");
-				throw;
-			}
-			finally
-			{
-				await context.CloseAsync();
-			}
-		}
-
-		[Fact]
-		public async Task DebugApiHealthEndpoint()
+		public async Task Api_HealthEndpoint_GivesResponse()
 		{
 			// Log the API base address
-			var apiClient = fixture.CreateDefaultClient();
-			var baseAddress = apiClient.BaseAddress?.ToString() ?? "null";
-			Console.WriteLine($"API BaseAddress: {baseAddress}");
+			var apiClient = Fixture.CreateDefaultClient();
 
 			// Try to call the health endpoint directly
 			var healthUrl = "api/auth/health";
@@ -69,7 +18,6 @@ namespace PortfolioViewer.WASM.UITests
 			{
 				var response = await apiClient.GetAsync(healthUrl, TestContext.Current.CancellationToken);
 				var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-				Console.WriteLine($"Status: {response.StatusCode}, Content: {content}");
 				Assert.True(response.IsSuccessStatusCode, $"API health endpoint failed: {response.StatusCode} {content}");
 			}
 			catch (Exception ex)
@@ -77,7 +25,117 @@ namespace PortfolioViewer.WASM.UITests
 				Assert.Fail($"Exception calling API health endpoint: {ex}");
 			}
 		}
+
+		[Fact]
+		public async Task Login_ShouldSucceedWithValidToken()
+		{
+			var loginPage = new LoginPage(Page!);
+			var homePage = new HomePage(Page!);
+
+			try
+			{
+				await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
+				await loginPage.WaitForSuccessfulLoginAsync();
+				await homePage.WaitForPageLoadAsync();
+
+				Assert.False(loginPage.IsOnLoginPage(), "Should not be on login page after successful login");
+			}
+			catch
+			{
+				await CaptureErrorStateAsync("login");
+				throw;
+			}
+		}
+
+		[Fact]
+		public async Task Sync_ShouldStartAndComplete()
+		{
+			var loginPage = new LoginPage(Page!);
+			var homePage = new HomePage(Page!);
+
+			try
+			{
+				await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
+				await loginPage.WaitForSuccessfulLoginAsync();
+				await homePage.WaitForPageLoadAsync();
+
+			var isSyncButtonEnabled = await homePage.IsSyncButtonEnabledAsync();
+			Assert.True(isSyncButtonEnabled, "Sync button should be enabled before starting sync");
+
+			await homePage.ClickSyncButtonAsync();
+
+			var isSyncInProgress = await homePage.IsSyncInProgressAsync();
+			Assert.True(isSyncInProgress, "Sync should be in progress after clicking sync button");
+
+				await homePage.WaitForSyncToCompleteAsync(timeout: 120000);
+
+				var isSyncButtonEnabledAfter = await homePage.IsSyncButtonEnabledAsync();
+				Assert.True(isSyncButtonEnabledAfter, "Sync button should be enabled after sync completes");
+
+				var hasLastSyncTime = await homePage.HasLastSyncTimeAsync();
+				Assert.True(hasLastSyncTime, "Last sync time should be displayed after successful sync");
+			}
+			catch
+			{
+				await CaptureErrorStateAsync("sync");
+				throw;
+			}
+		}
+
+		[Fact]
+		public async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions()
+		{
+			var loginPage = new LoginPage(Page!);
+			var homePage = new HomePage(Page!);
+			var transactionsPage = new TransactionsPage(Page!);
+
+			try
+			{
+				await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
+				await loginPage.WaitForSuccessfulLoginAsync();
+
+				await homePage.WaitForPageLoadAsync();
+				var isSyncButtonVisible = await homePage.IsSyncButtonVisibleAsync();
+				Assert.True(isSyncButtonVisible, "Sync button should be visible");
+
+				var isSyncButtonEnabled = await homePage.IsSyncButtonEnabledAsync();
+				Assert.True(isSyncButtonEnabled, "Sync button should be enabled before starting sync");
+
+				await homePage.ClickSyncButtonAsync();
+
+				var isSyncInProgress = await homePage.IsSyncInProgressAsync();
+				Assert.True(isSyncInProgress, "Sync should be in progress");
+
+				await homePage.WaitForSyncToCompleteAsync(timeout: 120000);
+
+				var hasLastSyncTime = await homePage.HasLastSyncTimeAsync();
+				Assert.True(hasLastSyncTime, "Last sync time should be displayed after sync");
+
+				await transactionsPage.NavigateViaMenuAsync();
+
+				await transactionsPage.WaitForPageLoadAsync(timeout: 30000);
+
+				await transactionsPage.SetDateFilterToAllAsync();
+
+				var hasTransactions = await transactionsPage.HasTransactionsAsync();
+				var isEmpty = await transactionsPage.IsEmptyStateDisplayedAsync();
+				var hasError = await transactionsPage.IsErrorDisplayedAsync();
+
+				Assert.False(hasError, "Transaction page should not show an error after successful sync");
+				Assert.True(hasTransactions, "Transaction page should show transactions after successful sync (test data should be seeded)");
+				Assert.False(isEmpty, "Transaction page should not be empty after successful sync with seeded test data");
+
+				var isTableDisplayed = await transactionsPage.IsTableDisplayedAsync();
+				Assert.True(isTableDisplayed, "Transaction table should be visible");
+
+				var hasValidData = await transactionsPage.VerifyTransactionDataAsync();
+				Assert.True(hasValidData, "Transactions should have valid data (date, type, symbol)");
+			}
+			catch
+			{
+				await CaptureErrorStateAsync("comprehensive-smoketest");
+				throw;
+			}
+		}
 	}
 }
-
-

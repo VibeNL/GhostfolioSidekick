@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
@@ -42,18 +42,16 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 						// Process transaction details
 						var generatedTransaction = await ProcessDetails();
-						if (generatedTransaction == null)
+						if (generatedTransaction != null)
 						{
-							break;
-						}
+							var symbol = await AddSymbol(generatedTransaction);
+							if (symbol != null)
+							{
+								list.Add(symbol);
+							}
 
-						var symbol = await AddSymbol(generatedTransaction);
-						if (symbol != null)
-						{
-							list.Add(symbol);
+							logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
 						}
-
-						logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
 
 						// Press Close button to close the details
 						await page.GetByRole(AriaRole.Button).ClickAsync();

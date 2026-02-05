@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
@@ -21,7 +21,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				Console.WriteLine("Select your scraper");
 				Console.WriteLine("1. Scalable Capital");
 				Console.WriteLine("2. Trade Republic");
-				Console.WriteLine("3. Centraal Beheer");
 				Console.WriteLine("0. Exit");
 				var input = Console.ReadLine();
 				if (input == null)
@@ -37,9 +36,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						break;
 					case "2":
 						broker = SupportedBrokers.TradeRepublic;
-						break;
-					case "3":
-						broker = SupportedBrokers.CentraalBeheer;
 						break;
 					case "0":
 						Environment.Exit(0);
@@ -83,12 +79,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					case SupportedBrokers.TradeRepublic:
 						{
 							var scraper = new TradeRepublic.Scraper(page, logger, outputDirectory);
-							transactions.Add(0, await scraper.ScrapeTransactions());
-						}
-						break;
-					case SupportedBrokers.CentraalBeheer:
-						{
-							var scraper = new CentraalBeheer.Scraper(page, logger);
 							transactions.Add(0, await scraper.ScrapeTransactions());
 						}
 						break;

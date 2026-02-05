@@ -100,8 +100,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			return await databaseContext.CalculatedSnapshots
+			var minDate = await databaseContext.Activities
 				.MinAsync(s => s.Date, cancellationToken);
+			return DateOnly.FromDateTime(minDate);
 		}
 
 		public async Task<List<string>> GetSymbolProfilesAsync(int? accountFilter, CancellationToken cancellationToken = default)

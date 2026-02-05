@@ -4,18 +4,35 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting.Server;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Symbols;
+using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace PortfolioViewer.WASM.UITests
 {
 	// https://danieldonbavand.com/2022/06/13/using-playwright-with-the-webapplicationfactory-to-test-a-blazor-application/
 	public class CustomWebApplicationFactory : WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program>
 	{
+		public const string TestAccessToken = "test-token-12345";
 		private IHost? _host;
+		private readonly Microsoft.Data.Sqlite.SqliteConnection? _connection;
 
 		public CustomWebApplicationFactory()
 		{
 			// Ensure WASM publish/copy target is executed
 			EnsureWasmPublishedToApiStaticFiles();
+
+			// Create and open an in-memory SQLite connection using a named in-memory database ("TestDb")
+			// with a shared cache. We keep a single connection open for the lifetime of the factory
+			// and share that connection across all DbContext instances.
+			_connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=TestDb;Mode=Memory;Cache=Shared");
+			_connection.Open();
 		}
 
 		public string ServerAddress
@@ -37,7 +54,51 @@ namespace PortfolioViewer.WASM.UITests
 			// of TestServer so we can listen on a real address.
 			builder.ConfigureWebHost(webHostBuilder => webHostBuilder
 														.UseKestrel()
-														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production"));
+														.UseUrls("http://127.0.0.1:0") // Use dynamic port (0 = auto-select available port)
+														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
+															.ConfigureServices(services =>
+															{
+																// Replace IApplicationSettings with a mock that provides the test token
+																var mockSettings = new Mock<IApplicationSettings>();
+																mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
+
+																// Remove existing registration and add our mock
+																var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
+																if (descriptor != null)
+																{
+																	services.Remove(descriptor);
+																}
+																services.AddSingleton(mockSettings.Object);
+
+																// Remove existing DbContext registrations and replace with in-memory SQLite
+																var dbContextDescriptors = services.Where(d =>
+																	d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
+																	d.ServiceType == typeof(DatabaseContext) ||
+																	d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
+																	.ToList();
+
+
+																foreach (var desc in dbContextDescriptors)
+																{
+																	services.Remove(desc);
+																}
+
+																// Register in-memory SQLite database for testing
+																// Important: Share the same connection across all DbContext instances
+																// to ensure in-memory database persists
+																services.AddDbContext<DatabaseContext>(options =>
+																{
+																	// Use the shared in-memory connection
+																	// Don't let EF Core manage the connection (we keep it open)
+																	options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
+																}, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+
+																// Also register DbContextFactory with the same connection
+																services.AddDbContextFactory<DatabaseContext>(options =>
+																{
+																	options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
+																}, ServiceLifetime.Scoped);
+															}));
 
 
 			// Create and start the Kestrel server before the test server,
@@ -47,6 +108,9 @@ namespace PortfolioViewer.WASM.UITests
 			// See https://github.com/dotnet/aspnetcore/issues/33846.
 			_host = builder.Build();
 			_host.Start();
+
+			// Seed test data
+			SeedTestData(_host.Services);
 
 			// Extract the selected dynamic port out of the Kestrel server
 			// and assign it onto the client options for convenience so it
@@ -70,6 +134,8 @@ namespace PortfolioViewer.WASM.UITests
 		protected override void Dispose(bool disposing)
 		{
 			_host?.Dispose();
+			_connection?.Dispose();
+			base.Dispose(disposing);
 		}
 
 		private void EnsureServer()
@@ -149,5 +215,122 @@ namespace PortfolioViewer.WASM.UITests
 				File.Copy(newPath, newPath.Replace(tempFolder, apiWwwroot), true);
 			}
 		}
+
+		private static void SeedTestData(IServiceProvider services)
+		{
+			try
+			{
+				using var scope = services.CreateScope();
+				var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+
+				// Create the database schema for the in-memory database
+				// Note: The connection is already open and shared across all DbContext instances
+				dbContext.Database.EnsureCreated();
+
+				// Seed test data
+				// Create test account
+				var testAccount = new Account("Test Account");
+				dbContext.Accounts.Add(testAccount);
+				dbContext.SaveChanges();
+
+				// Create test symbol profile
+				var testSymbolProfile = new SymbolProfile(
+					"AAPL",
+					"Apple Inc.",
+					[],
+					Currency.USD,
+					"NASDAQ",
+					AssetClass.Equity,
+					null,
+					[],
+					[]);
+
+				// Create test holding
+				var testHolding = new Holding();
+				testHolding.SymbolProfiles.Add(testSymbolProfile);
+				dbContext.Holdings.Add(testHolding);
+
+				// Create some test activities
+				// Use fixed dates for deterministic test behavior
+				var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+				var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
+		{
+			new CashDepositActivity(
+				testAccount,
+				null,
+				baseDate.AddDays(-10),
+				new Money(Currency.USD, 10000m),
+				"DEPOSIT-001",
+				null,
+				"Initial deposit"),
+			new BuyActivity(
+				testAccount,
+				testHolding,
+				[],
+				baseDate.AddDays(-9),
+				10m,
+				new Money(Currency.USD, 150m),
+				"BUY-001",
+				null,
+				"Buy Apple shares")
+			{
+				TotalTransactionAmount = new Money(Currency.USD, 1500m)
+			},
+			new BuyActivity(
+				testAccount,
+				testHolding,
+				[],
+				baseDate.AddDays(-5),
+				5m,
+				new Money(Currency.USD, 155m),
+				"BUY-002",
+				null,
+				"Buy more Apple shares")
+			{
+				TotalTransactionAmount = new Money(Currency.USD, 775m)
+			},
+			new DividendActivity(
+				testAccount,
+				testHolding,
+				[],
+				baseDate.AddDays(-2),
+				new Money(Currency.USD, 25m),
+				"DIV-001",
+				null,
+				"Dividend payment")
+			};
+
+				dbContext.Activities.AddRange(activities);
+				dbContext.SaveChanges();
+
+				Console.WriteLine($"Test data seeded successfully: {activities.Count} activities created");
+
+				// Verify the data was actually saved
+				var activityCount = dbContext.Activities.Count();
+				var accountCount = dbContext.Accounts.Count();
+				var holdingCount = dbContext.Holdings.Count();
+				Console.WriteLine($"Verification - Activities: {activityCount}, Accounts: {accountCount}, Holdings: {holdingCount}");
+
+				// List all tables in the database
+				using var connection = dbContext.Database.GetDbConnection();
+				connection.Open();
+				using var command = connection.CreateCommand();
+				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
+				using var reader = command.ExecuteReader();
+				Console.WriteLine("Database tables:");
+				while (reader.Read())
+				{
+					Console.WriteLine($"  - {reader.GetString(0)}");
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error seeding test data: {ex.Message}");
+				Console.WriteLine($"Stack trace: {ex.StackTrace}");
+				throw;
+			}
+		}
 	}
 }
+
+
