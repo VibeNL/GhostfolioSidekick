@@ -35,7 +35,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				_mockServerConfigurationService.Object);
 		}
 
-
 		[Fact]
 		public async Task GetHoldingsAsync_WithoutAccountId_ShouldReturnAllHoldings()
 		{
@@ -758,7 +757,20 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static Holding CreateTestHolding(string symbol, string? name)
 		{
-			var holding = new Holding { Id = ++_holdingIdCounter, SymbolProfiles = [new SymbolProfile(symbol: symbol, name: name, identifiers: [], currency: Currency.USD, dataSource: "YAHOO", assetClass: AssetClass.Equity, assetSubClass: null, countries: [], sectors: [new SectorWeight { Name = "Technology" }])], CalculatedSnapshots = [] }; return holding;
+			var holding = new Holding { 
+				Id = ++_holdingIdCounter, 
+				SymbolProfiles = [
+					new SymbolProfile(
+						symbol: symbol,
+						name: name, 
+						identifiers: [], 
+						currency: Currency.USD,
+						dataSource: "YAHOO",
+						assetClass: AssetClass.Equity, 
+						assetSubClass: null, 
+						countries: [], 
+						sectors: [new SectorWeight { Name = "Technology" }])], CalculatedSnapshots = [] }; 
+			return holding;
 		}
 
 		private static int _snapshotIdCounter = 0;
