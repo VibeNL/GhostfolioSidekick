@@ -25,8 +25,8 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 			pendingMigrations.Should().BeEmpty();
 
 			// Debug: Get all existing tables
-			var allTables = await context.Database.SqlQueryRaw<string>(
-				"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;")
+			var allTables = await context.Database.SqlQuery<string>(
+				$"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
 				.ToListAsync(CancellationToken.None);
 			
 			// Output for debugging
