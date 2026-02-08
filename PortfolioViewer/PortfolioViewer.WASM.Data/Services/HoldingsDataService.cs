@@ -117,7 +117,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 				result.Add(new HoldingDisplayModel
 				{
-					AssetClass = symbolProfile.AssetClass.ToString() ?? "",
+					AssetClass = symbolProfile.AssetClass.ToString(),
 					AveragePrice = ConvertToMoney(SafeDivide(x.Snapshots.Sum(y => y.AverageCostPrice * y.Quantity), x.Snapshots.Sum(x => x.Quantity))),
 					Currency = serverConfigurationService.PrimaryCurrency.Symbol,
 					CurrentPrice = ConvertToMoney(x.Snapshots.Min(y => y.CurrentUnitPrice)),
