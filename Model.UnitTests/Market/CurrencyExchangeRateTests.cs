@@ -109,6 +109,36 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		}
 
 		[Fact]
+		public void CopyFrom_ShouldNotCopyCurrency()
+		{
+			// Arrange
+			var initialCurrency = Currency.EUR;
+			var initialClose = 50m;
+			var initialOpen = 45m;
+			var initialHigh = 55m;
+			var initialLow = 40m;
+			var initialTradingVolume = 500000m;
+			var initialDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1));
+
+			var newCurrency = Currency.USD;
+			var newClose = 100m;
+			var newOpen = 95m;
+			var newHigh = 105m;
+			var newLow = 90m;
+			var newTradingVolume = 1000000m;
+			var newDate = DateOnly.FromDateTime(DateTime.Now);
+
+			var targetMarketData = new CurrencyExchangeRate(initialCurrency, initialClose, initialOpen, initialHigh, initialLow, initialTradingVolume, initialDate);
+			var sourceMarketData = new CurrencyExchangeRate(newCurrency, newClose, newOpen, newHigh, newLow, newTradingVolume, newDate);
+
+			// Act
+			targetMarketData.CopyFrom(sourceMarketData);
+
+			// Assert
+			targetMarketData.Currency.Should().Be(initialCurrency); // Currency should NOT be copied
+		}
+
+		[Fact]
 		public void Properties_ShouldBeSettable()
 		{
 			// Arrange
