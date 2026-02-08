@@ -194,10 +194,10 @@
                                         var previousPrice = index < PriceHistory.Count - 1 ? 
                                             PriceHistory.OrderByDescending(p => p.Date).Skip(index + 1).FirstOrDefault() : 
                                             null;
-                                        var previousAmount = previousPrice?.Price ?? 0;
-                                        var currentAmount = price.Price;
-                                        var change = currentAmount - previousAmount;
-                                        var changePercent = previousAmount != 0 ? (change / previousAmount) : 0;
+                                        var previousPriceValue = previousPrice?.Price ?? 0;
+                                        var currentPriceValue = price.Price;
+                                        var change = currentPriceValue - previousPriceValue;
+                                        var changePercent = previousPriceValue != 0 ? (change / previousPriceValue) : 0;
                                         var currency = HoldingInfo?.CurrentPrice.Currency ?? Currency.USD;
                                         
                                         <tr>
