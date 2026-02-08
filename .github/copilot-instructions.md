@@ -61,7 +61,6 @@ Get-ChildItem -Recurse -Include "playwright.ps1" | ForEach-Object { pwsh $_.Full
 
 **Test Projects**: The solution contains extensive unit tests with `*.UnitTests` suffix and integration tests:
 - `PortfolioViewer.WASM.UITests` - Playwright-based UI tests (produces screenshots/videos on failure)
-- `PortfolioViewer.IntegratieTests` - Integration tests
 - `IntegrationTests` - General integration tests
 
 ### Running the Application
@@ -203,6 +202,8 @@ All project assemblies follow the pattern: `GhostfolioSidekick.<ProjectName>`
 
 ### Code Quality
 
+- **Production-Ready Code**: Always produce production-ready code following SOLID principles, DRY (Don't Repeat Yourself), YAGNI (You Aren't Gonna Need It), and other software engineering best practices
+- **Verification Required**: Always verify build (`dotnet build`) and tests (`dotnet test`) pass before marking any task as complete
 - **Treat Warnings as Errors**: ALL warnings must be resolved before committing
 - **SonarCloud**: Code must pass quality gate (see badge in README.md)
 - **Exclusions**: JavaScript files and certain generated code excluded from analysis (via `<SonarQubeSetting>` in `.csproj` files)
