@@ -173,21 +173,6 @@ jobs:
           cache-to: type=gha,mode=max
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-      - name: Create a PR comment with the published version
-        uses: thollander/actions-comment-pull-request@v3
-        if: ${{ github.event_name == 'pull_request' }}
-        with:
-          message: |
-            ### Development container published
-
-            Install with:
-
-            ```
-            docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
-            ```
-          comment_tag: "development-ghostfoliosidekick-published"
-          mode: "recreate"
-          pr_number: ${{ github.event.number }}
 
   vulnerability-scan:
     runs-on: ubuntu-latest
@@ -265,3 +250,25 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'library'
           severity: 'CRITICAL,HIGH'
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build-test-analyze, publish, vulnerability-scan]
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Create a PR comment with the published version
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            ### Development container published
+
+            Install with:
+
+            ```
+            docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
+            ```
+          comment_tag: "development-ghostfoliosidekick-published"
+          mode: "recreate"
+          pr_number: ${{ github.event.number }}
