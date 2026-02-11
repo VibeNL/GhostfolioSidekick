@@ -12,25 +12,13 @@ RUN apt-get update && \
     dotnet workload install wasm-tools && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy solution file and all project files for better caching
+# Copy solution file, build props, and all project files for better caching
 COPY ["GhostfolioSidekick.slnx", "./"]
 COPY ["Directory.Build.props", "./"]
-COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer/PortfolioViewer.ApiService/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer/PortfolioViewer.WASM/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM.Data/PortfolioViewer.WASM.Data.csproj", "PortfolioViewer/PortfolioViewer.WASM.Data/"]
-COPY ["PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj", "PortfolioViewer/PortfolioViewer.Common/"]
-COPY ["PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj", "PortfolioViewer/PortfolioViewer.ServiceDefaults/"]
-COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
-COPY ["Database/Database.csproj", "Database/"]
-COPY ["GhostfolioAPI/GhostfolioAPI.csproj", "GhostfolioAPI/"]
-COPY ["Model/Model.csproj", "Model/"]
-COPY ["Configuration/Configuration.csproj", "Configuration/"]
-COPY ["Utilities/Utilities.csproj", "Utilities/"]
+COPY ["**/*.csproj", "./"]
 
-# Restore all dependencies in one step
-RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
-    dotnet restore -a "$TARGETARCH" "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
-    dotnet restore -a "$TARGETARCH" "GhostfolioSidekick/GhostfolioSidekick.csproj"
+# Restore all dependencies using the solution file
+RUN dotnet restore -a "$TARGETARCH" "GhostfolioSidekick.slnx"
 
 # Copy only source files needed for build (use .dockerignore to exclude tests, docs, etc.)
 COPY . .
