@@ -1,3 +1,21 @@
+# Base runtime image for the API
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:10.0 AS base
+
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+ARG BUILDPLATFORM
+ARG BUILDOS
+ARG BUILDARCH
+ARG BUILDVARIANT
+
+RUN echo "Building on $BUILDPLATFORM, targeting $TARGETPLATFORM"
+RUN echo "Building on ${BUILDOS} and ${BUILDARCH} with optional variant ${BUILDVARIANT}"
+RUN echo "Targeting ${TARGETOS} and ${TARGETARCH} with optional variant ${TARGETVARIANT}"
+
+WORKDIR /app
+
 # Build stage for the API and Sidekick
 FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
@@ -5,88 +23,50 @@ ARG TARGETARCH
 
 WORKDIR /src
 
-# Install Node.js and wasm-tools workload in a single layer (Python removed - not used)
+# Install Python, wasm-tools workload, and supervisord in a single layer
 RUN apt-get update && \
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y python3 python3-pip supervisor && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     dotnet workload install wasm-tools && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy solution file, build props, and all project files for better caching
-COPY ["GhostfolioSidekick.slnx", "./"]
-COPY ["Directory.Build.props", "./"]
-COPY ["Database/Database.csproj", "Database/"]
-COPY ["Cryptocurrency/Cryptocurrency.csproj", "Cryptocurrency/"]
-COPY ["ExternalDataProvider.UnitTests/ExternalDataProvider.UnitTests.csproj", "ExternalDataProvider.UnitTests/"]
-COPY ["Configuration.UnitTests/Configuration.UnitTests.csproj", "Configuration.UnitTests/"]
-COPY ["Model/Model.csproj", "Model/"]
-COPY ["Cryptocurrency.UnitTests/Cryptocurrency.UnitTests.csproj", "Cryptocurrency.UnitTests/"]
-COPY ["Parsers/Parsers.csproj", "Parsers/"]
-COPY ["GhostfolioAPI/GhostfolioAPI.csproj", "GhostfolioAPI/"]
-COPY ["GhostfolioAPI.UnitTests/GhostfolioAPI.UnitTests.csproj", "GhostfolioAPI.UnitTests/"]
+# Copy and restore projects
+COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer.ApiService/"]
+COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer.WASM/"]
 COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
-COPY ["GhostfolioSidekick.UnitTests/GhostfolioSidekick.UnitTests.csproj", "GhostfolioSidekick.UnitTests/"]
-COPY ["Database.UnitTests/Database.UnitTests.csproj", "Database.UnitTests/"]
-COPY ["PerformanceCalculations/PerformanceCalculations.csproj", "PerformanceCalculations/"]
-COPY ["Model.UnitTests/Model.UnitTests.csproj", "Model.UnitTests/"]
-COPY ["Configuration/Configuration.csproj", "Configuration/"]
-COPY ["IntegrationTests/IntegrationTests.csproj", "IntegrationTests/"]
-COPY ["AI/AI.Agents/AI.Agents.csproj", "AI/AI.Agents/"]
-COPY ["AI/AI.Common/AI.Common.csproj", "AI/AI.Common/"]
-COPY ["Utilities/Utilities.csproj", "Utilities/"]
-COPY ["AI/AI.Functions/AI.Functions.csproj", "AI/AI.Functions/"]
-COPY ["Utilities.UnitTests/Utilities.UnitTests.csproj", "Utilities.UnitTests/"]
-COPY ["PerformanceCalculations.UnitTests/PerformanceCalculations.UnitTests.csproj", "PerformanceCalculations.UnitTests/"]
-COPY ["AI/AI.Server.UnitTests/AI.Server.UnitTests.csproj", "AI/AI.Server.UnitTests/"]
-COPY ["AI/AI.Server/AI.Server.csproj", "AI/AI.Server/"]
-COPY ["AI/AI.Functions.UnitTests/AI.Functions.UnitTests.csproj", "AI/AI.Functions.UnitTests/"]
-COPY ["AI/AI.Agents.UnitTests/AI.Agents.UnitTests.csproj", "AI/AI.Agents.UnitTests/"]
-COPY ["Tools/ScraperUtilities/ScraperUtilities.csproj", "Tools/ScraperUtilities/"]
-COPY ["Tools/AnonymisePDF/AnonymisePDF.csproj", "Tools/AnonymisePDF/"]
-COPY ["Tools/AnonymisePDF.UnitTests/AnonymisePDF.UnitTests.csproj", "Tools/AnonymisePDF.UnitTests/"]
-COPY ["PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj", "PortfolioViewer/PortfolioViewer.AppHost/"]
-COPY ["Parsers.UnitTests/Parsers.UnitTests.csproj", "Parsers.UnitTests/"]
-COPY ["PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj", "PortfolioViewer/PortfolioViewer.Common/"]
-COPY ["PortfolioViewer/PortfolioViewer.Tests/PortfolioViewer.Tests.csproj", "PortfolioViewer/PortfolioViewer.Tests/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM.Data/PortfolioViewer.WASM.Data.csproj", "PortfolioViewer/PortfolioViewer.WASM.Data/"]
-COPY ["PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj", "PortfolioViewer/PortfolioViewer.ServiceDefaults/"]
-COPY ["PortfolioViewer/PortfolioViewer.ApiService.UnitTests/PortfolioViewer.ApiService.UnitTests.csproj", "PortfolioViewer/PortfolioViewer.ApiService.UnitTests/"]
-COPY ["ExternalDataProvider/ExternalDataProvider.csproj", "ExternalDataProvider/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM.UnitTests/PortfolioViewer.WASM.UnitTests.csproj", "PortfolioViewer/PortfolioViewer.WASM.UnitTests/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM.AI.UnitTests/PortfolioViewer.WASM.AI.UnitTests.csproj", "PortfolioViewer/PortfolioViewer.WASM.AI.UnitTests/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM.Data.UnitTests/PortfolioViewer.WASM.Data.UnitTests.csproj", "PortfolioViewer/PortfolioViewer.WASM.Data.UnitTests/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM.AI/PortfolioViewer.WASM.AI.csproj", "PortfolioViewer/PortfolioViewer.WASM.AI/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM.UITests/PortfolioViewer.WASM.UITests.csproj", "PortfolioViewer/PortfolioViewer.WASM.UITests/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer/PortfolioViewer.WASM/"]
-COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer/PortfolioViewer.ApiService/"]
 
-# Restore all dependencies using the solution file
-RUN dotnet restore -a "$TARGETARCH" "GhostfolioSidekick.slnx"
+RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
+    dotnet restore -a "$TARGETARCH" "PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
+    dotnet restore -a "$TARGETARCH" "GhostfolioSidekick/GhostfolioSidekick.csproj"
 
-# Copy only source files needed for build (use .dockerignore to exclude tests, docs, etc.)
+# Copy the entire source code
 COPY . .
 
-# Publish each project directly (no separate build step - publish does build)
+# Build all projects
+RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build && \
+    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build && \
+    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build
+
+# Publish each project
 FROM build AS publish-api
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
-RUN dotnet publish -a "$TARGETARCH" --no-restore -c Release -o /app/publish
+RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish
 
 FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
-RUN dotnet publish -a "$TARGETARCH" --no-restore -c Release -o /app/publish-wasm
+RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
 
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish -a "$TARGETARCH" --no-restore -c Release -o /app/publish-sidekick
+RUN dotnet publish -a "$TARGETARCH" "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
 
-# Final runtime image - use TARGETPLATFORM for runtime
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
-
-ARG TARGETARCH
+# Final runtime image
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 WORKDIR /app
 
-# Install supervisord only (removed duplicate Python/Node.js)
+# Install supervisord
 RUN apt-get update && \
     apt-get install -y supervisor && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -99,14 +79,13 @@ COPY --from=publish-sidekick /app/publish-sidekick ./
 # Copy supervisord config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Copy SSL certificate (use build secret or volume mount instead of embedding in image)
+# Copy SSL certificate and key (ensure these files are available in your build context)
 COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
 
 # Set environment and expose ports
-ENV ASPNETCORE_URLS="http://+:80;https://+:443" \
-    ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-# NOTE: Set password via environment variable at runtime, not hardcoded here
-# Example: docker run -e ASPNETCORE_Kestrel__Certificates__Default__Password=YourPassword ...
+ENV ASPNETCORE_URLS="http://+:80;https://+:443"
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
 
 EXPOSE 80
 EXPOSE 443
