@@ -75,21 +75,36 @@ namespace GhostfolioSidekick.Database.Migrations
                 table: "CalculatedSnapshots",
                 newName: "Currency");
 
+            migrationBuilder.RenameColumn(
+                name: "HoldingAggregatedId",
+                table: "CalculatedSnapshots",
+                newName: "HoldingId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_CalculatedSnapshots_HoldingAggregatedId_Date",
+                table: "CalculatedSnapshots",
+                newName: "IX_CalculatedSnapshots_HoldingId_Date");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_CalculatedSnapshots_HoldingAggregatedId_AccountId_Date",
+                table: "CalculatedSnapshots",
+                newName: "IX_CalculatedSnapshots_HoldingId_AccountId_Date");
+
             migrationBuilder.AddColumn<int>(
-                name: "HoldingId",
+                name: "HoldingId1",
                 table: "CalculatedSnapshots",
                 type: "INTEGER",
                 nullable: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CalculatedSnapshots_HoldingId",
+                name: "IX_CalculatedSnapshots_HoldingId1",
                 table: "CalculatedSnapshots",
-                column: "HoldingId");
+                column: "HoldingId1");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_CalculatedSnapshots_Holdings_HoldingId",
+                name: "FK_CalculatedSnapshots_Holdings_HoldingId1",
                 table: "CalculatedSnapshots",
-                column: "HoldingId",
+                column: "HoldingId1",
                 principalTable: "Holdings",
                 principalColumn: "Id");
         }
@@ -98,15 +113,15 @@ namespace GhostfolioSidekick.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_CalculatedSnapshots_Holdings_HoldingId",
+                name: "FK_CalculatedSnapshots_Holdings_HoldingId1",
                 table: "CalculatedSnapshots");
 
             migrationBuilder.DropIndex(
-                name: "IX_CalculatedSnapshots_HoldingId",
+                name: "IX_CalculatedSnapshots_HoldingId1",
                 table: "CalculatedSnapshots");
 
             migrationBuilder.DropColumn(
-                name: "HoldingId",
+                name: "HoldingId1",
                 table: "CalculatedSnapshots");
 
             migrationBuilder.RenameColumn(
@@ -123,6 +138,21 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "Currency",
                 table: "CalculatedSnapshots",
                 newName: "CurrencyTotalValue");
+
+            migrationBuilder.RenameColumn(
+                name: "HoldingId",
+                table: "CalculatedSnapshots",
+                newName: "HoldingAggregatedId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_CalculatedSnapshots_HoldingId_Date",
+                table: "CalculatedSnapshots",
+                newName: "IX_CalculatedSnapshots_HoldingAggregatedId_Date");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_CalculatedSnapshots_HoldingId_AccountId_Date",
+                table: "CalculatedSnapshots",
+                newName: "IX_CalculatedSnapshots_HoldingAggregatedId_AccountId_Date");
 
             migrationBuilder.AddColumn<string>(
                 name: "CurrencyClose",

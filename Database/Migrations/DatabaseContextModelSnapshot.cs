@@ -746,10 +746,10 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("HoldingAggregatedId")
+                    b.Property<long>("HoldingId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("HoldingId")
+                    b.Property<int?>("HoldingId1")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Quantity")
@@ -775,13 +775,13 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("Date");
 
-                    b.HasIndex("HoldingId");
+                    b.HasIndex("HoldingId1");
 
                     b.HasIndex("AccountId", "Date");
 
-                    b.HasIndex("HoldingAggregatedId", "Date");
+                    b.HasIndex("HoldingId", "Date");
 
-                    b.HasIndex("HoldingAggregatedId", "AccountId", "Date")
+                    b.HasIndex("HoldingId", "AccountId", "Date")
                         .IsUnique();
 
                     b.ToTable("CalculatedSnapshots", (string)null);
@@ -1320,7 +1320,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Holding", null)
                         .WithMany("CalculatedSnapshots")
-                        .HasForeignKey("HoldingId");
+                        .HasForeignKey("HoldingId1");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
