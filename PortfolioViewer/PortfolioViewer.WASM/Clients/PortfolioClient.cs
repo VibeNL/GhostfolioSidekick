@@ -34,22 +34,64 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			{
 				// Step 0: Ensure Database is Up-to-Date
 				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+				// Check for pending migrations
 				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync(cancellationToken: cancellationToken);
+				var appliedMigrations = await databaseContext.Database.GetAppliedMigrationsAsync(cancellationToken: cancellationToken);
+
+				logger.LogInformation("Applied migrations: {AppliedCount}, Pending migrations: {PendingCount}", 
+					appliedMigrations.Count(), pendingMigrations.Count());
+
 				if (pendingMigrations.Any())
 				{
 					try
 					{
+						logger.LogInformation("Applying {Count} pending migrations: {Migrations}", 
+							pendingMigrations.Count(), string.Join(", ", pendingMigrations));
+						progress.Report(($"Applying {pendingMigrations.Count()} database migrations...", 0));
+
 						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+						logger.LogInformation("Migrations applied successfully");
 					}
 					catch (Exception ex)
 					{
-						progress.Report(("Error applying database migrations. Forcing new database.", 0));
-						logger.LogWarning(ex, "Failed to apply migrations, forcing new database");
+						progress.Report(("Error applying database migrations. Recreating database...", 0));
+						logger.LogError(ex, "Failed to apply migrations, recreating database from scratch");
 						forceFullSync = true;
+
+						// Clear IndexedDB first to ensure clean state
+						try
+						{
+							await sqlitePersistence.ClearDatabaseFromIndexedDb();
+						}
+						catch (Exception clearEx)
+						{
+							logger.LogWarning(clearEx, "Failed to clear IndexedDB during migration recovery");
+						}
 
 						await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
 						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+						await syncTrackingService.ClearSyncTimeAsync();
+
+						logger.LogInformation("Database recreated successfully with all migrations");
 					}
+				}
+
+				// Verify database can be accessed after migration
+				try
+				{
+					await databaseContext.Database.CanConnectAsync(cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Database connection failed after migration, forcing fresh database");
+					progress.Report(("Database connection failed. Recreating database...", 0));
+					forceFullSync = true;
+
+					await sqlitePersistence.ClearDatabaseFromIndexedDb();
+					await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
+					await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+					await syncTrackingService.ClearSyncTimeAsync();
 				}
 
 				var grpcClient = GetGrpcClient();
@@ -624,39 +666,54 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				return;
 			}
 
-			using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
-			var columns = string.Join(", ", dataChunk[0].Keys.Select(key => $"\"{key}\""));
-			using var connection = databaseContext.Database.GetDbConnection();
-			using var command = connection.CreateCommand();
-			var parametersString = string.Join(", ", dataChunk[0].Keys.Select(key => $"${key}"));
-			command.CommandText = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parametersString})";
-
-			var parameters = dataChunk[0].Keys.ToDictionary(
-				key => key,
-				key => new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0)
-			);
-			command.Parameters.AddRange(parameters.Values.ToArray());
-
-			foreach (var record in dataChunk)
+			try
 			{
-				foreach (var key in record.Keys)
+				using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
+				var columns = string.Join(", ", dataChunk[0].Keys.Select(key => $"\"{key}\""));
+				using var connection = databaseContext.Database.GetDbConnection();
+				using var command = connection.CreateCommand();
+				var parametersString = string.Join(", ", dataChunk[0].Keys.Select(key => $"${key}"));
+				command.CommandText = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parametersString})";
+
+				var parameters = dataChunk[0].Keys.ToDictionary(
+					key => key,
+					key => new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0)
+				);
+				command.Parameters.AddRange(parameters.Values.ToArray());
+
+				foreach (var record in dataChunk)
 				{
-					var parameter = parameters[key];
-					if (parameter != null)
+					foreach (var key in record.Keys)
 					{
-						object? parameterValue = ConvertValueForParameter(record[key]);
-						// Ensure we never pass null to NOT NULL columns - use empty string instead
-						parameter.Value = parameterValue ?? string.Empty;
+						var parameter = parameters[key];
+						if (parameter != null)
+						{
+							object? parameterValue = ConvertValueForParameter(record[key]);
+							// Ensure we never pass null to NOT NULL columns - use empty string instead
+							parameter.Value = parameterValue ?? string.Empty;
+						}
 					}
+
+					await command.ExecuteNonQueryAsync(cancellationToken);
 				}
 
-				await command.ExecuteNonQueryAsync(cancellationToken);
+				await transaction.CommitAsync(cancellationToken);
+
+				stopwatch.Stop(); // Stop timing
+				Console.WriteLine($"InsertDataAsync executed in {stopwatch.ElapsedMilliseconds} ms");
 			}
-
-			await transaction.CommitAsync(cancellationToken);
-
-			stopwatch.Stop(); // Stop timing
-			Console.WriteLine($"InsertDataAsync executed in {stopwatch.ElapsedMilliseconds} ms");
+			catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 1)
+			{
+				// SQLite Error 1 typically indicates schema mismatch (e.g., missing column)
+				logger.LogError(ex, "Schema mismatch detected for table {TableName}. Database schema is out of sync. Columns in data: {Columns}", 
+					tableName, string.Join(", ", dataChunk[0].Keys));
+				throw new InvalidOperationException(
+					$"Database schema mismatch for table '{tableName}'. " +
+					$"The database may need to be deleted and resynced. " +
+					$"Expected columns: {string.Join(", ", dataChunk[0].Keys)}. " +
+					$"Original error: {ex.Message}", 
+					ex);
+			}
 		}
 
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
