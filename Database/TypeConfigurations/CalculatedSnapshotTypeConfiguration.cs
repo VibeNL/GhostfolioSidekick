@@ -34,8 +34,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			// Indexes
 			builder.HasIndex(x => new { x.Date });
 			builder.HasIndex(x => new { x.AccountId, x.Date });
-			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
-			builder.HasIndex(x => new { x.HoldingAggregatedId, x.Date });
+			builder.HasIndex(x => new { x.HoldingId, x.AccountId, x.Date }).IsUnique();
+			builder.HasIndex(x => new { x.HoldingId, x.Date });
 			builder.HasIndex(x => new { x.Date });
 		}
 	}
