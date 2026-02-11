@@ -67,18 +67,15 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Build and analyze with SonarCloud
+      - name: Begin SonarCloud analysis
         if: env.SONAR_TOKEN != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-          dotnet build
-          dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
-      - name: Build without SonarCloud
-        if: env.SONAR_TOKEN == ''
+      - name: Build
         run: dotnet build
 
       - name: Install Playwright Browsers for all test targets
@@ -89,6 +86,12 @@ jobs:
 
       - name: Run tests and collect coverage
         run: dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
+
+      - name: End SonarCloud analysis
+        if: env.SONAR_TOKEN != ''
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
