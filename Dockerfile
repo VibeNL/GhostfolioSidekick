@@ -7,7 +7,7 @@ WORKDIR /src
 
 # Install Node.js and wasm-tools workload in a single layer (Python removed - not used)
 RUN apt-get update && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     dotnet workload install wasm-tools && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
