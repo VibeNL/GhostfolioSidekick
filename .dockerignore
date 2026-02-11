@@ -3,11 +3,13 @@
 **/.env
 **/.git
 **/.gitignore
+**/.gitattributes
 **/.project
 **/.settings
 **/.toolstarget
 **/.vs
 **/.vscode
+**/.idea
 **/*.*proj.user
 **/*.dbmdl
 **/*.jfm
@@ -23,3 +25,35 @@
 **/values.dev.yaml
 LICENSE
 README.md
+
+# Exclude test projects and test outputs
+**/*Tests/
+**/*Test/
+**/TestResults/
+**/playwright-screenshots/
+**/playwright-videos/
+**/*.html
+**/playwright.ps1
+
+# Exclude documentation and examples
+Documentation/
+Examples/
+**/*.md
+
+# Exclude CI/CD and analysis files
+.github/
+.editorconfig
+.sonarcloud.properties
+coverage.xml
+*.coverage
+*.coveragexml
+
+# Exclude build artifacts
+**/out/
+**/*.nupkg
+**/*.snupkg
+.nuget/
+
+# Don't ignore required files
+!certs/
+!supervisord.conf

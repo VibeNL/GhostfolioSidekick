@@ -1,21 +1,3 @@
-# Base runtime image for the API
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:10.0 AS base
-
-ARG TARGETPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-ARG BUILDPLATFORM
-ARG BUILDOS
-ARG BUILDARCH
-ARG BUILDVARIANT
-
-RUN echo "Building on $BUILDPLATFORM, targeting $TARGETPLATFORM"
-RUN echo "Building on ${BUILDOS} and ${BUILDARCH} with optional variant ${BUILDVARIANT}"
-RUN echo "Targeting ${TARGETOS} and ${TARGETARCH} with optional variant ${TARGETVARIANT}"
-
-WORKDIR /app
-
 # Build stage for the API and Sidekick
 FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
@@ -23,50 +5,57 @@ ARG TARGETARCH
 
 WORKDIR /src
 
-# Install Python, wasm-tools workload, and supervisord in a single layer
+# Install Node.js and wasm-tools workload in a single layer (Python removed - not used)
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip supervisor && \
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     dotnet workload install wasm-tools && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy and restore projects
-COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer.ApiService/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer.WASM/"]
+# Copy solution file and all project files for better caching
+COPY ["GhostfolioSidekick.slnx", "./"]
+COPY ["Directory.Build.props", "./"]
+COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer/PortfolioViewer.ApiService/"]
+COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer/PortfolioViewer.WASM/"]
+COPY ["PortfolioViewer/PortfolioViewer.WASM.Data/PortfolioViewer.WASM.Data.csproj", "PortfolioViewer/PortfolioViewer.WASM.Data/"]
+COPY ["PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj", "PortfolioViewer/PortfolioViewer.Common/"]
+COPY ["PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj", "PortfolioViewer/PortfolioViewer.ServiceDefaults/"]
 COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
+COPY ["Database/Database.csproj", "Database/"]
+COPY ["GhostfolioAPI/GhostfolioAPI.csproj", "GhostfolioAPI/"]
+COPY ["Model/Model.csproj", "Model/"]
+COPY ["Configuration/Configuration.csproj", "Configuration/"]
+COPY ["Utilities/Utilities.csproj", "Utilities/"]
 
-RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
-    dotnet restore -a "$TARGETARCH" "PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
+# Restore all dependencies in one step
+RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
+    dotnet restore -a "$TARGETARCH" "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
     dotnet restore -a "$TARGETARCH" "GhostfolioSidekick/GhostfolioSidekick.csproj"
 
-# Copy the entire source code
+# Copy only source files needed for build (use .dockerignore to exclude tests, docs, etc.)
 COPY . .
 
-# Build all projects
-RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build && \
-    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build && \
-    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build
-
-# Publish each project
+# Publish each project directly (no separate build step - publish does build)
 FROM build AS publish-api
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
-RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish
+RUN dotnet publish -a "$TARGETARCH" --no-restore -c Release -o /app/publish
 
 FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
-RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
+RUN dotnet publish -a "$TARGETARCH" --no-restore -c Release -o /app/publish-wasm
 
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish -a "$TARGETARCH" "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
+RUN dotnet publish -a "$TARGETARCH" --no-restore -c Release -o /app/publish-sidekick
 
-# Final runtime image
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+# Final runtime image - use TARGETPLATFORM for runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+
+ARG TARGETARCH
 
 WORKDIR /app
 
-# Install supervisord
+# Install supervisord only (removed duplicate Python/Node.js)
 RUN apt-get update && \
     apt-get install -y supervisor && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -79,13 +68,14 @@ COPY --from=publish-sidekick /app/publish-sidekick ./
 # Copy supervisord config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Copy SSL certificate and key (ensure these files are available in your build context)
+# Copy SSL certificate (use build secret or volume mount instead of embedding in image)
 COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
 
 # Set environment and expose ports
-ENV ASPNETCORE_URLS="http://+:80;https://+:443"
-ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
+ENV ASPNETCORE_URLS="http://+:80;https://+:443" \
+    ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+# NOTE: Set password via environment variable at runtime, not hardcoded here
+# Example: docker run -e ASPNETCORE_Kestrel__Certificates__Default__Password=YourPassword ...
 
 EXPOSE 80
 EXPOSE 443
