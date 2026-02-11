@@ -198,7 +198,7 @@
                                         var currentPriceValue = price.Price;
                                         var change = currentPriceValue - previousPriceValue;
                                         var changePercent = previousPriceValue != 0 ? (change / previousPriceValue) : 0;
-                                        var currency = HoldingInfo?.CurrentPrice.Currency ?? Currency.USD;
+                                        var currency = HoldingInfo.CurrentPrice.Currency;
                                         
                                         <tr>
                                             <td>@price.Date.ToString("yyyy-MM-dd")</td>
