@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Performance
 				.Include(h => h.CalculatedSnapshots)
 				.ToListAsync();
 
-			if (holdings == null || !holdings.Any())
+			if (holdings == null || holdings.Count == 0)
 			{
 				logger.LogInformation("No holdings found to calculate performance for");
 				return;
