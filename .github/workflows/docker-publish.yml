@@ -67,12 +67,6 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Install Playwright Browsers for all test targets
-        run: |
-          find . -type f -name 'playwright.ps1' | while read script; do
-            pwsh "$script" install
-          done
-
       - name: Build and analyze with SonarCloud
         if: env.SONAR_TOKEN != ''
         env:
@@ -86,6 +80,12 @@ jobs:
       - name: Build without SonarCloud
         if: env.SONAR_TOKEN == ''
         run: dotnet build
+
+      - name: Install Playwright Browsers for all test targets
+        run: |
+          find . -type f -name 'playwright.ps1' | while read script; do
+            pwsh "$script" install
+          done
 
       - name: Run tests and collect coverage
         run: dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
