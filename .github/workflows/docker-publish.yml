@@ -10,14 +10,8 @@ on:
     branches: [ "master" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
-    paths-ignore:
-      - '**.md'
-      - 'Documentation/**'
   pull_request:
     branches: [ "master" ]
-    paths-ignore:
-      - '**.md'
-      - 'Documentation/**'
   workflow_dispatch:
     
 env:
@@ -32,10 +26,7 @@ env:
 jobs:
   build-test-analyze:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      checks: write
+    permissions: write-all
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -46,14 +37,20 @@ jobs:
         with:
           java-version: 21
           distribution: 'temurin'
-
-      - name: Setup .NET Environment
-        uses: ./.github/actions/setup-dotnet
-
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
       - name: Install Mono
         run: |
           sudo apt update
           sudo apt install -y mono-complete
+      - name: Install .NET 10 WASM workload
+        run: |
+          dotnet workload install wasm-tools
+          dotnet workload restore
+      - name: Install Playwright Browsers
+        run: pwsh -Command "npx playwright install"
       - name: Install SonarCloud scanners
         run: |
           dotnet tool install --global dotnet-sonarscanner
@@ -63,35 +60,27 @@ jobs:
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
+          path: ~\sonar\cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      - name: Begin SonarCloud analysis
-        if: env.SONAR_TOKEN != ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="$SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-
-      - name: Build
+      - name: Build solution
         run: dotnet build
-
       - name: Install Playwright Browsers for all test targets
         run: |
           find . -type f -name 'playwright.ps1' | while read script; do
             pwsh "$script" install
           done
-
       - name: Run tests and collect coverage
         run: dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
-
-      - name: End SonarCloud analysis
+      - name: SonarCloud analysis
         if: env.SONAR_TOKEN != ''
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet-sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+        run: |
+          dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          dotnet build
+          dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
@@ -115,19 +104,13 @@ jobs:
         with:
           name: playwright-error-html
           path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/*.html
-
-      - name: Check for Playwright failures
-        if: failure()
-        run: |
-          echo "Playwright tests failed. Checking for error artifacts..."
-          find PortfolioViewer/PortfolioViewer.WASM.UITests -name '*.html' -o -name '*.png' | head -20
-
       - name: List Playwright error HTML files
         if: always()
         run: find PortfolioViewer/PortfolioViewer.WASM.UITests -name 'mainpage-error-*.html' -print
 
   publish:
     runs-on: ubuntu-latest
+    needs: build-test-analyze
     permissions:
       contents: read
       pull-requests: write
@@ -136,9 +119,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: '0'
-
-      - name: Setup .NET Environment
-        uses: ./.github/actions/setup-dotnet
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
       - name: Install cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3.3.0
@@ -176,21 +160,38 @@ jobs:
           cache-to: type=gha,mode=max
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
+      - name: Create a PR comment with the published version
+        uses: thollander/actions-comment-pull-request@v3
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          message: |
+            ### Development container published
 
-  dotnet-vulnerability-scan:
+            Install with:
+
+            ```
+            docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
+            ```
+          comment_tag: "development-ghostfoliosidekick-published"
+          mode: "recreate"
+          pr_number: ${{ github.event.number }}
+
+  vulnerability-scan:
     runs-on: ubuntu-latest
-    needs: build-test-analyze
-    permissions:
-      contents: read
-      pull-requests: read
+    needs: publish
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: '0'
-
-      - name: Setup .NET Environment
-        uses: ./.github/actions/setup-dotnet
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install .NET 10 WASM workload
+        run: |
+          dotnet workload install wasm-tools
+          dotnet workload restore
       - name: Restore packages
         run: dotnet restore
       - name: Scan for deprecated packages
@@ -219,73 +220,20 @@ jobs:
         run: |
           curl -L --proto '=https' --tlsv1.2 -sSf https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
           chmod +x osv-scanner
-      - name: Generate SBOM for OSV Scanner
-        run: |
-          echo "Generating Software Bill of Materials (SBOM)..."
-          dotnet list package --format json --include-transitive > packages.json
-          cat packages.json
       - name: Run OSV Scanner for additional deprecation and vulnerability checks
         run: |
           echo "Running OSV Scanner for comprehensive security analysis..."
-          # OSV Scanner needs specific package files for .NET projects
-          # We'll scan all .csproj files and the generated packages.json
-          ./osv-scanner --format table --config=/dev/null $(find . -name '*.csproj' -o -name 'packages.json') || echo "OSV Scanner completed with findings"
+          ./osv-scanner --format table --call-analysis=all .
         continue-on-error: true  # Don't fail the build if OSV scanner finds issues, just report them
       - name: Dependency Review
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v4
-
-  docker-vulnerability-scan:
-    runs-on: ubuntu-latest
-    needs: publish
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Set image tag for scanning
-        id: set-tag
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "tag=vibenl/ghostfoliosidekick:pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=vibenl/ghostfoliosidekick:latest" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Wait for Docker image to be available
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
-        run: |
-          echo "Waiting for Docker image to be published..."
-          sleep 60
-
       - name: Run Trivy vulnerability scanner
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
         uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: ${{ steps.set-tag.outputs.tag }}
+          image-ref: ${{ github.event_name == 'pull_request' && format('vibenl/ghostfoliosidekick:pr-{0}', github.event.number) || 'vibenl/ghostfoliosidekick:latest' }}
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'library'
           severity: 'CRITICAL,HIGH'
-
-  notify:
-    runs-on: ubuntu-latest
-    needs: [build-test-analyze, publish, dotnet-vulnerability-scan, docker-vulnerability-scan]
-    if: github.event_name == 'pull_request'
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Create a PR comment with the published version
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          message: |
-            ### Development container published
-
-            Install with:
-
-            ```
-            docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
-            ```
-          comment_tag: "development-ghostfoliosidekick-published"
-          mode: "recreate"
-          pr_number: ${{ github.event.number }}
