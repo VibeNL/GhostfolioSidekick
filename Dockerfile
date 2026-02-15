@@ -1,5 +1,5 @@
 # Base runtime image for the API
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:10.0 AS base
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
 
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -55,14 +55,14 @@ RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.ApiService.csproj" -c Relea
 
 FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
-RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
+RUN dotnet publish "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
 
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
 RUN dotnet publish -a "$TARGETARCH" "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
 
 # Final runtime image
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 WORKDIR /app
 
@@ -73,7 +73,7 @@ RUN apt-get update && \
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
-COPY --from=publish-wasm /app/publish-wasm/wwwroot ./wwwroot
+COPY --from=publish-wasm /app/publish-wasm ./wwwroot
 COPY --from=publish-sidekick /app/publish-sidekick ./
 
 # Copy supervisord config
