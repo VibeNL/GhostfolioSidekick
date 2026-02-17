@@ -73,14 +73,20 @@ RUN apt-get update && \
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
+RUN echo "=== /app after publish-api ===" && ls -l /app
 COPY --from=publish-wasm /app/publish-wasm/wwwroot ./wwwroot
+RUN echo "=== /app/wwwroot after publish-wasm ===" && ls -l /app/wwwroot && echo "=== /app/wwwroot recursive ===" && find /app/wwwroot
 COPY --from=publish-sidekick /app/publish-sidekick ./
+RUN echo "=== /app after publish-sidekick ===" && ls -l /app
 
 # Copy supervisord config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy SSL certificate and key (ensure these files are available in your build context)
 COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
+
+# Final file listing for debug
+RUN echo "=== All files in /app ===" && find /app
 
 # Set environment and expose ports
 ENV ASPNETCORE_URLS="http://+:80;https://+:443"
