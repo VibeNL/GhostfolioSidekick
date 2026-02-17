@@ -41,11 +41,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected List<PortfolioValueHistoryPoint> TimeSeriesData { get; set; } = [];
 		protected List<TimeSeriesDisplayModel> TimeSeriesDisplayData { get; set; } = [];
 
-		// Holdings data for risers and losers
-		protected List<HoldingDisplayModel> HoldingsData { get; set; } = [];
-		protected List<HoldingTimeRangePerformance> TopRisers { get; set; } = [];
-		protected List<HoldingTimeRangePerformance> TopLosers { get; set; } = [];
-
 		// Sorting state
 		private string sortColumn = "Date";
 		private bool sortAscending;
@@ -129,19 +124,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					SelectedAccountId
 				) ?? [];
 
-				// Load holdings data for risers and losers
-				if (SelectedAccountId == 0)
-				{
-					HoldingsData = await HoldingsDataService.GetHoldingsAsync() ?? [];
-				}
-				else
-				{
-					HoldingsData = await HoldingsDataService.GetHoldingsAsync(SelectedAccountId) ?? [];
-				}
-
 				await PrepareDisplayData();
 				await PrepareChartData();
-				await PrepareRisersAndLosers();
 			}
 			catch (Exception ex)
 			{
@@ -153,72 +137,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				IsLoading = false;
 				StateHasChanged();
 			}
-		}
-
-		private async Task PrepareRisersAndLosers()
-		{
-			var timeRangePerformances = new List<HoldingTimeRangePerformance>();
-
-			// Calculate performance for each holding over the selected time range
-			foreach (var holding in HoldingsData.Where(h => h.Quantity > 0 && h.CurrentValue.Amount > 0))
-			{
-				try
-				{
-					// Get price history for this holding over the selected time range
-					var priceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-						holding.Symbol,
-						StartDate,
-						EndDate
-					);
-
-					if (priceHistory.Count != 0)
-					{
-				// Get start and end prices
-				var startPricePoint = priceHistory.OrderBy(p => p.Date).First();
-				var endPricePoint = priceHistory.OrderByDescending(p => p.Date).First();
-
-				if (startPricePoint != null && endPricePoint != null && startPricePoint.Price > 0)
-				{
-					var currency = holding.CurrentPrice.Currency;
-					var startPrice = new Money(currency, startPricePoint.Price);
-					var endPrice = new Money(currency, endPricePoint.Price);
-					
-					// Calculate percentage change over the time range
-					var percentageChange = (endPricePoint.Price - startPricePoint.Price) / startPricePoint.Price;
-					var absoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price);
-
-							timeRangePerformances.Add(new HoldingTimeRangePerformance
-							{
-								Symbol = holding.Symbol,
-								Name = holding.Name,
-								StartPrice = startPrice,
-								EndPrice = endPrice,
-								PercentageChange = percentageChange,
-								AbsoluteChange = absoluteChange,
-								CurrentValue = holding.CurrentValue,
-								Quantity = holding.Quantity
-							});
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					// Log error but continue with other holdings
-					System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbol}: {ex.Message}");
-				}
-			}
-
-			// Top 3 risers (highest percentage change over time range)
-			TopRisers = [.. timeRangePerformances
-				.Where(h => h.PercentageChange > 0)
-				.OrderByDescending(h => h.PercentageChange)
-				.Take(3)];
-
-			// Top 3 losers (lowest percentage change over time range)
-			TopLosers = [.. timeRangePerformances
-				.Where(h => h.PercentageChange < 0)
-				.OrderBy(h => h.PercentageChange)
-				.Take(3)];
 		}
 
 		private Task PrepareDisplayData()

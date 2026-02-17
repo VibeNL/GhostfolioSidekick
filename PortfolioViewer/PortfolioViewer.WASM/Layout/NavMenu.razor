@@ -1,4 +1,4 @@
-﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
@@ -31,6 +31,11 @@
                         <li>
                             <NavLink class="dropdown-item" href="portfolio-timeseries" @onclick="CollapseNavMenu">
                                 <i class="bi bi-bar-chart-line me-2"></i>Performance Timeline
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="top-movers" @onclick="CollapseNavMenu">
+                                <i class="bi bi-lightning-charge me-2"></i>Top Movers
                             </NavLink>
                         </li>
                         <li>

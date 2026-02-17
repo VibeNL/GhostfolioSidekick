@@ -1,0 +1,152 @@
+@page "/top-movers"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@attribute [Authorize]
+
+<PageTitle>Top Movers</PageTitle>
+
+
+<div class="container-fluid">
+    <h2 class="mb-4">Top 3 Risers &amp; Losers</h2>
+
+    @if (IsLoading)
+    {
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="text-muted">Loading Top Movers...</h5>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="LoadMoversAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-trending-up"></i> Top 3 Risers
+                            <small class="text-white-50 ms-2">(@StartDate.ToString("yyyy-MM-dd") to @EndDate.ToString("yyyy-MM-dd"))</small>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (TopRisers.Any())
+                        {
+                            @foreach (var riser in TopRisers)
+                            {
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <strong>@riser.Symbol</strong>
+                                        <br>
+                                        <small class="text-muted">@riser.Name</small>
+                                        <br>
+                                        <small class="text-muted">
+                                            @CurrencyDisplay.DisplaySignAndAmount(@riser.StartPrice) → @CurrencyDisplay.DisplaySignAndAmount(@riser.EndPrice)
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="h6 text-success mb-0">+@riser.PercentageChange.ToString("P2")</div>
+                                        <small class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@riser.AbsoluteChange)</small>
+                                    </div>
+                                </div>
+                                @if (riser != TopRisers.Last())
+                                {
+                                    <hr class="my-2">
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-graph-up" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">No positive performers found in this time range</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-trending-down"></i> Top 3 Losers
+                            <small class="text-white-50 ms-2">(@StartDate.ToString("yyyy-MM-dd") to @EndDate.ToString("yyyy-MM-dd"))</small>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (TopLosers.Any())
+                        {
+                            @foreach (var loser in TopLosers)
+                            {
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <strong>@loser.Symbol</strong>
+                                        <br>
+                                        <small class="text-muted">@loser.Name</small>
+                                        <br>
+                                        <small class="text-muted">
+                                            @CurrencyDisplay.DisplaySignAndAmount(@loser.StartPrice) → @CurrencyDisplay.DisplaySignAndAmount(@loser.EndPrice)
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="h6 text-danger mb-0">@loser.PercentageChange.ToString("P2")</div>
+                                        <small class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(@loser.AbsoluteChange)</small>
+                                    </div>
+                                </div>
+                                @if (loser != TopLosers.Last())
+                                {
+                                    <hr class="my-2">
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-graph-down" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">No losing positions found in this time range</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a class="btn btn-outline-primary" href="/portfolio-timeseries">
+            <i class="bi bi-arrow-left"></i> Back to Portfolio Time Series
+        </a>
+    }
+</div>
+
+<style>
+    .card.border-success {
+        border-width: 2px !important;
+    }
+    .card.border-danger {
+        border-width: 2px !important;
+    }
+    .card.border-success .card-header {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.125);
+    }
+    .card.border-danger .card-header {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.125);
+    }
+    .text-white-50 {
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
+</style>
