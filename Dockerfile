@@ -75,6 +75,7 @@ RUN apt-get update && \
 COPY --from=publish-api /app/publish ./
 RUN echo "=== /app after publish-api ===" && ls -l /app
 COPY --from=publish-wasm /app/publish-wasm/wwwroot ./wwwroot
+COPY --from=publish-wasm /app/publish-wasm/index.html ./wwwroot/index.html
 RUN echo "=== /app/wwwroot after publish-wasm ===" && ls -l /app/wwwroot && echo "=== /app/wwwroot recursive ===" && find /app/wwwroot
 COPY --from=publish-sidekick /app/publish-sidekick ./
 RUN echo "=== /app after publish-sidekick ===" && ls -l /app
