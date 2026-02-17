@@ -30,10 +30,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		public async Task SyncPortfolio(IProgress<(string action, int progress)>? progress, bool forceFullSync, CancellationToken cancellationToken = default)
 		{
-			await SyncPortfolioInternal(progress, forceFullSync, cancellationToken, allowRetry: true);
+			await SyncPortfolioInternal(progress, forceFullSync, true, cancellationToken);
 		}
 
-		private async Task SyncPortfolioInternal(IProgress<(string action, int progress)>? progress, bool forceFullSync, CancellationToken cancellationToken, bool allowRetry)
+		private async Task SyncPortfolioInternal(IProgress<(string action, int progress)>? progress, bool forceFullSync, bool allowRetry, CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				{
 					progress?.Report(("Sync failed. Recreating database and retrying...", 0));
 					await RecreateAndCleanupDatabaseAsync(progress, cancellationToken);
-					await SyncPortfolioInternal(progress, true, cancellationToken, allowRetry: false);
+					await SyncPortfolioInternal(progress, true, false, cancellationToken);
 				}
 				else
 				{

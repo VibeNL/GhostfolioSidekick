@@ -31,7 +31,7 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"DatabasePath : {applicationSettings.DatabasePath}");
 			sb.AppendLine($"TrottleTimeout : {applicationSettings.TrottleTimeout}");
 
-			ISettings settings = applicationSettings.ConfigurationInstance.Settings;
+			var settings = applicationSettings.ConfigurationInstance.Settings;
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
 
