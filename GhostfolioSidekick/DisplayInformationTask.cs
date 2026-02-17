@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
 
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"DatabasePath : {applicationSettings.DatabasePath}");
 			sb.AppendLine($"TrottleTimeout : {applicationSettings.TrottleTimeout}");
 
-			Settings settings = applicationSettings.ConfigurationInstance.Settings;
+			ISettings settings = applicationSettings.ConfigurationInstance.Settings;
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
 

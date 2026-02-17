@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Performance;
@@ -42,11 +43,15 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			};
 
 			var calculatorMock = new Mock<IPerformanceCalculator>();
-			calculatorMock.Setup(x => x.GetCalculatedSnapshots(It.IsAny<Holding>()))
+			calculatorMock.Setup(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD))
 				.ReturnsAsync(new List<CalculatedSnapshot> { newSnapshot });
 
 			var loggerMock = new Mock<ILogger>();
-			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+			var appSettingsMock = new Mock<IApplicationSettings>();
+			var settings = new Settings { PrimaryCurrency = "USD", DataProviderPreference = "YAHOO;COINGECKO" };
+			var configInstance = new ConfigurationInstance { Settings = settings };
+			appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
 			await task.DoWork(loggerMock.Object);
@@ -112,11 +117,15 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			};
 
 			var calculatorMock = new Mock<IPerformanceCalculator>();
-			calculatorMock.Setup(x => x.GetCalculatedSnapshots(It.IsAny<Holding>()))
+			calculatorMock.Setup(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD))
 				.ReturnsAsync(new List<CalculatedSnapshot> { updatedSnapshot });
 
 			var loggerMock = new Mock<ILogger>();
-			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+			var appSettingsMock = new Mock<IApplicationSettings>();
+			var settings = new Settings { PrimaryCurrency = "USD", DataProviderPreference = "YAHOO;COINGECKO" };
+			var configInstance = new ConfigurationInstance { Settings = settings };
+			appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
 			await task.DoWork(loggerMock.Object);
@@ -195,11 +204,15 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			};
 
 			var calculatorMock = new Mock<IPerformanceCalculator>();
-			calculatorMock.Setup(x => x.GetCalculatedSnapshots(It.IsAny<Holding>()))
+			calculatorMock.Setup(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD))
 				.ReturnsAsync(new List<CalculatedSnapshot> { newSnapshot });
 
 			var loggerMock = new Mock<ILogger>();
-			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+			var appSettingsMock = new Mock<IApplicationSettings>();
+			var settings = new Settings { PrimaryCurrency = "USD", DataProviderPreference = "YAHOO;COINGECKO" };
+			var configInstance = new ConfigurationInstance { Settings = settings };
+			appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
 			await task.DoWork(loggerMock.Object);
@@ -232,13 +245,17 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
 			var calculatorMock = new Mock<IPerformanceCalculator>();
 			var loggerMock = new Mock<ILogger>();
-			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+			var appSettingsMock = new Mock<IApplicationSettings>();
+			var settings = new Settings { PrimaryCurrency = "USD", DataProviderPreference = "YAHOO;COINGECKO" };
+			var configInstance = new ConfigurationInstance { Settings = settings };
+			appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
 			await task.DoWork(loggerMock.Object);
 
 			// Assert - should complete without error
-			calculatorMock.Verify(x => x.GetCalculatedSnapshots(It.IsAny<Holding>()), Times.Never);
+			calculatorMock.Verify(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD), Times.Never);
 			await dbContext.DisposeAsync();
 		}
 	}

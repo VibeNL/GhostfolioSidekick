@@ -1,4 +1,6 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PerformanceCalculations;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +10,8 @@ namespace GhostfolioSidekick.Performance
 {
 	internal class PerformanceTask(
 		IPerformanceCalculator performanceCalculator,
-		IDbContextFactory<DatabaseContext> dbContextFactory) : IScheduledWork
+		IDbContextFactory<DatabaseContext> dbContextFactory,
+		IApplicationSettings applicationSettings) : IScheduledWork
 	{
 		const int batchSize = 10;
 
@@ -22,6 +25,7 @@ namespace GhostfolioSidekick.Performance
 
 		public async Task DoWork(ILogger logger)
 		{
+			var currency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 			using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
 			// Get all holdings from the database
@@ -43,7 +47,7 @@ namespace GhostfolioSidekick.Performance
 					try
 					{
 						// Calculate new snapshots for this holding
-						var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding)).ToList();
+						var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
 
 						// Update the holding's calculated snapshots
 						UpdateCalculatedSnapshots(holding, newSnapshots);

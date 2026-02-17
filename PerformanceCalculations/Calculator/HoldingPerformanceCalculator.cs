@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 {
 	public class PerformanceCalculator(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IPerformanceCalculator
 	{
-		public async Task<IEnumerable<CalculatedSnapshot>> GetCalculatedSnapshots(Holding holding)
+		public async Task<IEnumerable<CalculatedSnapshot>> GetCalculatedSnapshots(Holding holding, Currency currency)
 		{
 			// Step 1: Get Holdings with SymbolProfiles (optimized projection)
 			var holdingData = await databaseContext
@@ -142,7 +142,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				{
 					ICollection<Activity> activitiesForAccount = [.. activities.Where(x => x.AccountId == accountId).Select(x => x.Activity)];
 					var snapshots = await CalculateSnapShots(
-						defaultSymbolProfile.Currency,
+						currency,
 						accountId,
 						symbolProfiles,
 						activitiesForAccount,

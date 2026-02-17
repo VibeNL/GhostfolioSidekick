@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			result.Should().BeEmpty();
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			result.Should().BeEmpty();
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			var snapshots = result.ToList();
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			result.Should().BeEmpty();
@@ -155,7 +155,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			var snapshots = result.ToList();
@@ -198,7 +198,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			var snapshots = result.ToList();
@@ -239,7 +239,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			var snapshots = result.ToList();
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
 			var snapshots = result.ToList();
@@ -306,7 +306,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedSnapshots(holding);
+			var result = await calculator.GetCalculatedSnapshots(holding, Currency.EUR);
 
 			// Assert
 			var snapshots = result.ToList();
