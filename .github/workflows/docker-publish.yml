@@ -55,6 +55,10 @@ jobs:
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
+      - name: Restore local .NET tools (Stryker)
+        run: dotnet tool restore
+      - name: Run Stryker mutation tests
+        run: dotnet stryker --solution-path GhostfolioSidekick.slnx || true
       - name: Add .NET global tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
       - name: Cache SonarCloud packages
