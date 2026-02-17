@@ -57,8 +57,6 @@ jobs:
           dotnet tool install --global dotnet-coverage
       - name: Restore local .NET tools (Stryker)
         run: dotnet tool restore
-      - name: Run Stryker mutation tests
-        run: dotnet stryker --solution-path GhostfolioSidekick.slnx || true
       - name: Add .NET global tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
       - name: Cache SonarCloud packages
@@ -69,6 +67,21 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
       - name: Build solution
         run: dotnet build
+      - name: Run Stryker mutation tests
+        run: dotnet stryker solution GhostfolioSidekick.slnx --reporters "['html', 'dashboard', 'progress', 'cleartext', 'json', 'dashboard']" --output-path "stryker-output" || true
+      - name: Upload Stryker report
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-report
+          path: stryker-output/
+      - name: Import Stryker results into SonarQube
+        if: env.SONAR_TOKEN != ''
+        run: |
+          if [ -f stryker-output/stryker-report.json ]; then
+            dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.testExecutionReportPaths=stryker-output/stryker-report.json
+            dotnet build
+            dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+          fi
       - name: Install Playwright Browsers for all test targets
         run: |
           find . -type f -name 'playwright.ps1' | while read script; do
