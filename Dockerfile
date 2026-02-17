@@ -73,7 +73,7 @@ RUN apt-get update && \
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
-COPY --from=publish-wasm /app/publish-wasm ./wwwroot
+COPY --from=publish-wasm /app/publish-wasm/wwwroot ./wwwroot
 COPY --from=publish-sidekick /app/publish-sidekick ./
 
 # Copy supervisord config
