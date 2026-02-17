@@ -26,23 +26,35 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
                 return [];
             }
 
-            // Get all holdings quantities summed across all accounts for the latest date
-            // Flatten the many-to-many relationship between Holdings and SymbolProfiles
-            var holdings = await databaseContext.Holdings
-                .SelectMany(h => h.SymbolProfiles.Select(sp => new
-                {
-                    Symbol = sp.Symbol,
-                    Quantity = h.CalculatedSnapshots
-                        .Where(s => s.Date == lastKnownDate)
-                        .Sum(s => s.Quantity)
-                }))
-                .Where(h => h.Quantity > 0)
+            // Fetch all holdings and their symbol profiles
+            var holdingsWithProfiles = await databaseContext.Holdings
+                .Include(h => h.SymbolProfiles)
                 .ToListAsync();
 
-            // Build a dictionary for quick lookup
-            var holdingsDict = holdings
-                .GroupBy(h => h.Symbol)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
+            // Fetch all calculated snapshots for the latest date
+            var snapshots = await databaseContext.CalculatedSnapshots
+                .Where(s => s.Date == lastKnownDate)
+                .ToListAsync();
+
+            // Build holdings dictionary: symbol -> total quantity
+            var holdingsDict = new Dictionary<string, decimal>();
+            foreach (var holding in holdingsWithProfiles)
+            {
+                var quantity = snapshots
+                    .Where(s => s.HoldingId == holding.Id)
+                    .Sum(s => s.Quantity);
+                foreach (var sp in holding.SymbolProfiles)
+                {
+                    var symbol = sp.Symbol;
+                    if (!string.IsNullOrEmpty(symbol) && quantity > 0)
+                    {
+                        if (holdingsDict.ContainsKey(symbol))
+                            holdingsDict[symbol] += quantity;
+                        else
+                            holdingsDict[symbol] = quantity;
+                    }
+                }
+            }
 
             // Get upcoming dividends, join with SymbolProfiles using explicit properties
             var today = DateOnly.FromDateTime(DateTime.Today);
