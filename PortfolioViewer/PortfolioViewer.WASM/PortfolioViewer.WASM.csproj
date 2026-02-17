@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -64,9 +64,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Update="wwwroot\index.html">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
+        <Content Update="wwwroot\index.html">
+          <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        </Content>
 		<Content Update="wwwroot\js\dist\webllm.interop.js">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
