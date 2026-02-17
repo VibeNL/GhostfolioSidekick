@@ -28,72 +28,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed;
 
-		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
+		public async Task SyncPortfolio(IProgress<(string action, int progress)>? progress, bool forceFullSync, CancellationToken cancellationToken = default)
+		{
+			await SyncPortfolioInternal(progress, forceFullSync, cancellationToken, allowRetry: true);
+		}
+
+		private async Task SyncPortfolioInternal(IProgress<(string action, int progress)>? progress, bool forceFullSync, CancellationToken cancellationToken, bool allowRetry)
 		{
 			try
 			{
-				// Step 0: Ensure Database is Up-to-Date
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-				// Check for pending migrations
-				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync(cancellationToken: cancellationToken);
-				var appliedMigrations = await databaseContext.Database.GetAppliedMigrationsAsync(cancellationToken: cancellationToken);
-
-				logger.LogInformation("Applied migrations: {AppliedCount}, Pending migrations: {PendingCount}", 
-					appliedMigrations.Count(), pendingMigrations.Count());
-
-				if (pendingMigrations.Any())
-				{
-					try
-					{
-						logger.LogInformation("Applying {Count} pending migrations: {Migrations}", 
-							pendingMigrations.Count(), string.Join(", ", pendingMigrations));
-						progress.Report(($"Applying {pendingMigrations.Count()} database migrations...", 0));
-
-						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
-						logger.LogInformation("Migrations applied successfully");
-					}
-					catch (Exception ex)
-					{
-						progress.Report(("Error applying database migrations. Recreating database...", 0));
-						logger.LogError(ex, "Failed to apply migrations, recreating database from scratch");
-						forceFullSync = true;
-
-						// Clear IndexedDB first to ensure clean state
-						try
-						{
-							await sqlitePersistence.ClearDatabaseFromIndexedDb();
-						}
-						catch (Exception clearEx)
-						{
-							logger.LogWarning(clearEx, "Failed to clear IndexedDB during migration recovery");
-						}
-
-						await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
-						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
-						await syncTrackingService.ClearSyncTimeAsync();
-
-						logger.LogInformation("Database recreated successfully with all migrations");
-					}
-				}
-
-				// Verify database can be accessed after migration
-				try
-				{
-					await databaseContext.Database.CanConnectAsync(cancellationToken);
-				}
-				catch (Exception ex)
-				{
-					logger.LogError(ex, "Database connection failed after migration, forcing fresh database");
-					progress.Report(("Database connection failed. Recreating database...", 0));
-					forceFullSync = true;
-
-					await sqlitePersistence.ClearDatabaseFromIndexedDb();
-					await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
-					await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
-					await syncTrackingService.ClearSyncTimeAsync();
-				}
-
+				await EnsureDatabaseUpToDate(progress, cancellationToken);
 				var grpcClient = GetGrpcClient();
 
 				// Check if we should do a partial sync (only if not forced to do full sync)
@@ -133,6 +77,84 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			{
 				logger.LogError(ex, "Error during portfolio sync: {Message}", ex.Message);
 				progress?.Report(($"Error: {ex.Message}", 100));
+				if (allowRetry)
+				{
+					progress?.Report(("Sync failed. Recreating database and retrying...", 0));
+					await RecreateAndCleanupDatabaseAsync(progress, cancellationToken);
+					await SyncPortfolioInternal(progress, true, cancellationToken, allowRetry: false);
+				}
+				else
+				{
+					throw;
+				}
+			}
+		}
+
+		private async Task EnsureDatabaseUpToDate(IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
+		{
+			await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+			var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync(cancellationToken: cancellationToken);
+			var appliedMigrations = await databaseContext.Database.GetAppliedMigrationsAsync(cancellationToken: cancellationToken);
+
+			logger.LogInformation("Applied migrations: {AppliedCount}, Pending migrations: {PendingCount}",
+				appliedMigrations.Count(), pendingMigrations.Count());
+
+			if (pendingMigrations.Any())
+			{
+				try
+				{
+					logger.LogInformation("Applying {Count} pending migrations: {Migrations}",
+						pendingMigrations.Count(), string.Join(", ", pendingMigrations));
+					progress?.Report(($"Applying {pendingMigrations.Count()} database migrations...", 0));
+
+					await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+					logger.LogInformation("Migrations applied successfully");
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Failed to apply migrations, will recreate database");
+					throw;
+				}
+			}
+
+			try
+			{
+				await databaseContext.Database.CanConnectAsync(cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Database connection failed after migration, will recreate database");
+				throw;
+			}
+		}
+
+		private async Task RecreateAndCleanupDatabaseAsync(IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
+		{
+			progress?.Report(("Recreating database from scratch...", 0));
+			try
+			{
+				try
+				{
+					await sqlitePersistence.ClearDatabaseFromIndexedDb();
+				}
+				catch (Exception clearEx)
+				{
+					logger.LogWarning(clearEx, "Failed to clear IndexedDB during database recreation");
+				}
+
+				using (var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken))
+				{
+					await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
+					await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+				}
+
+				await syncTrackingService.ClearSyncTimeAsync();
+				await currencyExchange.ClearCache();
+				logger.LogInformation("Database recreated and cleaned up successfully");
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error during database recreation and cleanup");
 				throw;
 			}
 		}
@@ -705,13 +727,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 1)
 			{
 				// SQLite Error 1 typically indicates schema mismatch (e.g., missing column)
-				logger.LogError(ex, "Schema mismatch detected for table {TableName}. Database schema is out of sync. Columns in data: {Columns}", 
+				logger.LogError(ex, "Schema mismatch detected for table {TableName}. Database schema is out of sync. Columns in data: {Columns}",
 					tableName, string.Join(", ", dataChunk[0].Keys));
 				throw new InvalidOperationException(
 					$"Database schema mismatch for table '{tableName}'. " +
 					$"The database may need to be deleted and resynced. " +
 					$"Expected columns: {string.Join(", ", dataChunk[0].Keys)}. " +
-					$"Original error: {ex.Message}", 
+					$"Original error: {ex.Message}",
 					ex);
 			}
 		}
