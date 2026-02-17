@@ -43,10 +43,10 @@ RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer.ApiService/PortfolioViewer.
 # Copy the entire source code
 COPY . .
 
-# Build all projects
-RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build && \
-    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build && \
-    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build
+# Build all projects into separate folders
+RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build-api && \
+    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build-wasm && \
+    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build-sidekick
 
 # Publish each project
 FROM build AS publish-api
