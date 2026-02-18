@@ -9,10 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 {
-	public class PerformanceCalculator(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IPerformanceCalculator
+	public class PerformanceCalculator(IDbContextFactory<DatabaseContext> dbFactory, ICurrencyExchange currencyExchange) : IPerformanceCalculator
 	{
 		public async Task<IEnumerable<CalculatedSnapshot>> GetCalculatedSnapshots(Holding holding, Currency currency)
 		{
+			using var databaseContext = await dbFactory.CreateDbContextAsync();
 			// Step 1: Get Holdings with SymbolProfiles (optimized projection)
 			var holdingData = await databaseContext
 				.Holdings

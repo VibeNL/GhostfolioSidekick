@@ -13,8 +13,6 @@ namespace GhostfolioSidekick.Performance
 		IDbContextFactory<DatabaseContext> dbContextFactory,
 		IApplicationSettings applicationSettings) : IScheduledWork
 	{
-		const int batchSize = 10;
-
 		public TaskPriority Priority => TaskPriority.PerformanceCalculations;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
@@ -27,49 +25,53 @@ namespace GhostfolioSidekick.Performance
 		{
 			logger.LogInformation("Starting performance calculations for holdings...");
 			var currency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
-			using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
-			// Get all holdings from the database
-			var holdings = await dbContext.Holdings
-				.Include(h => h.CalculatedSnapshots)
-				.ToListAsync();
+			List<int> holdingIds;
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
+			{
+				holdingIds = await dbContext.Holdings.Select(h => h.Id).ToListAsync();
+			}
 
-			if (holdings == null || holdings.Count == 0)
+			if (holdingIds == null || holdingIds.Count == 0)
 			{
 				logger.LogInformation("No holdings found to calculate performance for");
 				return;
 			}
 
-			int totalHoldings = holdings.Count;
+			int totalHoldings = holdingIds.Count;
 			int processedHoldings = 0;
-			int batchNumber = 1;
 
 			logger.LogInformation("Total holdings to process: {Total}", totalHoldings);
 
-			foreach (var batch in holdings.Chunk(batchSize))
+			foreach (var holdingId in holdingIds)
 			{
-				foreach (var holding in batch)
-				{
-					try
-					{
-						// Calculate new snapshots for this holding
-						var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
+				using var dbContext = await dbContextFactory.CreateDbContextAsync();
+				var holding = await dbContext.Holdings
+					.Include(h => h.CalculatedSnapshots)
+					.FirstOrDefaultAsync(h => h.Id == holdingId);
 
-						// Update the holding's calculated snapshots
-						await ReplaceCalculatedSnapshotsAsync(holding, newSnapshots, dbContext);
-					}
-					catch (Exception ex)
-					{
-						logger.LogError(ex, "Error calculating performance for holding {HoldingId}", holding.Id);
-					}
-					processedHoldings++;
+				if (holding == null)
+				{
+					throw new NotSupportedException();
 				}
 
-				// Save changes for this batch
+				try
+				{
+					// Calculate new snapshots for this holding
+					var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
+
+					// Update the holding's calculated snapshots
+					await ReplaceCalculatedSnapshotsAsync(holding, newSnapshots, dbContext);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Error calculating performance for holding {HoldingId}", holding.Id);
+				}
+
 				await dbContext.SaveChangesAsync();
 
+				processedHoldings++;
 				logger.LogInformation("Processed {Processed}/{Total} holdings", processedHoldings, totalHoldings);
-				batchNumber++;
 			}
 
 			logger.LogInformation("Performance calculation completed for {Count} holdings", totalHoldings);
@@ -78,7 +80,7 @@ namespace GhostfolioSidekick.Performance
 		private static async Task ReplaceCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
 		{
 			// Remove all existing snapshots for this holding from both the database and the holding
-			var dbSnapshots = dbContext.CalculatedSnapshots.Where(s => s.HoldingId == holding.Id).ToList();
+			var dbSnapshots = await dbContext.CalculatedSnapshots.Where(s => s.HoldingId == holding.Id).ToListAsync();
 			if (dbSnapshots.Count > 0)
 			{
 				dbContext.CalculatedSnapshots.RemoveRange(dbSnapshots);
