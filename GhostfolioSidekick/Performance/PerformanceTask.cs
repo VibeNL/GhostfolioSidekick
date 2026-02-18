@@ -48,13 +48,8 @@ namespace GhostfolioSidekick.Performance
 				using var dbContext = await dbContextFactory.CreateDbContextAsync();
 				var holding = await dbContext.Holdings
 					.Include(h => h.CalculatedSnapshots)
-					.FirstOrDefaultAsync(h => h.Id == holdingId);
-
-				if (holding == null)
-				{
-					throw new NotSupportedException();
-				}
-
+					.FirstOrDefaultAsync(h => h.Id == holdingId) ?? throw new NotSupportedException();
+				
 				try
 				{
 					// Calculate new snapshots for this holding
