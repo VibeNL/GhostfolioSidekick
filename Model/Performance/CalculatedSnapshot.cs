@@ -4,7 +4,9 @@ namespace GhostfolioSidekick.Model.Performance
 	{
 		public Guid Id { get; set; } // EF Core key
 		public int AccountId { get; set; } // Foreign key to Account, if needed
-		public long HoldingId { get; set; } // Foreign key to Holding, if needed
+       // Removed duplicate HoldingId property (long)
+		public int HoldingId { get; set; } // Foreign key to Holding
+		public virtual Holding? Holding { get; set; } // Navigation property
 		public DateOnly Date { get; set; }
 		public decimal Quantity { get; set; }
 		public Currency Currency { get; set; }

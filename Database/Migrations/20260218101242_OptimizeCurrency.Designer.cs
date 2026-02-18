@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20260211112455_OptimizeCurrency")]
+    [Migration("20260218101242_OptimizeCurrency")]
     partial class OptimizeCurrency
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -732,10 +732,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.CalculatedSnapshot", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Key", 0);
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("AccountId")
                         .HasColumnType("INTEGER");
@@ -749,10 +748,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("HoldingId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("HoldingId1")
+                    b.Property<int>("HoldingId")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Quantity")
@@ -777,8 +773,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Date");
-
-                    b.HasIndex("HoldingId1");
 
                     b.HasIndex("AccountId", "Date");
 
@@ -1321,9 +1315,13 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.CalculatedSnapshot", b =>
                 {
-                    b.HasOne("GhostfolioSidekick.Model.Holding", null)
+                    b.HasOne("GhostfolioSidekick.Model.Holding", "Holding")
                         .WithMany("CalculatedSnapshots")
-                        .HasForeignKey("HoldingId1");
+                        .HasForeignKey("HoldingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Holding");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -10,8 +10,11 @@ namespace GhostfolioSidekick.Database.Migrations
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropForeignKey(
+		{
+			// Delete all CalculatedSnapshots
+			migrationBuilder.Sql("DELETE FROM CalculatedSnapshots");
+
+			migrationBuilder.DropForeignKey(
                 name: "FK_CalculatedSnapshots_HoldingAggregateds_HoldingAggregatedId",
                 table: "CalculatedSnapshots");
 
@@ -90,38 +93,29 @@ namespace GhostfolioSidekick.Database.Migrations
                 table: "CalculatedSnapshots",
                 newName: "IX_CalculatedSnapshots_HoldingId_AccountId_Date");
 
-            migrationBuilder.AddColumn<int>(
-                name: "HoldingId1",
+            migrationBuilder.AlterColumn<Guid>(
+                name: "Id",
                 table: "CalculatedSnapshots",
-                type: "INTEGER",
-                nullable: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CalculatedSnapshots_HoldingId1",
-                table: "CalculatedSnapshots",
-                column: "HoldingId1");
+                type: "TEXT",
+                nullable: false,
+                oldClrType: typeof(long),
+                oldType: "integer")
+                .OldAnnotation("Sqlite:Autoincrement", true);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_CalculatedSnapshots_Holdings_HoldingId1",
+                name: "FK_CalculatedSnapshots_Holdings_HoldingId",
                 table: "CalculatedSnapshots",
-                column: "HoldingId1",
+                column: "HoldingId",
                 principalTable: "Holdings",
-                principalColumn: "Id");
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_CalculatedSnapshots_Holdings_HoldingId1",
-                table: "CalculatedSnapshots");
-
-            migrationBuilder.DropIndex(
-                name: "IX_CalculatedSnapshots_HoldingId1",
-                table: "CalculatedSnapshots");
-
-            migrationBuilder.DropColumn(
-                name: "HoldingId1",
+                name: "FK_CalculatedSnapshots_Holdings_HoldingId",
                 table: "CalculatedSnapshots");
 
             migrationBuilder.RenameColumn(
@@ -195,6 +189,15 @@ namespace GhostfolioSidekick.Database.Migrations
                 type: "TEXT",
                 nullable: false,
                 defaultValue: "");
+
+            migrationBuilder.AlterColumn<long>(
+                name: "Id",
+                table: "CalculatedSnapshots",
+                type: "integer",
+                nullable: false,
+                oldClrType: typeof(Guid),
+                oldType: "TEXT")
+                .Annotation("Sqlite:Autoincrement", true);
 
             migrationBuilder.AddColumn<string>(
                 name: "CurrencyAverageCostPrice",

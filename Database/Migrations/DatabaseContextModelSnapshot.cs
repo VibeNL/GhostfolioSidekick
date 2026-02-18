@@ -745,10 +745,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("HoldingId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("HoldingId1")
+                    b.Property<int>("HoldingId")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Quantity")
@@ -773,8 +770,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Date");
-
-                    b.HasIndex("HoldingId1");
 
                     b.HasIndex("AccountId", "Date");
 
@@ -1317,9 +1312,13 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.CalculatedSnapshot", b =>
                 {
-                    b.HasOne("GhostfolioSidekick.Model.Holding", null)
+                    b.HasOne("GhostfolioSidekick.Model.Holding", "Holding")
                         .WithMany("CalculatedSnapshots")
-                        .HasForeignKey("HoldingId1");
+                        .HasForeignKey("HoldingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Holding");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
