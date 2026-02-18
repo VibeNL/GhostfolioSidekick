@@ -2,8 +2,6 @@ namespace GhostfolioSidekick
 {
 	public enum TaskPriority
 	{
-		PerformanceCalculations,
-
 		DisplayInformation,
 
 		AccountMaintainer,
@@ -28,7 +26,7 @@ namespace GhostfolioSidekick
 
 		CalculatePrice,
 
-		//PerformanceCalculations,
+		PerformanceCalculations,
 
 		CovertToPrimaryCurrency,
 
