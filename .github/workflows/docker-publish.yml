@@ -233,7 +233,7 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v4
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.0
         with:
           image-ref: ${{ github.event_name == 'pull_request' && format('vibenl/ghostfoliosidekick:pr-{0}', github.event.number) || 'vibenl/ghostfoliosidekick:latest' }}
           format: 'table'
