@@ -25,6 +25,7 @@ namespace GhostfolioSidekick.Performance
 
 		public async Task DoWork(ILogger logger)
 		{
+			logger.LogInformation("Starting performance calculations for holdings...");
 			var currency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 			using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
@@ -39,7 +40,12 @@ namespace GhostfolioSidekick.Performance
 				return;
 			}
 
-			// Process holdings in batches
+			int totalHoldings = holdings.Count;
+			int processedHoldings = 0;
+			int batchNumber = 1;
+
+			logger.LogInformation("Total holdings to process: {Total}", totalHoldings);
+
 			foreach (var batch in holdings.Chunk(batchSize))
 			{
 				foreach (var holding in batch)
@@ -56,13 +62,17 @@ namespace GhostfolioSidekick.Performance
 					{
 						logger.LogError(ex, "Error calculating performance for holding {HoldingId}", holding.Id);
 					}
+					processedHoldings++;
 				}
 
 				// Save changes for this batch
 				await dbContext.SaveChangesAsync();
+
+				logger.LogInformation("Processed {Processed}/{Total} holdings", processedHoldings, totalHoldings);
+				batchNumber++;
 			}
 
-			logger.LogInformation("Performance calculation completed for {Count} holdings", holdings.Count);
+			logger.LogInformation("Performance calculation completed for {Count} holdings", totalHoldings);
 		}
 
 		private static async Task ReplaceCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)

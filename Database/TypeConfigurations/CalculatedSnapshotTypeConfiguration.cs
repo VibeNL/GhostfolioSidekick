@@ -1,11 +1,6 @@
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
-using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Linq.Expressions;
-using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
