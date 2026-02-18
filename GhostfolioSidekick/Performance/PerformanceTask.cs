@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Performance
 						var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
 
 						// Update the holding's calculated snapshots
-						UpdateCalculatedSnapshots(holding, newSnapshots);
+						await UpdateCalculatedSnapshotsAsync(holding, newSnapshots, dbContext);
 					}
 					catch (Exception ex)
 					{
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Performance
 			logger.LogInformation("Performance calculation completed for {Count} holdings", holdings.Count);
 		}
 
-		private static void UpdateCalculatedSnapshots(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots)
+		private static async Task UpdateCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
 		{
 			// Use tuple for snapshot keys (AccountId, Date)
 			var existingSnapshotsByKey = holding.CalculatedSnapshots.ToDictionary(s => (s.AccountId, s.Date));
@@ -79,6 +79,13 @@ namespace GhostfolioSidekick.Performance
 			foreach (var snapshotToRemove in snapshotsToRemove)
 			{
 				holding.CalculatedSnapshots.Remove(snapshotToRemove);
+				dbContext.CalculatedSnapshots.Remove(snapshotToRemove);
+			}
+
+			// Save removals before adding new snapshots to avoid unique constraint violation
+			if (snapshotsToRemove.Count > 0)
+			{
+				await dbContext.SaveChangesAsync();
 			}
 
 			// Update existing snapshots or add new ones

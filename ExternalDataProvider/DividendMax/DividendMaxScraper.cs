@@ -21,14 +21,24 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		private const string TableSelector = "//table[contains(@class, 'mdc-data-table__table')]";
 		private const string TableRowsSelector = ".//tbody/tr";
 
-		public async Task<IList<Dividend>> GetDividends(SymbolProfile symbol)
+		public Task<bool> IsSymbolSupported(SymbolProfile symbol)
 		{
 			if (symbol == null || symbol.WebsiteUrl == null || symbol.DataSource != Datasource.DividendMax)
+			{
+				return Task.FromResult(false);
+			}
+
+			return Task.FromResult(true);
+		}
+
+		public async Task<IList<Dividend>> GetDividends(SymbolProfile symbol)
+		{
+			if (!await IsSymbolSupported(symbol))
 			{
 				return [];
 			}
 
-			var page = await GetDividendPageHtml(symbol.WebsiteUrl);
+			var page = await GetDividendPageHtml(symbol.WebsiteUrl!);
 			if (string.IsNullOrWhiteSpace(page))
 			{
 				return [];
