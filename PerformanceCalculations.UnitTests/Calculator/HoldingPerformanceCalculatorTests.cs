@@ -324,10 +324,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			return context;
 		}
 
-		private PerformanceCalculator CreateCalculator(DatabaseContext context)
-		{
-			return new PerformanceCalculator(context, _mockCurrencyExchange.Object);
-		}
+       private PerformanceCalculator CreateCalculator(DatabaseContext context)
+       {
+           var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+           dbFactoryMock
+               .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(context);
+           return new PerformanceCalculator(dbFactoryMock.Object, _mockCurrencyExchange.Object);
+       }
 
 		private static Holding CreateHolding(IList<SymbolProfile> symbolProfiles, ICollection<Activity> activities)
 		{
