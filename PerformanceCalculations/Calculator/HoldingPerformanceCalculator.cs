@@ -85,7 +85,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 						Symbol = EF.Property<string>(md, "SymbolProfileSymbol"),
 						DataSource = EF.Property<string>(md, "SymbolProfileDataSource"),
 						md.Date,
-						md.Close
+						md.Close,
+						md.Currency
 					})
 					.ToListAsync();
 
@@ -97,8 +98,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				// Group market data by symbol profile
 				foreach (var group in filteredMarketData.GroupBy(x => new { x.Symbol, x.DataSource }))
 				{
-					allMarketData[(group.Key.Symbol, group.Key.DataSource)] = group
-						.ToDictionary(x => x.Date, x => x.Close);
+					var marketDataDict = new Dictionary<DateOnly, decimal>();
+					foreach (var x in group)
+					{
+						var converted = await currencyExchange.ConvertMoney(new Money(x.Currency, x.Close), currency, x.Date);
+						marketDataDict[x.Date] = converted.Amount;
+					}
+
+					allMarketData[(group.Key.Symbol, group.Key.DataSource)] = marketDataDict;
 				}
 			}
 
