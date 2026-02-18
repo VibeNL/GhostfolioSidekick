@@ -67,13 +67,13 @@ namespace GhostfolioSidekick.Performance
 
 		private static async Task ReplaceCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
 		{
-			// Remove all existing snapshots for this holding directly from the database
+			// Remove all existing snapshots for this holding from both the database and the holding
 			var dbSnapshots = dbContext.CalculatedSnapshots.Where(s => s.HoldingId == holding.Id).ToList();
 			if (dbSnapshots.Count > 0)
 			{
 				dbContext.CalculatedSnapshots.RemoveRange(dbSnapshots);
-				await dbContext.SaveChangesAsync();
 			}
+			holding.CalculatedSnapshots.Clear();
 
 			// Add all new snapshots
 			foreach (var newSnapshot in newSnapshots)
@@ -81,9 +81,8 @@ namespace GhostfolioSidekick.Performance
 				newSnapshot.Id = Guid.NewGuid();
 				newSnapshot.HoldingId = holding.Id;
 				holding.CalculatedSnapshots.Add(newSnapshot);
+				dbContext.CalculatedSnapshots.Add(newSnapshot);
 			}
-
-			await dbContext.SaveChangesAsync();
 		}
 	}
 }
