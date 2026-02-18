@@ -26,6 +26,12 @@ namespace GhostfolioSidekick.Performance
 			logger.LogInformation("Starting performance calculations for holdings...");
 			var currency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 
+			// Remove all snapshots at the start
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
+			{
+				await dbContext.CalculatedSnapshots.ExecuteDeleteAsync();
+			}
+
 			List<int> holdingIds;
 			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
 			{
@@ -74,14 +80,6 @@ namespace GhostfolioSidekick.Performance
 
 		private static async Task ReplaceCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
 		{
-			// Remove all existing snapshots for this holding from both the database and the holding
-			var dbSnapshots = await dbContext.CalculatedSnapshots.Where(s => s.HoldingId == holding.Id).ToListAsync();
-			if (dbSnapshots.Count > 0)
-			{
-				dbContext.CalculatedSnapshots.RemoveRange(dbSnapshots);
-			}
-			holding.CalculatedSnapshots.Clear();
-
 			// Add all new snapshots
 			foreach (var newSnapshot in newSnapshots)
 			{
