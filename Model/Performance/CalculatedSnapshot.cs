@@ -2,7 +2,7 @@ namespace GhostfolioSidekick.Model.Performance
 {
 	public class CalculatedSnapshot
 	{
-		public long Id { get; set; } // EF Core key
+		public Guid Id { get; set; } // EF Core key
 		public int AccountId { get; set; } // Foreign key to Account, if needed
 		public long HoldingId { get; set; } // Foreign key to Holding, if needed
 		public DateOnly Date { get; set; }
@@ -16,6 +16,7 @@ namespace GhostfolioSidekick.Model.Performance
 		// Parameterless constructor for EF Core
 		public CalculatedSnapshot()
 		{
+			Id = Guid.NewGuid();
 			Currency = default!;
 			AverageCostPrice = default;
 			CurrentUnitPrice = default;
@@ -24,9 +25,9 @@ namespace GhostfolioSidekick.Model.Performance
 		}
 
 		public CalculatedSnapshot(
-			long id, 
+			Guid id,
 			int accountId,
-			DateOnly date, 
+			DateOnly date,
 			decimal quantity,
 			Currency currency,
 			decimal averageCostPrice,
@@ -47,7 +48,7 @@ namespace GhostfolioSidekick.Model.Performance
 
 		public CalculatedSnapshot(CalculatedSnapshot original)
 		{
-			Id = original.Id;
+			Id = Guid.NewGuid();
 			Date = original.Date;
 			Quantity = original.Quantity;
 			Currency = original.Currency;
@@ -59,7 +60,7 @@ namespace GhostfolioSidekick.Model.Performance
 		}
 
 		public static CalculatedSnapshot Empty(Currency currency, int accountId) => 
-			new(0, accountId, DateOnly.MinValue, 0, currency, 0, 0, 0, 0);
+			new(Guid.NewGuid(), accountId, DateOnly.MinValue, 0, currency, 0, 0, 0, 0);
 
 		public override string ToString()
 		{

@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			.GroupBy(x => DateOnly.FromDateTime(x.Date))
 			.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 
-			var previousSnapshot = new CalculatedSnapshot(0, accountId, minDate.AddDays(-1), 0, targetCurrency, 0, 0, 0, 0);
+			var previousSnapshot = new CalculatedSnapshot(Guid.NewGuid(), accountId, minDate.AddDays(-1), 0, targetCurrency, 0, 0, 0, 0);
 
 			// Use pre-loaded market data instead of querying database
 			Dictionary<DateOnly, decimal> marketData = new(dayCount);

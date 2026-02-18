@@ -15,12 +15,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			builder.ToTable("CalculatedSnapshots");
 
-			// Add a shadow property for the primary key since class doesn't have one
-			builder.Property<long>("Id")
-				.HasColumnType("integer")
-				.ValueGeneratedOnAdd()
-				.HasAnnotation("Key", 0);
-			builder.HasKey("Id");
+			builder.HasKey(x => x.Id);
+			builder.Property(x => x.Id) // Guid as string
+				.HasColumnType("TEXT")
+				.IsRequired();
 
 			// Configure properties
 			builder.Property(x => x.Date).IsRequired();

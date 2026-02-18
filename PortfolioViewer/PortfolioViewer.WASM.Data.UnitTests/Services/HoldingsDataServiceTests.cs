@@ -773,8 +773,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			return holding;
 		}
 
-		private static int _snapshotIdCounter = 0;
-
 		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
 			int? accountId,
 			DateOnly? date,
@@ -784,7 +782,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			decimal totalInvested = 1000,
 			decimal totalValue = 1100)
 		{
-			return new CalculatedSnapshot(id: ++_snapshotIdCounter, accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
+			return new CalculatedSnapshot(id: Guid.NewGuid(), accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
 		}
 
 		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
@@ -794,7 +792,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			Money? currentUnitPrice)
 		{
 			return new CalculatedSnapshot(
-				id: ++_snapshotIdCounter,
+				id: Guid.NewGuid(),
 				accountId: 1,
 				date: date,
 				quantity: quantity,

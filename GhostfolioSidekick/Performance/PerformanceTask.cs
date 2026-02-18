@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Performance
 						var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
 
 						// Update the holding's calculated snapshots
-						await UpdateCalculatedSnapshotsAsync(holding, newSnapshots, dbContext);
+						await ReplaceCalculatedSnapshotsAsync(holding, newSnapshots, dbContext);
 					}
 					catch (Exception ex)
 					{
@@ -65,53 +65,25 @@ namespace GhostfolioSidekick.Performance
 			logger.LogInformation("Performance calculation completed for {Count} holdings", holdings.Count);
 		}
 
-		private static async Task UpdateCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
+		private static async Task ReplaceCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
 		{
-			// Use tuple for snapshot keys (AccountId, Date)
-			var existingSnapshotsByKey = holding.CalculatedSnapshots.ToDictionary(s => (s.AccountId, s.Date));
-			var newSnapshotsByKey = newSnapshots.ToDictionary(s => (s.AccountId, s.Date));
-
-			// Remove snapshots that no longer exist in the new calculation
-			var snapshotsToRemove = holding.CalculatedSnapshots
-				.Where(existingSnapshot => !newSnapshotsByKey.ContainsKey((existingSnapshot.AccountId, existingSnapshot.Date)))
-				.ToList();
-
-			foreach (var snapshotToRemove in snapshotsToRemove)
+			// Remove all existing snapshots for this holding directly from the database
+			var dbSnapshots = dbContext.CalculatedSnapshots.Where(s => s.HoldingId == holding.Id).ToList();
+			if (dbSnapshots.Count > 0)
 			{
-				holding.CalculatedSnapshots.Remove(snapshotToRemove);
-				dbContext.CalculatedSnapshots.Remove(snapshotToRemove);
-			}
-
-			// Save removals before adding new snapshots to avoid unique constraint violation
-			if (snapshotsToRemove.Count > 0)
-			{
+				dbContext.CalculatedSnapshots.RemoveRange(dbSnapshots);
 				await dbContext.SaveChangesAsync();
 			}
 
-			// Update existing snapshots or add new ones
+			// Add all new snapshots
 			foreach (var newSnapshot in newSnapshots)
 			{
-				if (existingSnapshotsByKey.TryGetValue((newSnapshot.AccountId, newSnapshot.Date), out var existingSnapshot))
-				{
-					UpdateSnapshotProperties(existingSnapshot, newSnapshot);
-				}
-				else
-				{
-					// Set the HoldingId for new snapshots
-					newSnapshot.HoldingId = holding.Id;
-					holding.CalculatedSnapshots.Add(newSnapshot);
-				}
+				newSnapshot.Id = Guid.NewGuid();
+				newSnapshot.HoldingId = holding.Id;
+				holding.CalculatedSnapshots.Add(newSnapshot);
 			}
-		}
 
-		private static void UpdateSnapshotProperties(CalculatedSnapshot existingSnapshot, CalculatedSnapshot newSnapshot)
-		{
-			existingSnapshot.Quantity = newSnapshot.Quantity;
-			existingSnapshot.Currency = newSnapshot.Currency;
-			existingSnapshot.AverageCostPrice = newSnapshot.AverageCostPrice;
-			existingSnapshot.CurrentUnitPrice = newSnapshot.CurrentUnitPrice;
-			existingSnapshot.TotalInvested = newSnapshot.TotalInvested;
-			existingSnapshot.TotalValue = newSnapshot.TotalValue;
+			await dbContext.SaveChangesAsync();
 		}
 	}
 }
