@@ -9,7 +9,7 @@
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="AwesomeAssertions" Version="9.3.0" />
+		<PackageReference Include="AwesomeAssertions" Version="9.4.0" />
 		<PackageReference Include="bunit" Version="2.5.3" />
 		<PackageReference Include="coverlet.collector" Version="8.0.0">
 		  <PrivateAssets>all</PrivateAssets>
