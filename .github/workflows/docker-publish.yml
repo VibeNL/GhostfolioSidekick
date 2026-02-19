@@ -159,11 +159,7 @@ jobs:
       - name: Generate version string
         id: version
         run: |
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            VERSION="${{ github.ref_name }}"
-          else
-            VERSION="$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)"
-          fi
+          VERSION="$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Generated version: $VERSION"
       - name: Build and push Docker image
