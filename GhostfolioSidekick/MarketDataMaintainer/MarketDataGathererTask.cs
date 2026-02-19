@@ -70,9 +70,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					// If any data corruption is detected, we will re-fetch all data if possible
 					// For manual data sources, we always re-fetch all data
 					var hasDataCorruption = symbol.MarketData.Any(x =>
-						x.Close.Amount == 0 // Close price is not set
+						x.Close == 0 // Close price is not set
 						|| x.IsGenerated
-						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close.Amount).LastOrDefault() != 0;
+						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close).LastOrDefault() != 0;
 					if (hasDataCorruption)
 					{
 						logger.LogDebug("Data corruption detected / Manual datasource found for {Symbol} from {DataSource}. Re-fetching all data.", symbol.Symbol, symbol.DataSource);
@@ -114,17 +114,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				foreach (var marketData in list)
 				{
 					var existingRecord = symbol.MarketData.SingleOrDefault(x => x.Date == marketData.Date);
-					decimal closeAmount = marketData.Close.Amount;
+					decimal closeAmount = marketData.Close;
 
 					// Interpolate missing close prices
 					if (closeAmount == 0)
 					{
 						var previous = symbol.MarketData
-							.Where(x => x.Date < marketData.Date && x.Close.Amount != 0)
+							.Where(x => x.Date < marketData.Date && x.Close != 0)
 							.OrderByDescending(x => x.Date)
 							.FirstOrDefault();
 						var next = symbol.MarketData
-							.Where(x => x.Date > marketData.Date && x.Close.Amount != 0)
+							.Where(x => x.Date > marketData.Date && x.Close != 0)
 							.OrderBy(x => x.Date)
 							.FirstOrDefault();
 						if (previous != null && next != null)
@@ -135,13 +135,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							var total = (c - a).TotalDays;
 							var prevWeight = (c - b).TotalDays / total;
 							var nextWeight = (b - a).TotalDays / total;
-							var weighted = previous.Close.Amount * (decimal)prevWeight + next.Close.Amount * (decimal)nextWeight;
-							marketData.Close = new Money(marketData.Close.Currency, weighted);
+							var weighted = previous.Close * (decimal)prevWeight + next.Close * (decimal)nextWeight;
+							marketData.Close = weighted;
 							marketData.IsGenerated = true;
 						}
 					}
 
-					if (existingRecord != null && Math.Abs(existingRecord.Close.Amount - marketData.Close.Amount) < 0.00001m)
+					if (existingRecord != null && Math.Abs(existingRecord.Close - marketData.Close) < 0.00001m)
 					{
 						continue;
 					}

@@ -1,6 +1,7 @@
 @page "/holding/{symbol}"
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.Model
 @attribute [Authorize]
 
 <PageTitle>@Symbol - Holding Details</PageTitle>
@@ -188,50 +189,44 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var (price, index) in PriceHistory.OrderByDescending(p => p.Date).Take(10).Select((p, i) => (p, i)))
-                                        {
-                                            var previousPrice = index < PriceHistory.Count - 1 ? 
-                                                PriceHistory.OrderByDescending(p => p.Date).Skip(index + 1).FirstOrDefault() : 
-                                                null;
-                                            var previousAmount = previousPrice?.Price?.Amount ?? 0;
-                                            var currentAmount = price.Price?.Amount ?? 0;
-                                            var change = currentAmount - previousAmount;
-                                            var changePercent = previousAmount != 0 ? (change / previousAmount) : 0;
-                                            
-                                            <tr>
-                                                <td>@price.Date.ToString("yyyy-MM-dd")</td>
-                                                <td class="text-end">
-                                                    @if (price.Price != null)
-                                                    {
-                                                        @CurrencyDisplay.DisplaySignAndAmount(price.Price)
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="text-muted">-</span>
-                                                    }
-                                                </td>
-                                                <td class="text-end">
-                                                    @if (previousPrice?.Price != null)
-                                                    {
-                                                        <span class="@(change >= 0 ? "text-success" : "text-danger")">
-                                                            @(change >= 0 ? "+" : "")@change.ToString("F2")
-                                                        </span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="text-muted">-</span>
-                                                    }
-                                                </td>
-                                                <td class="text-end">
-                                                    @if (previousPrice?.Price != null)
-                                                    {
-                                                        <span class="@(changePercent >= 0 ? "text-success" : "text-danger")">
-                                                            @(changePercent >= 0 ? "+" : "")@changePercent.ToString("P2")
-                                                        </span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="text-muted">-</span>
+                                    @foreach (var (price, index) in PriceHistory.OrderByDescending(p => p.Date).Take(10).Select((p, i) => (p, i)))
+                                    {
+                                        var previousPrice = index < PriceHistory.Count - 1 ? 
+                                            PriceHistory.OrderByDescending(p => p.Date).Skip(index + 1).FirstOrDefault() : 
+                                            null;
+                                        var previousPriceValue = previousPrice?.Price ?? 0;
+                                        var currentPriceValue = price.Price;
+                                        var change = currentPriceValue - previousPriceValue;
+                                        var changePercent = previousPriceValue != 0 ? (change / previousPriceValue) : 0;
+                                        var currency = HoldingInfo.CurrentPrice.Currency;
+                                        
+                                        <tr>
+                                            <td>@price.Date.ToString("yyyy-MM-dd")</td>
+                                            <td class="text-end">
+                                            @CurrencyDisplay.DisplaySignAndAmount(new Money(currency, price.Price))
+                                        </td>
+                                        <td class="text-end">
+                                            @if (previousPrice != null)
+                                            {
+                                                <span class="@(change >= 0 ? "text-success" : "text-danger")">
+                                                    @(change >= 0 ? "+" : "")@change.ToString("F2")
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (previousPrice != null)
+                                            {
+                                                <span class="@(changePercent >= 0 ? "text-success" : "text-danger")">
+                                                    @(changePercent >= 0 ? "+" : "")@changePercent.ToString("P2")
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
                                                     }
                                                 </td>
                                             </tr>

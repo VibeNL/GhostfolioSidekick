@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -26,6 +26,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var symbol in symbols)
 			{
+				if (!await dividendRepository.IsSymbolSupported(symbol))
+				{
+					continue;
+				}
+
 				logger.LogDebug("Processing dividends for symbol {Symbol}", symbol.Symbol);
 
 				// Gather all dividends

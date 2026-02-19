@@ -9,17 +9,19 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		public void Constructor_WithValidParameters_ShouldSetAllProperties()
 		{
 			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
+			var currency = Currency.USD;
+			var close = 100m;
+			var open = 95m;
+			var high = 105m;
+			var low = 90m;
 			var tradingVolume = 1000000m;
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new MarketData(currency, close, open, high, low, tradingVolume, date);
 
 			// Assert
+			marketData.Currency.Should().Be(currency);
 			marketData.Close.Should().Be(close);
 			marketData.Open.Should().Be(open);
 			marketData.High.Should().Be(high);
@@ -29,96 +31,35 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		}
 
 		[Fact]
-		public void Constructor_WithNullClose_ShouldThrowArgumentNullException()
-		{
-			// Arrange
-			Money? close = null;
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
-			var tradingVolume = 1000000m;
-			var date = DateOnly.FromDateTime(DateTime.Now);
-
-			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close!, open, high, low, tradingVolume, date));
-		}
-
-		[Fact]
-		public void Constructor_WithNullOpen_ShouldThrowArgumentNullException()
-		{
-			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			Money? open = null;
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
-			var tradingVolume = 1000000m;
-			var date = DateOnly.FromDateTime(DateTime.Now);
-
-			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close, open!, high, low, tradingVolume, date));
-		}
-
-		[Fact]
-		public void Constructor_WithNullHigh_ShouldThrowArgumentNullException()
-		{
-			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			Money? high = null;
-			var low = new Money(Currency.USD, 90m);
-			var tradingVolume = 1000000m;
-			var date = DateOnly.FromDateTime(DateTime.Now);
-
-			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close, open, high!, low, tradingVolume, date));
-		}
-
-		[Fact]
-		public void Constructor_WithNullLow_ShouldThrowArgumentNullException()
-		{
-			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			Money? low = null;
-			var tradingVolume = 1000000m;
-			var date = DateOnly.FromDateTime(DateTime.Now);
-
-			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close, open, high, low!, tradingVolume, date));
-		}
-
-		[Fact]
 		public void DefaultConstructor_ShouldInitializePropertiesWithDefaults()
 		{
 			// Act
 			var marketData = new MarketData();
 
 			// Assert
-			marketData.Close.Should().BeNull();
-			marketData.Open.Should().BeNull();
-			marketData.High.Should().BeNull();
-			marketData.Low.Should().BeNull();
+			marketData.Currency.Should().Be(default(Currency));
+			marketData.Close.Should().Be(0m);
+			marketData.Open.Should().Be(0m);
+			marketData.High.Should().Be(0m);
+			marketData.Low.Should().Be(0m);
 			marketData.TradingVolume.Should().Be(0m);
 			marketData.Date.Should().Be(default);
+			marketData.IsGenerated.Should().BeFalse();
 		}
 
 		[Fact]
 		public void CopyFrom_WithValidMarketData_ShouldCopyAllProperties()
 		{
 			// Arrange
-			var originalClose = new Money(Currency.USD, 100m);
-			var originalOpen = new Money(Currency.USD, 95m);
-			var originalHigh = new Money(Currency.USD, 105m);
-			var originalLow = new Money(Currency.USD, 90m);
+			var originalCurrency = Currency.USD;
+			var originalClose = 100m;
+			var originalOpen = 95m;
+			var originalHigh = 105m;
+			var originalLow = 90m;
 			var originalTradingVolume = 1000000m;
 			var originalDate = DateOnly.FromDateTime(DateTime.Now);
 
-			var sourceMarketData = new MarketData(originalClose, originalOpen, originalHigh, originalLow, originalTradingVolume, originalDate);
+			var sourceMarketData = new MarketData(originalCurrency, originalClose, originalOpen, originalHigh, originalLow, originalTradingVolume, originalDate);
 			var targetMarketData = new MarketData();
 
 			// Act
@@ -137,22 +78,24 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		public void CopyFrom_ShouldOverwriteExistingValues()
 		{
 			// Arrange
-			var initialClose = new Money(Currency.EUR, 50m);
-			var initialOpen = new Money(Currency.EUR, 45m);
-			var initialHigh = new Money(Currency.EUR, 55m);
-			var initialLow = new Money(Currency.EUR, 40m);
+			var initialCurrency = Currency.EUR;
+			var initialClose = 50m;
+			var initialOpen = 45m;
+			var initialHigh = 55m;
+			var initialLow = 40m;
 			var initialTradingVolume = 500000m;
 			var initialDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1));
 
-			var newClose = new Money(Currency.USD, 100m);
-			var newOpen = new Money(Currency.USD, 95m);
-			var newHigh = new Money(Currency.USD, 105m);
-			var newLow = new Money(Currency.USD, 90m);
+			var newCurrency = Currency.USD;
+			var newClose = 100m;
+			var newOpen = 95m;
+			var newHigh = 105m;
+			var newLow = 90m;
 			var newTradingVolume = 1000000m;
 			var newDate = DateOnly.FromDateTime(DateTime.Now);
 
-			var targetMarketData = new MarketData(initialClose, initialOpen, initialHigh, initialLow, initialTradingVolume, initialDate);
-			var sourceMarketData = new MarketData(newClose, newOpen, newHigh, newLow, newTradingVolume, newDate);
+			var targetMarketData = new MarketData(initialCurrency, initialClose, initialOpen, initialHigh, initialLow, initialTradingVolume, initialDate);
+			var sourceMarketData = new MarketData(newCurrency, newClose, newOpen, newHigh, newLow, newTradingVolume, newDate);
 
 			// Act
 			targetMarketData.CopyFrom(sourceMarketData);
@@ -167,47 +110,83 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		}
 
 		[Fact]
+		public void CopyFrom_ShouldNotCopyCurrency()
+		{
+			// Arrange
+			var initialCurrency = Currency.EUR;
+			var initialClose = 50m;
+			var initialOpen = 45m;
+			var initialHigh = 55m;
+			var initialLow = 40m;
+			var initialTradingVolume = 500000m;
+			var initialDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1));
+
+			var newCurrency = Currency.USD;
+			var newClose = 100m;
+			var newOpen = 95m;
+			var newHigh = 105m;
+			var newLow = 90m;
+			var newTradingVolume = 1000000m;
+			var newDate = DateOnly.FromDateTime(DateTime.Now);
+
+			var targetMarketData = new MarketData(initialCurrency, initialClose, initialOpen, initialHigh, initialLow, initialTradingVolume, initialDate);
+			var sourceMarketData = new MarketData(newCurrency, newClose, newOpen, newHigh, newLow, newTradingVolume, newDate);
+
+			// Act
+			targetMarketData.CopyFrom(sourceMarketData);
+
+			// Assert
+			targetMarketData.Currency.Should().Be(initialCurrency); // Currency should NOT be copied
+		}
+
+		[Fact]
 		public void Properties_ShouldBeSettable()
 		{
 			// Arrange
 			var marketData = new MarketData();
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
+			var currency = Currency.USD;
+			var close = 100m;
+			var open = 95m;
+			var high = 105m;
+			var low = 90m;
 			var tradingVolume = 1000000m;
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
+			marketData.Currency = currency;
 			marketData.Close = close;
 			marketData.Open = open;
 			marketData.High = high;
 			marketData.Low = low;
 			marketData.TradingVolume = tradingVolume;
 			marketData.Date = date;
+			marketData.IsGenerated = true;
 
 			// Assert
+			marketData.Currency.Should().Be(currency);
 			marketData.Close.Should().Be(close);
 			marketData.Open.Should().Be(open);
 			marketData.High.Should().Be(high);
 			marketData.Low.Should().Be(low);
 			marketData.TradingVolume.Should().Be(tradingVolume);
 			marketData.Date.Should().Be(date);
+			marketData.IsGenerated.Should().BeTrue();
 		}
 
 		[Fact]
 		public void Constructor_WithZeroTradingVolume_ShouldAcceptValue()
 		{
 			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
+			var currency = Currency.USD;
+			var close = 100m;
+			var open = 95m;
+			var high = 105m;
+			var low = 90m;
 			var tradingVolume = 0m;
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new MarketData(currency, close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.TradingVolume.Should().Be(0m);
@@ -217,54 +196,54 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		public void Constructor_WithNegativeTradingVolume_ShouldAcceptValue()
 		{
 			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
+			var currency = Currency.USD;
+			var close = 100m;
+			var open = 95m;
+			var high = 105m;
+			var low = 90m;
 			var tradingVolume = -100m;
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new MarketData(currency, close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.TradingVolume.Should().Be(-100m);
 		}
 
 		[Fact]
-		public void Constructor_WithDifferentCurrencies_ShouldAcceptValues()
+		public void Constructor_WithDifferentCurrencies_ShouldSetCurrency()
 		{
 			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.EUR, 95m);
-			var high = new Money(Currency.GBP, 105m);
-			var low = new Money(Currency.GBp, 90m);
+			var currency = Currency.EUR;
+			var close = 100m;
+			var open = 95m;
+			var high = 105m;
+			var low = 90m;
 			var tradingVolume = 1000000m;
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new MarketData(currency, close, open, high, low, tradingVolume, date);
 
 			// Assert
-			marketData.Close.Currency.Should().Be(Currency.USD);
-			marketData.Open.Currency.Should().Be(Currency.EUR);
-			marketData.High.Currency.Should().Be(Currency.GBP);
-			marketData.Low.Currency.Should().Be(Currency.GBp);
+			marketData.Currency.Should().Be(Currency.EUR);
 		}
 
 		[Fact]
 		public void Constructor_WithMinDate_ShouldAcceptValue()
 		{
 			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
+			var currency = Currency.USD;
+			var close = 100m;
+			var open = 95m;
+			var high = 105m;
+			var low = 90m;
 			var tradingVolume = 1000000m;
 			var date = DateOnly.MinValue;
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new MarketData(currency, close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.Date.Should().Be(DateOnly.MinValue);
@@ -274,15 +253,16 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		public void Constructor_WithMaxDate_ShouldAcceptValue()
 		{
 			// Arrange
-			var close = new Money(Currency.USD, 100m);
-			var open = new Money(Currency.USD, 95m);
-			var high = new Money(Currency.USD, 105m);
-			var low = new Money(Currency.USD, 90m);
+			var currency = Currency.USD;
+			var close = 100m;
+			var open = 95m;
+			var high = 105m;
+			var low = 90m;
 			var tradingVolume = 1000000m;
 			var date = DateOnly.MaxValue;
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new MarketData(currency, close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.Date.Should().Be(DateOnly.MaxValue);

@@ -2,35 +2,46 @@ namespace GhostfolioSidekick.Model.Performance
 {
 	public class CalculatedSnapshot
 	{
-		public long Id { get; set; } // EF Core key
+		public Guid Id { get; set; } // EF Core key
 		public int AccountId { get; set; } // Foreign key to Account, if needed
-		public long HoldingAggregatedId { get; set; } // Foreign key to Holding, if needed
+       // Removed duplicate HoldingId property (long)
+		public int HoldingId { get; set; } // Foreign key to Holding
+		public virtual Holding? Holding { get; set; } // Navigation property
 		public DateOnly Date { get; set; }
 		public decimal Quantity { get; set; }
-		public Money AverageCostPrice { get; set; } = Money.Zero(Currency.USD);
-		public Money CurrentUnitPrice { get; set; } = Money.Zero(Currency.USD);
-		public Money TotalInvested { get; set; } = Money.Zero(Currency.USD);
-		public Money TotalValue { get; set; } = Money.Zero(Currency.USD);
+		public Currency Currency { get; set; }
+		public decimal AverageCostPrice { get; set; }
+		public decimal CurrentUnitPrice { get; set; }
+		public decimal TotalInvested { get; set; }
+		public decimal TotalValue { get; set; }
 
 		// Parameterless constructor for EF Core
 		public CalculatedSnapshot()
 		{
+			Id = Guid.NewGuid();
+			Currency = default!;
+			AverageCostPrice = default;
+			CurrentUnitPrice = default;
+			TotalInvested = default;
+			TotalValue = default;
 		}
 
 		public CalculatedSnapshot(
-			long id, 
+			Guid id,
 			int accountId,
-			DateOnly date, 
+			DateOnly date,
 			decimal quantity,
-			Money averageCostPrice,
-			Money currentUnitPrice,
-			Money totalInvested,
-			Money totalValue)
+			Currency currency,
+			decimal averageCostPrice,
+			decimal currentUnitPrice,
+			decimal totalInvested,
+			decimal totalValue)
 		{
 			Id = id;
 			AccountId = accountId;
 			Date = date;
 			Quantity = quantity;
+			Currency = currency;
 			AverageCostPrice = averageCostPrice;
 			CurrentUnitPrice = currentUnitPrice;
 			TotalInvested = totalInvested;
@@ -39,9 +50,10 @@ namespace GhostfolioSidekick.Model.Performance
 
 		public CalculatedSnapshot(CalculatedSnapshot original)
 		{
-			Id = original.Id;
+			Id = Guid.NewGuid();
 			Date = original.Date;
 			Quantity = original.Quantity;
+			Currency = original.Currency;
 			AverageCostPrice = original.AverageCostPrice;
 			CurrentUnitPrice = original.CurrentUnitPrice;
 			TotalInvested = original.TotalInvested;
@@ -49,11 +61,12 @@ namespace GhostfolioSidekick.Model.Performance
 			AccountId = original.AccountId;
 		}
 
-		public static CalculatedSnapshot Empty(Currency currency, int accountId) => new(0, accountId, DateOnly.MinValue, 0, Money.Zero(currency), Money.Zero(currency), Money.Zero(currency), Money.Zero(currency));
+		public static CalculatedSnapshot Empty(Currency currency, int accountId) => 
+			new(Guid.NewGuid(), accountId, DateOnly.MinValue, 0, currency, 0, 0, 0, 0);
 
 		public override string ToString()
 		{
-			return $"CalculatedSnapshot(Id={Id}, AccountId={AccountId}, Date={Date}, Quantity={Quantity}, AverageCostPrice={AverageCostPrice}, CurrentUnitPrice={CurrentUnitPrice}, TotalInvested={TotalInvested}, TotalValue={TotalValue})";
+			return $"CalculatedSnapshot(Id={Id}, AccountId={AccountId}, Date={Date}, Quantity={Quantity}, Currency={Currency}, AverageCostPrice={AverageCostPrice}, CurrentUnitPrice={CurrentUnitPrice}, TotalInvested={TotalInvested}, TotalValue={TotalValue})";
 		}
 	}
 }

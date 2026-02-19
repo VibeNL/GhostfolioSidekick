@@ -77,10 +77,11 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 							new CurrencyExchangeRate
 							{
 								Date = date,
-								Close = new Money(currency, exchangeRate),
-								Open = new Money(currency, exchangeRate),
-								High = new Money(currency, exchangeRate),
-								Low = new Money(currency, exchangeRate),
+								Currency = currency,
+								Close = exchangeRate,
+								Open = exchangeRate,
+								High = exchangeRate,
+								Low = exchangeRate,
 								TradingVolume = 0
 							}
 						]
@@ -119,10 +120,11 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 							new CurrencyExchangeRate
 							{
 								Date = previousDate,
-								Close = new Money(currency, exchangeRate),
-								Open = new Money(currency, exchangeRate),
-								High = new Money(currency, exchangeRate),
-								Low = new Money(currency, exchangeRate),
+								Currency = currency,
+								Close = exchangeRate,
+								Open = exchangeRate,
+								High = exchangeRate,
+								Low = exchangeRate,
 								TradingVolume = 0
 							}
 						]

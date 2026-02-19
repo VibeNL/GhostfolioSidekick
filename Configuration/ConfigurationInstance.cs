@@ -1,4 +1,4 @@
-﻿
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Configuration
 		public SymbolConfiguration[]? Symbols { get; set; }
 
 		[JsonPropertyName("settings")]
-		public Settings Settings { get; set; } = new Settings();
+		public Settings Settings { get; set; } = new Settings { DataProviderPreference = "YAHOO;COINGECKO", PrimaryCurrency = "EUR" };
 
 		[JsonPropertyName("benchmarks")]
 		public SymbolConfiguration[]? Benchmarks { get; set; }

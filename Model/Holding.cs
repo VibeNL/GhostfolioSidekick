@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,6 +14,8 @@ namespace GhostfolioSidekick.Model
 		public virtual List<Activity> Activities { get; set; } = [];
 
 		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+
+		public virtual List<CalculatedSnapshot> CalculatedSnapshots { get; set; } = [];
 
 		public void MergeIdentifiers(IList<PartialSymbolIdentifier> ids)
 		{
