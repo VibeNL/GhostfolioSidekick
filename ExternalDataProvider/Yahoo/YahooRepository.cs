@@ -28,6 +28,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			var result = marketData.Select(x => new CurrencyExchangeRate
 			{
 				Date = x.Date,
+				Currency = x.Currency,
 				Close = x.Close,
 				High = x.High,
 				Low = x.Low,
@@ -71,10 +72,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			foreach (var candle in history)
 			{
 				var item = new MarketData(
-									new Money(symbol.Currency with { }, candle.Close),
-									new Money(symbol.Currency with { }, candle.Open),
-									new Money(symbol.Currency with { }, candle.High),
-									new Money(symbol.Currency with { }, candle.Low),
+									symbol.Currency,
+									candle.Close,
+									candle.Open,
+									candle.High,
+									candle.Low,
 									candle.Volume,
 									DateOnly.FromDateTime(candle.DateTime.Date));
 				list.Add(item);
@@ -230,10 +232,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				foreach (var candle in history)
 				{
 					var item = new MarketData(
-										new Money(currency with { }, candle.Close),
-										new Money(currency with { }, candle.Open),
-										new Money(currency with { }, candle.High),
-										new Money(currency with { }, candle.Low),
+										currency,
+										candle.Close,
+										candle.Open,
+										candle.High,
+										candle.Low,
 										candle.Volume,
 										DateOnly.FromDateTime(candle.DateTime.Date));
 					list.Add(item);
@@ -256,10 +259,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				var marketVolume = symbolItem.Fields.ContainsKey("RegularMarketVolume") ? symbolItem.RegularMarketVolume : 0;
 
 				var item = new MarketData(
-									new Money(currency with { }, (decimal)symbolItem.RegularMarketPrice),
-									new Money(currency with { }, (decimal)symbolItem.RegularMarketOpen),
-									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayHigh),
-									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayLow),
+									currency,
+									(decimal)symbolItem.RegularMarketPrice,
+									(decimal)symbolItem.RegularMarketOpen,
+									(decimal)symbolItem.RegularMarketDayHigh,
+									(decimal)symbolItem.RegularMarketDayLow,
 									marketVolume,
 									DateOnly.FromDateTime(DateTime.Now));
 				list.Add(item);

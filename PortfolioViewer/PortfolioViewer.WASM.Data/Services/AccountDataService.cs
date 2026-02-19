@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			CancellationToken cancellationToken = default)
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			var snapShots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
+			var snapShots = await databaseContext.CalculatedSnapshots
 				.Where(s => s.Date >= startDate && s.Date <= endDate)
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
@@ -56,13 +56,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				})
 				.ToListAsync(cancellationToken);
 
-			var balanceByAccount = await databaseContext.BalancePrimaryCurrencies
+			var balanceByAccount = await databaseContext.Balances
 				.Where(s => s.Date >= startDate && s.Date <= endDate)
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
 				{
 					g.Key.Date,
-					Value = g.Min(x => (double)x.Money),
+					Value = g.Min(x => (double)x.Money.Amount),
 					g.Key.AccountId,
 				})
 				.ToListAsync(cancellationToken);

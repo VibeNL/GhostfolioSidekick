@@ -1,4 +1,6 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PerformanceCalculations;
 using Microsoft.EntityFrameworkCore;
@@ -7,11 +9,10 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.Performance
 {
 	internal class PerformanceTask(
-		IHoldingPerformanceCalculator holdingPerformanceCalculator,
-		IDbContextFactory<DatabaseContext> dbContextFactory) : IScheduledWork
+		IPerformanceCalculator performanceCalculator,
+		IDbContextFactory<DatabaseContext> dbContextFactory,
+		IApplicationSettings applicationSettings) : IScheduledWork
 	{
-		const int batchSize = 10;
-
 		public TaskPriority Priority => TaskPriority.PerformanceCalculations;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
@@ -22,140 +23,71 @@ namespace GhostfolioSidekick.Performance
 
 		public async Task DoWork(ILogger logger)
 		{
-			// Calculate performance for all holdings
-			var holdings = await holdingPerformanceCalculator.GetCalculatedHoldings();
+			logger.LogInformation("Starting performance calculations for holdings...");
+			var currency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 
-			if (holdings == null || !holdings.Any())
+			// Remove all snapshots at the start
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
 			{
-				await DeleteAllHoldings();
+				await dbContext.CalculatedSnapshots.ExecuteDeleteAsync();
+			}
+
+			List<int> holdingIds;
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
+			{
+				holdingIds = await dbContext.Holdings.Select(h => h.Id).ToListAsync();
+			}
+
+			if (holdingIds == null || holdingIds.Count == 0)
+			{
+				logger.LogInformation("No holdings found to calculate performance for");
 				return;
 			}
 
-			// Use a fresh context for obsolete detection
-			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
-			{
-				var existingHoldingKeys = await dbContext.HoldingAggregateds
-					.Select(h => new { h.Id, h.Symbol, h.AssetClass, h.AssetSubClass })
-					.AsNoTracking()
-					.ToListAsync();
+			int totalHoldings = holdingIds.Count;
+			int processedHoldings = 0;
 
-				var newHoldingKeys = holdings
-					.Select(h => (h.Symbol, h.AssetClass, h.AssetSubClass))
-					.ToHashSet();
+			logger.LogInformation("Total holdings to process: {Total}", totalHoldings);
 
-				var obsoleteIds = existingHoldingKeys
-					.Where(existing => !newHoldingKeys.Contains((existing.Symbol, existing.AssetClass, existing.AssetSubClass)))
-					.Select(existing => existing.Id)
-					.ToList();
-
-				if (obsoleteIds.Count != 0)
-				{
-					var toDelete = await dbContext.HoldingAggregateds
-						.Where(h => obsoleteIds.Contains(h.Id))
-						.ToListAsync();
-					dbContext.HoldingAggregateds.RemoveRange(toDelete);
-					await dbContext.SaveChangesAsync();
-				}
-			}
-
-			// Process holdings in batches with a fresh context per batch
-			var holdingList = holdings.ToList();
-			foreach (var batch in holdingList.Chunk(batchSize))
+			foreach (var holdingId in holdingIds)
 			{
 				using var dbContext = await dbContextFactory.CreateDbContextAsync();
-				var batchKeys = batch.Select(h => (h.Symbol, h.AssetClass, h.AssetSubClass)).ToHashSet();
-
-				var existingBatchHoldings = (await dbContext.HoldingAggregateds
+				var holding = await dbContext.Holdings
 					.Include(h => h.CalculatedSnapshots)
-					.Where(h => batch.Select(b => b.Symbol).Contains(h.Symbol))
-					.ToListAsync())
-					.Where(h => batchKeys.Contains((h.Symbol, h.AssetClass, h.AssetSubClass)))
-					.ToList();
-
-				foreach (var holding in batch)
+					.FirstOrDefaultAsync(h => h.Id == holdingId) ?? throw new NotSupportedException();
+				
+				try
 				{
-					var existing = existingBatchHoldings
-						.FirstOrDefault(h =>
-							h.Symbol == holding.Symbol &&
-							h.AssetClass == holding.AssetClass &&
-							h.AssetSubClass == holding.AssetSubClass);
+					// Calculate new snapshots for this holding
+					var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
 
-					if (existing != null)
-					{
-						UpdateExistingHolding(existing, holding);
-					}
-					else
-					{
-						await dbContext.HoldingAggregateds.AddAsync(holding);
-					}
+					// Update the holding's calculated snapshots
+					await ReplaceCalculatedSnapshotsAsync(holding, newSnapshots, dbContext);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Error calculating performance for holding {HoldingId}", holding.Id);
 				}
 
 				await dbContext.SaveChangesAsync();
-			}
-		}
 
-		private async Task DeleteAllHoldings()
-		{
-			using var dbContext = await dbContextFactory.CreateDbContextAsync();
-			var allHoldings = await dbContext.HoldingAggregateds.ToListAsync();
-			if (allHoldings.Count != 0)
-			{
-				dbContext.HoldingAggregateds.RemoveRange(allHoldings);
-				await dbContext.SaveChangesAsync();
-			}
-		}
-
-		private static void UpdateExistingHolding(HoldingAggregated existing, HoldingAggregated holding)
-		{
-			// Update HoldingAggregated properties
-			existing.Name = holding.Name;
-			existing.AssetClass = holding.AssetClass;
-			existing.AssetSubClass = holding.AssetSubClass;
-			existing.ActivityCount = holding.ActivityCount;
-			existing.CountryWeight = holding.CountryWeight;
-			existing.SectorWeights = holding.SectorWeights;
-			existing.DataSource = holding.DataSource;
-
-			UpdateCalculatedSnapshots(existing, holding.CalculatedSnapshots);
-		}
-
-		private static void UpdateCalculatedSnapshots(HoldingAggregated existing, ICollection<CalculatedSnapshot> newSnapshots)
-		{
-			// Use tuple for snapshot keys
-			var existingSnapshotsByKey = existing.CalculatedSnapshots.ToDictionary(s => (s.AccountId, s.Date));
-			var newSnapshotsByKey = newSnapshots.ToDictionary(s => (s.AccountId, s.Date));
-
-			// Remove snapshots that no longer exist in the new calculation
-			var snapshotsToRemove = existing.CalculatedSnapshots
-				.Where(existingSnapshot => !newSnapshotsByKey.ContainsKey((existingSnapshot.AccountId, existingSnapshot.Date)))
-				.ToList();
-
-			foreach (var snapshotToRemove in snapshotsToRemove)
-			{
-				existing.CalculatedSnapshots.Remove(snapshotToRemove);
+				processedHoldings++;
+				logger.LogInformation("Processed {Processed}/{Total} holdings", processedHoldings, totalHoldings);
 			}
 
-			// Update existing snapshots or add new ones
+			logger.LogInformation("Performance calculation completed for {Count} holdings", totalHoldings);
+		}
+
+		private static async Task ReplaceCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
+		{
+			// Add all new snapshots
 			foreach (var newSnapshot in newSnapshots)
 			{
-				if (existingSnapshotsByKey.TryGetValue((newSnapshot.AccountId, newSnapshot.Date), out var existingSnapshot))
-				{
-					UpdateSnapshotProperties(existingSnapshot, newSnapshot);
-				}
-				else
-				{
-					existing.CalculatedSnapshots.Add(newSnapshot);
-				}
+				newSnapshot.Id = Guid.NewGuid();
+				newSnapshot.HoldingId = holding.Id;
+				holding.CalculatedSnapshots.Add(newSnapshot);
+				dbContext.CalculatedSnapshots.Add(newSnapshot);
 			}
-		}
-
-		private static void UpdateSnapshotProperties(CalculatedSnapshot existingSnapshot, CalculatedSnapshot newSnapshot)
-		{
-			existingSnapshot.Quantity = newSnapshot.Quantity;
-			existingSnapshot.AverageCostPrice = newSnapshot.AverageCostPrice;
-			existingSnapshot.CurrentUnitPrice = newSnapshot.CurrentUnitPrice;
-			existingSnapshot.TotalInvested = newSnapshot.TotalInvested;
-			existingSnapshot.TotalValue = newSnapshot.TotalValue;
 		}
 	}
 }

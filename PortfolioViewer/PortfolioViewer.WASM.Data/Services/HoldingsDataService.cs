@@ -1,4 +1,4 @@
- using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +38,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			CancellationToken cancellationToken = default)
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			var rawSnapShots = await databaseContext.HoldingAggregateds
-				.Where(x => x.Symbol == symbol)
+			var rawSnapShots = await databaseContext.Holdings
+				.Where(x => x.SymbolProfiles.Any(sp => sp.Symbol == symbol))
 				.SelectMany(x => x.CalculatedSnapshots)
 				.Where(x => x.Date >= startDate &&
 							x.Date <= endDate)
@@ -53,8 +53,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				snapShots.Add(new HoldingPriceHistoryPoint
 				{
 					Date = group.Key,
-					Price = group.Min(x => x.CurrentUnitPrice) ?? Money.Zero(Currency.EUR),
-					AveragePrice = Money.Sum(group.Select(y => y.AverageCostPrice.Times(y.Quantity))).SafeDivide(group.Sum(x => x.Quantity)),
+					Price = group.Min(x => x.CurrentUnitPrice),
+					AveragePrice = group.Sum(y => y.AverageCostPrice * y.Quantity) / group.Sum(x => x.Quantity),
 				});
 			}
 
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			CancellationToken cancellationToken = default)
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			var snapShots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
+			var snapShots = await databaseContext.CalculatedSnapshots
 				.Where(x => (accountId == 0 || x.AccountId == accountId) &&
 							x.Date >= startDate &&
 							x.Date <= endDate)
@@ -88,42 +88,44 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(int? accountId, CancellationToken cancellationToken)
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			var lastKnownDate = await databaseContext.CalculatedSnapshotPrimaryCurrencies
+			var lastKnownDate = await databaseContext.CalculatedSnapshots
 				.Where(x => accountId == null || x.AccountId == accountId)
 				.MaxAsync(x => (DateOnly?)x.Date, cancellationToken);
 
-			var list = await databaseContext.HoldingAggregateds
-				.Where(x => x.CalculatedSnapshotsPrimaryCurrency.Any(y => y.AccountId == accountId || accountId == null))
+			var list = await databaseContext.Holdings
+				.Where(x => x.CalculatedSnapshots.Any(y => y.AccountId == accountId || accountId == null))
 				.Select(x => new
 				{
 					Holding = x,
-					Snapshots = x.CalculatedSnapshotsPrimaryCurrency
-					.Where(x => x.AccountId == accountId || accountId == null)
-					.Where(x => x.Date == lastKnownDate)
+					Snapshots = x.CalculatedSnapshots
+						.Where(x => x.AccountId == accountId || accountId == null)
+						.Where(x => x.Date == lastKnownDate)
 				})
-				.OrderBy(x => x.Holding.Symbol)
+				.OrderBy(x => x.Holding.Id)
 				.ToListAsync(cancellationToken);
 
 			var result = new List<HoldingDisplayModel>();
 			foreach (var x in list)
 			{
 				// Skip holdings with no snapshots to avoid NoElements exceptions
-				if (!x.Snapshots.Any())
+				if (!x.Snapshots.Any() || x.Holding.SymbolProfiles.Count == 0)
 				{
 					continue;
 				}
 
+				var symbolProfile = x.Holding.SymbolProfiles[0];
+
 				result.Add(new HoldingDisplayModel
 				{
-					AssetClass = x.Holding.AssetClass.ToString(),
+					AssetClass = symbolProfile.AssetClass.ToString(),
 					AveragePrice = ConvertToMoney(SafeDivide(x.Snapshots.Sum(y => y.AverageCostPrice * y.Quantity), x.Snapshots.Sum(x => x.Quantity))),
 					Currency = serverConfigurationService.PrimaryCurrency.Symbol,
 					CurrentPrice = ConvertToMoney(x.Snapshots.Min(y => y.CurrentUnitPrice)),
 					CurrentValue = ConvertToMoney(x.Snapshots.Sum(y => y.TotalValue)),
-					Name = x.Holding.Name ?? x.Holding.Symbol,
+					Name = symbolProfile.Name ?? symbolProfile.Symbol,
 					Quantity = x.Snapshots.Sum(y => y.Quantity),
-					Sector = x.Holding.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
-					Symbol = x.Holding.Symbol,
+					Sector = symbolProfile.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
+					Symbol = symbolProfile.Symbol,
 					GainLoss = Money.Zero(serverConfigurationService.PrimaryCurrency),
 					GainLossPercentage = 0,
 				});
@@ -146,12 +148,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					else
 					{
 						x.GainLossPercentage = gainloss / (x.AveragePrice.Amount * x.Quantity);
-					}
 				}
 			}
-
-			return result;
 		}
+
+		return [.. result.OrderBy(x => x.Symbol)];
+	}
 
 		private Money ConvertToMoney(decimal? amount)
 		{

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
@@ -50,13 +50,14 @@ namespace GhostfolioSidekick.Activities.Strategies
 									.MarketData
 									.OrderBy(x => x.Date)
 									.FirstOrDefault(x => x.Date >= DateOnly.FromDateTime(activity.Date));
-				if (marketData != null)
-				{
-					activity.AdjustedUnitPrice = marketData.Close;
-					activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace("Determine price", activity.AdjustedQuantity, activity.AdjustedUnitPrice));
-					activity.TotalTransactionAmount = activity.AdjustedUnitPrice.Times(activity.AdjustedQuantity);
-					return;
-				}
+			if (marketData != null)
+			{
+				var currency = symbolProfile.Currency;
+				activity.AdjustedUnitPrice = new Money(currency, marketData.Close);
+				activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace("Determine price", activity.AdjustedQuantity, activity.AdjustedUnitPrice));
+				activity.TotalTransactionAmount = activity.AdjustedUnitPrice.Times(activity.AdjustedQuantity);
+				return;
+			}
 			}
 		}
 	}

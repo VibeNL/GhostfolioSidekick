@@ -526,9 +526,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var profile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
+			var testDate = DateOnly.FromDateTime(DateTime.Now);
 			var marketData = new List<Model.Market.MarketData>
 			{
-				new(new Money { Amount = 100, Currency = Currency.EUR }, new Money(), new Money(), new Money(), 0, DateOnly.FromDateTime(DateTime.Now))
+				new(Currency.EUR, 100, 0, 0, 0, 0, testDate)
 			};
 
 			SetupRestCall("api/v1/market-data/YAHOO/TEST", JsonConvert.SerializeObject(new MarketDataList { MarketData = [], AssetProfile = CreateTestSymbolProfile() }));
@@ -549,7 +550,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 			var marketData = new List<Model.Market.MarketData>
 			{
-				new(new Money { Amount = 100, Currency = Currency.EUR }, new Money(), new Money(), new Money(), 0, testDate)
+				new(Currency.EUR, 100, 0, 0, 0, 0, testDate)
 			};
 			var existingData = new List<MarketData>
 			{
@@ -571,9 +572,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var profile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
+			var testDate = DateOnly.FromDateTime(DateTime.Now);
 			var marketData = new List<Model.Market.MarketData>
 			{
-				new(new Money { Amount = 100, Currency = Currency.EUR }, new Money(), new Money(), new Money(), 0, DateOnly.FromDateTime(DateTime.Now))
+				new(Currency.EUR, 100, 0, 0, 0, 0, testDate)
 			};
 
 			SetupRestCall("api/v1/market-data/YAHOO/TEST", JsonConvert.SerializeObject(new MarketDataList { MarketData = [], AssetProfile = CreateTestSymbolProfile() }));

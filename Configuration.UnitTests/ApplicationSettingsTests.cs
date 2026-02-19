@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 
 		public ApplicationSettingsTests()
 		{
-			const string configFileContent = "{\"settings\" : {\"dataprovider.preference.order\": \"COINGECKO,YAHOO\"} }";
+			const string configFileContent = "{\"settings\" : {\"dataprovider.preference.order\": \"COINGECKO,YAHOO\", \"performance.primarycurrency\": \"EUR\"} }";
 			configFile = Path.GetTempFileName();
 			File.WriteAllText(configFile, configFileContent);
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", configFile);

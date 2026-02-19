@@ -1,11 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace GhostfolioSidekick.Configuration
 {
 	[ExcludeFromCodeCoverage]
-	[method: SetsRequiredMembers]
-	public class Settings()
+	public class Settings : ISettings
 	{
 		[JsonPropertyName("delete.unused.symbols")]
 		public bool DeleteUnusedSymbols { get; set; } = true;

@@ -152,6 +152,7 @@ namespace GhostfolioSidekick.Configuration
 		{
 			get
 			{
+				// Ensure Settings is always ISettings (already enforced by ConfigurationInstance)
 				return configuration;
 			}
 		}
