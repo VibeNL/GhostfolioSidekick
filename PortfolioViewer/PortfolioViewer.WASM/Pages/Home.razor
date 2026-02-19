@@ -24,22 +24,6 @@
         </div>
     </div>
 }
-else if (!string.IsNullOrEmpty(ClientVersion))
-{
-    <div class="alert alert-secondary mb-3">
-        <small>
-            <i class="bi bi-info-circle me-1"></i>
-            Version: @ClientVersion
-            @if (!string.IsNullOrEmpty(ServerVersion))
-            {
-                <span class="text-success ms-2">
-                    <i class="bi bi-check-circle me-1"></i>
-                    Up to date
-                </span>
-            }
-        </small>
-    </div>
-}
 
 @if (LastSyncTime.HasValue)
 {
@@ -139,4 +123,20 @@ else
         <i class="bi @(_isError ? "bi-exclamation-triangle" : "bi-check-circle") me-2"></i>
         @_statusMessage
     </div>
+}
+
+<!-- Footer Version Info (less prominent) -->
+@if (!IsUpdateAvailable && !string.IsNullOrEmpty(ClientVersion))
+{
+    <footer class="text-center mt-5 mb-2 text-muted" style="font-size: 0.95em;">
+        <i class="bi bi-info-circle me-1"></i>
+        Version: @ClientVersion
+        @if (!string.IsNullOrEmpty(ServerVersion))
+        {
+            <span class="text-success ms-2">
+                <i class="bi bi-check-circle me-1"></i>
+                Up to date
+            </span>
+        }
+    </footer>
 }
