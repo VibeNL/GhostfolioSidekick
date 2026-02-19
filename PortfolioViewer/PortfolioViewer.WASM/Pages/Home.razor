@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.Model
 @attribute [Authorize]
@@ -8,6 +8,38 @@
 <h1>Start page</h1>
 
 <p>Before use, please sync the data with a copy of the server</p>
+
+<!-- Version Info Section -->
+@if (IsUpdateAvailable)
+{
+    <div class="alert alert-warning mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Update Available!</strong> A new version is available. Please refresh the page to update.
+        <button class="btn btn-sm btn-warning ms-2" @onclick="RefreshPage">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Refresh Now
+        </button>
+        <div class="mt-2">
+            <small>Client: @ClientVersion | Server: @ServerVersion</small>
+        </div>
+    </div>
+}
+else if (!string.IsNullOrEmpty(ClientVersion))
+{
+    <div class="alert alert-secondary mb-3">
+        <small>
+            <i class="bi bi-info-circle me-1"></i>
+            Version: @ClientVersion
+            @if (!string.IsNullOrEmpty(ServerVersion))
+            {
+                <span class="text-success ms-2">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Up to date
+                </span>
+            }
+        </small>
+    </div>
+}
 
 @if (LastSyncTime.HasValue)
 {

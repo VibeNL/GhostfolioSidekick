@@ -148,6 +148,16 @@ jobs:
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=short
+      - name: Generate version string
+        id: version
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="sha-${{ github.sha }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v5
@@ -160,6 +170,8 @@ jobs:
           cache-to: type=gha,mode=max
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v3
         if: ${{ github.event_name == 'pull_request' }}
