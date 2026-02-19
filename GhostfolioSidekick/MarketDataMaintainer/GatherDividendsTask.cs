@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataDividends;
 
-		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
+		public TimeSpan ExecutionFrequency => Frequencies.Daily;
 
 		public bool ExceptionsAreFatal => false;
 

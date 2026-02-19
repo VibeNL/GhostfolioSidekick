@@ -1,4 +1,4 @@
-﻿using CoinGecko.Net.Clients;
+using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Options;
 using GhostfolioSidekick.Activities.Strategies;
@@ -9,6 +9,7 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
+using GhostfolioSidekick.ExternalDataProvider.TipRanks;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -107,6 +108,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<GhostfolioSymbolMatcher>();
 							services.AddSingleton<ManualSymbolRepository>();
 							services.AddSingleton<DividendMaxMatcher>();
+							services.AddSingleton<TipRanksMatcher>();
 							services.AddTransient<ICoinGeckoRestClient>(sp =>
 								new CoinGeckoRestClient(
 									sp.GetRequiredService<HttpClient>(),
@@ -119,14 +121,16 @@ namespace GhostfolioSidekick
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
 									sp.GetRequiredService<ManualSymbolRepository>(),
-									sp.GetRequiredService<DividendMaxMatcher>()
+									sp.GetRequiredService<DividendMaxMatcher>(),
+									sp.GetRequiredService<TipRanksMatcher>()
 								]);
 							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
-							services.AddHttpClient<IDividendRepository, DividendMaxScraper>();
+							services.AddSingleton<IDividendRepository, DividendMaxScraper>();
+							services.AddSingleton<ITargetPriceRepository, TipRanksScraper>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							RegisterAllWithInterface<IScheduledWork>(services);
