@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			return serverVersion != ClientVersion;
 		}
 
-		private class VersionResponse
+		private sealed class VersionResponse
 		{
 			public string Version { get; set; } = string.Empty;
 		}
