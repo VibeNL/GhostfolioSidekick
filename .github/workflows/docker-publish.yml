@@ -41,6 +41,8 @@ jobs:
         with:
           java-version: 21
           distribution: 'temurin'
+      - name: Set SourceRevisionId
+        run: echo "SourceRevisionId=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -69,6 +71,8 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
       - name: Build solution
         run: dotnet build
+        env:
+          SourceRevisionId: ${{ env.SourceRevisionId }}
       - name: Install Playwright Browsers for all test targets
         run: |
           find . -type f -name 'playwright.ps1' | while read script; do
@@ -83,7 +87,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-          dotnet build
+          SourceRevisionId=$(git rev-parse --short HEAD) dotnet build
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -176,6 +180,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             VERSION=${{ steps.version.outputs.version }}
+        env:
+          SourceRevisionId: ${{ env.SourceRevisionId }}
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v3
         if: ${{ github.event_name == 'pull_request' }}
