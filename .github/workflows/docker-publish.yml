@@ -5,6 +5,10 @@ name: Build & deploy application
 # separate terms of service, privacy policy, and support
 # documentation.
 
+# Cancel in-progress runs for the same PR, branch, or tag
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [ "master" ]
