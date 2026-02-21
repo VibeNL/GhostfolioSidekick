@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task RefreshPage()
 		{
-			await JSRuntime.InvokeVoidAsync("location.reload", true);
+            await JSRuntime.InvokeVoidAsync("forceBlazorReload");
 		}
 
 		private async Task StartFullSync()
