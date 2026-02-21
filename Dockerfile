@@ -20,6 +20,7 @@ WORKDIR /app
 FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 ARG TARGETARCH
+ARG VERSION
 
 WORKDIR /src
 

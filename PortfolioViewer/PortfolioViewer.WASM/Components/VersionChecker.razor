@@ -1,0 +1,52 @@
+@using Microsoft.JSInterop
+@using GhostfolioSidekick.PortfolioViewer.WASM.Services
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+@inject IVersionService VersionService
+
+@code {
+	private IJSObjectReference? _module;
+	private DotNetObjectReference<VersionChecker>? _dotNetHelper;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			try
+			{
+				_module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/serviceWorkerHelper.js");
+				_dotNetHelper = DotNetObjectReference.Create(this);
+				await _module.InvokeVoidAsync("registerServiceWorkerUpdateListener", _dotNetHelper);
+			}
+			catch
+			{
+				// Service worker may not be available in development
+			}
+		}
+	}
+
+	[JSInvokable]
+	public async Task OnServiceWorkerUpdated(string version)
+	{
+		Console.WriteLine($"Service worker updated to version: {version}");
+		await CheckForUpdates();
+	}
+
+	private async Task CheckForUpdates()
+	{
+		var isUpdateAvailable = await VersionService.IsUpdateAvailableAsync();
+		if (isUpdateAvailable)
+		{
+			Console.WriteLine("Update available - prompting user");
+		}
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_module != null)
+		{
+			await _module.DisposeAsync();
+		}
+		_dotNetHelper?.Dispose();
+	}
+}
