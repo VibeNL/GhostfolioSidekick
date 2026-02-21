@@ -10,6 +10,6 @@
     <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(SourceRevisionId)' == ''"></VersionSuffix>
     <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
     <FileVersion>$(VersionPrefix).0</FileVersion>
-    <InformationalVersion>$(VersionPrefix)$(VersionSuffix.Replace('-',''))</InformationalVersion>
+    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
   </PropertyGroup>
 </Project>
