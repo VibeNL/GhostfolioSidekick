@@ -15,5 +15,13 @@ globalThis.forceBlazorReload = async function () {
 		}
 	}
 
-	globalThis.location.reload(true);
+	// Clear all browser caches
+	if (globalThis.caches) {
+		const cacheNames = await caches.keys();
+		for (const name of cacheNames) {
+			await caches.delete(name);
+		}
+	}
+
+	globalThis.location.reload();
 };
