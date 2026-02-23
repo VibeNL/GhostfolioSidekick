@@ -162,6 +162,8 @@ jobs:
           VERSION="$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Generated version: $VERSION"
+      - name: Set SourceRevisionId
+        run: echo "SourceRevisionId=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v5
