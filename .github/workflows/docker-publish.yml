@@ -176,6 +176,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             VERSION=${{ steps.version.outputs.version }}
+            SourceRevisionId=${{ env.SourceRevisionId }}
         env:
           SourceRevisionId: ${{ env.SourceRevisionId }}
       - name: Create a PR comment with the published version
