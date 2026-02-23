@@ -53,15 +53,15 @@ RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.Api
 # Publish each project
 FROM build AS publish-api
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
-RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish  /p:SourceRevisionId=$SourceRevisionId
+RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish /p:SourceRevisionId="$SourceRevisionId"
 
 FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
-RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm  /p:SourceRevisionId=$SourceRevisionId
+RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm /p:SourceRevisionId="$SourceRevisionId"
 
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish -a "$TARGETARCH" "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick  /p:SourceRevisionId=$SourceRevisionId
+RUN dotnet publish -a "$TARGETARCH" "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick /p:SourceRevisionId="$SourceRevisionId"
 
 
 # Final runtime image
