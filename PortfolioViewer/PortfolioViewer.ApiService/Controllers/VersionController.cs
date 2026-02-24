@@ -1,16 +1,32 @@
 using GhostfolioSidekick.PortfolioViewer.Common;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Controllers;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class VersionController : ControllerBase
-	{
+    public class VersionController(DatabaseContext dbContext) : ControllerBase
+    {
 		[HttpGet]
-		public IActionResult GetVersion()
-		{
-			return Ok(new { version = VersionInfo.Version });
-		}
-	}
+        public IActionResult GetVersion()
+        {
+            return Ok(new { version = VersionInfo.Version });
+        }
+
+        [HttpGet("migration-status")]
+        public async Task<IActionResult> GetMigrationStatus()
+        {
+            var applied = dbContext.Database.GetAppliedMigrations().ToList();
+            var pending = dbContext.Database.GetPendingMigrations().ToList();
+            var result = new MigrationStatusResponse
+            {
+                AppliedMigrations = applied,
+                PendingMigrations = pending
+            };
+            return Ok(result);
+        }
+    }
 }
