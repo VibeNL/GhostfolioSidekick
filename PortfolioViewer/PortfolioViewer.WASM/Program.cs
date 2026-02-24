@@ -90,6 +90,9 @@ public class Program
 		// Register WakeLockService for DI
 		builder.Services.AddScoped<IWakeLockService, WakeLockService>();
 
+		// Register VersionService for DI
+		builder.Services.AddScoped<IVersionService, VersionService>();
+
 		builder.Services.AddSingleton<ITestContextService, TestContextService>();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);

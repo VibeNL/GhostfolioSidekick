@@ -1,5 +1,15 @@
 <Project>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Version Stamping -->
+    <!-- VersionPrefix: yyyy.MM.dd -->
+    <VersionPrefix>$([System.DateTime]::UtcNow.ToString('yyyy.MM.dd'))</VersionPrefix>
+    <!-- Use commit hash for production if available, else empty -->
+    <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(SourceRevisionId)' != ''">$(SourceRevisionId)</VersionSuffix>
+    <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(SourceRevisionId)' == ''"></VersionSuffix>
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+    <InformationalVersion>$(VersionPrefix)$(VersionSuffix == '' ? '' : '-$(VersionSuffix)')</InformationalVersion>
   </PropertyGroup>
 </Project>

@@ -16,8 +16,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject] private IWakeLockService WakeLockService { get; set; } = default!;
 
+		[Inject] private IVersionService VersionService { get; set; } = default!;
+
 		private IJSObjectReference? mermaidmodule;
 		private Timer? refreshTimer;
+		private Timer? versionCheckTimer;
 
 		private string CurrentAction = "Idle";
 		private int Progress;
@@ -27,6 +30,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private string _statusMessage = string.Empty;
 		private bool _isError;
+
+		private string ClientVersion = string.Empty;
+		private string ServerVersion = string.Empty;
+		private bool IsUpdateAvailable;
+
+		private async Task RefreshPage()
+		{
+            await JSRuntime.InvokeVoidAsync("forceBlazorReload");
+		}
 
 		private async Task StartFullSync()
 		{
@@ -191,6 +203,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		protected override async Task OnInitializedAsync()
 		{
+			// Load version info
+			ClientVersion = VersionService.ClientVersion;
+			await CheckForUpdates();
+
 			// Load the last sync time when the component initializes
 			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
 
@@ -198,6 +214,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				await InvokeAsync(StateHasChanged);
 			}, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+
+			// Check for updates every 5 minutes
+			versionCheckTimer = new Timer(async _ =>
+			{
+				await CheckForUpdates();
+				await InvokeAsync(StateHasChanged);
+			}, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+		}
+
+		private async Task CheckForUpdates()
+		{
+			ServerVersion = await VersionService.GetServerVersionAsync() ?? string.Empty;
+			IsUpdateAvailable = await VersionService.IsUpdateAvailableAsync();
 		}
 
 		protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -235,6 +264,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			mermaidmodule?.DisposeAsync();
 			refreshTimer?.Dispose();
+			versionCheckTimer?.Dispose();
 		}
 	}
 }

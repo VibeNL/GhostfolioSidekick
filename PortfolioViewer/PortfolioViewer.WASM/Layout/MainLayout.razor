@@ -1,7 +1,10 @@
-﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @implements IDisposable
 @inherits LayoutComponentBase
+
+<VersionChecker />
 
 <CascadingValue Value="@FilterStateInstance" IsFixed="false">
     <div class="page">

@@ -11,6 +11,8 @@
   <Folder Name="/SolutionItems/">
     <File Path=".editorconfig" />
     <File Path=".github/workflows/docker-publish.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
     <File Path="Dockerfile" />
     <File Path="README.md" />
     <File Path="supervisord.conf" />
