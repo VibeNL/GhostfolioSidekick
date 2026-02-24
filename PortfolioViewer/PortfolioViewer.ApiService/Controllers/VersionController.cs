@@ -19,13 +19,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
         [HttpGet("migration-status")]
         public async Task<IActionResult> GetMigrationStatus()
         {
-            var applied = dbContext.Database.GetAppliedMigrations().ToList();
-            var pending = dbContext.Database.GetPendingMigrations().ToList();
+            var applied = await dbContext.Database.GetAppliedMigrationsAsync();
+            var pending = await dbContext.Database.GetPendingMigrationsAsync();
             var result = new MigrationStatusResponse
             {
-                AppliedMigrations = applied,
-                PendingMigrations = pending
-            };
+                AppliedMigrations = [.. applied],
+                PendingMigrations = [.. pending]
+			};
             return Ok(result);
         }
     }
