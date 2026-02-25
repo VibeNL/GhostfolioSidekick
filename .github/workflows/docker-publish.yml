@@ -249,7 +249,9 @@ jobs:
         run: |
           echo "Running OSV Scanner for comprehensive security analysis..."
           find . -name 'project.assets.json' -exec dirname {} \; | sort -u | while read dir; do
-              ./osv-scanner --all-packages --format table "$dir"
+              if [ -f "$dir/project.assets.json" ]; then
+                  ./osv-scanner --all-packages --format table "$dir"
+              fi
           done
         continue-on-error: true  # Don't fail the build if OSV scanner finds issues, just report them
       - name: Dependency Review
