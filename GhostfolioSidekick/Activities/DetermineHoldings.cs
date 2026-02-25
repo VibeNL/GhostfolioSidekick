@@ -61,7 +61,40 @@ namespace GhostfolioSidekick.Activities
 				databaseContext.Holdings.RemoveRange(unusedHoldings);
 			}
 
+			// For each holding, match the other symbolmatchers
+			await MatchOtherMatchers(logger, databaseContext, usedHoldings).ConfigureAwait(false);
+
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private async Task MatchOtherMatchers(ILogger logger, DatabaseContext databaseContext, List<Holding> usedHoldings)
+		{
+			foreach (var holding in usedHoldings)
+			{
+				foreach (var symbolMatcher in symbolMatchers.Where(x => !x.AllowedForDeterminingHolding))
+				{
+					var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", holding.PartialSymbolIdentifiers)}";
+					if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
+					{
+						symbolProfile = await symbolMatcher.MatchSymbol([.. holding.PartialSymbolIdentifiers]).ConfigureAwait(false);
+						if (symbolProfile != null)
+						{
+							var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
+							symbolProfile = existingSymbolProfile ?? symbolProfile;
+							memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
+						}
+						else
+						{
+							memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
+						}
+					}
+					if (symbolProfile != null)
+					{
+						logger.LogDebug("Matching additional symbol profile for holding {HoldingId}: {Symbol} ({DataSource})", holding.Id, symbolProfile.Symbol, symbolProfile.DataSource);
+						holding.MergeSymbolProfiles(symbolProfile);
+					}
+				}
+			}
 		}
 
 		private async Task ClearExistingHoldings()
