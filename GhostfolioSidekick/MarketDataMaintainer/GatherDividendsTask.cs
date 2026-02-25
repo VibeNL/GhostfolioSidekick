@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.Model.Market;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -62,7 +63,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				foreach (var existing in existingDividends
-						.Where(existing => !gatheredLookup.ContainsKey((existing.ExDividendDate, existing.PaymentDate, existing.DividendType, existing.DividendState)))
+						.Where(existing => existing.DividendState != DividendState.Predicted
+										&& !gatheredLookup.ContainsKey((existing.ExDividendDate, existing.PaymentDate, existing.DividendType, existing.DividendState)))
 				)
 				{
 					symbol.Dividends.Remove(existing);

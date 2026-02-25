@@ -65,10 +65,16 @@
                                 <tbody>
                                     @foreach (var div in dividends.OrderBy(d => d.PaymentDate))
                                     {
-                                        <tr>
-                                            <td><strong>@div.Symbol</strong></td>
+                                        <tr class="@(div.IsPredicted ? "table-secondary" : "")">
+                                            <td>
+                                                <strong>@div.Symbol</strong>
+                                                @if (div.IsPredicted)
+                                                {
+                                                    <span class="badge bg-secondary ms-1" title="Estimated based on historical pattern">~</span>
+                                                }
+                                            </td>
                                             <td>@div.CompanyName</td>
-                                            <td>@div.ExDate.ToString("yyyy-MM-dd")</td>
+                                            <td class="@(div.IsPredicted ? "text-muted fst-italic" : "")">@div.ExDate.ToString("yyyy-MM-dd")</td>
                                             <td>@div.PaymentDate.ToString("yyyy-MM-dd")</td>
                                             <td class="text-end">
                                                 @div.Amount.ToString("F2") @div.Currency

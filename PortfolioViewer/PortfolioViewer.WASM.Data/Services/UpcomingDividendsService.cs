@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -109,7 +110,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					PrimaryCurrency = primaryCurrency.Symbol,
 					DividendPerSharePrimaryCurrency = dividendPerSharePrimaryCurrency,
 
-					Quantity = quantity
+					Quantity = quantity,
+					IsPredicted = item.Dividend.DividendState == DividendState.Predicted
 				});
 			}
 
