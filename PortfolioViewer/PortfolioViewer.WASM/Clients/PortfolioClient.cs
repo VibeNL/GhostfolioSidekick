@@ -191,6 +191,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					.Where(table => latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr)
 								   && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate)
 								   && latestDate >= sinceDate)
+					.OrderBy(table => table)
 					.ToList();
 
 				var tablesToSyncFully = new List<string>(tablesWithoutDateColumns);
@@ -481,7 +482,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			// Step 3: Sync Data for Each Table with server-side currency conversion
 			var syncTables = tableNames.Zip(totalRows, (name, count) => new { Name = name, Count = count })
-				.Where(t => !TablesToIgnore.Contains(t.Name));
+				.Where(t => !TablesToIgnore.Contains(t.Name))
+				.OrderBy(t => t.Name);
 
 			foreach (var table in syncTables)
 			{
