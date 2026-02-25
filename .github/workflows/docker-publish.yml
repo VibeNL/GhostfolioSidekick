@@ -241,19 +241,6 @@ jobs:
           else
             echo "✅ No vulnerable packages found."
           fi
-      - name: Install OSV Scanner
-        run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
-          chmod +x osv-scanner
-      - name: Run OSV Scanner for additional deprecation and vulnerability checks
-        run: |
-          echo "Running OSV Scanner for comprehensive security analysis..."
-          find . -name 'project.assets.json' -exec dirname {} \; | sort -u | while read dir; do
-              if [ -f "$dir/project.assets.json" ] && grep -q '"libraries"' "$dir/project.assets.json"; then
-                  ./osv-scanner --all-packages --format table "$dir"
-              fi
-          done
-        continue-on-error: true  # Don't fail the build if OSV scanner finds issues, just report them
       - name: Dependency Review
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v4
