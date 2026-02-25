@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -13,7 +14,8 @@ function scrollToBottom(id) {
         element.scrollTop = element.scrollHeight;
     }
 }
-globalThis.forceBlazorReload = () => __awaiter(void 0, void 0, void 0, function* () {
+// Explicitly define and assign the function to globalThis
+const forceBlazorReload = () => __awaiter(void 0, void 0, void 0, function* () {
     if ('serviceWorker' in navigator) {
         const registrations = yield navigator.serviceWorker.getRegistrations();
         for (const registration of registrations) {
@@ -29,4 +31,4 @@ globalThis.forceBlazorReload = () => __awaiter(void 0, void 0, void 0, function*
     }
     globalThis.location.reload();
 });
-export {};
+globalThis.forceBlazorReload = forceBlazorReload;
