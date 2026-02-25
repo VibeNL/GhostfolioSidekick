@@ -248,7 +248,9 @@ jobs:
       - name: Run OSV Scanner for additional deprecation and vulnerability checks
         run: |
           echo "Running OSV Scanner for comprehensive security analysis..."
-          ./osv-scanner --all-plugins --format table --call-analysis=all .
+          find . -type d -name obj | while read objdir; do
+              ./osv-scanner --all-packages --format table "$objdir"
+          done
         continue-on-error: true  # Don't fail the build if OSV scanner finds issues, just report them
       - name: Dependency Review
         if: github.event_name == 'pull_request'
