@@ -2,6 +2,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Net.Http.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -17,6 +18,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject] private IWakeLockService WakeLockService { get; set; } = default!;
 
 		[Inject] private IVersionService VersionService { get; set; } = default!;
+
+		[Inject] private HttpClient Http { get; set; } = default!;
 
 		private IJSObjectReference? mermaidmodule;
 		private Timer? refreshTimer;
@@ -34,6 +37,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string ClientVersion = string.Empty;
 		private string ServerVersion = string.Empty;
 		private bool IsUpdateAvailable;
+
+		private MigrationStatusViewModel? MigrationStatus;
 
 		private async Task RefreshPage()
 		{
@@ -201,27 +206,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return daysSince <= 7 ? "Quick Sync" : "Start Sync";
 		}
 
-		protected override async Task OnInitializedAsync()
-		{
-			// Load version info
-			ClientVersion = VersionService.ClientVersion;
-			await CheckForUpdates();
+       protected override async Task OnInitializedAsync()
+       {
+           // Load version info
+           ClientVersion = VersionService.ClientVersion;
+           await CheckForUpdates();
 
-			// Load the last sync time when the component initializes
-			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
+           // Load migration status before sync
+           try
+           {
+               MigrationStatus = await Http.GetFromJsonAsync<MigrationStatusViewModel>("/api/version/migration-status");
+           }
+           catch
+           {
+               // Ignore migration status errors (API may be unavailable)
+           }
 
-			refreshTimer = new Timer(async _ =>
-			{
-				await InvokeAsync(StateHasChanged);
-			}, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+           // Load the last sync time when the component initializes
+           LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
 
-			// Check for updates every 5 minutes
-			versionCheckTimer = new Timer(async _ =>
-			{
-				await CheckForUpdates();
-				await InvokeAsync(StateHasChanged);
-			}, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
-		}
+           refreshTimer = new Timer(async _ =>
+           {
+               await InvokeAsync(StateHasChanged);
+           }, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+
+           // Check for updates every 5 minutes
+           versionCheckTimer = new Timer(async _ =>
+           {
+               await CheckForUpdates();
+               await InvokeAsync(StateHasChanged);
+           }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+       }
 
 		private async Task CheckForUpdates()
 		{
