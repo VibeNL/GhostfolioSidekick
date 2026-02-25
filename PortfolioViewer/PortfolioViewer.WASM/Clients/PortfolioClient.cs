@@ -186,25 +186,36 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				// Get latest dates from server for tables with date columns
 				var latestDatesResponse = await grpcClient.GetLatestDatesAsync(new GetLatestDatesRequest(), cancellationToken: cancellationToken);
 
-				// Check if partial sync would be beneficial for tables with dates
-				var tablesToSyncPartially = tablesWithDateColumns
-					.Where(table => latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr)
-								   && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate)
-								   && latestDate >= sinceDate)
-					.ToList();
+				// Build a single list of all tables to sync, with a flag for date column and if partial sync is needed
+				var tablesToSync = new List<(string TableName, bool HasDateColumn, bool DoPartialSync)>();
 
-				var tablesToSyncFully = new List<string>(tablesWithoutDateColumns);
+				foreach (var table in tablesWithDateColumns)
+				{
+					bool doPartial = false;
+					if (latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr)
+						&& DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate)
+						&& latestDate >= sinceDate)
+					{
+						doPartial = true;
+					}
+					tablesToSync.Add((table, true, doPartial));
+				}
 
-				// Always sync tables without date columns during partial sync
-				// If no tables need syncing, we're up to date
-				if (tablesToSyncPartially.Count == 0 && tablesToSyncFully.Count == 0)
+				foreach (var table in tablesWithoutDateColumns)
+				{
+					tablesToSync.Add((table, false, false));
+				}
+
+				// Only sync tables that need partial or full sync
+				var tablesToActuallySync = tablesToSync.Where(t => (t.HasDateColumn && t.DoPartialSync) || !t.HasDateColumn).OrderBy(t => t.TableName).ToList();
+
+				if (tablesToActuallySync.Count == 0)
 				{
 					progress?.Report(("No new data found, sync complete.", 100));
 					return true;
 				}
 
-				var totalTablesToSync = tablesToSyncPartially.Count + tablesToSyncFully.Count;
-				progress?.Report(($"Performing partial sync for {totalTablesToSync} tables since {sinceDateString}...", 10));
+				progress?.Report(($"Performing partial sync for {tablesToActuallySync.Count} tables since {sinceDateString}...", 10));
 
 				// Enable performance optimizations
 				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
@@ -212,35 +223,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
 
 				var totalProgress = 0;
-				var progressStep = 80 / totalTablesToSync; // Reserve 20% for cleanup
+				var progressStep = 80 / tablesToActuallySync.Count; // Reserve 20% for cleanup
 
-				// Sync tables with date columns (partial sync)
-				foreach (var tableName in tablesToSyncPartially)
+				foreach (var (TableName, HasDateColumn, DoPartialSync) in tablesToActuallySync)
 				{
-					progress?.Report(($"Syncing new data for table: {tableName}...", 10 + totalProgress));
-
-					// Delete existing data since the sync date to avoid duplicates
-					var deleteRecordsCount = await DeleteRecordsSinceDate(databaseContext, tableName, sinceDateString, cancellationToken);
-					logger.LogInformation("Deleted {RecordCount} existing records from {TableName} since {SinceDate}", deleteRecordsCount, tableName, sinceDateString);
-
-					// Sync new data with server-side currency conversion
-					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, cancellationToken);
-
-					totalProgress += progressStep;
-				}
-
-				// Sync tables without date columns (full sync for these tables)
-				foreach (var tableName in tablesToSyncFully)
-				{
-					progress?.Report(($"Syncing all data for table: {tableName}...", 10 + totalProgress));
-
-					// Clear all data for tables without date columns
-					var deleteSql = $"DELETE FROM {tableName}";
-					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
-
-					// Sync all data for this table
-					await SyncTableDataFull(grpcClient, databaseContext, tableName, cancellationToken);
-
+					if (HasDateColumn && DoPartialSync)
+					{
+						progress?.Report(($"Syncing new data for table: {TableName}...", 10 + totalProgress));
+						// Delete existing data since the sync date to avoid duplicates
+						var deleteRecordsCount = await DeleteRecordsSinceDate(databaseContext, TableName, sinceDateString, cancellationToken);
+						logger.LogInformation("Deleted {RecordCount} existing records from {TableName} since {SinceDate}", deleteRecordsCount, TableName, sinceDateString);
+						// Sync new data with server-side currency conversion
+						await SyncTableDataSince(grpcClient, databaseContext, TableName, sinceDateString, cancellationToken);
+					}
+					else
+					{
+						progress?.Report(($"Syncing all data for table: {TableName}...", 10 + totalProgress));
+						// Clear all data for tables without date columns
+						var deleteSql = $"DELETE FROM {TableName}";
+						await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+						// Sync all data for this table
+						await SyncTableDataFull(grpcClient, databaseContext, TableName, cancellationToken);
+					}
 					totalProgress += progressStep;
 				}
 
@@ -251,9 +255,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				await sqlitePersistence.SaveChangesAsync();
 
-				var allSyncedTables = tablesToSyncPartially.Concat(tablesToSyncFully).ToList();
 				logger.LogInformation("Partial sync completed successfully for {TableCount} tables: {Tables}",
-					allSyncedTables.Count, string.Join(", ", allSyncedTables));
+					tablesToActuallySync.Count, string.Join(", ", tablesToActuallySync.Select(t => t.TableName)));
 				return true;
 			}
 			catch (Exception ex)
@@ -481,7 +484,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			// Step 3: Sync Data for Each Table with server-side currency conversion
 			var syncTables = tableNames.Zip(totalRows, (name, count) => new { Name = name, Count = count })
-				.Where(t => !TablesToIgnore.Contains(t.Name));
+				.Where(t => !TablesToIgnore.Contains(t.Name))
+				.OrderBy(t => t.Name);
 
 			foreach (var table in syncTables)
 			{
