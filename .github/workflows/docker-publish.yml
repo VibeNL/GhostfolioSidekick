@@ -249,7 +249,7 @@ jobs:
         run: |
           echo "Running OSV Scanner for comprehensive security analysis..."
           find . -name 'project.assets.json' -exec dirname {} \; | sort -u | while read dir; do
-              if [ -f "$dir/project.assets.json" ]; then
+              if [ -f "$dir/project.assets.json" ] && grep -q '"libraries"' "$dir/project.assets.json"; then
                   ./osv-scanner --all-packages --format table "$dir"
               fi
           done
