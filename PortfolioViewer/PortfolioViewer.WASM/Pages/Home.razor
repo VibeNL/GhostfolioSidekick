@@ -9,6 +9,20 @@
 
 <p>Before use, please sync the data with a copy of the server</p>
 
+
+<!-- Migration Warning Section -->
+@if (MigrationStatus != null && MigrationStatus.PendingMigrations.Count > 0)
+{
+    <div class="alert alert-danger mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Database Migrations Required!</strong> The server database is missing migrations and may be out of sync with the application.<br />
+        <span class="fw-bold">Please update the database before syncing.</span>
+        <div class="mt-2">
+            <small>Pending migrations: @string.Join(", ", MigrationStatus.PendingMigrations)</small>
+        </div>
+    </div>
+}
+
 <!-- Version Info Section -->
 @if (IsUpdateAvailable)
 {
