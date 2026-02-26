@@ -215,6 +215,10 @@ jobs:
           dotnet workload restore
       - name: Restore packages
         run: dotnet restore
+      - name: Build solution
+        run: dotnet build
+        env:
+          SourceRevisionId: ${{ env.SourceRevisionId }}
       - name: Scan for deprecated packages
         run: |
           echo "Scanning for deprecated NuGet packages..."
@@ -237,15 +241,6 @@ jobs:
           else
             echo "✅ No vulnerable packages found."
           fi
-      - name: Install OSV Scanner
-        run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
-          chmod +x osv-scanner
-      - name: Run OSV Scanner for additional deprecation and vulnerability checks
-        run: |
-          echo "Running OSV Scanner for comprehensive security analysis..."
-          ./osv-scanner --format table --call-analysis=all .
-        continue-on-error: true  # Don't fail the build if OSV scanner finds issues, just report them
       - name: Dependency Review
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v4
