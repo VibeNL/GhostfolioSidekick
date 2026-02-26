@@ -38,10 +38,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string ServerVersion = string.Empty;
 		private bool IsUpdateAvailable;
 
-		private MigrationStatusViewModel? MigrationStatus;
+        private MigrationStatusViewModel? MigrationStatus;
+
+        private bool IsLoading = true;
+        private bool IsReloading = false;
 
 		private async Task RefreshPage()
 		{
+            IsReloading = true;
+            StateHasChanged();
             await JSRuntime.InvokeVoidAsync("forceBlazorReload");
 		}
 
