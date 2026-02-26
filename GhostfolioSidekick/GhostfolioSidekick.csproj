@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net10.0</TargetFramework>
@@ -13,6 +13,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\BrokerAPIs\BrokerAPIs.csproj" />
 	  <ProjectReference Include="..\Configuration\Configuration.csproj" />
 	  <ProjectReference Include="..\Database\Database.csproj" />
 	  <ProjectReference Include="..\ExternalDataProvider\ExternalDataProvider.csproj" />

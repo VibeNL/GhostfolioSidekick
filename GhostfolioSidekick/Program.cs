@@ -2,6 +2,7 @@ using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Options;
 using GhostfolioSidekick.Activities.Strategies;
+using GhostfolioSidekick.BrokerAPIs;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
@@ -133,6 +134,7 @@ namespace GhostfolioSidekick
 					RegisterAllWithInterface<IHoldingStrategy>(services);
 					RegisterAllWithInterface<IFileImporter>(services);
 					RegisterAllWithInterface<ITradeRepublicActivityParser>(services);
+					RegisterAllWithInterface<IApiBrokerImporter>(services);
 
 					services.AddScoped<IPerformanceCalculator, PerformanceCalculator>();
 

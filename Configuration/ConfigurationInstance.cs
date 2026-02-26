@@ -32,6 +32,9 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("benchmarks")]
 		public SymbolConfiguration[]? Benchmarks { get; set; }
 
+		[JsonPropertyName("broker-api-connections")]
+		public ApiBrokerConfiguration[]? BrokerApiConnections { get; set; }
+
 		public static ConfigurationInstance? Parse(string configuration)
 		{
 			return JsonSerializer.Deserialize<ConfigurationInstance>(configuration, options);

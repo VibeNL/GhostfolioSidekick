@@ -37,6 +37,8 @@
     <Project Path="PortfolioViewer/PortfolioViewer.WASM.UnitTests/PortfolioViewer.WASM.UnitTests.csproj" />
     <Project Path="PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" />
   </Folder>
+  <Project Path="BrokerAPIs/BrokerAPIs.csproj" />
+  <Project Path="BrokerAPIs.UnitTests/BrokerAPIs.UnitTests.csproj" />
   <Project Path="Configuration.UnitTests/Configuration.UnitTests.csproj" />
   <Project Path="Configuration/Configuration.csproj" />
   <Project Path="Cryptocurrency.UnitTests/Cryptocurrency.UnitTests.csproj" />
