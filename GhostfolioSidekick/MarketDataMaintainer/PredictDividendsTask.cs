@@ -63,28 +63,39 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.Where(d => d.DividendState == DividendState.Predicted)
 				.ToListAsync();
 
-			var historicalDividends = await databaseContext.Dividends
-				.Where(d => d.PaymentDate < today
-						 && d.PaymentDate >= lookbackStart
-						 && (d.DividendType == DividendType.Cash || d.DividendType == DividendType.CashInterim)
-						 && d.DividendState == DividendState.Paid
-						 && d.Amount.Amount > 0
-						 && d.SymbolProfileSymbol != null && heldSymbols.Contains(d.SymbolProfileSymbol))
-				.OrderBy(d => d.PaymentDate)
+			var historicalDividends = await databaseContext.Activities
+				.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
+				.Where(a => a.Date < today.ToDateTime(TimeOnly.MinValue)
+						&& a.Date >= lookbackStart.ToDateTime(TimeOnly.MinValue)
+						&& a.Amount.Amount > 0
+						&& a.PartialSymbolIdentifiers.Any(p => heldSymbols.Contains(p.Identifier)))
+				.OrderBy(a => a.Date)
 				.ToListAsync();
 
-			var confirmedUpcoming = await databaseContext.Dividends
-				.Where(d => d.PaymentDate >= today
-						 && d.DividendState != DividendState.Predicted
-						 && d.SymbolProfileSymbol != null && heldSymbols.Contains(d.SymbolProfileSymbol))
+			var confirmedUpcoming = await databaseContext.Activities
+				.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
+				.Where(a => a.Date >= today.ToDateTime(TimeOnly.MinValue)
+					&& a.PartialSymbolIdentifiers.Any(p => heldSymbols.Contains(p.Identifier)))
 				.ToListAsync();
+
+			// Also include upcoming dividends from the Dividends table (non-predicted)
+			var confirmedUpcomingDivs = await databaseContext.Dividends
+				.Where(d => d.PaymentDate >= today
+					&& d.DividendState != DividendState.Predicted
+					&& d.SymbolProfileSymbol != null && heldSymbols.Contains(d.SymbolProfileSymbol))
+				.ToListAsync();
+
+			// Combine both sources for alreadyCovered check
+			var allConfirmedUpcoming = confirmedUpcoming.Cast<object>().ToList();
+			allConfirmedUpcoming.AddRange(confirmedUpcomingDivs);
 
 			// Replace all existing predictions with freshly computed ones
 			databaseContext.Dividends.RemoveRange(existingPredictions);
 
 			var bySymbol = historicalDividends
-				.GroupBy(d => d.SymbolProfileSymbol!)
-				.ToDictionary(g => g.Key, g => g.OrderBy(d => d.PaymentDate).ToList());
+				.SelectMany(d => d.PartialSymbolIdentifiers.Select(p => new { Symbol = p.Identifier, Dividend = d }))
+				.GroupBy(x => x.Symbol)
+				.ToDictionary(g => g.Key, g => g.Select(x => x.Dividend).OrderBy(d => d.Date).ToList());
 
 			var addedCount = 0;
 			foreach (var (symbol, (_, dataSource)) in holdingsMap)
@@ -93,7 +104,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 
 				var intervals = history
-					.Zip(history.Skip(1), (a, b) => b.PaymentDate.DayNumber - a.PaymentDate.DayNumber)
+					.Zip(history.Skip(1), (a, b) => (int)(b.Date - a.Date).TotalDays)
 					.Where(i => i > 0)
 					.ToList();
 
@@ -106,16 +117,27 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var avgDividendPerShare = recentHistory.Average(d => d.Amount.Amount);
 				var nativeCurrency = recentHistory.Last().Amount.Currency;
 
-				var projectedDate = history.Last().PaymentDate.AddDays(intervalDays);
+				var projectedDate = DateOnly.FromDateTime(history.Last().Date).AddDays(intervalDays);
 				var tolerance = intervalDays / 3.0;
 
 				while (projectedDate <= horizon)
 				{
 					if (projectedDate >= today)
 					{
-						var alreadyCovered = confirmedUpcoming.Any(c =>
-							c.SymbolProfileSymbol == symbol &&
-							Math.Abs(c.PaymentDate.DayNumber - projectedDate.DayNumber) < tolerance);
+						var alreadyCovered = allConfirmedUpcoming.Any(c =>
+						{
+							if (c is GhostfolioSidekick.Model.Activities.Types.DividendActivity act)
+							{
+								return act.PartialSymbolIdentifiers.Any(p => p.Identifier == symbol) &&
+									Math.Abs(DateOnly.FromDateTime(act.Date).DayNumber - projectedDate.DayNumber) < tolerance;
+							}
+							else if (c is Dividend div)
+							{
+								return div.SymbolProfileSymbol == symbol &&
+									Math.Abs(div.PaymentDate.DayNumber - projectedDate.DayNumber) < tolerance;
+							}
+							return false;
+						});
 
 						if (!alreadyCovered)
 						{
