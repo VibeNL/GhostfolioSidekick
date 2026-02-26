@@ -97,8 +97,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				{
 					Symbol = symbol,
 					CompanyName = companyName,
-					ExDate = item.Dividend.ExDividendDate.ToDateTime(TimeOnly.MinValue),
-					PaymentDate = item.Dividend.PaymentDate.ToDateTime(TimeOnly.MinValue),
+					ExDate = DateTime.SpecifyKind(item.Dividend.ExDividendDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+					PaymentDate = DateTime.SpecifyKind(item.Dividend.PaymentDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
 
 					// Native currency (original dividend currency)
 					Amount = expectedAmount,
