@@ -60,6 +60,7 @@
                                         <th class="text-end">Amount (Primary)</th>
                                         <th class="text-end">Quantity</th>
                                         <th class="text-end">Dividend/Share</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -95,6 +96,16 @@
                                                 @if (div.Currency != div.PrimaryCurrency)
                                                 {
                                                     <br><small class="text-muted">(@div.DividendPerSharePrimaryCurrency.ToString("F4") @div.PrimaryCurrency)</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (div.IsPredicted)
+                                                {
+                                                    <span class="badge bg-secondary">Predicted</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">Confirmed</span>
                                                 }
                                             </td>
                                         </tr>
