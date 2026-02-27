@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					.ToList();
 
 				var monthLabels = allMonths
-					.Select(m => new DateTime(m.Year, m.Month, 1).ToString("MMM yyyy", CultureInfo.InvariantCulture))
+					.Select(m => new DateTime(m.Year, m.Month, 1, 0, 0, 0, DateTimeKind.Utc).ToString("MMM yyyy", CultureInfo.InvariantCulture))
 					.ToArray();
 
 				var confirmed = dividends.Where(d => !d.IsPredicted).ToList();

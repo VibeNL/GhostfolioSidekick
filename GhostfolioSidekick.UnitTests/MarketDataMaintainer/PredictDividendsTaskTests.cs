@@ -296,7 +296,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				new Account("Test"),
 				null,
 				[PartialSymbolIdentifier.CreateGeneric(symbol)],
-				paymentDate.ToDateTime(TimeOnly.MinValue),
+				paymentDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 				new Money(Currency.USD, amount),
 				Guid.NewGuid().ToString(),
 				null,

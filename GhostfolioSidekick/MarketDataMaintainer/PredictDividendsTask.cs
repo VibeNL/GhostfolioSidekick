@@ -65,8 +65,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			var historicalDividends = await databaseContext.Activities
 				.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
-				.Where(a => a.Date < today.ToDateTime(TimeOnly.MinValue)
-						&& a.Date >= lookbackStart.ToDateTime(TimeOnly.MinValue)
+				.Where(a => a.Date < today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
+						&& a.Date >= lookbackStart.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
 						&& a.Amount.Amount > 0
 						&& a.PartialSymbolIdentifiers.Any(p => heldSymbols.Contains(p.Identifier)))
 				.OrderBy(a => a.Date)
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			var confirmedUpcoming = await databaseContext.Activities
 				.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
-				.Where(a => a.Date >= today.ToDateTime(TimeOnly.MinValue)
+				.Where(a => a.Date >= today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
 					&& a.PartialSymbolIdentifiers.Any(p => heldSymbols.Contains(p.Identifier)))
 				.ToListAsync();
 
