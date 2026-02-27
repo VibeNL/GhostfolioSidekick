@@ -1,6 +1,9 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Moq.EntityFrameworkCore;
@@ -48,6 +51,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// Arrange
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(new List<Activity>());
 			_mockDbContextFactory
 				.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext.Object);
@@ -96,8 +100,8 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// Arrange
 			var today = DateOnly.FromDateTime(DateTime.Today);
 			var (holding, snapshot) = BuildHolding(1, "AAPL", today.AddDays(-1), quantity: 10);
-			var dividends = new List<Dividend> { BuildPaidDividend("AAPL", today.AddDays(-90), 1.0m) };
-			var loggerMock = SetupDbContext([snapshot], [holding], dividends);
+			var activities = new List<Activity> { BuildDividendActivity("AAPL", today.AddDays(-90), 1.0m) };
+			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
 
 			// Act
 			await _task.DoWork(loggerMock.Object);
@@ -114,12 +118,12 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var (holding, snapshot) = BuildHolding(1, "AAPL", today.AddDays(-1), quantity: 10);
 
 			// Two dividends 7 days apart → median interval = 7, which is below the 14-day minimum
-			var dividends = new List<Dividend>
+			var activities = new List<Activity>
 			{
-				BuildPaidDividend("AAPL", today.AddDays(-14), 1.0m),
-				BuildPaidDividend("AAPL", today.AddDays(-7), 1.0m),
+				BuildDividendActivity("AAPL", today.AddDays(-14), 1.0m),
+				BuildDividendActivity("AAPL", today.AddDays(-7), 1.0m),
 			};
-			var loggerMock = SetupDbContext([snapshot], [holding], dividends);
+			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
 
 			// Act
 			await _task.DoWork(loggerMock.Object);
@@ -137,12 +141,12 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			// Two annual dividends: last ~30 days ago, previous ~395 days before that.
 			// Median interval = 365 days → one projection at today+335, within the 12-month horizon.
-			var dividends = new List<Dividend>
+			var activities = new List<Activity>
 			{
-				BuildPaidDividend("AAPL", today.AddDays(-395), 1.50m),
-				BuildPaidDividend("AAPL", today.AddDays(-30), 1.60m),
+				BuildDividendActivity("AAPL", today.AddDays(-395), 1.50m),
+				BuildDividendActivity("AAPL", today.AddDays(-30), 1.60m),
 			};
-			var loggerMock = SetupDbContext([snapshot], [holding], dividends);
+			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
 
 			// Act
 			await _task.DoWork(loggerMock.Object);
@@ -158,11 +162,9 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var today = DateOnly.FromDateTime(DateTime.Today);
 			var (holding, snapshot) = BuildHolding(1, "AAPL", today.AddDays(-1), quantity: 10);
 
+			// Declared (confirmed, non-predicted) dividend exactly at the single projected date
 			var dividends = new List<Dividend>
 			{
-				BuildPaidDividend("AAPL", today.AddDays(-395), 1.50m),
-				BuildPaidDividend("AAPL", today.AddDays(-30), 1.60m),
-				// Declared (confirmed, non-predicted) dividend exactly at the single projected date
 				new Dividend
 				{
 					PaymentDate = today.AddDays(335),
@@ -174,7 +176,12 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 					SymbolProfileDataSource = "YAHOO"
 				}
 			};
-			var loggerMock = SetupDbContext([snapshot], [holding], dividends);
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("AAPL", today.AddDays(-395), 1.50m),
+				BuildDividendActivity("AAPL", today.AddDays(-30), 1.60m),
+			};
+			var loggerMock = SetupDbContext([snapshot], [holding], dividends, activities);
 
 			// Act
 			await _task.DoWork(loggerMock.Object);
@@ -190,9 +197,9 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var today = DateOnly.FromDateTime(DateTime.Today);
 			var (holding, snapshot) = BuildHolding(1, "AAPL", today.AddDays(-1), quantity: 10);
 
+			// Stale prediction from a previous run at a date that differs from the new projection
 			var dividends = new List<Dividend>
 			{
-				// Stale prediction from a previous run at a date that differs from the new projection
 				new Dividend
 				{
 					PaymentDate = today.AddDays(200),
@@ -203,10 +210,13 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 					SymbolProfileSymbol = "AAPL",
 					SymbolProfileDataSource = "YAHOO"
 				},
-				BuildPaidDividend("AAPL", today.AddDays(-395), 1.50m),
-				BuildPaidDividend("AAPL", today.AddDays(-30), 1.60m),
 			};
-			var loggerMock = SetupDbContext([snapshot], [holding], dividends);
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("AAPL", today.AddDays(-395), 1.50m),
+				BuildDividendActivity("AAPL", today.AddDays(-30), 1.60m),
+			};
+			var loggerMock = SetupDbContext([snapshot], [holding], dividends, activities);
 
 			// Act
 			await _task.DoWork(loggerMock.Object);
@@ -223,14 +233,14 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var (holdingAapl, snapshotAapl) = BuildHolding(1, "AAPL", today.AddDays(-1), quantity: 10);
 			var (holdingMsft, snapshotMsft) = BuildHolding(2, "MSFT", today.AddDays(-1), quantity: 5);
 
-			var dividends = new List<Dividend>
+			var activities = new List<Activity>
 			{
-				BuildPaidDividend("AAPL", today.AddDays(-395), 1.50m),
-				BuildPaidDividend("AAPL", today.AddDays(-30), 1.60m),
-				BuildPaidDividend("MSFT", today.AddDays(-400), 0.75m),
-				BuildPaidDividend("MSFT", today.AddDays(-35), 0.80m),
+				BuildDividendActivity("AAPL", today.AddDays(-395), 1.50m),
+				BuildDividendActivity("AAPL", today.AddDays(-30), 1.60m),
+				BuildDividendActivity("MSFT", today.AddDays(-400), 0.75m),
+				BuildDividendActivity("MSFT", today.AddDays(-35), 0.80m),
 			};
-			var loggerMock = SetupDbContext([snapshotAapl, snapshotMsft], [holdingAapl, holdingMsft], dividends);
+			var loggerMock = SetupDbContext([snapshotAapl, snapshotMsft], [holdingAapl, holdingMsft], [], activities);
 
 			// Act
 			await _task.DoWork(loggerMock.Object);
@@ -242,12 +252,14 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		private Mock<ILogger> SetupDbContext(
 			List<CalculatedSnapshot> snapshots,
 			List<Holding> holdings,
-			List<Dividend> dividends)
+			List<Dividend> dividends,
+			List<Activity>? activities = null)
 		{
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
 			mockDbContext.Setup(db => db.Dividends).ReturnsDbSet(dividends);
+			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities ?? []);
 			mockDbContext.Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
 
 			_mockDbContextFactory
@@ -278,18 +290,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			return (holding, snapshot);
 		}
 
-		private static Dividend BuildPaidDividend(string symbol, DateOnly paymentDate, decimal amount)
+		private static DividendActivity BuildDividendActivity(string symbol, DateOnly paymentDate, decimal amount)
 		{
-			return new Dividend
-			{
-				PaymentDate = paymentDate,
-				ExDividendDate = paymentDate.AddDays(-14),
-				DividendType = DividendType.Cash,
-				DividendState = DividendState.Paid,
-				Amount = new Money(Currency.USD, amount),
-				SymbolProfileSymbol = symbol,
-				SymbolProfileDataSource = "YAHOO"
-			};
+			return new DividendActivity(
+				new Account("Test"),
+				null,
+				[PartialSymbolIdentifier.CreateGeneric(symbol)],
+				paymentDate.ToDateTime(TimeOnly.MinValue),
+				new Money(Currency.USD, amount),
+				Guid.NewGuid().ToString(),
+				null,
+				null);
 		}
 	}
 }
