@@ -58,6 +58,32 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			var heldSymbols = holdingsMap.Keys.ToList();
 
+			// Build symbol -> holdingId map for per-share dividend calculation
+			var symbolToHoldingId = new Dictionary<string, int>();
+			foreach (var holding in holdingsWithProfiles)
+			{
+				var sp = holding.SymbolProfiles.FirstOrDefault();
+				if (sp?.Symbol != null)
+					symbolToHoldingId[sp.Symbol] = holding.Id;
+			}
+
+			// Load historical snapshots to determine quantity held at each dividend date
+			var heldHoldingIds = symbolToHoldingId.Values.ToList();
+			var historicalSnapshots = await databaseContext.CalculatedSnapshots
+				.Where(s => heldHoldingIds.Contains(s.HoldingId)
+						 && s.Date >= lookbackStart
+						 && s.Date < today)
+				.ToListAsync();
+
+			var snapshotsByHolding = historicalSnapshots
+				.GroupBy(s => s.HoldingId)
+				.ToDictionary(
+					g => g.Key,
+					g => g.GroupBy(s => s.Date)
+						   .Select(dg => (Date: dg.Key, Quantity: dg.Sum(s => s.Quantity)))
+						   .OrderBy(x => x.Date)
+						   .ToList());
+
 			// Load all data before making changes
 			var existingPredictions = await databaseContext.Dividends
 				.Where(d => d.DividendState == DividendState.Predicted)
@@ -114,7 +140,24 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				if (intervalDays < 14) continue;
 
 				var recentHistory = history.TakeLast(Math.Min(4, history.Count)).ToList();
-				var avgDividendPerShare = recentHistory.Average(d => d.Amount.Amount);
+				var perShareAmounts = recentHistory
+					.Select(d =>
+					{
+						if (!symbolToHoldingId.TryGetValue(symbol, out var holdingId)) return (decimal?)null;
+							if (!snapshotsByHolding.TryGetValue(holdingId, out var snapList)) return null;
+							var divDate = DateOnly.FromDateTime(d.Date);
+							var snap = snapList.LastOrDefault(s => s.Date <= divDate);
+							if (snap.Quantity <= 0)
+								snap = snapList.FirstOrDefault(); // fall back to earliest available snapshot
+							if (snap.Quantity <= 0) return null;
+							return d.Amount.Amount / snap.Quantity;
+					})
+					.Where(v => v.HasValue)
+					.Select(v => v!.Value)
+					.ToList();
+
+				if (perShareAmounts.Count == 0) continue;
+				var avgDividendPerShare = perShareAmounts.Average();
 				var nativeCurrency = recentHistory.Last().Amount.Currency;
 
 				var projectedDate = DateOnly.FromDateTime(history.Last().Date).AddDays(intervalDays);
