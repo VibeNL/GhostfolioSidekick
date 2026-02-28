@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Market
+namespace GhostfolioSidekick.Model.Market
 {
 	public enum DividendState
 	{
@@ -8,6 +8,6 @@
 
 		ExDividend = 3,
 
-		Estimated = 4,
+		Predicted = 4,
 	}
 }

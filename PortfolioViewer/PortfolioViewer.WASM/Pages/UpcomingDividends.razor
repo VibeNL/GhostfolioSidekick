@@ -1,10 +1,25 @@
 @page "/dividends"
-@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
-@inject GhostfolioSidekick.PortfolioViewer.WASM.Data.Services.IUpcomingDividendsService DividendsService
 
 <PageTitle>Upcoming Dividends</PageTitle>
 
 <div class="container-fluid">
+    @if (!isLoading && dividends != null && dividends.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-success shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="card-title mb-0">
+                            <i class="bi bi-bar-chart-fill me-2"></i>Monthly Dividend Overview
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <PlotlyChart Data="chartData" Layout="chartLayout" Config="chartConfig" style="height: 40vh; width: 100%;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-primary shadow-sm">
@@ -38,43 +53,39 @@
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Symbol</th>
-                                        <th>Company</th>
-                                        <th>Ex-Date</th>
                                         <th>Payment Date</th>
                                         <th class="text-end">Amount (Native)</th>
-                                        <th class="text-end">Amount (Primary)</th>
-                                        <th class="text-end">Quantity</th>
-                                        <th class="text-end">Dividend/Share</th>
+                                        <th>Status</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var div in dividends.OrderBy(d => d.PaymentDate))
                                     {
-                                        <tr>
-                                            <td><strong>@div.Symbol</strong></td>
-                                            <td>@div.CompanyName</td>
-                                            <td>@div.ExDate.ToString("yyyy-MM-dd")</td>
+                                        <tr class="@(div.IsPredicted ? "table-secondary" : "")">
+                                            <td>
+                                                <strong>@div.Symbol</strong>
+                                                @if (div.IsPredicted)
+                                                {
+                                                    <span class="badge bg-secondary ms-1" title="Estimated based on historical pattern">~</span>
+                                                }
+                                            </td>
                                             <td>@div.PaymentDate.ToString("yyyy-MM-dd")</td>
                                             <td class="text-end">
                                                 @div.Amount.ToString("F2") @div.Currency
                                             </td>
-                                            <td class="text-end">
-                                                @if (div.Currency != div.PrimaryCurrency)
+                                            <td>
+                                                @if (div.IsPredicted)
                                                 {
-                                                    @div.AmountPrimaryCurrency.ToString("F2") @div.PrimaryCurrency
+                                                    <span class="badge bg-secondary">Predicted</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="text-muted">—</span>
+                                                    <span class="badge bg-success">Confirmed</span>
                                                 }
                                             </td>
-                                            <td class="text-end">@div.Quantity.ToString("N2")</td>
-                                            <td class="text-end">
-                                                @div.DividendPerShare.ToString("F4") @div.Currency
-                                                @if (div.Currency != div.PrimaryCurrency)
-                                                {
-                                                    <br><small class="text-muted">(@div.DividendPerSharePrimaryCurrency.ToString("F4") @div.PrimaryCurrency)</small>
-                                                }
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowDetails(div)">Details</button>
                                             </td>
                                         </tr>
                                     }
@@ -88,14 +99,78 @@
     </div>
 </div>
 
-@code {
-    private List<UpcomingDividendModel>? dividends;
-    private bool isLoading = true;
+@if (selectedDividend != null)
+{
+	<div class="modal fade show" style="display:block; background:rgba(0,0,0,0.5);" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Dividend Details - @selectedDividend.Symbol</h5>
+					<button type="button" class="btn-close" aria-label="Close" @onclick="CloseDetails"></button>
+				</div>
+				<div class="modal-body">
+					<dl class="row">
+						<dt class="col-5">Company</dt>
+						<dd class="col-7">@selectedDividend.CompanyName</dd>
+						<dt class="col-5">Ex-Date</dt>
+						<dd class="col-7">@selectedDividend.ExDate.ToString("yyyy-MM-dd")</dd>
+						<dt class="col-5">Payment Date</dt>
+						<dd class="col-7">@selectedDividend.PaymentDate.ToString("yyyy-MM-dd")</dd>
+						<dt class="col-5">Amount (Native)</dt>
+						<dd class="col-7">@selectedDividend.Amount.ToString("F2") @selectedDividend.Currency</dd>
+						<dt class="col-5">Amount (Primary)</dt>
+						<dd class="col-7">
+							@if (selectedDividend.Currency != selectedDividend.PrimaryCurrency)
+							{
+								@selectedDividend.AmountPrimaryCurrency.ToString("F2") @selectedDividend.PrimaryCurrency
+							}
+							else
+							{
+								<span class="text-muted">—</span>
+							}
+						</dd>
+						<dt class="col-5">Quantity</dt>
+						<dd class="col-7">@selectedDividend.Quantity.ToString("N2")</dd>
+						<dt class="col-5">Dividend/Share</dt>
+						<dd class="col-7">
+							@selectedDividend.DividendPerShare.ToString("F4") @selectedDividend.Currency
+							@if (selectedDividend.Currency != selectedDividend.PrimaryCurrency)
+							{
+								<br /><small class="text-muted">(@selectedDividend.DividendPerSharePrimaryCurrency.ToString("F4") @selectedDividend.PrimaryCurrency)</small>
+							}
+						</dd>
+						<dt class="col-5">Status</dt>
+						<dd class="col-7">
+							@if (selectedDividend.IsPredicted)
+							{
+								<span class="badge bg-secondary">Predicted</span>
+							}
+							else
+							{
+								<span class="badge bg-success">Confirmed</span>
+							}
+						</dd>
+					</dl>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" @onclick="CloseDetails">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-backdrop fade show"></div>
+}
 
-    protected override async Task OnInitializedAsync()
-    {
-        isLoading = true;
-        dividends = await DividendsService.GetUpcomingDividendsAsync();
-        isLoading = false;
-    }
+@code {
+	private dynamic? selectedDividend;
+
+	private void ShowDetails(dynamic div)
+	{
+		selectedDividend = div;
+	}
+
+	private void CloseDetails()
+	{
+		selectedDividend = null;
+	}
 }

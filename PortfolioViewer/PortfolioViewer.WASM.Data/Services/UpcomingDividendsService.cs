@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -96,8 +97,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				{
 					Symbol = symbol,
 					CompanyName = companyName,
-					ExDate = item.Dividend.ExDividendDate.ToDateTime(TimeOnly.MinValue),
-					PaymentDate = item.Dividend.PaymentDate.ToDateTime(TimeOnly.MinValue),
+					ExDate = DateTime.SpecifyKind(item.Dividend.ExDividendDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+					PaymentDate = DateTime.SpecifyKind(item.Dividend.PaymentDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
 
 					// Native currency (original dividend currency)
 					Amount = expectedAmount,
@@ -109,7 +110,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					PrimaryCurrency = primaryCurrency.Symbol,
 					DividendPerSharePrimaryCurrency = dividendPerSharePrimaryCurrency,
 
-					Quantity = quantity
+					Quantity = quantity,
+					IsPredicted = item.Dividend.DividendState == DividendState.Predicted
 				});
 			}
 

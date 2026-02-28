@@ -20,6 +20,8 @@ namespace GhostfolioSidekick
 
 		MarketDataDividends,
 
+		PredictDividends,
+
 		MarketDataStockSplit,
 
 		MarketDataGatherer,

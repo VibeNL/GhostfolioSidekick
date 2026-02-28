@@ -18,5 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
         public decimal DividendPerSharePrimaryCurrency { get; set; }
         
         public decimal Quantity { get; set; }
+
+        public bool IsPredicted { get; set; }
     }
 }
