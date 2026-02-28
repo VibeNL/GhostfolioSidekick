@@ -141,17 +141,32 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				var recentHistory = history.TakeLast(Math.Min(4, history.Count)).ToList();
 				var perShareAmounts = recentHistory
-					.Select(d =>
-					{
-						if (!symbolToHoldingId.TryGetValue(symbol, out var holdingId)) return (decimal?)null;
-							if (!snapshotsByHolding.TryGetValue(holdingId, out var snapList)) return null;
+						.Select(d =>
+						{
+							if (!symbolToHoldingId.TryGetValue(symbol, out var holdingId))
+							{
+								return (decimal?)null;
+							}
+
+							if (!snapshotsByHolding.TryGetValue(holdingId, out var snapList))
+							{
+								return null;
+							}
+
 							var divDate = DateOnly.FromDateTime(d.Date);
 							var snap = snapList.LastOrDefault(s => s.Date <= divDate);
 							if (snap.Quantity <= 0)
+							{
 								snap = snapList.FirstOrDefault(); // fall back to earliest available snapshot
-							if (snap.Quantity <= 0) return null;
+							}
+
+							if (snap.Quantity <= 0)
+							{
+								return null;
+							}
+
 							return d.Amount.Amount / snap.Quantity;
-					})
+						})
 					.Where(v => v.HasValue)
 					.Select(v => v!.Value)
 					.ToList();
