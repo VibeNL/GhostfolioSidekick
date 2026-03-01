@@ -302,5 +302,192 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				null,
 				null);
 		}
+
+		[Fact]
+		public async Task DoWork_WhenSymbolHasQuarterlyDividends_ShouldAddFourPredictionsWithinYear()
+		{
+			// Arrange
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var (holding, snapshot) = BuildHolding(1, "MSFT", today.AddDays(-1), quantity: 10);
+
+			// Four quarterly dividends: 275, 185, 95, and 5 days ago
+			// Intervals: 90, 90, 90 days → median = 90 days (quarterly)
+			// Should predict 4 dividends: today+85, +175, +265, +355 (all within 12-month horizon)
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("MSFT", today.AddDays(-275), 0.60m),
+				BuildDividendActivity("MSFT", today.AddDays(-185), 0.62m),
+				BuildDividendActivity("MSFT", today.AddDays(-95), 0.65m),
+				BuildDividendActivity("MSFT", today.AddDays(-5), 0.68m),
+			};
+			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
+
+			// Act
+			await _task.DoWork(loggerMock.Object);
+
+			// Assert: quarterly dividend → 4 predictions within 12 months
+			VerifyLogContains(loggerMock, "4 predictions for 1 symbols");
+		}
+
+		[Fact]
+		public async Task DoWork_WhenMultiplePredictionsForSameSymbol_ShouldCalculateCorrectPerShareAmount()
+		{
+			// Arrange
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var (holding, snapshot) = BuildHolding(1, "TEST", today.AddDays(-1), quantity: 100);
+
+			// Two dividends with different amounts, recent average should be used
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("TEST", today.AddDays(-365), 150m), // Total amount, 150/100 = 1.50 per share
+				BuildDividendActivity("TEST", today.AddDays(-1), 200m),   // Total amount, 200/100 = 2.00 per share
+			};
+			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
+
+			// Act
+			await _task.DoWork(loggerMock.Object);
+
+			// Assert: should use average of recent history (1.50 + 2.00) / 2 = 1.75 per share
+			VerifyLogContains(loggerMock, "1 predictions for 1 symbols");
+		}
+
+		[Fact]
+		public async Task DoWork_WhenHoldingQuantityChangesOverTime_ShouldCalculatePerShareCorrectly()
+		{
+			// Arrange
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var holding = new Holding
+			{
+				Id = 1,
+				SymbolProfiles = [new SymbolProfile { Symbol = "GROW", DataSource = "YAHOO" }]
+			};
+
+			// Current snapshot: 100 shares
+			var currentSnapshot = new CalculatedSnapshot { HoldingId = 1, Date = today.AddDays(-1), Quantity = 100 };
+
+			// Historical snapshots: had 50 shares during past dividends
+			var historicalSnapshot1 = new CalculatedSnapshot { HoldingId = 1, Date = today.AddDays(-400), Quantity = 50 };
+			var historicalSnapshot2 = new CalculatedSnapshot { HoldingId = 1, Date = today.AddDays(-35), Quantity = 50 };
+
+			// Two dividends when we had 50 shares: 75/50 = 1.50 per share
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("GROW", today.AddDays(-395), 75m),  // 75 total / 50 shares = 1.50/share
+				BuildDividendActivity("GROW", today.AddDays(-30), 75m),   // 75 total / 50 shares = 1.50/share
+			};
+
+			var loggerMock = SetupDbContext(
+				[currentSnapshot, historicalSnapshot1, historicalSnapshot2],
+				[holding],
+				[],
+				activities);
+
+			// Act
+			await _task.DoWork(loggerMock.Object);
+
+			// Assert: should predict based on per-share amount (1.50), not total
+			VerifyLogContains(loggerMock, "1 predictions for 1 symbols");
+		}
+
+		[Fact]
+		public async Task DoWork_WhenProjectedDateExceedsHorizon_ShouldNotAddPrediction()
+		{
+			// Arrange
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var (holding, snapshot) = BuildHolding(1, "LONGTERM", today.AddDays(-1), quantity: 10);
+
+			// Two dividends 500 days apart → median = 500 days
+			// Projection: today + 470 = beyond 12-month horizon (365 days)
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("LONGTERM", today.AddDays(-530), 1.00m),
+				BuildDividendActivity("LONGTERM", today.AddDays(-30), 1.10m),
+			};
+			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
+
+			// Act
+			await _task.DoWork(loggerMock.Object);
+
+			// Assert: projection beyond horizon → 0 predictions
+			VerifyLogContains(loggerMock, "0 predictions for 1 symbols");
+		}
+
+		[Fact]
+		public async Task DoWork_WhenConfirmedActivityInFutureWithinTolerance_ShouldSkipPrediction()
+		{
+			// Arrange
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var (holding, snapshot) = BuildHolding(1, "CONF", today.AddDays(-1), quantity: 10);
+
+			// Predicted projection at today+335 with tolerance ~121 days (365/3)
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("CONF", today.AddDays(-395), 1.00m),
+				BuildDividendActivity("CONF", today.AddDays(-30), 1.00m),
+			};
+
+			// Confirmed future activity at today+300 (within tolerance of projection at today+335)
+			var futureConfirmed = new List<Activity>
+			{
+				BuildDividendActivity("CONF", today.AddDays(300), 1.00m)
+			};
+
+			var mockDbContext = new Mock<DatabaseContext>();
+			mockDbContext.Setup(db => db.CalculatedSnapshots).ReturnsDbSet([snapshot]);
+			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet([holding]);
+			mockDbContext.Setup(db => db.Dividends).ReturnsDbSet(new List<Dividend>());
+
+			// Setup Activities to return both historical and future confirmed
+			var allActivities = activities.Concat(futureConfirmed).ToList();
+			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(allActivities);
+			mockDbContext.Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
+
+			_mockDbContextFactory
+				.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext.Object);
+
+			var loggerMock = new Mock<ILogger>();
+
+			// Act
+			await _task.DoWork(loggerMock.Object);
+
+			// Assert: future confirmed within tolerance → 0 new predictions
+			VerifyLogContains(loggerMock, "0 predictions for 1 symbols");
+		}
+
+		[Fact]
+		public async Task DoWork_WhenDividendStateIsPredicted_ShouldBeFlaggedCorrectly()
+		{
+			// Arrange
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var (holding, snapshot) = BuildHolding(1, "PRED", today.AddDays(-1), quantity: 10);
+
+			var activities = new List<Activity>
+			{
+				BuildDividendActivity("PRED", today.AddDays(-395), 1.50m),
+				BuildDividendActivity("PRED", today.AddDays(-30), 1.60m),
+			};
+
+			var mockDbContext = new Mock<DatabaseContext>();
+			mockDbContext.Setup(db => db.CalculatedSnapshots).ReturnsDbSet([snapshot]);
+			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet([holding]);
+			var dividendsList = new List<Dividend>();
+			mockDbContext.Setup(db => db.Dividends).ReturnsDbSet(dividendsList);
+			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
+			mockDbContext.Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
+
+			_mockDbContextFactory
+				.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext.Object);
+
+			var loggerMock = new Mock<ILogger>();
+
+			// Act
+			await _task.DoWork(loggerMock.Object);
+
+			// Assert: verify that the added dividend has DividendState.Predicted
+			dividendsList.Should().ContainSingle();
+			dividendsList.First().DividendState.Should().Be(DividendState.Predicted);
+		}
 	}
 }
