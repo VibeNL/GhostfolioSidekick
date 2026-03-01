@@ -100,12 +100,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			chartConfig = new Config { Responsive = true };
 		}
 
-		private dynamic? selectedDividend;
+        private UpcomingDividendModel? selectedDividend;
 
-		private void ShowDetails(dynamic div)
-		{
-			selectedDividend = div;
-		}
+        private void ShowDetails(UpcomingDividendModel div)
+        {
+            selectedDividend = div;
+        }
 
 		private void CloseDetails()
 		{
