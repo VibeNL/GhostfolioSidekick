@@ -1,11 +1,15 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
+	/// <summary>
+	/// Service for retrieving upcoming dividends for portfolio holdings.
+	/// </summary>
 	public class UpcomingDividendsService(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
 		ICurrencyExchange currencyExchange,
@@ -15,7 +19,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
 			await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
-			var lastKnownDate = await databaseContext.CalculatedSnapshots.MaxAsync(x => (DateOnly?)x.Date);
+			var lastKnownDate = await databaseContext.CalculatedSnapshots
+				.MaxAsync(x => (DateOnly?)x.Date);
+
 			if (lastKnownDate == null)
 			{
 				return [];
@@ -38,7 +44,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				var expectedAmount = dividendPerShare * quantity;
 				var nativeCurrency = item.Dividend.Amount.Currency.Symbol;
 
-				decimal dividendPerSharePrimaryCurrency = 0;
+				decimal dividendPerSharePrimaryCurrency = dividendPerShare;
 				try
 				{
 					var dividendPerShareConverted = await currencyExchange.ConvertMoney(
@@ -49,6 +55,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				}
 				catch
 				{
+					// Fallback to native amount if conversion fails
 					dividendPerSharePrimaryCurrency = dividendPerShare;
 				}
 
@@ -101,8 +108,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		private class DividendWithProfile
 		{
-			public GhostfolioSidekick.Model.Market.Dividend Dividend { get; set; } = default!;
-			public GhostfolioSidekick.Model.Symbols.SymbolProfile SymbolProfile { get; set; } = default!;
+			public Dividend Dividend { get; set; } = default!;
+			public SymbolProfile SymbolProfile { get; set; } = default!;
 		}
 
 		private static async Task<List<DividendWithProfile>> GetUpcomingDividendsWithProfilesAsync(DatabaseContext databaseContext)
