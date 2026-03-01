@@ -1,0 +1,1 @@
+Source: https://github.com/BenjaminOddou/trade_republic_scraper/blob/main/main.py

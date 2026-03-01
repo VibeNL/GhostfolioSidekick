@@ -8,6 +8,8 @@ namespace GhostfolioSidekick
 
 		MaintainManualSymbol,
 
+		ApiBroker,
+
 		FileImporter,
 
 		CurrencyGatherer,
