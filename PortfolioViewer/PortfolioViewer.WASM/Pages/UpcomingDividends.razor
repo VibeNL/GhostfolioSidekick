@@ -122,7 +122,7 @@
 						<dd class="col-7">
 							@if (selectedDividend.Currency != selectedDividend.PrimaryCurrency)
 							{
-								@selectedDividend.AmountPrimaryCurrency.ToString("F2") @selectedDividend.PrimaryCurrency
+								@selectedDividend.AmountPrimaryCurrency?.ToString("F2") @selectedDividend.PrimaryCurrency
 							}
 							else
 							{
@@ -136,7 +136,7 @@
 							@selectedDividend.DividendPerShare.ToString("F4") @selectedDividend.Currency
 							@if (selectedDividend.Currency != selectedDividend.PrimaryCurrency)
 							{
-								<br /><small class="text-muted">(@selectedDividend.DividendPerSharePrimaryCurrency.ToString("F4") @selectedDividend.PrimaryCurrency)</small>
+								<br /><small class="text-muted">(@selectedDividend.DividendPerSharePrimaryCurrency?.ToString("F4") @selectedDividend.PrimaryCurrency)</small>
 							}
 						</dd>
 						<dt class="col-5">Status</dt>

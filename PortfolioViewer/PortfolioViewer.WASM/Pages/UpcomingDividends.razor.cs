@@ -51,13 +51,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			var confirmedY = allMonths
 				.Select(m => (object)confirmed
 					.Where(d => d.PaymentDate.Year == m.Year && d.PaymentDate.Month == m.Month)
-					.Sum(d => d.AmountPrimaryCurrency))
+					.Sum(d => d.AmountPrimaryCurrency ?? 0))
 				.ToArray();
 
 			var predictedY = allMonths
 				.Select(m => (object)predicted
 					.Where(d => d.PaymentDate.Year == m.Year && d.PaymentDate.Month == m.Month)
-					.Sum(d => d.AmountPrimaryCurrency))
+					.Sum(d => d.AmountPrimaryCurrency ?? 0))
 				.ToArray();
 
 			var currencySymbol = ServerConfigurationService.PrimaryCurrency.Symbol;

@@ -44,7 +44,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				var expectedAmount = dividendPerShare * quantity;
 				var nativeCurrency = item.Dividend.Amount.Currency.Symbol;
 
-				decimal dividendPerSharePrimaryCurrency = dividendPerShare;
+				decimal? dividendPerSharePrimaryCurrency = null;
+				decimal? expectedAmountPrimaryCurrency = null;
+				string primaryCurrencyLabel = primaryCurrency.Symbol;
 				try
 				{
 					var dividendPerShareConverted = await currencyExchange.ConvertMoney(
@@ -52,14 +54,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 						primaryCurrency,
 						item.Dividend.ExDividendDate);
 					dividendPerSharePrimaryCurrency = dividendPerShareConverted.Amount;
+					expectedAmountPrimaryCurrency = dividendPerSharePrimaryCurrency * quantity;
 				}
 				catch
 				{
-					// Fallback to native amount if conversion fails
-					dividendPerSharePrimaryCurrency = dividendPerShare;
+					// Fallback: conversion failed, do not claim value is in primary currency
+					dividendPerSharePrimaryCurrency = null;
+					expectedAmountPrimaryCurrency = null;
+					primaryCurrencyLabel = nativeCurrency;
 				}
-
-				var expectedAmountPrimaryCurrency = dividendPerSharePrimaryCurrency * quantity;
 
 				result.Add(new UpcomingDividendModel
 				{
@@ -71,7 +74,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Currency = nativeCurrency,
 					DividendPerShare = dividendPerShare,
 					AmountPrimaryCurrency = expectedAmountPrimaryCurrency,
-					PrimaryCurrency = primaryCurrency.Symbol,
+					PrimaryCurrency = primaryCurrencyLabel,
 					DividendPerSharePrimaryCurrency = dividendPerSharePrimaryCurrency,
 					Quantity = quantity,
 					IsPredicted = item.Dividend.DividendState == DividendState.Predicted
@@ -106,7 +109,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToDictionary(g => g.Key!, g => g.Sum(x => x.Quantity));
 		}
 
-		private class DividendWithProfile
+		private sealed class DividendWithProfile
 		{
 			public Dividend Dividend { get; set; } = default!;
 			public SymbolProfile SymbolProfile { get; set; } = default!;
