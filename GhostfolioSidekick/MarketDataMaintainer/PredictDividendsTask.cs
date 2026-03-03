@@ -225,7 +225,18 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private static int Median(List<int> intervals)
 		{
 			var sorted = intervals.OrderBy(x => x).ToList();
-			return sorted[sorted.Count / 2];
+			int count = sorted.Count;
+			if (count == 0)
+				return 0;
+			if (count % 2 == 0)
+			{
+				// Average of two middle values
+				return (sorted[count / 2 - 1] + sorted[count / 2]) / 2;
+			}
+			else
+			{
+				return sorted[count / 2];
+			}
 		}
 	}
 }
