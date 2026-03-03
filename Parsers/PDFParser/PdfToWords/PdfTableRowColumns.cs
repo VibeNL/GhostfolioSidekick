@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			var columnTokens = Columns[columnIndex];
 			if (columnTokens?.Count > 0)
 			{
-				return string.Join(" ", columnTokens.Select(t => t.Text));
+				return string.Join(" ", columnTokens.OrderBy(x => x.BoundingBox?.Row).Select(t => t.Text));
 			}
 
 			return null;
