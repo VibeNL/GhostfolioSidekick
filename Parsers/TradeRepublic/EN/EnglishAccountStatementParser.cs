@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			get
 			{
 				return [
-					new TableDefinition(AccountStatementRepayment, "BALANCE OVERVIEW", column6, true, new EmptyLineHeightLimitMergeStrategy()),
+					new TableDefinition(AccountStatementRepayment, "BALANCE OVERVIEW", column6, true, new EmptyLineHeightLimitMergeStrategy(), true),
 				];
 			}
 		}
