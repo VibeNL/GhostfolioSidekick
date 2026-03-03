@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				.Replace('-', '.')
 				.Trim('.'); // Just in case
 
-			var dateFormats = new string[] { "dd.MM.yyyy HH:mm", "dd.MM.yyyy" };
+			var dateFormats = new string[] { "dd.MM.yyyy HH:mm", "dd.MM.yyyy", "dd MMM yyyy" };
 
 			foreach (var format in dateFormats)
 			{

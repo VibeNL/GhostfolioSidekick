@@ -20,7 +20,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			new EnglishBondInvoiceParser(),
 			new EnglishDividendInvoiceParser(),
 			new EnglishInterestPaymentInvoiceParser(),
-			new EnglishBondRepaymentInvoiceParser()
+			new EnglishBondRepaymentInvoiceParser(),
+			new EnglishAccountStatementParser()
 			];
 
 		public TradeRepublicInvoiceParserENTests()
@@ -289,6 +290,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new Money(Currency.EUR, 99.47m),
 						"Trade_Republic_single_repay_bond.pdf"),
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleAccountStatement_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement.pdf", activityManager, account.Name);
+			
+			// Assert
+			activityManager.PartialActivities.Should().HaveCount(24);
+			activityManager.PartialActivities.Should().Contain(
+				PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("IE000U9ODG19")],
+						3.158958m,
+						new Money(Currency.EUR, 25m),
+						new Money(Currency.EUR, 25m),
+						"Trade_Republic_single_buy_bond.pdf")
+			);
 		}
 	}
 }
