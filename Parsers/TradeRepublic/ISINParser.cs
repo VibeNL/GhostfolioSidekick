@@ -20,6 +20,23 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return isin;
 		}
 
+		public static string ExtractIsin(string line)
+		{
+			if (string.IsNullOrWhiteSpace(line))
+			{
+				return string.Empty;
+			}
+
+			if (line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase))
+			{
+				var isin = line.Replace("ISIN:", "").Trim();
+				return IsIsin(isin) ? isin : string.Empty;
+			}
+
+			return IsIsin(line.Trim()) ? line.Trim() : string.Empty;
+		}
+			
+
 		private static bool IsIsin(string line)
 		{
 			if (line.Length != 12)

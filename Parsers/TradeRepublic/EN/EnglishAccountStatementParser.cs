@@ -1,7 +1,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using iText.Kernel.XMP.Impl;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
@@ -11,6 +10,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 	{
 		private readonly string[] AccountStatementRepayment = ["DATE", "TYPE", "DESCRIPTION", "MONEY IN", "MONEY OUT", "BALANCE"];
 		private readonly ColumnAlignment[] column6 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+
+		private readonly string[] PrivateEquatyTransactions = ["Private Markets kooporder"];
 
 		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
@@ -105,12 +106,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					{
 						if (moneyIn.HasValue)
 						{
-							(string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString);
-							yield return PartialActivity.CreateSell(Currency.EUR, date, [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyIn.Value / amount),  new Money(Currency.EUR, moneyIn.Value), transactionId);
+							(string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
+							yield return PartialActivity.CreateSell(Currency.EUR, date, [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyIn.Value / amount), new Money(Currency.EUR, moneyIn.Value), transactionId);
 						}
 						else if (moneyOut.HasValue)
 						{
-							(string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString);
+							(string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
 							yield return PartialActivity.CreateBuy(Currency.EUR, date, [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyOut.Value / amount), new Money(Currency.EUR, moneyOut.Value), transactionId);
 						}
 						else
@@ -125,30 +126,49 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		/// <summary>
 		/// Parse the information from strings like:
 		///  Savings plan execution IE00BM8R0J59 Global X ETFs ICAV - Global X Nasdaq 100 Covered Call UCITS ETF Dis USD, quantity: 1.744591
+		///  Sell trade US2546871060 DISNEY (WALT) CO., quantity: 1.640151
 		/// </summary>
 		/// <param name="row"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		private (string symbol, decimal amount) ParseSymbolAndAmount(string descriptionString)
+		private (string symbol, decimal amount) ParseSymbolAndAmount(string descriptionString, decimal amount)
 		{
+			// Get the quantity from the string
+			if (string.IsNullOrEmpty(descriptionString))
+			{
+				throw new ArgumentNullException(nameof(descriptionString));
+			}
+
+			if (PrivateEquatyTransactions.Contains(descriptionString))
+			{
+				return ("PRIVATE_EQUITY", amount);
+			}
+
 			var quantityPrefix = "quantity: ";
 			var quantityIndex = descriptionString.IndexOf(quantityPrefix);
-			if (quantityIndex >= 0)
+			if (quantityIndex < 0)
 			{
-				var quantityString = descriptionString.Substring(quantityIndex + quantityPrefix.Length).Trim();
-				if (decimal.TryParse(quantityString, NumberStyles.Any, CultureInfo.InvariantCulture, out var quantity))
+				throw new InvalidOperationException(
+					$"Unable to find quantity in description: {descriptionString}");
+			}
+
+			var quantityString = descriptionString.Substring(quantityIndex + quantityPrefix.Length).Trim();
+			if (!decimal.TryParse(quantityString, NumberStyles.Any, CultureInfo.InvariantCulture, out var quantity))
+			{
+				throw new FormatException($"Unable to parse quantity: {quantityString}");
+			}
+
+			// Lets us the ISINParser to search for the isin
+			foreach (var text in descriptionString.Split([' '], StringSplitOptions.RemoveEmptyEntries))
+			{
+				var isin = ISINParser.ExtractIsin(text);
+				if (!string.IsNullOrWhiteSpace(isin))
 				{
-					var isinPrefix = "IE";
-					var isinIndex = descriptionString.IndexOf(isinPrefix);
-					if (isinIndex >= 0)
-					{
-						var isin = descriptionString.Substring(isinIndex, 12).Trim();
-						return (isin, quantity);
-					}
+					return (isin, quantity); // Placeholder for amount, adjust as needed
 				}
 			}
-			
-			throw new FormatException($"Unable to parse symbol and amount from description: {descriptionString}");
+
+			return (string.Empty, 0); // Return a default value if no ISIN is found
 		}
 
 		/// <summary>

@@ -43,6 +43,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected decimal ParseDecimal(string x)
 		{
+			// Remove Eurosign 
+			x = x.Replace("€", "").Trim();
 			if (decimal.TryParse(x, NumberStyles.Currency, CultureInfo, out var result))
 			{
 				return result;
