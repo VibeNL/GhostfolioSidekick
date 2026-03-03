@@ -13,9 +13,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
         public decimal DividendPerShare { get; set; }
         
         // Primary currency equivalent
-        public decimal AmountPrimaryCurrency { get; set; }
+        public decimal? AmountPrimaryCurrency { get; set; }
         public string PrimaryCurrency { get; set; } = string.Empty;
-        public decimal DividendPerSharePrimaryCurrency { get; set; }
+        public decimal? DividendPerSharePrimaryCurrency { get; set; }
         
         public decimal Quantity { get; set; }
 
