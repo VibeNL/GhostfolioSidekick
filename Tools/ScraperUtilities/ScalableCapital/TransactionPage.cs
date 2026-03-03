@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 						}
 
 						// Press Close button to close the details
-						await page.GetByRole(AriaRole.Button).ClickAsync();
+						await page.GetByRole(AriaRole.Button, new() { Name = "Close" }).ClickAsync();
 
 						break;
 					}
@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 						// Try to close the details if open
 						try
 						{
-							await page.GetByRole(AriaRole.Button).ClickAsync();
+							await page.GetByRole(AriaRole.Button, new() { Name = "Close" }).ClickAsync();
 						}
 						catch
 						{
@@ -205,8 +205,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 			// If is Buy or Sell
 			var isSaving = await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync();
-			bool isBuy = await page.GetByTestId("icon-BUY").IsVisibleAsync();
-			bool isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
+			var isBuy = await page.GetByTestId("icon-BUY").IsVisibleAsync();
+			var isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
+			var isReinvest = await page.GetByTestId("icon-REINVESTMENT").IsVisibleAsync();
 
 			var isSecurity = await page.GetByTestId("icon-SECURITY").IsVisibleAsync();
 			if (isSecurity)
@@ -231,11 +232,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 			if (isSaving ||
 				isBuy ||
-				isSell)
+				isSell ||
+				isReinvest)
 			{
 				var date = await GetHistoryDate("Execution confirmed");
 				Money? fee = null;
-				if (!isSaving)
+				if (!isSaving && !isReinvest)
 				{
 					fee = await GetMoneyField("Order fee");
 				}
