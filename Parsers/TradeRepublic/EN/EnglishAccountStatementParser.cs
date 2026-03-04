@@ -1,12 +1,13 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 {
 
-	public class EnglishAccountStatementParser : BaseSubParser
+	public class EnglishAccountStatementParser(ILogger<EnglishAccountStatementParser> logger) : BaseSubParser
 	{
 		private readonly string[] AccountStatementRepayment = ["DATE", "TYPE", "DESCRIPTION", "MONEY IN", "MONEY OUT", "BALANCE"];
 		private readonly ColumnAlignment[] column6 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
@@ -182,8 +183,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			var quantityIndex = descriptionString.IndexOf(quantityPrefix);
 			if (quantityIndex < 0)
 			{
-				throw new InvalidOperationException(
-					$"Unable to find quantity in description: {descriptionString}");
+				// TODO Bonds?
+				logger.LogWarning("Unable to find quantity in description: {Description}", descriptionString);
+				return (string.Empty, 0);
 			}
 
 			var quantityString = descriptionString.Substring(quantityIndex + quantityPrefix.Length).Trim();
