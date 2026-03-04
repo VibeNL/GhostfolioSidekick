@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			yield return PartialActivity.CreateSend(
 								record.DateTime,
 								[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
-								Math.Abs(record.OutputAmount),
+								Math.Abs(record.InputAmount),
 								record.Transaction);
 		}
 
