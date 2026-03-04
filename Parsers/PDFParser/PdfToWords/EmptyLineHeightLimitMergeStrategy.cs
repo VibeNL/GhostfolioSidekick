@@ -1,11 +1,12 @@
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
 	/// <summary>
-	/// Merge strategy that merges rows until an empty line is encountered or a height limit is reached.
+	/// Merge strategy that merges rows when the difference between their row indices
+	/// is less than or equal to a fixed row skip threshold.
 	/// </summary>
 	public class EmptyLineHeightLimitMergeStrategy : IMergeRowStrategy
 	{
-		private readonly int RowSkip = 10;
+		private const int RowSkip = 10;
 
 		public bool ShouldMerge(PdfTableRow current, PdfTableRow next)
 		{
