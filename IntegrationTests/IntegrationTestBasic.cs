@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.DependencyInjection;
@@ -152,6 +153,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(PostgresPort))
 				.WithNetwork(network)
 				.WithNetworkAliases("postgrescontainer")
+				.WithImagePullPolicy(PullPolicy.Always)
 				.Build();
 			await postgresContainer.StartAsync().ConfigureAwait(false);
 
@@ -173,6 +175,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithPortBinding(ReditPort, true)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(ReditPort))
 				.WithNetwork(network)
+				.WithImagePullPolicy(PullPolicy.Always)
 				.Build();
 			await redisContainer.StartAsync().ConfigureAwait(false);
 		}
@@ -196,6 +199,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithEnvironment("REQUEST_TIMEOUT", "60000")
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(GhostfolioPort))
 				.WithNetwork(network)
+				.WithImagePullPolicy(PullPolicy.Always)
 				.Build();
 
 			try
