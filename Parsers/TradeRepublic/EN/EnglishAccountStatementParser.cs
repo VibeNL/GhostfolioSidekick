@@ -41,85 +41,85 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			var moneyOut = !string.IsNullOrWhiteSpace(moneyOutString) ? ParseDecimal(moneyOutString) : (decimal?)null;
 			var balance = !string.IsNullOrWhiteSpace(balanceString) ? ParseDecimal(balanceString) : (decimal?)null;
 
-			if (balance.HasValue)
-			{
-				yield return PartialActivity.CreateKnownBalance(Currency.EUR, date, balance.Value);
-			}
+            if (balance.HasValue)
+            {
+                yield return PartialActivity.CreateKnownBalance(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), balance.Value);
+            }
 
 			switch (typeString)
 			{
-				case "Transfer": // Transfer
-				case "Card Transaction": // Card Transaction
-					{
-						if (moneyIn.HasValue)
-						{
-							yield return PartialActivity.CreateCashDeposit(Currency.EUR, date, moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
-						}
-						else if (moneyOut.HasValue)
-						{
-							yield return PartialActivity.CreateCashWithdrawal(Currency.EUR, date, moneyOut.Value, new Money(Currency.EUR, moneyOut.Value), transactionId);
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
+                case "Transfer": // Transfer
+                case "Card Transaction": // Card Transaction
+                    {
+                        if (moneyIn.HasValue)
+                        {
+                            yield return PartialActivity.CreateCashDeposit(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
+                        }
+                        else if (moneyOut.HasValue)
+                        {
+                            yield return PartialActivity.CreateCashWithdrawal(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyOut.Value, new Money(Currency.EUR, moneyOut.Value), transactionId);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
 
-						break;
-					}
-				case "Reward": // Cashback
-					{
-						if (moneyIn.HasValue)
-						{
-							yield return PartialActivity.CreateGift(Currency.EUR, date, moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
-						break;
-					}
-				case "Interest": // Interest
-					{
-						if (moneyIn.HasValue)
-						{
-							yield return PartialActivity.CreateInterest(Currency.EUR, date, moneyIn.Value, descriptionString, new Money(Currency.EUR, moneyIn.Value), transactionId);
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
-						break;
-					}
-				case "Earnings": // Dividend
-					{
-						if (moneyIn.HasValue)
-						{
-							yield return PartialActivity.CreateDividend(Currency.EUR, date, ParseSymbolsFromDividendStrings(descriptionString), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
-						break;
-					}
-				case "Trade": // Buys and Sells
-					{
-						if (moneyIn.HasValue)
-						{
-							(string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
-							yield return PartialActivity.CreateSell(Currency.EUR, date, [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyIn.Value / amount), new Money(Currency.EUR, moneyIn.Value), transactionId);
-						}
-						else if (moneyOut.HasValue)
-						{
-							(string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
-							yield return PartialActivity.CreateBuy(Currency.EUR, date, [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyOut.Value / amount), new Money(Currency.EUR, moneyOut.Value), transactionId);
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
-						break;
-					}
+                        break;
+                    }
+                case "Reward": // Cashback
+                    {
+                        if (moneyIn.HasValue)
+                        {
+                            yield return PartialActivity.CreateGift(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        break;
+                    }
+                case "Interest": // Interest
+                    {
+                        if (moneyIn.HasValue)
+                        {
+                            yield return PartialActivity.CreateInterest(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, descriptionString, new Money(Currency.EUR, moneyIn.Value), transactionId);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        break;
+                    }
+                case "Earnings": // Dividend
+                    {
+                        if (moneyIn.HasValue)
+                        {
+                            yield return PartialActivity.CreateDividend(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), ParseSymbolsFromDividendStrings(descriptionString), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        break;
+                    }
+                case "Trade": // Buys and Sells
+                    {
+                        if (moneyIn.HasValue)
+                        {
+                            (string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
+                            yield return PartialActivity.CreateSell(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyIn.Value / amount), new Money(Currency.EUR, moneyIn.Value), transactionId);
+                        }
+                        else if (moneyOut.HasValue)
+                        {
+                            (string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
+                            yield return PartialActivity.CreateBuy(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyOut.Value / amount), new Money(Currency.EUR, moneyOut.Value), transactionId);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        break;
+                    }
 			}
 		}
 
