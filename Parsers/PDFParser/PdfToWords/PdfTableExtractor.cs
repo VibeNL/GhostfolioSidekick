@@ -17,51 +17,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				];
 		}
 
-		public static List<PdfTableRow> FindTableRows(
-			IEnumerable<SingleWordToken> words,
-			IEnumerable<TableDefinition> tableDefinitions,
-			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
-		{
-			var definitions = tableDefinitions.ToList();
-			var allResults = new List<PdfTableRow>();
-			var usedRows = new HashSet<(int Page, int Row)>();
-
-			// Check if all required table definitions are found
-			var requiredDefinitions = definitions.Where(d => d.IsRequired).ToList();
-			var foundRequiredDefinitions = new HashSet<TableDefinition>();
-
-			foreach (var definition in definitions)
-			{
-				// Use the definition's merge strategy if available, otherwise fall back to the passed predicate
-				var effectiveMergePredicate = GetEffectiveMergePredicate(definition, mergePredicate);
-				
-				var result = FindTableRowsForDefinition(words, definition, effectiveMergePredicate, usedRows);
-				if (result.Count > 0)
-				{
-					allResults.AddRange(result);
-					// Mark the rows as used to avoid overlapping tables
-					foreach (var row in result)
-					{
-						usedRows.Add((row.Page, row.Row));
-					}
-
-					// Track found required definitions
-					if (definition.IsRequired)
-					{
-						foundRequiredDefinitions.Add(definition);
-					}
-				}
-			}
-
-			// If not all required definitions were found, return empty result
-			if (requiredDefinitions.Count > 0 && foundRequiredDefinitions.Count < requiredDefinitions.Count)
-			{
-				return [];
-			}
-			
-			return allResults;
-		}
-
 		public static List<(PdfTableRow Header, List<PdfTableRowColumns> Rows, TableDefinition Definition)> FindAllTableRowsWithColumns(
 			IEnumerable<SingleWordToken> words,
 			IEnumerable<TableDefinition> tableDefinitions,
@@ -163,61 +118,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return fallbackPredicate;
 		}
 
-		private static List<PdfTableRow> FindTableRowsForDefinition(
-			IEnumerable<SingleWordToken> words,
-			TableDefinition definition,
-			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate,
-			HashSet<(int Page, int Row)>? usedRows = null)
-		{
-			var rows = GroupRows(words);
-			if (rows.Count == 0)
-			{
-				return [];
-			}
-
-			int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && 
-												  (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
-			if (headerIndex == -1)
-			{
-				return [];
-			}
-
-			var page = rows[headerIndex].Page;
-			var result = new List<PdfTableRow>();
-			
-			for (int i = headerIndex + 1; i < rows.Count; i++)
-			{
-				var row = rows[i];
-				
-				// Skip if row is already used by another table
-				if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
-				{
-					continue;
-				}
-				
-				if (row.Page != page)
-				{
-					break;
-				}
-
-				if (ShouldStopAtRow(row, definition.StopWord))
-				{
-					break;
-				}
-
-				// Create a new row with the proper headers from the table definition
-				var rowWithHeaders = new PdfTableRow(
-					definition.Headers,
-					row.Page,
-					row.Row,
-					row.Tokens);
-
-				result.Add(rowWithHeaders);
-			}
-
-			return mergePredicate == null ? result : MergeMultilineRows(result, mergePredicate, definition.Headers);
-		}
-
 		private static (PdfTableRow Header, List<PdfTableRowColumns> Rows) FindTableRowsWithColumnsForDefinition(
 			IEnumerable<SingleWordToken> words,
 			TableDefinition definition,
@@ -230,52 +130,103 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
 			}
 
-			int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && 
-												  (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
-			if (headerIndex == -1)
-			{
-				return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
-			}
+            var allDataRows = new List<PdfTableRow>();
+            PdfTableRow? header = null;
 
-			var header = GetHeaders(definition.Headers, rows[headerIndex]);
-			var dataRows = new List<PdfTableRow>();
-			
-			for (int i = headerIndex + 1; i < rows.Count; i++)
-			{
-				var row = rows[i];
+            if (definition.RecheckHeaderOnNextPage)
+            {
+                var perPage = FindHeaderAndRowsPerPage(rows, definition.Headers, definition.StopWord, usedRows);
+                foreach (var (pageHeader, dataRows) in perPage)
+                {
+                    if (header == null)
+                        header = GetHeaders(definition.Headers, pageHeader);
+                    foreach (var row in dataRows)
+                    {
+                        allDataRows.Add(new PdfTableRow(
+                            definition.Headers,
+                            row.Page,
+                            row.Row,
+                            row.Tokens));
+                    }
+                }
+            }
+            else
+            {
+                int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
+                if (headerIndex == -1)
+                {
+                    return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
+                }
+                header = GetHeaders(definition.Headers, rows[headerIndex]);
+                for (int i = headerIndex + 1; i < rows.Count; i++)
+                {
+                    var row = rows[i];
+                    if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
+                    {
+                        continue;
+                    }
+                    if (ShouldStopAtRow(row, definition.StopWord))
+                    {
+                        break;
+                    }
+                    allDataRows.Add(new PdfTableRow(
+                        definition.Headers,
+                        row.Page,
+                        row.Row,
+                        row.Tokens));
+                }
+            }
 
-				// Skip if row is already used by another table
-				if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
+            if (mergePredicate != null)
+            {
+                allDataRows = MergeMultilineRows(allDataRows, mergePredicate, definition.Headers);
+            }
+
+            var strategy = definition.ColumnAlignments?.Length > 0 
+                ? (IColumnAlignmentStrategy)new MixedColumnAlignmentStrategy() 
+                : new LeftAlignedColumnStrategy();
+
+            var aligned = AlignToHeaderColumns(header ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), allDataRows, definition.ColumnAlignments ?? [], strategy);
+            return (header ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), aligned);
+		}
+
+		/// <summary>
+		/// Finds header and data rows for each page, given a list of rows, header keywords, and stop word.
+		/// </summary>
+		private static List<(PdfTableRow Header, List<PdfTableRow> DataRows)> FindHeaderAndRowsPerPage(
+			List<PdfTableRow> rows,
+			string[] headerKeywords,
+			string? stopWord,
+			HashSet<(int Page, int Row)>? usedRows = null)
+		{
+			var result = new List<(PdfTableRow Header, List<PdfTableRow> DataRows)>();
+			var rowsByPage = rows.GroupBy(r => r.Page).OrderBy(g => g.Key);
+			foreach (var pageGroup in rowsByPage)
+			{
+				var pageRows = pageGroup.ToList();
+				int headerIndex = pageRows.FindIndex(r => RowContainsAll(r, headerKeywords) && (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
+				if (headerIndex == -1)
 				{
 					continue;
 				}
-
-				if (ShouldStopAtRow(row, definition.StopWord))
+				var header = pageRows[headerIndex];
+				var dataRows = new List<PdfTableRow>();
+				for (int i = headerIndex + 1; i < pageRows.Count; i++)
 				{
-					break;
+					var row = pageRows[i];
+					if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
+					{
+						continue;
+					}
+					if (ShouldStopAtRow(row, stopWord))
+					{
+						break;
+					}
+					dataRows.Add(row);
 				}
-
-				// Create a new row with the proper headers from the table definition
-				var rowWithHeaders = new PdfTableRow(
-					definition.Headers,
-					row.Page,
-					row.Row,
-					row.Tokens);
-
-				dataRows.Add(rowWithHeaders);
+				result.Add((header, dataRows));
 			}
-
-			if (mergePredicate != null)
-			{
-				dataRows = MergeMultilineRows(dataRows, mergePredicate, definition.Headers);
-			}
-
-			var strategy = definition.ColumnAlignments?.Length > 0 
-				? (IColumnAlignmentStrategy)new MixedColumnAlignmentStrategy() 
-				: new LeftAlignedColumnStrategy();
-			
-			var aligned = AlignToHeaderColumns(header, dataRows, definition.ColumnAlignments ?? [], strategy);
-			return (header, aligned);
+			return result;
 		}
 
 		private static bool ShouldStopAtRow(PdfTableRow row, string? stopWord)
