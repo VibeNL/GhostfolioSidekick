@@ -142,6 +142,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				foreach (var (pageHeader, dataRows) in perPage)
 				{
 					var headerRow = GetHeaders(definition.Headers, pageHeader);
+					if (usedRows != null)
+					{
+						usedRows.Add((pageHeader.Page, pageHeader.Row));
+					}
 					if (firstHeader == null)
 						firstHeader = headerRow;
 
