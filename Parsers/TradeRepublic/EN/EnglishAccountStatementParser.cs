@@ -108,12 +108,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
                         if (moneyIn.HasValue)
                         {
                             (string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
-                            yield return PartialActivity.CreateSell(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyIn.Value / amount), new Money(Currency.EUR, moneyIn.Value), transactionId);
+                            yield return PartialActivity.CreateSell(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockBondAndETF(symbol)], amount, new Money(Currency.EUR, moneyIn.Value / amount), new Money(Currency.EUR, moneyIn.Value), transactionId);
                         }
                         else if (moneyOut.HasValue)
                         {
                             (string symbol, decimal amount) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
-                            yield return PartialActivity.CreateBuy(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF(symbol)], amount, new Money(Currency.EUR, moneyOut.Value / amount), new Money(Currency.EUR, moneyOut.Value), transactionId);
+                            yield return PartialActivity.CreateBuy(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockBondAndETF(symbol)], amount, new Money(Currency.EUR, moneyOut.Value / amount), new Money(Currency.EUR, moneyOut.Value), transactionId);
                         }
                         else
                         {
