@@ -179,19 +179,19 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		/// <param name="row"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		private ICollection<PartialSymbolIdentifier> ParseSymbolsFromDividendStrings(string descriptionString)
+		private static ICollection<PartialSymbolIdentifier> ParseSymbolsFromDividendStrings(string descriptionString)
 		{
 			var isinPrefix = "ISIN ";
 			var isinIndex = descriptionString.IndexOf(isinPrefix);
 			if (isinIndex >= 0)
 			{
-				var isin = descriptionString.Substring(isinIndex + isinPrefix.Length).Trim();
+				var isin = descriptionString[(isinIndex + isinPrefix.Length)..].Trim();
 				return [PartialSymbolIdentifier.CreateStockAndETF(isin)];
 			}
 			return [];
 		}
 
-		private DateOnly ParseDate(string dateString)
+		private static DateOnly ParseDate(string dateString)
 		{
 			if (DateOnly.TryParseExact(dateString, "dd MMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
 			{
