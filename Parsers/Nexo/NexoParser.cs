@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -23,10 +23,11 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			var activities = record.Type switch
 			{
 				"Top up Crypto" => HandleTopUpCrypto(record),
+				"Withdrawal" => HandleWithdraw(record),
 				"Exchange Cashback" or "Referral Bonus" => HandleCashbackAndBonus(record),
 				"Withdraw Exchanged" => HandleWithdrawExchanged(record),
 				"Deposit" or "Exchange Deposited On" => HandleDeposit(record),
-				"Exchange" => HandleExchange(record),
+				"Exchange" or "Dual Investment Exchange" => HandleExchange(record),
 				"Interest" or "Fixed Term Interest" or "Dual Investment Interest" => HandleInterest(record),
 				"Exchange To Withdraw" or "Deposit To Exchange" or "Locking Term Deposit" or
 				"Unlocking Term Deposit" or "Dual Investment Unlock" or "Dual Investment Lock" =>
@@ -46,6 +47,15 @@ namespace GhostfolioSidekick.Parsers.Nexo
 								record.DateTime,
 								[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
 								Math.Abs(record.OutputAmount),
+								record.Transaction);
+		}
+
+		private static IEnumerable<PartialActivity> HandleWithdraw(NexoRecord record)
+		{
+			yield return PartialActivity.CreateSend(
+								record.DateTime,
+								[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
+								Math.Abs(record.InputAmount),
 								record.Transaction);
 		}
 

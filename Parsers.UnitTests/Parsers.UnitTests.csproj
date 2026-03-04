@@ -289,6 +289,12 @@
 		<None Update="TestFiles\GoldRepublic\year_overview.pdf">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Nexo\ReceiveSend\single_withdrawal.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_dual_investment_exchange.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Nexo\Specials\single_exchange.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -310,7 +316,7 @@
 		<None Update="TestFiles\Nexo\Invalid\invalid_action.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\Nexo\Receive\single_receive.csv">
+		<None Update="TestFiles\Nexo\ReceiveSend\single_receive.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\BuyOrders\single_buy.csv">
