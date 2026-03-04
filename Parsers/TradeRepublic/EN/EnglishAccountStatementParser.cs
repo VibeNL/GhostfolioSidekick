@@ -36,20 +36,20 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			var moneyOutString = row.GetColumnValue("MONEY OUT") ?? string.Empty;
 			var balanceString = row.GetColumnValue("BALANCE") ?? string.Empty;
 
-            var dateOnly = ParseDate(dateString ?? string.Empty);
-            var date = new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Utc);
+			var dateOnly = ParseDate(dateString ?? string.Empty);
+			var date = new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Utc);
 			var moneyIn = !string.IsNullOrWhiteSpace(moneyInString) ? ParseDecimal(moneyInString) : (decimal?)null;
 			var moneyOut = !string.IsNullOrWhiteSpace(moneyOutString) ? ParseDecimal(moneyOutString) : (decimal?)null;
 			var balance = !string.IsNullOrWhiteSpace(balanceString) ? ParseDecimal(balanceString) : (decimal?)null;
 
-            if (balance.HasValue)
-            {
-                yield return PartialActivity.CreateKnownBalance(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), balance.Value);
-            }
+			if (balance.HasValue)
+			{
+				yield return PartialActivity.CreateKnownBalance(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), balance.Value);
+			}
 
 			switch (typeString)
 			{
-                case "Transfer": // Transfer
+				case "Transfer": // Transfer
                 case "Card Transaction": // Card Transaction
                     {
                         if (moneyIn.HasValue)
