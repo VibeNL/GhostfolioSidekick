@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
 	/// <summary>
