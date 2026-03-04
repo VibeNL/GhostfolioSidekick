@@ -104,14 +104,21 @@ namespace GhostfolioSidekick.IntegrationTests
 			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
 
+			// Clean up existing database file if present
+			var dbPath = "./Files/ghostfolio.db";
+			if (System.IO.File.Exists(dbPath))
+			{
+				System.IO.File.Delete(dbPath);
+			}
+
 			var testLogger = new TestLogger("Service SyncActivitiesWithGhostfolioTask has executed.");
 			var testHost = Program
-			.CreateHostBuilder()
-			.ConfigureServices((hostContext, services) =>
-			{
-				services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
-			})
-			.Build();
+				.CreateHostBuilder()
+				.ConfigureServices((hostContext, services) =>
+				{
+					services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
+				})
+				.Build();
 
 			var host = testHost.Services.GetService<IHostedService>();
 			var c = new CancellationToken();
