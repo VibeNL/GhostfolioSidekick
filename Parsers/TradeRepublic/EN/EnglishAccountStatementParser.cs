@@ -129,9 +129,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		///  Savings plan execution IE00BM8R0J59 Global X ETFs ICAV - Global X Nasdaq 100 Covered Call UCITS ETF Dis USD, quantity: 1.744591
 		///  Sell trade US2546871060 DISNEY (WALT) CO., quantity: 1.640151
 		/// </summary>
-		/// <param name="row"></param>
-		/// <returns></returns>
-		/// <exception cref="NotImplementedException"></exception>
+		/// <param name="descriptionString">The full transaction description containing the ISIN and quantity.</param>
+		/// <param name="amount">The total monetary amount of the transaction.</param>
+		/// <returns>A tuple containing the parsed symbol (ISIN or placeholder) and quantity.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="descriptionString"/> is <see langword="null"/> or empty.</exception>
+		/// <exception cref="InvalidOperationException">The quantity part cannot be found in <paramref name="descriptionString"/>.</exception>
+		/// <exception cref="FormatException">The quantity part cannot be parsed as a decimal number.</exception>
 		private (string symbol, decimal amount) ParseSymbolAndAmount(string descriptionString, decimal amount)
 		{
 			// Get the quantity from the string
