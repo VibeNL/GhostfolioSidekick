@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		private readonly string[] AccountStatementRepayment = ["DATE", "TYPE", "DESCRIPTION", "MONEY IN", "MONEY OUT", "BALANCE"];
 		private readonly ColumnAlignment[] column6 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
-		private readonly string[] PrivateEquatyTransactions = ["Private Markets kooporder"];
+		private readonly string[] PrivateEquityTransactionsIdentification = ["Private Markets kooporder"];
 
 		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				throw new ArgumentNullException(nameof(descriptionString));
 			}
 
-			if (PrivateEquatyTransactions.Contains(descriptionString))
+			if (PrivateEquityTransactionsIdentification.Contains(descriptionString))
 			{
 				return ("PRIVATE_EQUITY", amount);
 			}
