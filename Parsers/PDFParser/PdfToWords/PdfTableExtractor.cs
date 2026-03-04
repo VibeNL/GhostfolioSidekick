@@ -130,64 +130,69 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
 			}
 
-            var allDataRows = new List<PdfTableRow>();
-            PdfTableRow? header = null;
+			var strategy = definition.ColumnAlignments?.Length > 0
+				? (IColumnAlignmentStrategy)new MixedColumnAlignmentStrategy()
+				: new LeftAlignedColumnStrategy();
 
-            if (definition.RecheckHeaderOnNextPage)
-            {
-                var perPage = FindHeaderAndRowsPerPage(rows, definition.Headers, definition.StopWord, usedRows);
-                foreach (var (pageHeader, dataRows) in perPage)
-                {
-                    if (header == null)
-                        header = GetHeaders(definition.Headers, pageHeader);
-                    foreach (var row in dataRows)
-                    {
-                        allDataRows.Add(new PdfTableRow(
-                            definition.Headers,
-                            row.Page,
-                            row.Row,
-                            row.Tokens));
-                    }
-                }
-            }
-            else
-            {
-                int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
-                if (headerIndex == -1)
-                {
-                    return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
-                }
-                header = GetHeaders(definition.Headers, rows[headerIndex]);
-                for (int i = headerIndex + 1; i < rows.Count; i++)
-                {
-                    var row = rows[i];
-                    if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
-                    {
-                        continue;
-                    }
-                    if (ShouldStopAtRow(row, definition.StopWord))
-                    {
-                        break;
-                    }
-                    allDataRows.Add(new PdfTableRow(
-                        definition.Headers,
-                        row.Page,
-                        row.Row,
-                        row.Tokens));
-                }
-            }
+			if (definition.RecheckHeaderOnNextPage)
+			{
+				var perPage = FindHeaderAndRowsPerPage(rows, definition.Headers, definition.StopWord, usedRows);
+				var allAligned = new List<PdfTableRowColumns>();
+				PdfTableRow? firstHeader = null;
+				foreach (var (pageHeader, dataRows) in perPage)
+				{
+					var headerRow = GetHeaders(definition.Headers, pageHeader);
+					if (firstHeader == null)
+						firstHeader = headerRow;
 
-            if (mergePredicate != null)
-            {
-                allDataRows = MergeMultilineRows(allDataRows, mergePredicate, definition.Headers);
-            }
+					var pageDataRows = dataRows.Select(row => new PdfTableRow(
+						definition.Headers,
+						row.Page,
+						row.Row,
+						row.Tokens)).ToList();
 
-            var strategy = definition.ColumnAlignments?.Length > 0 
-                ? (IColumnAlignmentStrategy)new MixedColumnAlignmentStrategy() 
-                : new LeftAlignedColumnStrategy();
+					if (mergePredicate != null)
+						pageDataRows = MergeMultilineRows(pageDataRows, mergePredicate, definition.Headers);
 
-            var aligned = AlignToHeaderColumns(header ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), allDataRows, definition.ColumnAlignments ?? [], strategy);
-            return (header ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), aligned);
+					var aligned = AlignToHeaderColumns(headerRow, pageDataRows, definition.ColumnAlignments ?? [], strategy);
+					allAligned.AddRange(aligned);
+				}
+				return (firstHeader ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), allAligned);
+			}
+			else
+			{
+				var allDataRows = new List<PdfTableRow>();
+				PdfTableRow? header = null;
+				int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
+				if (headerIndex == -1)
+				{
+					return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
+				}
+				header = GetHeaders(definition.Headers, rows[headerIndex]);
+				for (int i = headerIndex + 1; i < rows.Count; i++)
+				{
+					var row = rows[i];
+					if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
+					{
+						continue;
+					}
+					if (ShouldStopAtRow(row, definition.StopWord))
+					{
+						break;
+					}
+					allDataRows.Add(new PdfTableRow(
+						definition.Headers,
+						row.Page,
+						row.Row,
+						row.Tokens));
+				}
+
+				if (mergePredicate != null)
+					allDataRows = MergeMultilineRows(allDataRows, mergePredicate, definition.Headers);
+
+				var aligned = AlignToHeaderColumns(header ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), allDataRows, definition.ColumnAlignments ?? [], strategy);
+				return (header ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), aligned);
+			}
 		}
 
 		/// <summary>

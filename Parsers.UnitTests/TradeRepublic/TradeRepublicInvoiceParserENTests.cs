@@ -302,7 +302,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement.pdf", activityManager, account.Name);
 			
 			// Assert
-			activityManager.PartialActivities.Should().HaveCount(24);
+			activityManager.PartialActivities.Should().HaveCount(24 * 2);
 			activityManager.PartialActivities.Should().Contain(
 				PartialActivity.CreateBuy(
 						Currency.EUR,
