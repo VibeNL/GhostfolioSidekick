@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.DependencyInjection;
@@ -103,14 +104,21 @@ namespace GhostfolioSidekick.IntegrationTests
 			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
 
+			// Clean up existing database file if present
+			var dbPath = "./Files/ghostfolio.db";
+			if (System.IO.File.Exists(dbPath))
+			{
+				System.IO.File.Delete(dbPath);
+			}
+
 			var testLogger = new TestLogger("Service SyncActivitiesWithGhostfolioTask has executed.");
 			var testHost = Program
-			.CreateHostBuilder()
-			.ConfigureServices((hostContext, services) =>
-			{
-				services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
-			})
-			.Build();
+				.CreateHostBuilder()
+				.ConfigureServices((hostContext, services) =>
+				{
+					services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
+				})
+				.Build();
 
 			var host = testHost.Services.GetService<IHostedService>();
 			var c = new CancellationToken();
@@ -152,6 +160,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(PostgresPort))
 				.WithNetwork(network)
 				.WithNetworkAliases("postgrescontainer")
+				.WithImagePullPolicy(PullPolicy.Always)
 				.Build();
 			await postgresContainer.StartAsync().ConfigureAwait(false);
 
@@ -173,6 +182,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithPortBinding(ReditPort, true)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(ReditPort))
 				.WithNetwork(network)
+				.WithImagePullPolicy(PullPolicy.Always)
 				.Build();
 			await redisContainer.StartAsync().ConfigureAwait(false);
 		}
@@ -196,6 +206,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithEnvironment("REQUEST_TIMEOUT", "60000")
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(GhostfolioPort))
 				.WithNetwork(network)
+				.WithImagePullPolicy(PullPolicy.Always)
 				.Build();
 
 			try
