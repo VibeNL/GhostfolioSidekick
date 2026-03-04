@@ -6,6 +6,8 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.TradeRepublic.EN;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -21,7 +23,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			new EnglishDividendInvoiceParser(),
 			new EnglishInterestPaymentInvoiceParser(),
 			new EnglishBondRepaymentInvoiceParser(),
-			new EnglishAccountStatementParser()
+			new EnglishAccountStatementParser(Mock.Of<ILogger<EnglishAccountStatementParser>>())
 			];
 
 		public TradeRepublicInvoiceParserENTests()
