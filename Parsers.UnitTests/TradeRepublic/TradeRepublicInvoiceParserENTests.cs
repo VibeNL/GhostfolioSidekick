@@ -300,7 +300,15 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement.pdf", activityManager, account.Name);
-			
+
+			foreach (var activity in activityManager.PartialActivities)
+			{
+				if (activity.ActivityType == PartialActivityType.Buy && activity.Date == new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc))
+				{
+					Console.WriteLine(activity.ToString());
+				}
+			}
+
 			// Assert
 			activityManager.PartialActivities.Should().HaveCount(24 * 2);
 			activityManager.PartialActivities.Should().Contain(
@@ -309,7 +317,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("IE000U9ODG19")],
 						3.158958m,
-						new Money(Currency.EUR, 7.9140020221857967089147750619m),
+						new Money(Currency.EUR, 7.9140020221857967089147750619M),
 						new Money(Currency.EUR, 25m),
 						"Trade_Republic_account_statement.pdf")
 			);

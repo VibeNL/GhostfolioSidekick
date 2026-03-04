@@ -36,7 +36,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			var moneyOutString = row.GetColumnValue("MONEY OUT") ?? string.Empty;
 			var balanceString = row.GetColumnValue("BALANCE") ?? string.Empty;
 
-			var date = ParseDate(dateString ?? string.Empty).ToDateTime(TimeOnly.MinValue);
+            var dateOnly = ParseDate(dateString ?? string.Empty);
+            var date = new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Utc);
 			var moneyIn = !string.IsNullOrWhiteSpace(moneyInString) ? ParseDecimal(moneyInString) : (decimal?)null;
 			var moneyOut = !string.IsNullOrWhiteSpace(moneyOutString) ? ParseDecimal(moneyOutString) : (decimal?)null;
 			var balance = !string.IsNullOrWhiteSpace(balanceString) ? ParseDecimal(balanceString) : (decimal?)null;
