@@ -1,0 +1,3 @@
+Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Fee,Fee Currency,Details,Date / Time (UTC),normalizedDisplayDetails
+NXT5vmFI34J16j6hv1qFpintU,Withdrawal,ETH,-0.03876226,ETH,0.03872433,$117.55,0.00003792,ETH,"approved / ETH withdrawal",2025-11-27 22:17:39,approved / ETH withdrawal
+

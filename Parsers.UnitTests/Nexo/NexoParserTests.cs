@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Receive/single_receive.csv", activityManager, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/ReceiveSend/single_receive.csv", activityManager, account.Name);
 
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
@@ -382,6 +382,48 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						339.64944000m,
 						"NXT3vH2lxWtke3GkY2ymoERBO[AssetConvertTarget]")
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDualInvestmentExchange_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_dual_investment_exchange.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				PartialActivity.CreateAssetConvert(
+					new DateTime(2026, 02, 27, 8, 3, 13, DateTimeKind.Utc),
+					[PartialSymbolIdentifier.CreateCrypto("USDC")],
+					901.07000000M,
+					[PartialSymbolIdentifier.CreateCrypto("BTC")],
+					0.01000000M,
+					"NXT5HFEVhtm5EUIMFlKzCfraI"
+				).ToList()
+			);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleWithdrawalETH_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/ReceiveSend/single_withdrawal.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSend(
+						new DateTime(2025, 11, 27, 22, 17, 39, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						0.03872433M,
+						"NXT5vmFI34J16j6hv1qFpintU"
+					)
+				]
+			);
 		}
 	}
 }
