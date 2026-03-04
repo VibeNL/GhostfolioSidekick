@@ -419,7 +419,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 					PartialActivity.CreateSend(
 						new DateTime(2025, 11, 27, 22, 17, 39, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
-						0.03872433M,
+						0.03876226M,
 						"NXT5vmFI34J16j6hv1qFpintU"
 					)
 				]
