@@ -12,12 +12,16 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 
 			var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
-			var isin = positionPerLine
+			var isinLine = positionPerLine
 				.Select(g => string.Join(" ", g.OrderBy(t => t.BoundingBox?.Column).Select(t => t.Text)))
-				.FirstOrDefault(line => line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase) || IsIsin(line))
-				?.Replace("ISIN:", "").Trim() ?? string.Empty;
+				.FirstOrDefault(line => line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase) || IsIsin(line));
 
-			return isin;
+			if (isinLine != null && isinLine.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase))
+			{
+				var value = isinLine.Substring("ISIN:".Length).Trim();
+				return IsIsin(value) ? value : string.Empty;
+			}
+			return isinLine != null && IsIsin(isinLine.Trim()) ? isinLine.Trim() : string.Empty;
 		}
 
 		public static string ExtractIsin(string line)
@@ -29,8 +33,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			if (line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase))
 			{
-				var isin = line.Replace("ISIN:", "").Trim();
-				return IsIsin(isin) ? isin : string.Empty;
+				var value = line.Substring("ISIN:".Length).Trim();
+				return IsIsin(value) ? value : string.Empty;
 			}
 
 			return IsIsin(line.Trim()) ? line.Trim() : string.Empty;
