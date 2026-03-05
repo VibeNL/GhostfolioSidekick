@@ -195,7 +195,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			{
 				// TODO Bonds?
 				logger.LogWarning("Unable to find quantity in description: {Description}", descriptionString);
-				return (string.Empty, 0);
+				return ("Bonds", 0);
 			}
 
 			var quantityString = descriptionString.Substring(quantityIndex + quantityPrefix.Length).Trim();
