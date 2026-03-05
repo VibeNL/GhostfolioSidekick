@@ -332,6 +332,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new Money(Currency.EUR, 25m),
 						"Trade_Republic_account_statement.pdf")
 			);
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("LU1931974262")],
+						1.494098m,
+						new Money(Currency.EUR, 33.465006980800456194975162272M),
+						new Money(Currency.EUR, 50m),
+						"Trade_Republic_account_statement.pdf")
+			);
 		}
 	}
 }
