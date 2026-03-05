@@ -11,30 +11,31 @@ using Moq;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
-	public class TradeRepublicInvoiceParserENTests
-	{
-		private readonly Account account;
-		private readonly TestActivityManager activityManager;
+public class TradeRepublicInvoiceParserENTests
+{
+   private readonly Account account;
+   private readonly TestActivityManager activityManager;
+   private readonly List<ITradeRepublicActivityParser> SubParsers = [
+       new EnglishStockInvoiceParser(),
+       new EnglishSavingPlanInvoiceParser(),
+       new EnglishBondInvoiceParser(),
+       new EnglishDividendInvoiceParser(),
+       new EnglishInterestPaymentInvoiceParser(),
+       new EnglishBondRepaymentInvoiceParser(),
+       new EnglishAccountStatementParser(Mock.Of<ILogger<EnglishAccountStatementParser>>())
+   ];
+   private readonly ITestOutputHelper output;
 
-		private readonly List<ITradeRepublicActivityParser> SubParsers = [
-			new EnglishStockInvoiceParser(),
-			new EnglishSavingPlanInvoiceParser(),
-			new EnglishBondInvoiceParser(),
-			new EnglishDividendInvoiceParser(),
-			new EnglishInterestPaymentInvoiceParser(),
-			new EnglishBondRepaymentInvoiceParser(),
-			new EnglishAccountStatementParser(Mock.Of<ILogger<EnglishAccountStatementParser>>())
-			];
-
-		public TradeRepublicInvoiceParserENTests()
-		{
-			var fixture = CustomFixture.New();
-			account = fixture
-				.Build<Account>()
-				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
-				.Create();
-			activityManager = new TestActivityManager();
-		}
+   public TradeRepublicInvoiceParserENTests(ITestOutputHelper output)
+   {
+       var fixture = CustomFixture.New();
+       account = fixture
+           .Build<Account>()
+           .With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
+           .Create();
+       activityManager = new TestActivityManager();
+       this.output = output;
+   }
 
 		[Fact]
 		public async Task CanParseActivities_TestFiles_True()
@@ -303,6 +304,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement.pdf", activityManager, account.Name);
 
+			// Debug, log all activities to easily identify which ones are missing in case of a failed test
+			foreach (var activity in activityManager.PartialActivities)
+			{
+				output.WriteLine(activity.ToString());
+			}
+
 			// Assert
 			activityManager.PartialActivities.Should().HaveCount(24 * 2);
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
@@ -311,7 +318,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2026, 01, 01, 0, 0, 0, DateTimeKind.Utc),
 						15m,
 						new Money(Currency.EUR, 15m),
-						"Trade_Republic_account_statement.pdf")
+						"Trade_Republic_account_statement.pdf_20260101_TEWgmTKV73qgBYa5JCxtMLRCg90DrYBm6ySwU0fFZSM=")
 			);
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
 				PartialActivity.CreateInterest(
@@ -320,7 +327,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						14.61m,
 						"Interest payment",
 						new Money(Currency.EUR, 14.61m),
-						"Trade_Republic_account_statement.pdf")
+						"Trade_Republic_account_statement.pdf_20260101_/UBJ93awt7TW9mubFaZVde05b8PkqrAvnhN+pHri05Q=")
 			);
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
 				PartialActivity.CreateBuy(
@@ -330,7 +337,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						3.158958m,
 						new Money(Currency.EUR, 7.9140020221857967089147750619M),
 						new Money(Currency.EUR, 25m),
-						"Trade_Republic_account_statement.pdf")
+						"Trade_Republic_account_statement.pdf_20260102_ElyCuSZgMtkZNmFq0CfcIHw+GjPvAGCmMyl7qi66lO8=")
 			);
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
 				PartialActivity.CreateBuy(
@@ -340,7 +347,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						1.494098m,
 						new Money(Currency.EUR, 33.465006980800456194975162272M),
 						new Money(Currency.EUR, 50m),
-						"Trade_Republic_account_statement.pdf")
+						"Trade_Republic_account_statement.pdf_20260102_i9NGrsLA9M4Yc8LTczbClBBBHO2r4YcxG1UDBAjicEA=")
 			);
 		}
 	}

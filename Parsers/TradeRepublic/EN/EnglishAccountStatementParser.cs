@@ -43,6 +43,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			var moneyOut = !string.IsNullOrWhiteSpace(moneyOutString) ? ParseDecimal(moneyOutString) : (decimal?)null;
 			var balance = !string.IsNullOrWhiteSpace(balanceString) ? ParseDecimal(balanceString) : (decimal?)null;
 
+			var newTransactionId = $"{transactionId ?? string.Empty}_{dateOnly:yyyyMMdd}_{GetHash(dateString, typeString, descriptionString, moneyInString, moneyOutString, balanceString)}";
+
 			if (balance.HasValue)
 			{
 				yield return PartialActivity.CreateKnownBalance(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), balance.Value);
@@ -55,11 +57,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					{
 						if (moneyIn.HasValue)
 						{
-							yield return PartialActivity.CreateCashDeposit(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
+							yield return PartialActivity.CreateCashDeposit(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), newTransactionId);
 						}
 						else if (moneyOut.HasValue)
 						{
-							yield return PartialActivity.CreateCashWithdrawal(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyOut.Value, new Money(Currency.EUR, moneyOut.Value), transactionId);
+							yield return PartialActivity.CreateCashWithdrawal(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyOut.Value, new Money(Currency.EUR, moneyOut.Value), newTransactionId);
 						}
 						else
 						{
@@ -72,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					{
 						if (moneyIn.HasValue)
 						{
-							yield return PartialActivity.CreateGift(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
+							yield return PartialActivity.CreateGift(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), newTransactionId);
 						}
 						else
 						{
@@ -84,7 +86,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					{
 						if (moneyIn.HasValue)
 						{
-							yield return PartialActivity.CreateInterest(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, descriptionString, new Money(Currency.EUR, moneyIn.Value), transactionId);
+							yield return PartialActivity.CreateInterest(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), moneyIn.Value, descriptionString, new Money(Currency.EUR, moneyIn.Value), newTransactionId);
 						}
 						else
 						{
@@ -96,7 +98,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					{
 						if (moneyIn.HasValue)
 						{
-							yield return PartialActivity.CreateDividend(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), ParseSymbolsFromDividendStrings(descriptionString), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), transactionId);
+							yield return PartialActivity.CreateDividend(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), ParseSymbolsFromDividendStrings(descriptionString), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), newTransactionId);
 						}
 						else
 						{
@@ -118,7 +120,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 								quantity,
 								new Money(Currency.EUR, moneyIn.Value / quantity),
 								new Money(Currency.EUR, moneyIn.Value),
-								transactionId);
+								newTransactionId);
 							}
 							else
 							{
@@ -138,7 +140,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 								quantity,
 								new Money(Currency.EUR, moneyOut.Value / quantity),
 								new Money(Currency.EUR, moneyOut.Value),
-								transactionId);
+								newTransactionId);
 							}
 							else
 							{
@@ -153,6 +155,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 						break;
 					}
 			}
+		}
+
+		private static string GetHash(string? dateString, string typeString, string descriptionString, string moneyInString, string moneyOutString, string balanceString)
+		{
+			// Generate SHA256 hash of the combined string
+			var combinedString = $"{dateString}|{typeString}|{descriptionString}|{moneyInString}|{moneyOutString}|{balanceString}";
+			var hashBytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(combinedString));
+			return Convert.ToBase64String(hashBytes);
 		}
 
 		/// <summary>
