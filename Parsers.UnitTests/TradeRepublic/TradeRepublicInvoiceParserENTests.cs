@@ -11,31 +11,31 @@ using Moq;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
-public class TradeRepublicInvoiceParserENTests
-{
-   private readonly Account account;
-   private readonly TestActivityManager activityManager;
-   private readonly List<ITradeRepublicActivityParser> SubParsers = [
-       new EnglishStockInvoiceParser(),
-       new EnglishSavingPlanInvoiceParser(),
-       new EnglishBondInvoiceParser(),
-       new EnglishDividendInvoiceParser(),
-       new EnglishInterestPaymentInvoiceParser(),
-       new EnglishBondRepaymentInvoiceParser(),
-       new EnglishAccountStatementParser(Mock.Of<ILogger<EnglishAccountStatementParser>>())
-   ];
-   private readonly ITestOutputHelper output;
+	public class TradeRepublicInvoiceParserENTests
+	{
+		private readonly Account account;
+		private readonly TestActivityManager activityManager;
+		private readonly List<ITradeRepublicActivityParser> SubParsers = [
+			new EnglishStockInvoiceParser(),
+	   new EnglishSavingPlanInvoiceParser(),
+	   new EnglishBondInvoiceParser(),
+	   new EnglishDividendInvoiceParser(),
+	   new EnglishInterestPaymentInvoiceParser(),
+	   new EnglishBondRepaymentInvoiceParser(),
+	   new EnglishAccountStatementParser(Mock.Of<ILogger<EnglishAccountStatementParser>>())
+		];
+		private readonly ITestOutputHelper output;
 
-   public TradeRepublicInvoiceParserENTests(ITestOutputHelper output)
-   {
-       var fixture = CustomFixture.New();
-       account = fixture
-           .Build<Account>()
-           .With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
-           .Create();
-       activityManager = new TestActivityManager();
-       this.output = output;
-   }
+		public TradeRepublicInvoiceParserENTests(ITestOutputHelper output)
+		{
+			var fixture = CustomFixture.New();
+			account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
+				.Create();
+			activityManager = new TestActivityManager();
+			this.output = output;
+		}
 
 		[Fact]
 		public async Task CanParseActivities_TestFiles_True()
@@ -348,6 +348,28 @@ public class TradeRepublicInvoiceParserENTests
 						new Money(Currency.EUR, 33.465006980800456194975162272M),
 						new Money(Currency.EUR, 50m),
 						"Trade_Republic_account_statement.pdf_20260102_i9NGrsLA9M4Yc8LTczbClBBBHO2r4YcxG1UDBAjicEA=")
+			);
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
+						1.640151m,
+						new Money(Currency.EUR, 96.28991477004251437824931973m),
+						new Money(Currency.EUR, 157.93m),
+						"Trade_Republic_account_statement.pdf_20260102_fnY+eEtVd1YEmowbzWqh9fdtE8lq8PDMbpOAT/C//4g="
+				)
+			);
+			// Dividend 2026-01-15 00:00:00:+00:00 0,90 EUR US2546871060 1 EUR 0,90 EUR Trade_Republic_account_statement.pdf_20260115_DwAFiDoZuh56qKc4jjsCuOculON8eQn28tJuWrsLXoA=
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateDividend(
+						Currency.EUR,
+						new DateTime(2026, 01, 15, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US2546871060")],
+						0.90m,
+						new Money(Currency.EUR, 0.9m),
+						"Trade_Republic_account_statement.pdf_20260115_DwAFiDoZuh56qKc4jjsCuOculON8eQn28tJuWrsLXoA="
+				)
 			);
 		}
 	}
