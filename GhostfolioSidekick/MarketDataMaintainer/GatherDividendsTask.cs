@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataDividends;
 
-		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
+		public TimeSpan ExecutionFrequency => Frequencies.Daily;
 
 		public bool ExceptionsAreFatal => false;
 

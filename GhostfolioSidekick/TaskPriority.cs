@@ -26,6 +26,8 @@ namespace GhostfolioSidekick
 
 		MarketDataGatherer,
 
+		MarketDataTargetPrice,
+
 		CalculatePrice,
 
 		PerformanceCalculations,
