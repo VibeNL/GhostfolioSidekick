@@ -224,17 +224,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		/// <param name="row"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		private static ICollection<PartialSymbolIdentifier> ParseSymbolsFromDividendStrings(string descriptionString)
-		{
-			var isinPrefix = "ISIN ";
-			var isinIndex = descriptionString.IndexOf(isinPrefix);
-			if (isinIndex >= 0)
-			{
-				var isin = descriptionString[(isinIndex + isinPrefix.Length)..].Trim();
-				return [PartialSymbolIdentifier.CreateStockAndETF(isin)];
-			}
-			return [];
-		}
+       private static ICollection<PartialSymbolIdentifier> ParseSymbolsFromDividendStrings(string descriptionString)
+       {
+           if (string.IsNullOrWhiteSpace(descriptionString))
+               return [];
+
+           foreach (var text in descriptionString.Split([' '], StringSplitOptions.RemoveEmptyEntries))
+           {
+               var isin = ISINParser.ExtractIsin(text);
+               if (!string.IsNullOrWhiteSpace(isin))
+               {
+                   return [PartialSymbolIdentifier.CreateStockAndETF(isin)];
+               }
+           }
+           return [];
+       }
 
 		private static DateOnly ParseDate(string dateString)
 		{
