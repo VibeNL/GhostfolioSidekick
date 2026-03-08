@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					continue;
 				}
 
-				var symbolProfile = x.Holding.SymbolProfiles[0];
+				var symbolProfile = x.Holding.SymbolProfiles.OrderByDescending(x => x.DataSource)[0];
 
 				result.Add(new HoldingDisplayModel
 				{
