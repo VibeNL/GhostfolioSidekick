@@ -2,6 +2,8 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
@@ -122,6 +124,102 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.OrderBy(s => s.Symbol)
 				.Select(s => s.Symbol)
 				.ToListAsync(cancellationToken);
+		}
+
+		public async Task<List<TaxAccountDisplayModel>> GetTaxAccountDetailsAsync(int year)
+		{
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			var startDate = new DateTime(year, 1, 1);
+			var endDate = new DateTime(year, 12, 31);
+			var accounts = await databaseContext.Accounts
+				.Include(a => a.Platform)
+				.Include(a => a.Activities)
+				.ThenInclude(act => act.Holding)
+				.ThenInclude(h => h!.SymbolProfiles)
+				.AsNoTracking()
+				.ToListAsync();
+
+			var result = new List<TaxAccountDisplayModel>();
+
+			foreach (var account in accounts)
+			{
+				var model = new TaxAccountDisplayModel
+				{
+					Name = account.Name,
+					AccountType = account.Platform?.Name ?? "Unknown"
+				};
+
+				// Holdings (as of end of year)
+                var holdings = account.Activities
+                    .Where(a => a.Holding != null && a.Holding.SymbolProfiles != null && a.Date <= endDate)
+                    .GroupBy(a => a.Holding != null ? a.Holding.Id : 0)
+					.Select(g =>
+					{
+						var lastActivity = g.OrderByDescending(a => a.Date).FirstOrDefault();
+						return new TaxHoldingDisplayModel
+						{
+							Symbol = lastActivity?.Holding?.SymbolProfiles?.FirstOrDefault()?.Symbol ?? "",
+							Quantity = lastActivity is ActivityWithQuantityAndUnitPrice q ? q.Quantity : 0,
+							Value = lastActivity is ActivityWithQuantityAndUnitPrice q2 ? q2.Quantity * (q2.UnitPrice?.Amount ?? 0) : 0,
+							AcquisitionDate = lastActivity?.Date ?? DateTime.MinValue
+						};
+					})
+					.ToList();
+				model.Holdings = holdings;
+
+				// Transactions
+				model.Transactions = account.Activities
+					.Where(a => a.Date >= startDate && a.Date <= endDate)
+					.Select(a => new TaxTransactionDisplayModel
+					{
+						Date = a.Date,
+						Type = a.GetType().Name.Replace("Proxy", "").Replace("Activity", ""),
+						Symbol = a.Holding?.SymbolProfiles?.FirstOrDefault()?.Symbol ?? "",
+						Amount = a is ActivityWithAmount aa ? aa.Amount.Amount : 0,
+                        Fees = a is BuyActivity ba ? (ba.Fees?.Sum(f => f.Money.Amount) ?? 0) :
+                            (a is SellActivity sa ? (sa.Fees?.Sum(f => f.Money.Amount) ?? 0) :
+                            (a is DividendActivity da ? (da.Fees?.Sum(f => f.Money.Amount) ?? 0) : 0)),
+						Notes = a.Description ?? ""
+					})
+					.ToList();
+
+				// Dividends
+				model.Dividends = account.Activities
+					.Where(a => a is DividendActivity && a.Date >= startDate && a.Date <= endDate)
+					.Select(a =>
+					{
+						var dividend = a as DividendActivity;
+						return new TaxDividendDisplayModel
+						{
+							Date = dividend?.Date ?? DateTime.MinValue,
+							Symbol = dividend?.Holding?.SymbolProfiles?.FirstOrDefault()?.Symbol ?? "",
+							Amount = dividend?.Amount.Amount ?? 0,
+							TaxWithheld = dividend?.Taxes.Sum(t => t.Money.Amount) ?? 0
+						};
+					})
+					.ToList();
+
+				// Realized Gains/Losses
+				model.RealizedGainsLosses = account.Activities
+					.Where(a => a is SellActivity && a.Date >= startDate && a.Date <= endDate)
+					.Select(a =>
+					{
+						var sell = a as SellActivity;
+						var holdingSymbol = sell?.Holding != null && sell.Holding.SymbolProfiles != null ? sell.Holding.SymbolProfiles.FirstOrDefault()?.Symbol ?? "" : "";
+						var amount = a is ActivityWithQuantityAndUnitPrice aq ? aq.TotalTransactionAmount?.Amount ?? 0 : 0;
+						return new TaxGainLossDisplayModel
+						{
+							Symbol = holdingSymbol,
+							Amount = amount,
+							Date = sell?.Date ?? DateTime.MinValue
+						};
+					})
+					.ToList();
+
+				result.Add(model);
+			}
+
+			return result;
 		}
 	}
 }
