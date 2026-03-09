@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -113,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					continue;
 				}
 
-				var symbolProfile = x.Holding.SymbolProfiles.OrderByDescending(x => x.DataSource).First();
+				var symbolProfile = x.Holding.SymbolProfiles.OrderBy(x => Datasource.GetPriority(x.DataSource)).First();
 
 				result.Add(new HoldingDisplayModel
 				{
