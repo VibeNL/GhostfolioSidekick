@@ -372,5 +372,33 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				)
 			);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleAccountStatement_MultilineHeader_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement_alt.pdf", activityManager, account.Name);
+
+			// Debug, log all activities to easily identify which ones are missing in case of a failed test
+			foreach (var activity in activityManager.PartialActivities)
+			{
+				output.WriteLine(activity.ToString());
+			}
+
+			// Assert
+			//activityManager.PartialActivities.Should().HaveCount(24 * 2);
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateInterest(
+						Currency.EUR,
+						new DateTime(2026, 02, 01, 0, 0, 0, DateTimeKind.Utc),
+						29.23m,
+						"Interest payment",
+						new Money(Currency.EUR, 29.23m),
+						"Trade_Republic_account_statement.pdf_20260101_/UBJ93awt7TW9mubFaZVde05b8PkqrAvnhN+pHri05Q=")
+			);
+		}
 	}
 }
