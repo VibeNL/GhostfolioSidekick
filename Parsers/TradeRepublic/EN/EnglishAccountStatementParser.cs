@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
 							if (!string.IsNullOrWhiteSpace(symbol))
 							{
-								if (quantity == 0 && moneyIn.Value == 0)
+								if (quantity == 0)
 								{
 									yield return PartialActivity.CreateSellTotalOnly(
 										Currency.EUR,
@@ -145,7 +145,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
 							if (!string.IsNullOrWhiteSpace(symbol))
 							{
-								if (quantity == 0 && moneyOut.Value == 0)
+								if (quantity == 0)
 								{
 									yield return PartialActivity.CreateBuyTotalOnly(
 										Currency.EUR,
@@ -213,6 +213,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				return ("PRIVATE_EQUITY", amount);
 			}
 
+			string isin;
 			var quantityPrefix = "quantity: ";
 			var quantityIndex = descriptionString.IndexOf(quantityPrefix);
 			if (quantityIndex < 0)
@@ -221,7 +222,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				var oldFormat = "Uitvoering Handel Directe";
 				if (descriptionString.StartsWith(oldFormat))
 				{
-					var isin = ISINParser.ExtractIsin(descriptionString);
+					isin = ISINParser.ExtractIsinMultistring(descriptionString);
 					if (!string.IsNullOrWhiteSpace(isin))
 					{
 						return (isin, null);
@@ -240,13 +241,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			}
 
 			// Lets us the ISINParser to search for the isin
-			foreach (var text in descriptionString.Split([' '], StringSplitOptions.RemoveEmptyEntries))
+			isin = ISINParser.ExtractIsinMultistring(descriptionString);
+			if (!string.IsNullOrWhiteSpace(isin))
 			{
-				var isin = ISINParser.ExtractIsin(text);
-				if (!string.IsNullOrWhiteSpace(isin))
-				{
-					return (isin, quantity); // Placeholder for amount, adjust as needed
-				}
+				return (isin, quantity); // Placeholder for amount, adjust as needed
 			}
 
 			return (string.Empty, 0); // Return a default value if no ISIN is found
