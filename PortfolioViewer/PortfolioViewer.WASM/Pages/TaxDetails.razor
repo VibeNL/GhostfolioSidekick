@@ -28,164 +28,62 @@ else
                 <span class="fw-bold">@account.Name</span> <span class="text-muted ms-2">@account.AccountType</span>
             </div>
             <div class="card-body">
-               <!-- Start/End Positions and Values -->
-               <div class="mb-3">
-                   <h5>Position Difference (1-1 vs 31-12)</h5>
-                   <table class="table table-sm table-bordered w-auto">
-                       <thead>
-                           <tr>
-                               <th></th>
-                               <th>1-1</th>
-                               <th>31-12</th>
-                               <th>Difference</th>
-                           </tr>
-                       </thead>
-                       <tbody>
-                           <tr>
-                               <td class="fw-bold">Value</td>
-                               <td>@FormatCurrency(account.StartValue)</td>
-                               <td>@FormatCurrency(account.EndValue)</td>
-                               <td>@FormatCurrency(account.EndValue - account.StartValue)</td>
-                           </tr>
-                           <tr>
-                               <td class="fw-bold">Cash Balance</td>
-                               <td>@FormatCurrency(account.StartCashBalance)</td>
-                               <td>@FormatCurrency(account.EndCashBalance)</td>
-                               <td>@FormatCurrency(account.EndCashBalance - account.StartCashBalance)</td>
-                           </tr>
-                       </tbody>
-                   </table>
-                   <div class="mt-2">
-                       <span class="fw-bold">Holdings:</span>
-                       @if (account.Holdings != null && account.Holdings.Any(h => h.AcquisitionDate.Year == SelectedYear))
-                       {
-                           <table class="table table-sm table-bordered mt-1">
-                               <thead>
-                                   <tr>
-                                       <th>Symbol</th>
-                                       <th>Quantity</th>
-                                       <th>Value</th>
-                                       <th>Acquisition Date</th>
-                                   </tr>
-                               </thead>
-                               <tbody>
-                                   @foreach (var holding in account.Holdings.Where(h => h.AcquisitionDate.Year == SelectedYear))
-                                   {
-                                       <tr>
-                                           <td>@holding.Symbol</td>
-                                           <td>@holding.Quantity</td>
-                                           <td>@FormatCurrency(holding.Value)</td>
-                                           <td>@holding.AcquisitionDate.ToString("dd/MM/yyyy")</td>
-                                       </tr>
-                                   }
-                               </tbody>
-                           </table>
-                       }
-                       else
-                       {
-                           <p>No holdings for @SelectedYear.</p>
-                       }
-                   </div>
-               </div>
-               <!-- Holdings -->
-               <!-- Holdings section removed (already merged above) -->
-
-               <!-- Transactions -->
-               <h5>Transactions</h5>
-               @if (account.Transactions != null && account.Transactions.Any(tx => tx.Type != "KnownBalance" && tx.Amount != 0))
-               {
-                   <table class="table table-sm table-bordered">
-                       <thead>
-                           <tr>
-                               <th>Date</th>
-                               <th>Type</th>
-                               <th>Symbol</th>
-                               <th>Amount</th>
-                               <th>Fees</th>
-                               <th>Notes</th>
-                           </tr>
-                       </thead>
-                       <tbody>
-                           @foreach (var tx in account.Transactions.Where(tx => tx.Type != "KnownBalance" && tx.Amount != 0))
-                           {
-                               <tr>
-                                   <td>@tx.Date.ToString("dd/MM/yyyy")</td>
-                                   <td>@tx.Type</td>
-                                   <td>@tx.Symbol</td>
-                                   <td>@FormatCurrency(tx.Amount)</td>
-                                   <td>@FormatCurrency(tx.Fees)</td>
-                                   <td>@tx.Notes</td>
-                               </tr>
-                           }
-                       </tbody>
-                   </table>
-               }
-               else
-               {
-                   <p>No transactions for @SelectedYear.</p>
-               }
-
-				<!-- Dividends -->
-				<h5>Dividends</h5>
-				@if (account.Dividends != null && account.Dividends.Any())
-				{
-					<table class="table table-sm table-bordered">
-						<thead>
-							<tr>
-								<th>Date</th>
-								<th>Symbol</th>
-								<th>Amount</th>
-								<th>Tax Withheld</th>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach (var div in account.Dividends)
-							{
-								<tr>
-									<td>@div.Date.ToString("dd/MM/yyyy")</td>
-									<td>@div.Symbol</td>
-									<td>@div.Amount.ToString("C")</td>
-									<td>@div.TaxWithheld.ToString("C")</td>
-								</tr>
-							}
-						</tbody>
-					</table>
-				}
-				else
-				{
-					<p>No dividends for @SelectedYear.</p>
-				}
-
-				<!-- Realized Gains/Losses -->
-				<h5>Realized Gains/Losses</h5>
-				@if (account.RealizedGainsLosses != null && account.RealizedGainsLosses.Any())
-				{
-					<table class="table table-sm table-bordered">
-						<thead>
-							<tr>
-								<th>Symbol</th>
-								<th>Gain/Loss</th>
-								<th>Date</th>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach (var gl in account.RealizedGainsLosses)
-							{
-								<tr>
-									<td>@gl.Symbol</td>
-									<td>@gl.Amount.ToString("C")</td>
-									<td>@gl.Date.ToString("dd/MM/yyyy")</td>
-								</tr>
-							}
-						</tbody>
-					</table>
-				}
-				else
-				{
-					<p>No realized gains/losses for @SelectedYear.</p>
-				}
-			</div>
-		</div>
-	}
+                <h5>Positions Overview (1-1 and 31-12)</h5>
+                <table class="table table-sm table-bordered w-auto">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Quantity 1-1</th>
+                            <th>Value 1-1</th>
+                            <th>Quantity 31-12</th>
+                            <th>Value 31-12</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if ((account.StartHoldings != null && account.StartHoldings.Any()) || (account.EndHoldings != null && account.EndHoldings.Any()))
+                        {
+                            var startSymbols = account.StartHoldings?.Select(h => h.Symbol).ToHashSet() ?? [];
+                            var endSymbols = account.EndHoldings?.Select(h => h.Symbol).ToHashSet() ?? [];
+                            var allSymbols = startSymbols.Union(endSymbols).OrderBy(s => s);
+                            var totalStartValue = 0m;
+                            var totalEndValue = 0m;
+                            foreach (var symbol in allSymbols)
+                            {
+                                var start = account.StartHoldings?.FirstOrDefault(h => h.Symbol == symbol);
+                                var end = account.EndHoldings?.FirstOrDefault(h => h.Symbol == symbol);
+                                totalStartValue += start?.Value ?? 0;
+                                totalEndValue += end?.Value ?? 0;
+                                <tr>
+                                    <td>@symbol</td>
+                                    <td>@(start?.Quantity ?? 0)</td>
+                                    <td>@FormatCurrency(start?.Value ?? 0)</td>
+                                    <td>@(end?.Quantity ?? 0)</td>
+                                    <td>@FormatCurrency(end?.Value ?? 0)</td>
+                                </tr>
+                            }
+                            <tr class="fw-bold">
+                                <td>Total Balance</td>
+                                <td></td>
+                                <td>@FormatCurrency(totalStartValue)</td>
+                                <td></td>
+                                <td>@FormatCurrency(totalEndValue)</td>
+                            </tr>
+                            <tr class="fw-bold">
+                                <td>Total Cash</td>
+                                <td></td>
+                                <td>@FormatCurrency(account.StartCashBalance)</td>
+                                <td></td>
+                                <td>@FormatCurrency(account.EndCashBalance)</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr><td colspan="5">No holdings for @SelectedYear.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 }
 
