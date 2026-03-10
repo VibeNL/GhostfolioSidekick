@@ -17,29 +17,49 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject] protected IServerConfigurationService? ConfigService { get; set; } = default!;
 
 		protected List<int> Years = new();
-		protected int SelectedYear;
+        private int _selectedYear;
+        protected int SelectedYear
+        {
+            get => _selectedYear;
+            set
+            {
+                if (_selectedYear != value)
+                {
+                    _selectedYear = value;
+                    _ = ReloadAccounts();
+                }
+            }
+        }
 		protected List<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TaxAccountDisplayModel>? Accounts;
 
-		protected override async Task OnInitializedAsync()
-		{
-			Years = await TransactionService.GetAvailableYearsAsync();
-			SelectedYear = Years.LastOrDefault(DateTime.Now.Year);
-			await LoadAccounts();
-		}
+        protected override async Task OnInitializedAsync()
+        {
+            Years = await TransactionService.GetAvailableYearsAsync();
+            SelectedYear = Years.LastOrDefault(DateTime.Now.Year);
+            await ReloadAccounts();
+        }
 
-		protected async Task LoadAccounts()
-		{
-			Accounts = await AccountService.GetTaxAccountDetailsAsync(SelectedYear);
-		}
+        protected async Task ReloadAccounts()
+        {
+            Accounts = await AccountService.GetTaxAccountDetailsAsync(SelectedYear);
+            if (Accounts != null)
+            {
+                foreach (var account in Accounts)
+                {
+                    ComputeSymbolRows(account);
+                }
+            }
+            StateHasChanged();
+        }
 
-		protected async Task OnYearChanged(ChangeEventArgs e)
-		{
-			if (e.Value is string s && int.TryParse(s, out var year))
-			{
-				SelectedYear = year;
-				await LoadAccounts();
-			}
-		}
+        protected async Task OnYearChanged(ChangeEventArgs e)
+        {
+            if (e.Value is string s && int.TryParse(s, out var year))
+            {
+                SelectedYear = year;
+                await ReloadAccounts();
+            }
+        }
 
 		protected string FormatCurrency(decimal amount)
 		{
@@ -85,5 +105,32 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			return false;
 		}
+        protected void ComputeSymbolRows(GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TaxAccountDisplayModel account)
+        {
+            var startSymbols = account.StartHoldings?.Select(h => h.Symbol).ToHashSet() ?? new HashSet<string?>();
+            var endSymbols = account.EndHoldings?.Select(h => h.Symbol).ToHashSet() ?? new HashSet<string?>();
+            var allSymbols = startSymbols.Union(endSymbols).OrderBy(s => s).ToList();
+            var rows = new List<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TaxAccountDisplayModel.SymbolRow>();
+            decimal totalStart = 0m;
+            decimal totalEnd = 0m;
+            foreach (var symbol in allSymbols)
+            {
+                var start = account.StartHoldings?.FirstOrDefault(h => h.Symbol == symbol);
+                var end = account.EndHoldings?.FirstOrDefault(h => h.Symbol == symbol);
+                rows.Add(new GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TaxAccountDisplayModel.SymbolRow
+                {
+                    Symbol = symbol ?? string.Empty,
+                    StartQuantity = start?.Quantity ?? 0,
+                    StartValue = start?.Value ?? 0,
+                    EndQuantity = end?.Quantity ?? 0,
+                    EndValue = end?.Value ?? 0
+                });
+                totalStart += start?.Value ?? 0;
+                totalEnd += end?.Value ?? 0;
+            }
+            account.SymbolRows = rows;
+            account.TotalStartValue = totalStart;
+            account.TotalEndValue = totalEnd;
+        }
 	}
 }

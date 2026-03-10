@@ -40,33 +40,24 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @if ((account.StartHoldings != null && account.StartHoldings.Any()) || (account.EndHoldings != null && account.EndHoldings.Any()))
+                        @if (account.SymbolRows != null && account.SymbolRows.Count > 0)
                         {
-                            var startSymbols = account.StartHoldings?.Select(h => h.Symbol).ToHashSet() ?? [];
-                            var endSymbols = account.EndHoldings?.Select(h => h.Symbol).ToHashSet() ?? [];
-                            var allSymbols = startSymbols.Union(endSymbols).OrderBy(s => s);
-                            var totalStartValue = 0m;
-                            var totalEndValue = 0m;
-                            foreach (var symbol in allSymbols)
+                            foreach (var row in account.SymbolRows)
                             {
-                                var start = account.StartHoldings?.FirstOrDefault(h => h.Symbol == symbol);
-                                var end = account.EndHoldings?.FirstOrDefault(h => h.Symbol == symbol);
-                                totalStartValue += start?.Value ?? 0;
-                                totalEndValue += end?.Value ?? 0;
                                 <tr>
-                                    <td>@symbol</td>
-                                    <td>@(start?.Quantity ?? 0)</td>
-                                    <td>@FormatCurrency(start?.Value ?? 0)</td>
-                                    <td>@(end?.Quantity ?? 0)</td>
-                                    <td>@FormatCurrency(end?.Value ?? 0)</td>
+                                    <td>@row.Symbol</td>
+                                    <td>@row.StartQuantity</td>
+                                    <td>@FormatCurrency(row.StartValue)</td>
+                                    <td>@row.EndQuantity</td>
+                                    <td>@FormatCurrency(row.EndValue)</td>
                                 </tr>
                             }
                             <tr class="fw-bold">
                                 <td>Total Balance</td>
                                 <td></td>
-                                <td>@FormatCurrency(totalStartValue)</td>
+                                <td>@FormatCurrency(account.TotalStartValue)</td>
                                 <td></td>
-                                <td>@FormatCurrency(totalEndValue)</td>
+                                <td>@FormatCurrency(account.TotalEndValue)</td>
                             </tr>
                             <tr class="fw-bold">
                                 <td>Total Cash</td>

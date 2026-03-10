@@ -17,6 +17,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
        public List<TaxTransactionDisplayModel> Transactions { get; set; } = new();
        public List<TaxDividendDisplayModel> Dividends { get; set; } = new();
        public List<TaxGainLossDisplayModel> RealizedGainsLosses { get; set; } = new();
+
+       // Performance optimization: precomputed symbol rows and totals
+       public List<SymbolRow> SymbolRows { get; set; } = new();
+       public decimal TotalStartValue { get; set; }
+       public decimal TotalEndValue { get; set; }
+
+   public class SymbolRow
+   {
+       public string Symbol { get; set; } = string.Empty;
+       public decimal StartQuantity { get; set; }
+       public decimal StartValue { get; set; }
+       public decimal EndQuantity { get; set; }
+       public decimal EndValue { get; set; }
+   }
 	}
 
 	public class TaxHoldingDisplayModel
