@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 	{
 		private readonly List<Account> _accounts;
 		private readonly ActivityManager _activityManager;
+		private readonly IDbContextFactory<GhostfolioSidekick.Database.DatabaseContext> _dbContextFactory;
 
 		public ActivityManagerTests()
 		{
@@ -18,7 +19,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				new Account { Name = "Account1", Id = 1 },
 				new Account { Name = "Account2", Id = 2 }
 			];
-			_activityManager = new ActivityManager(_accounts);
+			_dbContextFactory = Mock.Of<IDbContextFactory<GhostfolioSidekick.Database.DatabaseContext>>();
+			_activityManager = new ActivityManager(_accounts, _dbContextFactory);
 		}
 
 		[Fact]

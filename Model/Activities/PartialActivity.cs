@@ -27,6 +27,29 @@ namespace GhostfolioSidekick.Model.Activities
 			SymbolIdentifiers = [];
 		}
 
+		public PartialActivity(
+			PartialActivityType activityType,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			DateTime date,
+			decimal amount,
+			Money? unitPrice,
+			string transactionId,
+			Money? totalTransactionAmount,
+			int? sortingPriority,
+			string? description)
+		{
+			ActivityType = activityType;
+			SymbolIdentifiers = symbolIdentifiers;
+			Date = date.ToUniversalTime();
+			Amount = amount;
+			UnitPrice = unitPrice;
+			TransactionId = transactionId;
+			TotalTransactionAmount = totalTransactionAmount ?? new Money(Currency.EUR, 0);
+			SortingPriority = sortingPriority;
+			Description = description;
+			Currency = unitPrice?.Currency ?? Currency.EUR;
+		}
+
 		public PartialActivityType ActivityType { get; }
 
 		public Currency Currency { get; }

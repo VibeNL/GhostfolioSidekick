@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		private readonly string[] AccountStatementRepayment = ["DATE", "TYPE", "DESCRIPTION", "MONEY IN", "MONEY OUT", "BALANCE"];
 		private readonly ColumnAlignment[] column6 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
-		private readonly string[] PrivateEquityTransactionsIdentification = ["Private Markets kooporder"];
+		private readonly string[] PrivateEquityTransactionsIdentification = ["Private Markets kooporder"]; // TODO, Dutch wording 
 
 		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
@@ -111,14 +111,28 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 						if (moneyIn.HasValue)
 						{
 							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
-							if (!string.IsNullOrWhiteSpace(symbol) && quantity > 0 && moneyIn.Value > 0)
+							if (!string.IsNullOrWhiteSpace(symbol))
 							{
-								yield return PartialActivity.CreateSellTotalOnly(
-								Currency.EUR,
-								DateTime.SpecifyKind(date, DateTimeKind.Utc),
-								[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-								new Money(Currency.EUR, moneyIn.Value),
-								newTransactionId);
+								if (quantity == 0 && moneyIn.Value == 0)
+								{
+									yield return PartialActivity.CreateSellTotalOnly(
+										Currency.EUR,
+										DateTime.SpecifyKind(date, DateTimeKind.Utc),
+										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
+										new Money(Currency.EUR, moneyIn.Value),
+										newTransactionId);
+								}
+								else
+								{
+									yield return PartialActivity.CreateSell(
+										Currency.EUR,
+										DateTime.SpecifyKind(date, DateTimeKind.Utc),
+										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
+										quantity ?? 0,
+										new Money(Currency.EUR, moneyIn.Value / (quantity ?? 1)), // Price per unit, fallback to total price if quantity is not available
+										new Money(Currency.EUR, moneyIn.Value),
+										newTransactionId);
+								}
 							}
 							else
 							{
@@ -129,14 +143,28 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 						else if (moneyOut.HasValue)
 						{
 							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
-							if (!string.IsNullOrWhiteSpace(symbol) && quantity > 0 && moneyOut.Value > 0)
+							if (!string.IsNullOrWhiteSpace(symbol))
 							{
-								yield return PartialActivity.CreateBuyTotalOnly(
-								Currency.EUR,
-								DateTime.SpecifyKind(date, DateTimeKind.Utc),
-								[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-								new Money(Currency.EUR, moneyOut.Value),
-								newTransactionId);
+								if (quantity == 0 && moneyOut.Value == 0)
+								{
+									yield return PartialActivity.CreateBuyTotalOnly(
+										Currency.EUR,
+										DateTime.SpecifyKind(date, DateTimeKind.Utc),
+										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
+										new Money(Currency.EUR, moneyOut.Value),
+										newTransactionId);
+								}
+								else
+								{
+									yield return PartialActivity.CreateBuy(
+										Currency.EUR,
+										DateTime.SpecifyKind(date, DateTimeKind.Utc),
+										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
+										quantity ?? 0,
+										new Money(Currency.EUR, moneyOut.Value / (quantity ?? 1)), // Price per unit, fallback to total price if quantity is not available
+										new Money(Currency.EUR, moneyOut.Value),
+										newTransactionId);
+								}
 							}
 							else
 							{
