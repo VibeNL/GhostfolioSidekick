@@ -1,9 +1,5 @@
 @page "/tax-details"
-@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
-@using PortfolioViewer.WASM.Data.Services
-@inject IAccountDataService AccountService
-@inject ITransactionService TransactionService
-@inject NavigationManager Navigation
+@inherits PortfolioViewer.WASM.Pages.TaxDetailsBase
 
 <PageTitle>Tax Details</PageTitle>
 
@@ -25,13 +21,13 @@
 }
 else
 {
-	@foreach (var account in Accounts)
-	{
-		<div class="card mb-4">
-			<div class="card-header">
-				<span class="fw-bold">@account.Name</span> <span class="text-muted ms-2">@account.AccountType</span>
-			</div>
-			<div class="card-body">
+    foreach (var account in Accounts.Where(HasValues))
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <span class="fw-bold">@account.Name</span> <span class="text-muted ms-2">@account.AccountType</span>
+            </div>
+            <div class="card-body">
                <!-- Start/End Positions and Values -->
                <div class="mb-3">
                    <h5>Position Difference (1-1 vs 31-12)</h5>
@@ -252,39 +248,3 @@ else
 	}
 }
 
-@code {
-   private List<int> Years = new();
-   private int SelectedYear;
-   private List<TaxAccountDisplayModel>? Accounts;
-
-   protected override async Task OnInitializedAsync()
-   {
-       Years = await TransactionService.GetAvailableYearsAsync();
-       SelectedYear = Years.LastOrDefault(DateTime.Now.Year);
-       await LoadAccounts();
-   }
-
-   private async Task LoadAccounts()
-   {
-       Accounts = await AccountService.GetTaxAccountDetailsAsync(SelectedYear);
-   }
-
-   private async Task OnYearChanged(ChangeEventArgs e)
-   {
-       if (e.Value is string s && int.TryParse(s, out var year))
-       {
-           SelectedYear = year;
-           await LoadAccounts();
-       }
-   }
-
-   private string FormatCurrency(decimal amount, TaxAccountDisplayModel account)
-   {
-       // Use account primary currency if available, otherwise fallback to default formatting
-       var currency = account?.AccountType; // Replace with actual primary currency property if available
-       // Example: if account.PrimaryCurrency exists, use it
-       // string currency = account.PrimaryCurrency ?? "";
-       // For now, fallback to ToString("C")
-       return amount.ToString("C");
-   }
-}
