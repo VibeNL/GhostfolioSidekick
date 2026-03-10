@@ -110,15 +110,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					{
 						if (moneyIn.HasValue)
 						{
-							(string symbol, decimal quantity) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
+							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
 							if (!string.IsNullOrWhiteSpace(symbol) && quantity > 0 && moneyIn.Value > 0)
 							{
-								yield return PartialActivity.CreateSell(
+								yield return PartialActivity.CreateSellTotalOnly(
 								Currency.EUR,
 								DateTime.SpecifyKind(date, DateTimeKind.Utc),
 								[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-								quantity,
-								new Money(Currency.EUR, moneyIn.Value / quantity),
 								new Money(Currency.EUR, moneyIn.Value),
 								newTransactionId);
 							}
@@ -130,15 +128,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 						}
 						else if (moneyOut.HasValue)
 						{
-							(string symbol, decimal quantity) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
+							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
 							if (!string.IsNullOrWhiteSpace(symbol) && quantity > 0 && moneyOut.Value > 0)
 							{
-								yield return PartialActivity.CreateBuy(
+								yield return PartialActivity.CreateBuyTotalOnly(
 								Currency.EUR,
 								DateTime.SpecifyKind(date, DateTimeKind.Utc),
 								[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-								quantity,
-								new Money(Currency.EUR, moneyOut.Value / quantity),
 								new Money(Currency.EUR, moneyOut.Value),
 								newTransactionId);
 							}
@@ -176,7 +172,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		/// <exception cref="ArgumentNullException"><paramref name="descriptionString"/> is <see langword="null"/> or empty.</exception>
 		/// <exception cref="InvalidOperationException">The quantity part cannot be found in <paramref name="descriptionString"/>.</exception>
 		/// <exception cref="FormatException">The quantity part cannot be parsed as a decimal number.</exception>
-		private (string symbol, decimal amount) ParseSymbolAndAmount(string descriptionString, decimal amount)
+		private (string symbol, decimal? amount) ParseSymbolAndAmount(string descriptionString, decimal amount)
 		{
 			// Get the quantity from the string
 			if (string.IsNullOrEmpty(descriptionString))
@@ -193,6 +189,17 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			var quantityIndex = descriptionString.IndexOf(quantityPrefix);
 			if (quantityIndex < 0)
 			{
+				// Old transaction format without quantity, we calculate the quantity by dividing the amount by the price per unit, which we can extract from the description. This is a fallback for older transaction formats.
+				var oldFormat = "Uitvoering Handel Directe";
+				if (descriptionString.StartsWith(oldFormat))
+				{
+					var isin = ISINParser.ExtractIsin(descriptionString);
+					if (!string.IsNullOrWhiteSpace(isin))
+					{
+						return (isin, null);
+					}
+				}
+
 				// TODO Bonds?
 				logger.LogWarning("Unable to find quantity in description: {Description}", descriptionString);
 				return ("Bonds", 0);
@@ -224,21 +231,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		/// <param name="row"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-       private static ICollection<PartialSymbolIdentifier> ParseSymbolsFromDividendStrings(string descriptionString)
-       {
-           if (string.IsNullOrWhiteSpace(descriptionString))
-               return [];
+		private static ICollection<PartialSymbolIdentifier> ParseSymbolsFromDividendStrings(string descriptionString)
+		{
+			if (string.IsNullOrWhiteSpace(descriptionString))
+				return [];
 
-           foreach (var text in descriptionString.Split([' '], StringSplitOptions.RemoveEmptyEntries))
-           {
-               var isin = ISINParser.ExtractIsin(text);
-               if (!string.IsNullOrWhiteSpace(isin))
-               {
-                   return [PartialSymbolIdentifier.CreateStockAndETF(isin)];
-               }
-           }
-           return [];
-       }
+			foreach (var text in descriptionString.Split([' '], StringSplitOptions.RemoveEmptyEntries))
+			{
+				var isin = ISINParser.ExtractIsin(text);
+				if (!string.IsNullOrWhiteSpace(isin))
+				{
+					return [PartialSymbolIdentifier.CreateStockAndETF(isin)];
+				}
+			}
+			return [];
+		}
 
 		private static DateOnly ParseDate(string dateString)
 		{
