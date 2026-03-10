@@ -43,15 +43,15 @@ else
                        <tbody>
                            <tr>
                                <td class="fw-bold">Value</td>
-                               <td>@account.StartValue.ToString("C")</td>
-                               <td>@account.EndValue.ToString("C")</td>
-                               <td>@FormatCurrency(account.EndValue - account.StartValue, account)</td>
+                               <td>@FormatCurrency(account.StartValue)</td>
+                               <td>@FormatCurrency(account.EndValue)</td>
+                               <td>@FormatCurrency(account.EndValue - account.StartValue)</td>
                            </tr>
                            <tr>
                                <td class="fw-bold">Cash Balance</td>
-                               <td>@account.StartCashBalance.ToString("C")</td>
-                               <td>@account.EndCashBalance.ToString("C")</td>
-                               <td>@FormatCurrency(account.EndCashBalance - account.StartCashBalance, account)</td>
+                               <td>@FormatCurrency(account.StartCashBalance)</td>
+                               <td>@FormatCurrency(account.EndCashBalance)</td>
+                               <td>@FormatCurrency(account.EndCashBalance - account.StartCashBalance)</td>
                            </tr>
                        </tbody>
                    </table>
@@ -74,7 +74,7 @@ else
                                        <tr>
                                            <td>@holding.Symbol</td>
                                            <td>@holding.Quantity</td>
-                                           <td>@holding.Value.ToString("C")</td>
+                                           <td>@FormatCurrency(holding.Value)</td>
                                            <td>@holding.AcquisitionDate.ToString("dd/MM/yyyy")</td>
                                        </tr>
                                    }
@@ -171,8 +171,8 @@ else
                                    <td>@tx.Date.ToString("dd/MM/yyyy")</td>
                                    <td>@tx.Type</td>
                                    <td>@tx.Symbol</td>
-                                   <td>@FormatCurrency(tx.Amount, account)</td>
-                                   <td>@FormatCurrency(tx.Fees, account)</td>
+                                   <td>@FormatCurrency(tx.Amount)</td>
+                                   <td>@FormatCurrency(tx.Fees)</td>
                                    <td>@tx.Notes</td>
                                </tr>
                            }
