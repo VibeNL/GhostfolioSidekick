@@ -5,12 +5,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 {
 	public class TaxAccountDisplayModel
 	{
-		public string? Name { get; set; }
-		public string? AccountType { get; set; }
-		public List<TaxHoldingDisplayModel> Holdings { get; set; } = new();
-		public List<TaxTransactionDisplayModel> Transactions { get; set; } = new();
-		public List<TaxDividendDisplayModel> Dividends { get; set; } = new();
-		public List<TaxGainLossDisplayModel> RealizedGainsLosses { get; set; } = new();
+       public string? Name { get; set; }
+       public string? AccountType { get; set; }
+       public List<TaxHoldingDisplayModel> Holdings { get; set; } = new();
+       public List<TaxHoldingDisplayModel> StartHoldings { get; set; } = new();
+       public List<TaxHoldingDisplayModel> EndHoldings { get; set; } = new();
+       public decimal StartValue { get; set; }
+       public decimal EndValue { get; set; }
+       public decimal StartCashBalance { get; set; }
+       public decimal EndCashBalance { get; set; }
+       public List<TaxTransactionDisplayModel> Transactions { get; set; } = new();
+       public List<TaxDividendDisplayModel> Dividends { get; set; } = new();
+       public List<TaxGainLossDisplayModel> RealizedGainsLosses { get; set; } = new();
 	}
 
 	public class TaxHoldingDisplayModel

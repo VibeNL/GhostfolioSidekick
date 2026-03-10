@@ -141,33 +141,88 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			var result = new List<TaxAccountDisplayModel>();
 
-			foreach (var account in accounts)
-			{
-				var model = new TaxAccountDisplayModel
-				{
-					Name = account.Name,
-					AccountType = account.Platform?.Name ?? "Unknown"
-				};
+            foreach (var account in accounts)
+            {
+                var model = new TaxAccountDisplayModel
+                {
+                    Name = account.Name,
+                    AccountType = account.Platform?.Name ?? "Unknown"
+                };
 
-				// Holdings (as of end of year)
+                // Get value history for this account
+                var valueHistory = await GetAccountValueHistoryAsync(
+                    DateOnly.FromDateTime(startDate),
+                    DateOnly.FromDateTime(endDate));
+                var accountHistory = valueHistory?.Where(v => v.AccountId == account.Id).ToList();
+                var startPoint = accountHistory?
+                    .Where(v => v.Date <= DateOnly.FromDateTime(startDate))
+                    .OrderByDescending(v => v.Date)
+                    .FirstOrDefault();
+                var endPoint = accountHistory?
+                    .Where(v => v.Date <= DateOnly.FromDateTime(endDate))
+                    .OrderByDescending(v => v.Date)
+                    .FirstOrDefault();
+
+                model.StartValue = startPoint?.TotalAssetValue.Amount ?? 0;
+                model.EndValue = endPoint?.TotalAssetValue.Amount ?? 0;
+                model.StartCashBalance = startPoint?.CashBalance.Amount ?? 0;
+                model.EndCashBalance = endPoint?.CashBalance.Amount ?? 0;
+
+                // Holdings (as of end of year)
                 var holdings = account.Activities
                     .Where(a => a.Holding != null && a.Holding.SymbolProfiles != null && a.Date <= endDate)
                     .GroupBy(a => a.Holding != null ? a.Holding.Id : 0)
-					.Select(g =>
-					{
-						var lastActivity = g.OrderByDescending(a => a.Date).FirstOrDefault();
-						return new TaxHoldingDisplayModel
-						{
-							Symbol = lastActivity?.Holding?.SymbolProfiles?.FirstOrDefault()?.Symbol ?? "",
-							Quantity = lastActivity is ActivityWithQuantityAndUnitPrice q ? q.Quantity : 0,
-							Value = lastActivity is ActivityWithQuantityAndUnitPrice q2 ? q2.Quantity * (q2.UnitPrice?.Amount ?? 0) : 0,
-							AcquisitionDate = lastActivity?.Date ?? DateTime.MinValue
-						};
-					})
-					.ToList();
-				model.Holdings = holdings;
+                    .Select(g =>
+                    {
+                        var lastActivity = g.OrderByDescending(a => a.Date).FirstOrDefault();
+                        return new TaxHoldingDisplayModel
+                        {
+                            Symbol = lastActivity?.Holding?.SymbolProfiles?.FirstOrDefault()?.Symbol ?? "",
+                            Quantity = lastActivity is ActivityWithQuantityAndUnitPrice q ? q.Quantity : 0,
+                            Value = lastActivity is ActivityWithQuantityAndUnitPrice q2 ? q2.Quantity * (q2.UnitPrice?.Amount ?? 0) : 0,
+                            AcquisitionDate = lastActivity?.Date ?? DateTime.MinValue
+                        };
+                    })
+                    .ToList();
+                model.Holdings = holdings;
 
-				// Transactions
+                // Start Holdings (as of 1-1)
+                var startHoldings = account.Activities
+                    .Where(a => a.Holding != null && a.Holding.SymbolProfiles != null && a.Date <= startDate)
+                    .GroupBy(a => a.Holding != null ? a.Holding.Id : 0)
+                    .Select(g =>
+                    {
+                        var lastActivity = g.OrderByDescending(a => a.Date).FirstOrDefault();
+                        return new TaxHoldingDisplayModel
+                        {
+                            Symbol = lastActivity?.Holding?.SymbolProfiles?.FirstOrDefault()?.Symbol ?? "",
+                            Quantity = lastActivity is ActivityWithQuantityAndUnitPrice q ? q.Quantity : 0,
+                            Value = lastActivity is ActivityWithQuantityAndUnitPrice q2 ? q2.Quantity * (q2.UnitPrice?.Amount ?? 0) : 0,
+                            AcquisitionDate = lastActivity?.Date ?? DateTime.MinValue
+                        };
+                    })
+                    .ToList();
+                model.StartHoldings = startHoldings;
+
+                // End Holdings (as of 31-12)
+                var endHoldings = account.Activities
+                    .Where(a => a.Holding != null && a.Holding.SymbolProfiles != null && a.Date <= endDate)
+                    .GroupBy(a => a.Holding != null ? a.Holding.Id : 0)
+                    .Select(g =>
+                    {
+                        var lastActivity = g.OrderByDescending(a => a.Date).FirstOrDefault();
+                        return new TaxHoldingDisplayModel
+                        {
+                            Symbol = lastActivity?.Holding?.SymbolProfiles?.FirstOrDefault()?.Symbol ?? "",
+                            Quantity = lastActivity is ActivityWithQuantityAndUnitPrice q ? q.Quantity : 0,
+                            Value = lastActivity is ActivityWithQuantityAndUnitPrice q2 ? q2.Quantity * (q2.UnitPrice?.Amount ?? 0) : 0,
+                            AcquisitionDate = lastActivity?.Date ?? DateTime.MinValue
+                        };
+                    })
+                    .ToList();
+                model.EndHoldings = endHoldings;
+
+                // Transactions
 				model.Transactions = account.Activities
 					.Where(a => a.Date >= startDate && a.Date <= endDate)
 					.Select(a => new TaxTransactionDisplayModel
