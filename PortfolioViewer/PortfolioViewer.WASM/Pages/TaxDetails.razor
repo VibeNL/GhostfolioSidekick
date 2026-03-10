@@ -42,8 +42,7 @@ else
                     <tbody>
                         @if (account.SymbolRows != null && account.SymbolRows.Count > 0)
                         {
-                            foreach (var row in account.SymbolRows)
-                            {
+                            <Virtualize Items="account.SymbolRows" Context="row">
                                 <tr>
                                     <td>@row.Symbol</td>
                                     <td>@row.StartQuantity</td>
@@ -51,7 +50,7 @@ else
                                     <td>@row.EndQuantity</td>
                                     <td>@FormatCurrency(row.EndValue)</td>
                                 </tr>
-                            }
+                            </Virtualize>
                             <tr class="fw-bold">
                                 <td>Total Balance</td>
                                 <td></td>

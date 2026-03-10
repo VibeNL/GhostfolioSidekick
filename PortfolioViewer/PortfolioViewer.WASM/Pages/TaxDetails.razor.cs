@@ -36,7 +36,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         {
             Years = await TransactionService.GetAvailableYearsAsync();
             SelectedYear = Years.LastOrDefault(DateTime.Now.Year);
-            await ReloadAccounts();
         }
 
         protected async Task ReloadAccounts()
