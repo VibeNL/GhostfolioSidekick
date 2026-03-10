@@ -56,8 +56,8 @@ else
                        </tbody>
                    </table>
                    <div class="mt-2">
-                       <span class="fw-bold">Start Holdings:</span>
-                       @if (account.StartHoldings != null && account.StartHoldings.Any())
+                       <span class="fw-bold">Holdings:</span>
+                       @if (account.Holdings != null && account.Holdings.Any(h => h.AcquisitionDate.Year == SelectedYear))
                        {
                            <table class="table table-sm table-bordered mt-1">
                                <thead>
@@ -69,7 +69,7 @@ else
                                    </tr>
                                </thead>
                                <tbody>
-                                   @foreach (var holding in account.StartHoldings)
+                                   @foreach (var holding in account.Holdings.Where(h => h.AcquisitionDate.Year == SelectedYear))
                                    {
                                        <tr>
                                            <td>@holding.Symbol</td>
@@ -83,71 +83,12 @@ else
                        }
                        else
                        {
-                           <p>No start holdings for @SelectedYear.</p>
-                       }
-                   </div>
-                   <div class="mt-2">
-                       <span class="fw-bold">End Holdings:</span>
-                       @if (account.EndHoldings != null && account.EndHoldings.Any())
-                       {
-                           <table class="table table-sm table-bordered mt-1">
-                               <thead>
-                                   <tr>
-                                       <th>Symbol</th>
-                                       <th>Quantity</th>
-                                       <th>Value</th>
-                                       <th>Acquisition Date</th>
-                                   </tr>
-                               </thead>
-                               <tbody>
-                                   @foreach (var holding in account.EndHoldings)
-                                   {
-                                       <tr>
-                                           <td>@holding.Symbol</td>
-                                           <td>@holding.Quantity</td>
-                                           <td>@holding.Value.ToString("C")</td>
-                                           <td>@holding.AcquisitionDate.ToString("dd/MM/yyyy")</td>
-                                       </tr>
-                                   }
-                               </tbody>
-                           </table>
-                       }
-                       else
-                       {
-                           <p>No end holdings for @SelectedYear.</p>
+                           <p>No holdings for @SelectedYear.</p>
                        }
                    </div>
                </div>
                <!-- Holdings -->
-               <h5>Holdings</h5>
-               @if (account.Holdings != null && account.Holdings.Any(h => h.AcquisitionDate.Year == SelectedYear))
-               {
-                   <table class="table table-sm table-bordered">
-                       <thead>
-                           <tr>
-                               <th>Symbol</th>
-                               <th>Quantity</th>
-                               <th>Value</th>
-                               <th>Acquisition Date</th>
-                           </tr>
-                       </thead>
-                       <tbody>
-                           @foreach (var holding in account.Holdings.Where(h => h.AcquisitionDate.Year == SelectedYear))
-                           {
-                               <tr>
-                                   <td>@holding.Symbol</td>
-                                   <td>@holding.Quantity</td>
-                                   <td>@holding.Value.ToString("C")</td>
-                                   <td>@holding.AcquisitionDate.ToString("dd/MM/yyyy")</td>
-                               </tr>
-                           }
-                       </tbody>
-                   </table>
-               }
-               else
-               {
-                   <p>No holdings for @SelectedYear.</p>
-               }
+               <!-- Holdings section removed (already merged above) -->
 
                <!-- Transactions -->
                <h5>Transactions</h5>
