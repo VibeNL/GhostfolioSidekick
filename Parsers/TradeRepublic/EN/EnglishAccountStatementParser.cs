@@ -1,18 +1,15 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 {
 
-	public class EnglishAccountStatementParser(ILogger<EnglishAccountStatementParser> logger) : BaseSubParser
+	public class EnglishAccountStatementParser : BaseSubParser
 	{
 		private readonly string[] AccountStatementRepayment = ["DATE", "TYPE", "DESCRIPTION", "MONEY IN", "MONEY OUT", "BALANCE"];
 		private readonly ColumnAlignment[] column6 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
-
-		private readonly string[] PrivateEquityTransactionsIdentification = ["Private Markets kooporder"]; // TODO, Dutch wording 
 
 		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
@@ -95,87 +92,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 						break;
 					}
 				case "Earnings": // Dividend
-					{
-						if (moneyIn.HasValue)
-						{
-							yield return PartialActivity.CreateDividend(Currency.EUR, DateTime.SpecifyKind(date, DateTimeKind.Utc), ParseSymbolsFromDividendStrings(descriptionString), moneyIn.Value, new Money(Currency.EUR, moneyIn.Value), newTransactionId);
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
-						break;
-					}
 				case "Trade": // Buys and Sells
 					{
-						if (moneyIn.HasValue)
-						{
-							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyIn.Value);
-							if (!string.IsNullOrWhiteSpace(symbol))
-							{
-								if (quantity == 0)
-								{
-									yield return PartialActivity.CreateSellTotalOnly(
-										Currency.EUR,
-										DateTime.SpecifyKind(date, DateTimeKind.Utc),
-										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-										new Money(Currency.EUR, moneyIn.Value),
-										newTransactionId);
-								}
-								else
-								{
-									yield return PartialActivity.CreateSell(
-										Currency.EUR,
-										DateTime.SpecifyKind(date, DateTimeKind.Utc),
-										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-										quantity ?? 0,
-										new Money(Currency.EUR, moneyIn.Value / (quantity ?? 1)), // Price per unit, fallback to total price if quantity is not available
-										new Money(Currency.EUR, moneyIn.Value),
-										newTransactionId);
-								}
-							}
-							else
-							{
-								// Invalid symbol or quantity, skip this record
-								yield break;
-							}
-						}
-						else if (moneyOut.HasValue)
-						{
-							(string symbol, decimal? quantity) = ParseSymbolAndAmount(descriptionString, moneyOut.Value);
-							if (!string.IsNullOrWhiteSpace(symbol))
-							{
-								if (quantity == 0)
-								{
-									yield return PartialActivity.CreateBuyTotalOnly(
-										Currency.EUR,
-										DateTime.SpecifyKind(date, DateTimeKind.Utc),
-										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-										new Money(Currency.EUR, moneyOut.Value),
-										newTransactionId);
-								}
-								else
-								{
-									yield return PartialActivity.CreateBuy(
-										Currency.EUR,
-										DateTime.SpecifyKind(date, DateTimeKind.Utc),
-										[PartialSymbolIdentifier.CreateStockBondAndETF(symbol)],
-										quantity ?? 0,
-										new Money(Currency.EUR, moneyOut.Value / (quantity ?? 1)), // Price per unit, fallback to total price if quantity is not available
-										new Money(Currency.EUR, moneyOut.Value),
-										newTransactionId);
-								}
-							}
-							else
-							{
-								// Invalid symbol or quantity, skip this record
-								yield break;
-							}
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
+						// Ignore, should be seperate statement files
 						break;
 					}
 			}
@@ -187,90 +106,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			var combinedString = $"{dateString}|{typeString}|{descriptionString}|{moneyInString}|{moneyOutString}|{balanceString}";
 			var hashBytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(combinedString));
 			return Convert.ToBase64String(hashBytes);
-		}
-
-		/// <summary>
-		/// Parse the information from strings like:
-		///  Savings plan execution IE00BM8R0J59 Global X ETFs ICAV - Global X Nasdaq 100 Covered Call UCITS ETF Dis USD, quantity: 1.744591
-		///  Sell trade US2546871060 DISNEY (WALT) CO., quantity: 1.640151
-		/// </summary>
-		/// <param name="descriptionString">The full transaction description containing the ISIN and quantity.</param>
-		/// <param name="amount">The total monetary amount of the transaction.</param>
-		/// <returns>A tuple containing the parsed symbol (ISIN or placeholder) and quantity.</returns>
-		/// <exception cref="ArgumentNullException"><paramref name="descriptionString"/> is <see langword="null"/> or empty.</exception>
-		/// <exception cref="InvalidOperationException">The quantity part cannot be found in <paramref name="descriptionString"/>.</exception>
-		/// <exception cref="FormatException">The quantity part cannot be parsed as a decimal number.</exception>
-		private (string symbol, decimal? amount) ParseSymbolAndAmount(string descriptionString, decimal amount)
-		{
-			// Get the quantity from the string
-			if (string.IsNullOrEmpty(descriptionString))
-			{
-				throw new ArgumentNullException(nameof(descriptionString));
-			}
-
-			if (PrivateEquityTransactionsIdentification.Contains(descriptionString))
-			{
-				return ("PRIVATE_EQUITY", amount);
-			}
-
-			string isin;
-			var quantityPrefix = "quantity: ";
-			var quantityIndex = descriptionString.IndexOf(quantityPrefix);
-			if (quantityIndex < 0)
-			{
-				// Old transaction format without quantity, we calculate the quantity by dividing the amount by the price per unit, which we can extract from the description. This is a fallback for older transaction formats.
-				var oldFormat = "Uitvoering Handel Directe";
-				if (descriptionString.StartsWith(oldFormat))
-				{
-					isin = ISINParser.ExtractIsinMultistring(descriptionString);
-					if (!string.IsNullOrWhiteSpace(isin))
-					{
-						return (isin, null);
-					}
-				}
-
-				// TODO Bonds?
-				logger.LogWarning("Unable to find quantity in description: {Description}", descriptionString);
-				return ("Bonds", 0);
-			}
-
-			var quantityString = descriptionString.Substring(quantityIndex + quantityPrefix.Length).Trim();
-			if (!decimal.TryParse(quantityString, NumberStyles.Any, CultureInfo.InvariantCulture, out var quantity))
-			{
-				throw new FormatException($"Unable to parse quantity: {quantityString}");
-			}
-
-			// Lets us the ISINParser to search for the isin
-			isin = ISINParser.ExtractIsinMultistring(descriptionString);
-			if (!string.IsNullOrWhiteSpace(isin))
-			{
-				return (isin, quantity); // Placeholder for amount, adjust as needed
-			}
-
-			return (string.Empty, 0); // Return a default value if no ISIN is found
-		}
-
-		/// <summary>
-		/// Get the symbol from strings like:
-		///  Cash Dividend for ISIN IE00BM8R0J59
-		/// </summary>
-		/// <param name="row"></param>
-		/// <returns></returns>
-		/// <exception cref="NotImplementedException"></exception>
-		private static ICollection<PartialSymbolIdentifier> ParseSymbolsFromDividendStrings(string descriptionString)
-		{
-			if (string.IsNullOrWhiteSpace(descriptionString))
-				return [];
-
-			foreach (var text in descriptionString.Split([' '], StringSplitOptions.RemoveEmptyEntries))
-			{
-				var isin = ISINParser.ExtractIsin(text);
-				if (!string.IsNullOrWhiteSpace(isin))
-				{
-					return [PartialSymbolIdentifier.CreateStockAndETF(isin)];
-				}
-			}
-			return [];
 		}
 
 		private static DateOnly ParseDate(string dateString)

@@ -196,19 +196,6 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateBuyTotalOnly(
-			Currency currency,
-			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
-			Money totalTransactionAmount,
-			string transactionId)
-		{
-			return new PartialActivity(PartialActivityType.Buy, date, currency, totalTransactionAmount, transactionId)
-			{
-				SymbolIdentifiers = symbolIdentifiers,
-			};
-		}
-
 		public static PartialActivity CreateSell(
 			Currency currency,
 			DateTime date,
@@ -223,19 +210,6 @@ namespace GhostfolioSidekick.Model.Activities
 				SymbolIdentifiers = symbolIdentifiers,
 				Amount = amount,
 				UnitPrice = unitPrice
-			};
-		}
-
-		public static PartialActivity CreateSellTotalOnly(
-			Currency currency,
-			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
-			Money totalTransactionAmount,
-			string transactionId)
-		{
-			return new PartialActivity(PartialActivityType.Sell, date, currency, totalTransactionAmount, transactionId)
-			{
-				SymbolIdentifiers = symbolIdentifiers
 			};
 		}
 

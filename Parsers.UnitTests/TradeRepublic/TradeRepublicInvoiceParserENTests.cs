@@ -6,8 +6,6 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.TradeRepublic.EN;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -22,7 +20,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 	   new EnglishDividendInvoiceParser(),
 	   new EnglishInterestPaymentInvoiceParser(),
 	   new EnglishBondRepaymentInvoiceParser(),
-	   new EnglishAccountStatementParser(Mock.Of<ILogger<EnglishAccountStatementParser>>())
+	   new EnglishAccountStatementParser()
 		];
 		private readonly ITestOutputHelper output;
 
@@ -311,15 +309,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}
 
 			// Assert
-			activityManager.PartialActivities.Should().HaveCount(24 * 2);
-			activityManager.PartialActivities.Should().ContainEquivalentOf(
-				PartialActivity.CreateGift(
-						Currency.EUR,
-						new DateTime(2026, 01, 01, 0, 0, 0, DateTimeKind.Utc),
-						15m,
-						new Money(Currency.EUR, 15m),
-						"Trade_Republic_account_statement.pdf_20260101_TEWgmTKV73qgBYa5JCxtMLRCg90DrYBm6ySwU0fFZSM=")
-			);
+			activityManager.PartialActivities.Should().HaveCount(34);
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
 				PartialActivity.CreateInterest(
 						Currency.EUR,
@@ -329,48 +319,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new Money(Currency.EUR, 14.61m),
 						"Trade_Republic_account_statement.pdf_20260101_/UBJ93awt7TW9mubFaZVde05b8PkqrAvnhN+pHri05Q=")
 			);
-			activityManager.PartialActivities.Should().ContainEquivalentOf(
-				PartialActivity.CreateBuy(
-						Currency.EUR,
-						new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("IE000U9ODG19")],
-						3.158958m,
-						new Money(Currency.EUR, 7.9140020221857967089147750619M),
-						new Money(Currency.EUR, 25m),
-						"Trade_Republic_account_statement.pdf_20260102_ElyCuSZgMtkZNmFq0CfcIHw+GjPvAGCmMyl7qi66lO8=")
-			);
-			activityManager.PartialActivities.Should().ContainEquivalentOf(
-				PartialActivity.CreateBuy(
-						Currency.EUR,
-						new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("LU1931974262")],
-						1.494098m,
-						new Money(Currency.EUR, 33.465006980800456194975162272M),
-						new Money(Currency.EUR, 50m),
-						"Trade_Republic_account_statement.pdf_20260102_i9NGrsLA9M4Yc8LTczbClBBBHO2r4YcxG1UDBAjicEA=")
-			);
-			activityManager.PartialActivities.Should().ContainEquivalentOf(
-				PartialActivity.CreateSell(
-						Currency.EUR,
-						new DateTime(2026, 01, 02, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
-						1.640151m,
-						new Money(Currency.EUR, 96.28991477004251437824931973m),
-						new Money(Currency.EUR, 157.93m),
-						"Trade_Republic_account_statement.pdf_20260102_fnY+eEtVd1YEmowbzWqh9fdtE8lq8PDMbpOAT/C//4g="
-				)
-			);
-			// Dividend 2026-01-15 00:00:00:+00:00 0,90 EUR US2546871060 1 EUR 0,90 EUR Trade_Republic_account_statement.pdf_20260115_DwAFiDoZuh56qKc4jjsCuOculON8eQn28tJuWrsLXoA=
-			activityManager.PartialActivities.Should().ContainEquivalentOf(
-				PartialActivity.CreateDividend(
-						Currency.EUR,
-						new DateTime(2026, 01, 15, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US2546871060")],
-						0.90m,
-						new Money(Currency.EUR, 0.9m),
-						"Trade_Republic_account_statement.pdf_20260115_DwAFiDoZuh56qKc4jjsCuOculON8eQn28tJuWrsLXoA="
-				)
-			);
+			activityManager.PartialActivities.Where(x => x.ActivityType == PartialActivityType.Buy).Should().BeEmpty();
 		}
 	}
 }
