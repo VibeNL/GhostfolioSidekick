@@ -19,20 +19,6 @@ Additionally, for self-hosted instances, it can maintain symbols automatically.
 
 ( more to come? Help is always welcome! )
 
-# Note on v2
-Version 2 is a complete rewrite and restructuring of the code. The goal is to make it more maintainable and easier to add new features.
-A database is used to store the transactions and symbols. This allows for better tracking of changes and easier maintenance of the data.
-
-Several crypto workaround still need to be ported to the new version. This will be done in the upcoming changes.
-
-In case of serious issues, please install the latest v1. This version is not being maintained, but can be used as a fallback.
-
-Install with:
-
-```
-docker pull vibenl/ghostfoliosidekick:v1
-```
-
 ## Setup
 
 ### Ghostfolio
@@ -152,14 +138,14 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 
 | Platform | Source of the files | Documentation |
 |--|--|--|
-| Bitvavo (Broken) | Export of transaction history | |
+| Bitvavo (Broker) | Export of transaction history | |
 | Bunq (Bank) | Export CSV (Semicolom delimited) | |
-| Coinbase (Broken) | Export of transaction history | |
+| Coinbase (Broker) | Export of transaction history | |
 | De Giro | Export of account history (Language dependend, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
 | Generic importer | See below | |
-| Nexo (Broken) | Export of transaction history | |
+| Nexo (Broker) | Export of transaction history | |
 | NIBC (Bank) | Export CSV (Semicolom delimited) | |
-| Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | |
+| Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK (deprecated due to Scalable Capital migrating away from Baader Bank) | |
 | Scalable Capital (Prime only) | The CSV files export via the transaction view | |
 | Trading Republic | Montly Statements and individual invoices |  [Documentation](./Documentation/Parsers/TradeRepublic.md) |
 | Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
