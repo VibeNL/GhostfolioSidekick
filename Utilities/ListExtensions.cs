@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Utilities
+namespace GhostfolioSidekick.Utilities
 {
 	public static class ListExtensions
 	{
@@ -29,6 +29,25 @@
 				.Where(item => item!.Trim().Length > 1) // Filter out single characters
 				.Select(item => item!.Trim())
 				.Distinct()];
+		}
+
+		/// <summary>
+		/// Trims .DE and .AS suffixes from symbol strings and returns distinct cleaned symbols.
+		/// </summary>
+		public static List<string> TrimSymbolSuffixes(this IEnumerable<string?> list)
+		{
+         return [.. list
+				.Where(item => !string.IsNullOrWhiteSpace(item))
+				.Select(item =>
+				{
+					var trimmed = item!.Trim();
+					if (trimmed.Length > 3 && trimmed[^3] == '.' && char.IsLetter(trimmed[^2]) && char.IsLetter(trimmed[^1]))
+						trimmed = trimmed[..^3];
+					return trimmed;
+				})
+				.Where(item => item.Length > 0)
+				.Distinct(StringComparer.OrdinalIgnoreCase)
+			];
 		}
 	}
 }
