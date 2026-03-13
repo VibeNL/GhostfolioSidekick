@@ -164,17 +164,17 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				return (firstHeader ?? new PdfTableRow(definition.Headers, 0, 0, Array.Empty<SingleWordToken>()), allAligned);
 			}
 			else
-			{
-				var allDataRows = new List<PdfTableRow>();
-				PdfTableRow? header = null;
-				int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
-				if (headerIndex == -1)
 				{
-					return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
-				}
-				header = GetHeaders(definition.Headers, rows[headerIndex]);
-				for (int i = headerIndex + 1; i < rows.Count; i++)
-				{
+					var allDataRows = new List<PdfTableRow>();
+					PdfTableRow? header = null;
+					int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
+					if (headerIndex == -1)
+					{
+						return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
+					}
+					header = GetHeaders(definition.Headers, rows[headerIndex]);
+					for (int i = headerIndex + 1; i < rows.Count; i++)
+					{
 					var row = rows[i];
 					if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
 					{
@@ -208,19 +208,58 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			string? stopWord,
 			HashSet<(int Page, int Row)>? usedRows = null)
 		{
+			const int MaxHeaderRowSpan = 3;
 			var result = new List<(PdfTableRow Header, List<PdfTableRow> DataRows)>();
 			var rowsByPage = rows.GroupBy(r => r.Page).OrderBy(g => g.Key);
 			foreach (var pageGroup in rowsByPage)
 			{
 				var pageRows = pageGroup.ToList();
 				int headerIndex = pageRows.FindIndex(r => RowContainsAll(r, headerKeywords) && (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
+				int headerRowSpan = 1;
+				PdfTableRow? effectiveHeader = null;
+
+				if (headerIndex == -1)
+				{
+					// Try multi-row header detection for column names split across multiple lines
+					for (int i = 0; i < pageRows.Count; i++)
+					{
+						if (usedRows != null && usedRows.Contains((pageRows[i].Page, pageRows[i].Row)))
+							continue;
+
+						PdfTableRow currentMerge = pageRows[i];
+						for (int span = 2; span <= MaxHeaderRowSpan && (i + span - 1) < pageRows.Count; span++)
+						{
+							currentMerge = MergeRowsSortedByColumn(currentMerge, pageRows[i + span - 1]);
+							if (RowContainsAll(currentMerge, headerKeywords))
+							{
+								headerIndex = i;
+								headerRowSpan = span;
+								effectiveHeader = currentMerge;
+								break;
+							}
+						}
+
+						if (headerIndex != -1)
+							break;
+					}
+				}
+
 				if (headerIndex == -1)
 				{
 					continue;
 				}
-				var header = pageRows[headerIndex];
+
+				if (headerRowSpan > 1 && usedRows != null)
+				{
+					for (int s = 1; s < headerRowSpan; s++)
+					{
+						usedRows.Add((pageRows[headerIndex + s].Page, pageRows[headerIndex + s].Row));
+					}
+				}
+
+				var header = effectiveHeader ?? pageRows[headerIndex];
 				var dataRows = new List<PdfTableRow>();
-				for (int i = headerIndex + 1; i < pageRows.Count; i++)
+				for (int i = headerIndex + headerRowSpan; i < pageRows.Count; i++)
 				{
 					var row = pageRows[i];
 					if (usedRows != null && usedRows.Contains((row.Page, row.Row)))
@@ -375,6 +414,15 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			merged.Add(current);
 			return merged;
+		}
+
+		private static PdfTableRow MergeRowsSortedByColumn(PdfTableRow row1, PdfTableRow row2)
+		{
+			var mergedTokens = row1.Tokens
+				.Concat(row2.Tokens)
+				.OrderBy(t => t.BoundingBox?.Column ?? 0)
+				.ToList();
+			return new PdfTableRow(row1.Headers, row1.Page, row1.Row, mergedTokens);
 		}
 
 		private static bool RowContainsAll(PdfTableRow row, string[] headerKeywords)

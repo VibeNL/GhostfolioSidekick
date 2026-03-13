@@ -212,6 +212,34 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleAccountStatementAlt_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement_alt.pdf", activityManager, account.Name);
+
+			// Debug, log all activities to easily identify which ones are missing in case of a failed test
+			foreach (var activity in activityManager.PartialActivities)
+			{
+				output.WriteLine(activity.ToString());
+			}
+
+			// Assert - the alt file has a 3-row header where "MONEY OUT" is split across rows
+			activityManager.PartialActivities.Should().HaveCount(8);
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateCashDeposit(
+					Currency.EUR,
+					new DateTime(2024, 01, 03, 0, 0, 0, DateTimeKind.Utc),
+					6000.00m,
+					new Money(Currency.EUR, 6000.00m),
+					"Trade_Republic_account_statement_alt.pdf_20240103_h1RuhuGGY4S9kO3PRH8XwJYBx+bjPZUBknb+TTek89M=")
+			);
+			activityManager.PartialActivities.Where(x => x.ActivityType == PartialActivityType.Buy).Should().BeEmpty();
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFilesBulk_Converted()
 		{
 			// Arrange
