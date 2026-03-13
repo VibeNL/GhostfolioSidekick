@@ -309,16 +309,15 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}
 
 			// Assert
-			activityManager.PartialActivities.Should().HaveCount(34);
+			activityManager.PartialActivities.Should().HaveCount(33);
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
-				PartialActivity.CreateInterest(
-						Currency.EUR,
-						new DateTime(2026, 01, 01, 0, 0, 0, DateTimeKind.Utc),
-						14.61m,
-						"Interest payment",
-						new Money(Currency.EUR, 14.61m),
-						"Trade_Republic_account_statement.pdf_20260101_/UBJ93awt7TW9mubFaZVde05b8PkqrAvnhN+pHri05Q=")
-			);
+				PartialActivity.CreateCashWithdrawal(
+					Currency.EUR,
+					new DateTime(2023, 12, 30, 0, 0, 0, DateTimeKind.Utc),
+					1000.00m,
+					new Money(Currency.EUR, 1000.00m),
+					"Trade_Republic_account_statement.pdf_20231230_BVRJ26w+3/0JHGU83vh8QBubdAgZw8Qa85Q0Yo6tsGo=")
+);
 			activityManager.PartialActivities.Where(x => x.ActivityType == PartialActivityType.Buy).Should().BeEmpty();
 		}
 	}
