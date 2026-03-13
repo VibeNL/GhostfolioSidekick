@@ -84,6 +84,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Id));
 					break;
 				case "Stock distribution":
+				case "Stock dividends":
 					lst.Add(PartialActivity.CreateBuy(
 						currency,
 						record.Time,
