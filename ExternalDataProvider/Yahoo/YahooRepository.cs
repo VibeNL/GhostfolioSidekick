@@ -48,7 +48,38 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-			var bestMatch = searchResults[0];
+			SearchResult? bestMatch = null;
+
+			// Prefer exact symbol match (case-insensitive) with any identifier
+			foreach (var identifier in symbolIdentifiers)
+			{
+				bestMatch = searchResults.FirstOrDefault(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase));
+				if (bestMatch != null)
+					break;
+			}
+
+			// If no exact match, use semantic match score
+			if (bestMatch == null)
+			{
+				var identifierValues = symbolIdentifiers.Select(i => i.Identifier).Where(v => !string.IsNullOrWhiteSpace(v)).ToArray();
+				bestMatch = searchResults
+					.OrderByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(identifierValues, new[] { r.Symbol, r.ShortName ?? string.Empty }))
+					.First();
+			}
+
+			// If still ambiguous, fallback to allowed asset class/subclass
+			if (bestMatch == null)
+			{
+				foreach (var identifier in symbolIdentifiers)
+				{
+					bestMatch = searchResults.FirstOrDefault(r => IsAllowedSymbolType(r, identifier));
+					if (bestMatch != null)
+						break;
+				}
+			}
+
+			// Fallback to first result
+			bestMatch ??= searchResults[0];
 
 			return await CreateSymbolProfileFromMatch(bestMatch);
 		}

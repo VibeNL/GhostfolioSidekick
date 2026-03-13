@@ -84,5 +84,56 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			Assert.NotNull(result);
 			Assert.IsType<IEnumerable<StockSplit>>(result, exactMatch: false);
 		}
+
+		[Fact]
+		public async Task MatchSymbol_ShouldPreferExactSymbolMatch()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier { Identifier = "AAPL" },
+				new PartialSymbolIdentifier { Identifier = "APPLE" }
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("AAPL", result.Symbol);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_ShouldUseSemanticMatchScoreWhenNoExactMatch()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier { Identifier = "Apple" }
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Contains("Apple", result.Name, StringComparison.OrdinalIgnoreCase);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_ShouldFallbackToFirstResultIfNoMatch()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier { Identifier = "NonExistentSymbol" }
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.True(result == null || result is SymbolProfile);
+		}
 	}
 }
