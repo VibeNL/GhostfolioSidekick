@@ -1,16 +1,13 @@
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Parsers;
-using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Activities
 {
-	internal class ActivityManager(IList<Account> accounts,
-									IDbContextFactory<DatabaseContext> databaseContextFactory) : IActivityManager
+	internal class ActivityManager(IList<Account> accounts) : IActivityManager
 	{
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 
@@ -22,66 +19,31 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		public async Task<IEnumerable<Activity>> GenerateActivities()
+		public Task<IEnumerable<Activity>> GenerateActivities()
 		{
 			var activities = new List<Activity>();
-			using var db = databaseContextFactory.CreateDbContext();
 			foreach (var partialActivityPerAccount in unusedPartialActivities)
 			{
 				var accountName = partialActivityPerAccount.Key;
 				var account = accounts.FirstOrDefault(x => x.Name == accountName) ?? new Account(accountName);
-				// Correct all partials for this account
-				var correctedPartials = new List<PartialActivity>(partialActivityPerAccount.Value.Count);
-				foreach (var partial in partialActivityPerAccount.Value)
+				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
-					if (partial.Amount == 0 && (partial.UnitPrice?.Amount ?? 0) == 0 && partial.TotalTransactionAmount != null && partial.TotalTransactionAmount.Amount != 0 && partial.SymbolIdentifiers.Count > 0)
-					{
-						var symbolId = partial.SymbolIdentifiers.First().Identifier;
-						var symbolProfile = await db.SymbolProfiles
-							.Include(sp => sp.MarketData)
-							.FirstOrDefaultAsync(sp => sp.Identifiers.Contains(symbolId));
-						if (symbolProfile != null)
-						{
-							var date = DateOnly.FromDateTime(partial.Date);
-							var marketData = symbolProfile.MarketData
-								.OrderBy(md => md.Date)
-								.FirstOrDefault(md => md.Date >= date);
-							if (marketData != null && marketData.Close > 0)
-							{
-								correctedPartials.Add(new PartialActivity(
-									partial.ActivityType,
-									partial.SymbolIdentifiers,
-									partial.Date,
-									partial.TotalTransactionAmount.Amount / marketData.Close,
-									new Money(marketData.Currency, marketData.Close),
-									partial.TransactionId,
-									partial.TotalTransactionAmount,
-									partial.SortingPriority,
-									partial.Description
-								));
-								continue;
-							}
-						}
-					}
-					correctedPartials.Add(partial);
-				}
-
-				foreach (var transaction in correctedPartials.GroupBy(x => x.TransactionId))
-				{
-					await DetermineActivity(activities, account, [.. transaction]);
+					DetermineActivity(activities, account, [.. transaction]);
 				}
 			}
 
 			unusedPartialActivities.Clear();
-			return activities;
+			return Task.FromResult<IEnumerable<Activity>>(activities);
 		}
 
-		private static async Task DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)
+		private static void DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)
 		{
 			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Count != 0) ?? transactions[0];
-			var fees = transactions.Except(new[] { sourceTransaction }).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
-			var taxes = transactions.Except(new[] { sourceTransaction }).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
-			var otherTransactions = transactions.Except(new[] { sourceTransaction }).Except(fees).Except(taxes);
+
+			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
+			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
+
+			var otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
 
 			var activity = GenerateActivity(
 				account,
@@ -91,8 +53,8 @@ namespace GhostfolioSidekick.Activities
 				sourceTransaction.Amount,
 				sourceTransaction.UnitPrice ?? Money.One(Currency.EUR),
 				sourceTransaction.TransactionId,
-				fees.Select(x => new Money(x.UnitPrice?.Currency ?? Currency.EUR, x.Amount * (x.UnitPrice?.Amount ?? 0))),
-				taxes.Select(x => new Money(x.UnitPrice?.Currency ?? Currency.EUR, x.Amount * (x.UnitPrice?.Amount ?? 0))),
+				fees.Select(x => new Money(x.UnitPrice?.Currency ?? Currency.EUR, x.Amount * x.UnitPrice?.Amount ?? 0)),
+				taxes.Select(x => new Money(x.UnitPrice?.Currency ?? Currency.EUR, x.Amount * x.UnitPrice?.Amount ?? 0)),
 				sourceTransaction.TotalTransactionAmount,
 				sourceTransaction.SortingPriority,
 				sourceTransaction.Description);
