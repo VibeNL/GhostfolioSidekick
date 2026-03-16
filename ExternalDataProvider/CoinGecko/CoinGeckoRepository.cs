@@ -26,37 +26,47 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 		public bool AllowedForDeterminingHolding => true;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-		{
-			foreach (var id in symbolIdentifiers)
+       {
+			try
 			{
-				if (id.AllowedAssetSubClasses == null || !id.AllowedAssetSubClasses.Contains(AssetSubClass.CryptoCurrency))
+				var retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
+				return await retryPolicy.ExecuteAsync(async () =>
 				{
-					continue;
-				}
+					foreach (var id in symbolIdentifiers)
+					{
+						if (id.AllowedAssetSubClasses == null || !id.AllowedAssetSubClasses.Contains(AssetSubClass.CryptoCurrency))
+						{
+							continue;
+						}
 
-				var coinGeckoAsset = await GetCoinGeckoAsset(id.Identifier);
-				if (coinGeckoAsset == null)
-				{
-					continue;
-				}
+						var coinGeckoAsset = await GetCoinGeckoAsset(id.Identifier);
+						if (coinGeckoAsset == null)
+						{
+							continue;
+						}
 
-				var symbolProfile = new SymbolProfile(
-					coinGeckoAsset.Symbol,
-					coinGeckoAsset.Name,
-					[coinGeckoAsset.Symbol, coinGeckoAsset.Name],
-					Currency.USD with { },
-					Datasource.COINGECKO,
-					AssetClass.Liquidity,
-					AssetSubClass.CryptoCurrency,
-					[],
-					[])
-				{
-					WebsiteUrl = $"https://www.coingecko.com/en/coins/{coinGeckoAsset.Id}"
-				};
-				return symbolProfile;
+						var symbolProfile = new SymbolProfile(
+							coinGeckoAsset.Symbol,
+							coinGeckoAsset.Name,
+							[coinGeckoAsset.Symbol, coinGeckoAsset.Name],
+							Currency.USD with { },
+							Datasource.COINGECKO,
+							AssetClass.Liquidity,
+							AssetSubClass.CryptoCurrency,
+							[],
+							[])
+						{
+							WebsiteUrl = $"https://www.coingecko.com/en/coins/{coinGeckoAsset.Id}"
+						};
+						return symbolProfile;
+					}
+					return null;
+				});
 			}
-
-			return null;
+			catch
+			{
+				return null;
+			}
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)

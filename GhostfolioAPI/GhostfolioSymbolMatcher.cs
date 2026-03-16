@@ -1,11 +1,13 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -13,13 +15,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		private readonly IApiWrapper apiWrapper;
 		private readonly MemoryCache memoryCache;
+		private readonly ILogger<GhostfolioSymbolMatcher> logger;
 
-		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper, MemoryCache memoryCache)
+		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper, MemoryCache memoryCache, ILogger<GhostfolioSymbolMatcher> logger)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 			this.memoryCache = memoryCache;
-
+			this.logger = logger;
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
@@ -30,55 +33,66 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		public bool AllowedForDeterminingHolding => true;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-		{
-			if (symbolIdentifiers == null || symbolIdentifiers.Length == 0)
+       {
+			try
+			{
+				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
+				return await retryPolicy.ExecuteAsync(async () =>
+				{
+					if (symbolIdentifiers == null || symbolIdentifiers.Length == 0)
+					{
+						return null;
+					}
+
+					// Check if we have a cached version
+					var cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier));
+
+					if (string.IsNullOrWhiteSpace(cacheKey))
+					{
+						return null;
+					}
+
+					if (memoryCache.TryGetValue(cacheKey, out SymbolProfile? cachedSymbol))
+					{
+						return cachedSymbol;
+					}
+
+					foreach (var identifier in symbolIdentifiers)
+					{
+						var ids = new List<string> { identifier.Identifier };
+
+						if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
+						{
+							ids.Add($"{identifier.Identifier}USD");
+							ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
+						}
+
+						ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
+
+						var symbol = await FindByDataProvider(
+							ids,
+							null,
+							identifier.AllowedAssetClasses?.ToArray(),
+							identifier.AllowedAssetSubClasses?.ToArray(),
+							false);
+
+						if (symbol != null)
+						{
+							// Cache the symbol
+							memoryCache.Set(cacheKey, symbol, CacheDuration.Short());
+							return symbol;
+						}
+					}
+
+					// Cache the null result to avoid flooding the API with requests
+					memoryCache.Set(cacheKey, (SymbolProfile?)null, CacheDuration.Short());
+					return null;
+				});
+			}
+			catch
 			{
 				return null;
 			}
-
-			// Check if we have a cached version
-			var cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier));
-
-			if (string.IsNullOrWhiteSpace(cacheKey))
-			{
-				return null;
-			}
-
-			if (memoryCache.TryGetValue(cacheKey, out SymbolProfile? cachedSymbol))
-			{
-				return cachedSymbol;
-			}
-
-			foreach (var identifier in symbolIdentifiers)
-			{
-				var ids = new List<string> { identifier.Identifier };
-
-				if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
-				{
-					ids.Add($"{identifier.Identifier}USD");
-					ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
-				}
-
-				ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
-
-				var symbol = await FindByDataProvider(
-					ids,
-					null,
-					identifier.AllowedAssetClasses?.ToArray(),
-					identifier.AllowedAssetSubClasses?.ToArray(),
-					false);
-
-				if (symbol != null)
-				{
-					// Cache the symbol
-					memoryCache.Set(cacheKey, symbol, CacheDuration.Short());
-					return symbol;
-				}
-			}
-
-			// Cache the null result to avoid flooding the API with requests
-			memoryCache.Set(cacheKey, (SymbolProfile?)null, CacheDuration.Short());
-			return null;
 		}
 
 		private async Task<SymbolProfile?> FindByDataProvider(IEnumerable<string> ids, Currency? expectedCurrency, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass, bool includeIndexes)

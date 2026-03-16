@@ -1,4 +1,4 @@
-﻿using Flurl.Http;
+using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Fallback;
@@ -8,7 +8,7 @@ using System.Net;
 namespace GhostfolioSidekick.ExternalDataProvider
 {
 	[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-	internal static class RetryPolicyHelper
+	public static class RetryPolicyHelper
 	{
 		public static AsyncRetryPolicy GetRetryPolicy(ILogger logger)
 		{
