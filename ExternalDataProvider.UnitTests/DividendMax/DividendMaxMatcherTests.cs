@@ -5,11 +5,16 @@ using GhostfolioSidekick.Model.Symbols;
 using Moq;
 using Moq.Protected;
 
+
+using Microsoft.Extensions.Logging;
+
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {
 	public class DividendMaxMatcherTests
 	{
-		private static IHttpClientFactory CreateHttpClientFactory(string suggestJson)
+		private readonly Mock<ILogger<DividendMaxMatcher>> _loggerMock = new Mock<ILogger<DividendMaxMatcher>>();
+
+		private IHttpClientFactory CreateHttpClientFactory(string suggestJson)
 		{
 			var factoryMock = new Mock<IHttpClientFactory>();
 			factoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
@@ -23,14 +28,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			return factoryMock.Object;
 		}
 
-		[Fact]
+      [Fact]
 		public async Task MatchSymbol_ReturnsProfile_WhenBestMatchFound()
 		{
 			// Arrange
 			var suggestJson = "[{\"Id\":1,\"Name\":\"Apple Inc\",\"Path\":\"/stocks/us/apple-inc-aapl\",\"Ticker\":\"AAPL\",\"Flag\":\"US\"}]";
 
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
-			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] {
 				PartialSymbolIdentifier.CreateGeneric("AAPL"),
 				PartialSymbolIdentifier.CreateGeneric("Apple")
@@ -49,13 +54,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			Assert.Equal("https://www.dividendmax.com/stocks/us/apple-inc-aapl", result.WebsiteUrl);
 		}
 
-		[Fact]
+      [Fact]
 		public async Task MatchSymbol_ReturnsNull_WhenNoResults()
 		{
 			// Arrange
 			var suggestJson = "[]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
-			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ") };
 
 			// Act
@@ -65,7 +70,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			Assert.Null(result);
 		}
 
-		[Fact]
+      [Fact]
 		public async Task MatchSymbol_ReturnsNull_WhenScoreIsZero()
 		{
 			// Arrange
@@ -73,7 +78,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			// If you want to control the score, refactor SemanticMatcher to be injectable.
 			var suggestJson = "[{\"Id\":2,\"Name\":\"Not Related\",\"Path\":\"/stocks/us/not-related\",\"Ticker\":\"NR\",\"Flag\":\"US\"}]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
-			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL") };
 
 			// Act

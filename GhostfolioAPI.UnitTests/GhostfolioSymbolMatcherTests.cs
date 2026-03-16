@@ -5,24 +5,27 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
 	public class GhostfolioSymbolMatcherTests : IDisposable
-	{
+   {
 		private readonly Mock<IApplicationSettings> _settingsMock;
 		private readonly Mock<IApiWrapper> _apiWrapperMock;
 		private readonly MemoryCache _memoryCache;
+		private readonly Mock<ILogger<GhostfolioSymbolMatcher>> _loggerMock;
 		private readonly GhostfolioSymbolMatcher _symbolMatcher;
 		private readonly ConfigurationInstance _configInstance;
 		private bool _disposed;
 
 		public GhostfolioSymbolMatcherTests()
-		{
+       {
 			_settingsMock = new Mock<IApplicationSettings>();
 			_apiWrapperMock = new Mock<IApiWrapper>();
 			_memoryCache = new MemoryCache(new MemoryCacheOptions());
+			_loggerMock = new Mock<ILogger<GhostfolioSymbolMatcher>>();
 
 			// Create real configuration objects instead of mocking
 			_configInstance = new ConfigurationInstance
@@ -32,7 +35,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			_settingsMock.Setup(x => x.ConfigurationInstance).Returns(_configInstance);
 
-			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object, _memoryCache);
+			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object);
 		}
 
 		protected virtual void Dispose(bool disposing)
@@ -61,17 +64,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 		[Fact]
-		public void Constructor_ShouldThrowArgumentNullException_WhenSettingsIsNull()
+        public async Task Constructor_ShouldThrowArgumentNullException_WhenSettingsIsNull()
 		{
 			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() => new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object, _memoryCache));
+			await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object)));
 		}
 
 		[Fact]
-		public void Constructor_ShouldThrowArgumentNullException_WhenApiWrapperIsNull()
+     public async Task Constructor_ShouldThrowArgumentNullException_WhenApiWrapperIsNull()
 		{
 			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() => new GhostfolioSymbolMatcher(_settingsMock.Object, null!, _memoryCache));
+			await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(_settingsMock.Object, null!, _memoryCache, _loggerMock.Object)));
 		}
 
 		[Fact]
@@ -404,7 +407,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 			var settingsMock = new Mock<IApplicationSettings>();
 			settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
-			var symbolMatcher = new GhostfolioSymbolMatcher(settingsMock.Object, _apiWrapperMock.Object, _memoryCache);
+         var symbolMatcher = new GhostfolioSymbolMatcher(settingsMock.Object, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object);
 
 			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
 
