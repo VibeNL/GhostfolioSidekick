@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 	{
 		private readonly Mock<ILogger<DividendMaxMatcher>> _loggerMock = new Mock<ILogger<DividendMaxMatcher>>();
 
-		private IHttpClientFactory CreateHttpClientFactory(string suggestJson)
+		private static IHttpClientFactory CreateHttpClientFactory(string suggestJson)
 		{
 			var factoryMock = new Mock<IHttpClientFactory>();
 			factoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			return factoryMock.Object;
 		}
 
-      [Fact]
+		[Fact]
 		public async Task MatchSymbol_ReturnsProfile_WhenBestMatchFound()
 		{
 			// Arrange
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			Assert.Equal("https://www.dividendmax.com/stocks/us/apple-inc-aapl", result.WebsiteUrl);
 		}
 
-      [Fact]
+		[Fact]
 		public async Task MatchSymbol_ReturnsNull_WhenNoResults()
 		{
 			// Arrange
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			Assert.Null(result);
 		}
 
-      [Fact]
+		[Fact]
 		public async Task MatchSymbol_ReturnsNull_WhenScoreIsZero()
 		{
 			// Arrange
