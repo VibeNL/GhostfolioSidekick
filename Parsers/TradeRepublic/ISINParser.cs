@@ -12,12 +12,52 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 
 			var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
-			var isin = positionPerLine
+			var isinLine = positionPerLine
 				.Select(g => string.Join(" ", g.OrderBy(t => t.BoundingBox?.Column).Select(t => t.Text)))
-				.FirstOrDefault(line => line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase) || IsIsin(line))
-				?.Replace("ISIN:", "").Trim() ?? string.Empty;
+				.FirstOrDefault(line => line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase) || IsIsin(line));
 
-			return isin;
+			if (isinLine != null && isinLine.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase))
+			{
+				var value = isinLine.Substring("ISIN:".Length).Trim();
+				return IsIsin(value) ? value : string.Empty;
+			}
+			return isinLine != null && IsIsin(isinLine.Trim()) ? isinLine.Trim() : string.Empty;
+		}
+
+		public static string ExtractIsin(string line)
+		{
+			if (string.IsNullOrWhiteSpace(line))
+			{
+				return string.Empty;
+			}
+
+			if (line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase))
+			{
+				var value = line.Substring("ISIN:".Length).Trim();
+				return IsIsin(value) ? value : string.Empty;
+			}
+
+			return IsIsin(line.Trim()) ? line.Trim() : string.Empty;
+		}
+
+		public static string ExtractIsinMultistring(string descriptionString)
+		{
+			if (string.IsNullOrWhiteSpace(descriptionString))
+			{
+				return string.Empty;
+			}
+
+			var lines = descriptionString.Split([' '], StringSplitOptions.RemoveEmptyEntries);
+			foreach (var line in lines)
+			{
+				var isin = ExtractIsin(line);
+				if (!string.IsNullOrEmpty(isin))
+				{
+					return isin;
+				}
+			}
+
+			return string.Empty;
 		}
 
 		private static bool IsIsin(string line)

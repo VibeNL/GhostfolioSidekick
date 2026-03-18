@@ -40,17 +40,48 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		}
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-		{
-			var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
+       {
+			try
+			{
+				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
+				return await retryPolicy.ExecuteAsync(async () =>
+				{
+					var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
 
-			if (searchResults.Count == 0)
+					if (searchResults.Count == 0)
+					{
+						return null;
+					}
+
+					SearchResult? bestMatch = null;
+
+					// Prefer exact symbol match (case-insensitive) with any identifier
+					foreach (var identifier in symbolIdentifiers)
+					{
+						bestMatch = searchResults.FirstOrDefault(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase));
+						if (bestMatch != null)
+							break;
+					}
+
+					// If no exact match, use semantic match score
+					if (bestMatch == null)
+					{
+						var identifierValues = symbolIdentifiers.Select(i => i.Identifier).Where(v => !string.IsNullOrWhiteSpace(v)).ToArray();
+						bestMatch = searchResults
+							.OrderByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(identifierValues, new[] { r.Symbol, r.ShortName ?? string.Empty }))
+							.First();
+					}
+
+					// Fallback to first result
+					bestMatch ??= searchResults[0];
+
+					return await CreateSymbolProfileFromMatch(bestMatch);
+				});
+			}
+			catch
 			{
 				return null;
 			}
-
-			var bestMatch = searchResults[0];
-
-			return await CreateSymbolProfileFromMatch(bestMatch);
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)

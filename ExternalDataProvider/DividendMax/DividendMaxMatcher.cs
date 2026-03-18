@@ -1,13 +1,14 @@
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
-using System.Net.Http.Json;
-using GhostfolioSidekick.Model;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Json;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
-	public class DividendMaxMatcher(IHttpClientFactory httpClientFactory) : ISymbolMatcher
+	public class DividendMaxMatcher(IHttpClientFactory httpClientFactory, ILogger<DividendMaxMatcher> logger) : ISymbolMatcher
 	{
 		private const string BaseUrl = "https://www.dividendmax.com";
 		private const string SuggestEndpoint = "/suggest.json";
@@ -17,66 +18,77 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		public bool AllowedForDeterminingHolding => false;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-		{
-			var cleanedIdentifiers = symbolIdentifiers
-				.Where(x => HasDividends(x))
-				.ToArray();
-
-			if (cleanedIdentifiers.Length == 0)
+       {
+			try
 			{
-				return null;
-			}
-
-			var searchTerms = GetSearchTerms(cleanedIdentifiers);
-			var searchResults = new List<SuggestResult>();
-			foreach (var searchTerm in searchTerms)
-			{
-				var suggestResponse = await GetSuggestResponse(searchTerm);
-				if (suggestResponse != null && suggestResponse.Count > 0)
+				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
+				return await retryPolicy.ExecuteAsync(async () =>
 				{
-					searchResults.AddRange(suggestResponse);
-				}
-			}
+					var cleanedIdentifiers = symbolIdentifiers
+						.Where(x => HasDividends(x))
+						.ToArray();
 
-			if (searchResults.Count == 0)
+					if (cleanedIdentifiers.Length == 0)
+					{
+						return null;
+					}
+
+					var searchTerms = GetSearchTerms(cleanedIdentifiers);
+					var searchResults = new List<SuggestResult>();
+					foreach (var searchTerm in searchTerms)
+					{
+						var suggestResponse = await GetSuggestResponse(searchTerm);
+						if (suggestResponse != null && suggestResponse.Count > 0)
+						{
+							searchResults.AddRange(suggestResponse);
+						}
+					}
+
+					if (searchResults.Count == 0)
+					{
+						return null;
+					}
+
+					// Semantic matching and sort on score
+					var bestMatch = searchResults
+						.Select(result => new
+						{
+							Result = result,
+							Score = SemanticMatcher.CalculateSemanticMatchScore(
+								[.. cleanedIdentifiers.Select(x => x.Identifier)],
+								[result.Ticker, result.CleanedName ?? result.Name])
+						})
+						.OrderByDescending(x => x.Score)
+						.ThenByDescending(x => x.Result.Name.Length)
+						.First();
+
+					if (bestMatch == null || bestMatch.Score <= 0) // Minimum score threshold
+					{
+						return null;
+					}
+
+					// Build SymbolProfile from best match
+					var profile = new SymbolProfile(
+						symbol: bestMatch.Result.Ticker,
+						name: bestMatch.Result.Name,
+						dataSource: DataSource,
+						currency: Currency.NONE,
+						identifiers: [.. cleanedIdentifiers.Select(id => id.Identifier)],
+						assetClass: AssetClass.Equity,
+						assetSubClass: null,
+						countries: [],
+						sectors: [])
+					{
+						WebsiteUrl = $"{BaseUrl}{bestMatch.Result.Path}"
+					};
+
+					return profile;
+				});
+			}
+			catch
 			{
 				return null;
 			}
-
-			// Semantic matching and sort on score
-			var bestMatch = searchResults
-				.Select(result => new
-				{
-					Result = result,
-					Score = SemanticMatcher.CalculateSemanticMatchScore(
-						[.. cleanedIdentifiers.Select(x => x.Identifier)],
-						[result.Ticker, result.CleanedName ?? result.Name])
-				})
-				.OrderByDescending(x => x.Score)
-				.ThenByDescending(x => x.Result.Name.Length)
-				.First();
-
-			if (bestMatch == null || bestMatch.Score <= 0) // Minimum score threshold
-			{
-				return null;
-			}
-
-			// Build SymbolProfile from best match
-			var profile = new SymbolProfile(
-				symbol: bestMatch.Result.Ticker,
-				name: bestMatch.Result.Name,
-				dataSource: DataSource,
-				currency: Currency.NONE,
-				identifiers: [.. cleanedIdentifiers.Select(id => id.Identifier)],
-				assetClass: AssetClass.Equity,
-				assetSubClass: null,
-				countries: [],
-				sectors: [])
-			{
-				WebsiteUrl = $"{BaseUrl}{bestMatch.Result.Path}"
-			};
-
-			return profile;
 		}
 
 		private static bool HasDividends(PartialSymbolIdentifier identifier)

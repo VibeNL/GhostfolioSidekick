@@ -5,10 +5,15 @@ using GhostfolioSidekick.Model.Symbols;
 using Moq;
 using Moq.Protected;
 
+
+using Microsoft.Extensions.Logging;
+
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {
 	public class DividendMaxMatcherTests
 	{
+		private readonly Mock<ILogger<DividendMaxMatcher>> _loggerMock = new Mock<ILogger<DividendMaxMatcher>>();
+
 		private static IHttpClientFactory CreateHttpClientFactory(string suggestJson)
 		{
 			var factoryMock = new Mock<IHttpClientFactory>();
@@ -30,7 +35,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var suggestJson = "[{\"Id\":1,\"Name\":\"Apple Inc\",\"Path\":\"/stocks/us/apple-inc-aapl\",\"Ticker\":\"AAPL\",\"Flag\":\"US\"}]";
 
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
-			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] {
 				PartialSymbolIdentifier.CreateGeneric("AAPL"),
 				PartialSymbolIdentifier.CreateGeneric("Apple")
@@ -55,7 +60,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			// Arrange
 			var suggestJson = "[]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
-			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ") };
 
 			// Act
@@ -73,7 +78,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			// If you want to control the score, refactor SemanticMatcher to be injectable.
 			var suggestJson = "[{\"Id\":2,\"Name\":\"Not Related\",\"Path\":\"/stocks/us/not-related\",\"Ticker\":\"NR\",\"Flag\":\"US\"}]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
-			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL") };
 
 			// Act
