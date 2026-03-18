@@ -72,17 +72,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 							.First();
 					}
 
-					// If still ambiguous, fallback to allowed asset class/subclass
-					if (bestMatch == null)
-					{
-						foreach (var identifier in symbolIdentifiers)
-						{
-							bestMatch = searchResults.FirstOrDefault(r => IsAllowedSymbolType(r, identifier));
-							if (bestMatch != null)
-								break;
-						}
-					}
-
 					// Fallback to first result
 					bestMatch ??= searchResults[0];
 

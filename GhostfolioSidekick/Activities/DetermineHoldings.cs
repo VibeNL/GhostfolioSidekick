@@ -42,26 +42,26 @@ namespace GhostfolioSidekick.Activities
 			var partialIdentifierMap = new Dictionary<PartialSymbolIdentifier, Holding>(new PartialSymbolIdentifierComparer());
 			var symbolProfileMap = new Dictionary<string, Holding>(); // Track holdings by symbol+datasource
 
-            var validPartialIdentifiers = new List<IList<PartialSymbolIdentifier>>();
-            foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
-            {
-                var partialIdentifiers = activity.PartialSymbolIdentifiers;
-                if (partialIdentifiers == null || partialIdentifiers.Count == 0)
-                {
-                    logger.LogWarning("DetermineHoldings: Activity {ActivityType} has null or empty PartialSymbolIdentifiers. Activity details: {@Activity}", activity.GetType().Name, activity);
-                    continue;
-                }
+			var validPartialIdentifiers = new List<IList<PartialSymbolIdentifier>>();
+			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+			{
+				var partialIdentifiers = activity.PartialSymbolIdentifiers;
+				if (partialIdentifiers == null || partialIdentifiers.Count == 0)
+				{
+					logger.LogWarning("DetermineHoldings: Activity {ActivityType} has null or empty PartialSymbolIdentifiers. Activity details: {@Activity}", activity.GetType().Name, activity);
+					continue;
+				}
 
-                validPartialIdentifiers.Add(partialIdentifiers);
-            }
+				validPartialIdentifiers.Add(partialIdentifiers);
+			}
 
-            foreach (var partialIdentifiers in validPartialIdentifiers
-                .DistinctBy(x => string.Join("|", x.Select(id => id.Identifier).OrderBy(id => id)))
-                .OrderBy(x => x[0].Identifier))
-            {
-                var ids = GetIds(partialIdentifiers);
-                await CreateOrReuseHolding(logger, databaseContext, partialIdentifierMap, symbolProfileMap, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
-            }
+			foreach (var partialIdentifiers in validPartialIdentifiers
+				.DistinctBy(x => string.Join("|", x.Select(id => id.Identifier).OrderBy(id => id)))
+				.OrderBy(x => x[0].Identifier))
+			{
+				var ids = GetIds(partialIdentifiers);
+				await CreateOrReuseHolding(logger, databaseContext, partialIdentifierMap, symbolProfileMap, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
+			}
 
 			// Remove any unused holdings
 			var unusedHoldings = availableHoldings.ToList();

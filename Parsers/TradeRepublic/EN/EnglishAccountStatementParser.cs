@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				case "Earnings": // Dividend
 				case "Trade": // Buys and Sells
 					{
-						// Ignore, should be seperate statement files
+						// Ignore, should be separate statement files
 						break;
 					}
 			}

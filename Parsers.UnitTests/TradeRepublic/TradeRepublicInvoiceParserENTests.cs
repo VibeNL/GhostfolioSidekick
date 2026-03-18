@@ -15,12 +15,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		private readonly TestActivityManager activityManager;
 		private readonly List<ITradeRepublicActivityParser> SubParsers = [
 			new EnglishStockInvoiceParser(),
-	   new EnglishSavingPlanInvoiceParser(),
-	   new EnglishBondInvoiceParser(),
-	   new EnglishDividendInvoiceParser(),
-	   new EnglishInterestPaymentInvoiceParser(),
-	   new EnglishBondRepaymentInvoiceParser(),
-	   new EnglishAccountStatementParser()
+			new EnglishSavingPlanInvoiceParser(),
+			new EnglishBondInvoiceParser(),
+			new EnglishDividendInvoiceParser(),
+			new EnglishInterestPaymentInvoiceParser(),
+			new EnglishBondRepaymentInvoiceParser(),
+			new EnglishAccountStatementParser()
 		];
 		private readonly ITestOutputHelper output;
 

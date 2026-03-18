@@ -1,7 +1,6 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
