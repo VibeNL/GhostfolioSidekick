@@ -35,14 +35,22 @@ namespace GhostfolioSidekick.Utilities
 		/// Trims .DE and .AS suffixes from symbol strings and returns distinct cleaned symbols.
 		/// </summary>
 		public static List<string> TrimSymbolSuffixes(this IEnumerable<string?> list)
-		{
-         return [.. list
+       {
+			return [.. list
 				.Where(item => !string.IsNullOrWhiteSpace(item))
 				.Select(item =>
 				{
 					var trimmed = item!.Trim();
-					if (trimmed.Length > 3 && trimmed[^3] == '.' && char.IsLetter(trimmed[^2]) && char.IsLetter(trimmed[^1]))
-						trimmed = trimmed[..^3];
+					// Remove any suffix after a dot, e.g., .L, .DE, .AS, .PA, etc.
+					var dotIndex = trimmed.LastIndexOf('.');
+					if (dotIndex > 0 && dotIndex < trimmed.Length - 1)
+					{
+						var suffix = trimmed[(dotIndex + 1)..];
+						if (suffix.All(char.IsLetter))
+						{
+							trimmed = trimmed[..dotIndex];
+						}
+					}
 					return trimmed;
 				})
 				.Where(item => item.Length > 0)
