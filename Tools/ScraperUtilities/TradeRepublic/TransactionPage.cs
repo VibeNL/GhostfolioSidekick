@@ -278,7 +278,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 						// Download from url
 						logger.LogInformation("Downloading document from {Url}", url);
-						var fileName = $"{symbol.ISIN} {parsedTime:yyyy-MM-dd-HH-mm-ss} {counter++}.pdf";
+						var fileName = $"{parsedTime:yyyy-MM-dd-HH-mm-ss} {symbol.ISIN} {counter++}.pdf";
 						var directory = Path.Combine(outputDirectory, "TradeRepublic");
 						var filePath = Path.Combine(directory, fileName);
 						if (!Directory.Exists(directory))

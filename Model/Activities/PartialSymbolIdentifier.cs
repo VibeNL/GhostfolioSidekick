@@ -10,6 +10,11 @@ namespace GhostfolioSidekick.Model.Activities
 
 		private PartialSymbolIdentifier(string id)
 		{
+			if (string.IsNullOrWhiteSpace(id))
+			{
+				throw new ArgumentException("Identifier cannot be null or whitespace.", nameof(id));
+			}
+
 			Identifier = id;
 		}
 

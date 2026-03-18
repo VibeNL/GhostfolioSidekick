@@ -12,5 +12,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 					!string.IsNullOrWhiteSpace(h) ||
 					Headers.Any(rh => string.Equals(rh, h, StringComparison.InvariantCultureIgnoreCase)));
 		}
+
+		public override string ToString()
+		{
+			return Text;
+		}
 	}
 }

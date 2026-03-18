@@ -43,6 +43,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected decimal ParseDecimal(string x)
 		{
+			// Remove Eurosign 
+			x = x.Replace("€", "").Trim();
 			if (decimal.TryParse(x, NumberStyles.Currency, CultureInfo, out var result))
 			{
 				return result;
@@ -57,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				.Replace('-', '.')
 				.Trim('.'); // Just in case
 
-			var dateFormats = new string[] { "dd.MM.yyyy HH:mm", "dd.MM.yyyy" };
+			var dateFormats = new string[] { "dd.MM.yyyy HH:mm", "dd.MM.yyyy", "dd MMM yyyy" };
 
 			foreach (var format in dateFormats)
 			{

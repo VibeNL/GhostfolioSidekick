@@ -13,17 +13,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 	{
 		private readonly Account account;
 		private readonly TestActivityManager activityManager;
-
 		private readonly List<ITradeRepublicActivityParser> SubParsers = [
 			new EnglishStockInvoiceParser(),
 			new EnglishSavingPlanInvoiceParser(),
 			new EnglishBondInvoiceParser(),
 			new EnglishDividendInvoiceParser(),
 			new EnglishInterestPaymentInvoiceParser(),
-			new EnglishBondRepaymentInvoiceParser()
-			];
+			new EnglishBondRepaymentInvoiceParser(),
+			new EnglishAccountStatementParser()
+		];
+		private readonly ITestOutputHelper output;
 
-		public TradeRepublicInvoiceParserENTests()
+		public TradeRepublicInvoiceParserENTests(ITestOutputHelper output)
 		{
 			var fixture = CustomFixture.New();
 			account = fixture
@@ -31,6 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
 			activityManager = new TestActivityManager();
+			this.output = output;
 		}
 
 		[Fact]
@@ -210,6 +212,34 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleAccountStatementAlt_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement_alt.pdf", activityManager, account.Name);
+
+			// Debug, log all activities to easily identify which ones are missing in case of a failed test
+			foreach (var activity in activityManager.PartialActivities)
+			{
+				output.WriteLine(activity.ToString());
+			}
+
+			// Assert - the alt file has a 3-row header where "MONEY OUT" is split across rows
+			activityManager.PartialActivities.Should().HaveCount(8);
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateCashDeposit(
+					Currency.EUR,
+					new DateTime(2024, 01, 03, 0, 0, 0, DateTimeKind.Utc),
+					6000.00m,
+					new Money(Currency.EUR, 6000.00m),
+					"Trade_Republic_account_statement_alt.pdf_20240103_h1RuhuGGY4S9kO3PRH8XwJYBx+bjPZUBknb+TTek89M=")
+			);
+			activityManager.PartialActivities.Where(x => x.ActivityType == PartialActivityType.Buy).Should().BeEmpty();
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFilesBulk_Converted()
 		{
 			// Arrange
@@ -289,6 +319,34 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new Money(Currency.EUR, 99.47m),
 						"Trade_Republic_single_repay_bond.pdf"),
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleAccountStatement_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/Statements/account_statement.pdf", activityManager, account.Name);
+
+			// Debug, log all activities to easily identify which ones are missing in case of a failed test
+			foreach (var activity in activityManager.PartialActivities)
+			{
+				output.WriteLine(activity.ToString());
+			}
+
+			// Assert
+			activityManager.PartialActivities.Should().HaveCount(33);
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateCashWithdrawal(
+					Currency.EUR,
+					new DateTime(2023, 12, 30, 0, 0, 0, DateTimeKind.Utc),
+					1000.00m,
+					new Money(Currency.EUR, 1000.00m),
+					"Trade_Republic_account_statement.pdf_20231230_BVRJ26w+3/0JHGU83vh8QBubdAgZw8Qa85Q0Yo6tsGo=")
+);
+			activityManager.PartialActivities.Where(x => x.ActivityType == PartialActivityType.Buy).Should().BeEmpty();
 		}
 	}
 }
