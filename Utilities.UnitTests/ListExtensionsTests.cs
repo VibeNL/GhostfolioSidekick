@@ -319,6 +319,22 @@ namespace GhostfolioSidekick.Utilities.UnitTests
 		#endregion
 
 		#region TrimSymbolSuffixes Tests
+		[Theory]
+		[InlineData(new string[] { "SDIV.L" }, new string[] { "SDIV" })]
+		[InlineData(new string[] { "AAPL.DE", "MSFT.AS", "GOOG" }, new string[] { "AAPL", "MSFT", "GOOG" })]
+		[InlineData(new string[] { "TSLA", "TSLA.PA" }, new string[] { "TSLA" })]
+		[InlineData(new string[] { "VUSA.L", "VUSA" }, new string[] { "VUSA" })]
+		[InlineData(new string[] { "BRK.B" }, new string[] { "BRK" })]
+		[InlineData(new string[] { "AAPL" }, new string[] { "AAPL" })]
+		[InlineData(new string[] { "AAPL.DE", "AAPL.DE" }, new string[] { "AAPL" })]
+		public void TrimSymbolSuffixes_RemovesSuffixesAndReturnsDistinct(string[] input, string[] expected)
+		{
+			// Act
+			var result = input.TrimSymbolSuffixes();
+
+			// Assert
+			Assert.Equal(expected, result);
+		}
 
 		[Fact]
 		public void TrimSymbolSuffixes_RemovesDotSuffixes()
@@ -362,7 +378,7 @@ namespace GhostfolioSidekick.Utilities.UnitTests
 		}
 
 		[Fact]
-		public void TrimSymbolSuffixes_HandlesShortStringsAndNonMatchingSuffix()
+        public void TrimSymbolSuffixes_HandlesShortStringsAndNonMatchingSuffix()
 		{
 			var list = new List<string?> { "DE", "AS", "A.DE", "B.AS", ".DE", ".AS", "AAPL.DEX", "MSFT.ASX" };
 			var result = list.TrimSymbolSuffixes();
@@ -372,8 +388,8 @@ namespace GhostfolioSidekick.Utilities.UnitTests
 			Assert.Contains("B", result); // "B.AS" becomes "B"
 			Assert.Contains(".DE", result);
 			Assert.Contains(".AS", result);
-			Assert.Contains("AAPL.DEX", result);
-			Assert.Contains("MSFT.ASX", result);
+			Assert.Contains("AAPL", result); // "AAPL.DEX" becomes "AAPL"
+			Assert.Contains("MSFT", result); // "MSFT.ASX" becomes "MSFT"
 		}
 
 		#endregion
