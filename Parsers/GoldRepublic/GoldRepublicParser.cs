@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 					yield return PartialActivity.CreateSell(
 						Currency.EUR,
 						dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
+               [PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>", Currency.EUR)],
 						volume,
 						new Money(Currency.EUR, transactionValue / volume),
 						new Money(Currency.EUR, transactionValue),
@@ -189,7 +189,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 					yield return PartialActivity.CreateBuy(
 						Currency.EUR,
 						dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
+               [PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>", Currency.EUR)],
 						volume,
 						new Money(Currency.EUR, transactionValue / volume),
 						new Money(Currency.EUR, transactionValue),

@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateDividend(
 						Currency.USD,
 						new DateTime(2024, 06, 27, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("IE0032895942")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("IE0032895942", Currency.EUR)],
 						1.5m,
 						new Money(Currency.USD, 1.5m),
 						"Trade_Republic_single_dividend.pdf")

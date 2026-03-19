@@ -11,22 +11,30 @@ namespace GhostfolioSidekick.Model.Activities
 			if (x == null || y == null)
 				return false;
 
-			// Primary comparison: Identifier must match (case-insensitive)
-			if (!string.Equals(x.Identifier?.Trim(), y.Identifier?.Trim(), StringComparison.InvariantCultureIgnoreCase))
-			{
-				return false;
-			}
+           // Primary comparison: Identifier must match (case-insensitive)
+		   if (!string.Equals(x.Identifier?.Trim(), y.Identifier?.Trim(), StringComparison.InvariantCultureIgnoreCase))
+		   {
+			   return false;
+		   }
 
-			// Lenient asset class comparison - allow compatible asset classes
-			return AreAssetClassListsCompatible(x.AllowedAssetClasses, y.AllowedAssetClasses) &&
-				   AreAssetSubClassListsCompatible(x.AllowedAssetSubClasses, y.AllowedAssetSubClasses);
+		   // PreferredCurrency must match
+		   if (!Equals(x.Currency, y.Currency))
+		   {
+			   return false;
+		   }
+
+		   // Lenient asset class comparison - allow compatible asset classes
+		   return AreAssetClassListsCompatible(x.AllowedAssetClasses, y.AllowedAssetClasses) &&
+				  AreAssetSubClassListsCompatible(x.AllowedAssetSubClasses, y.AllowedAssetSubClasses);
 		}
 
 		public int GetHashCode([DisallowNull] PartialSymbolIdentifier obj)
 		{
-			// Use only the identifier for hash code to ensure identifiers with compatible 
-			// but different asset classes get the same hash for dictionary lookups
-			return obj.Identifier?.Trim().ToUpperInvariant().GetHashCode() ?? 0;
+           // Use identifier and preferred currency for hash code
+		   var hash = new HashCode();
+		   hash.Add(obj.Identifier?.Trim().ToUpperInvariant());
+		   hash.Add(obj.Currency);
+		   return hash.ToHashCode();
 		}
 
 		private static bool AreAssetClassListsCompatible(List<AssetClass>? list1, List<AssetClass>? list2)

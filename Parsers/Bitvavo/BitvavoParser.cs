@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -37,79 +37,77 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 			switch (record.Type)
 			{
 				case "buy":
-					return PartialActivity.CreateBuy(
+                    return PartialActivity.CreateBuy(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
 						Math.Abs(record.Amount),
 						new Money(record.UnitCurrency, record.UnitPrice!.Value),
 						new Money(record.TotalTransactionCurrency, Math.Abs(record.TotalTransactionAmount!.Value)),
 						record.Transaction);
 				case "sell":
-					return PartialActivity.CreateSell(
+                    return PartialActivity.CreateSell(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
 						Math.Abs(record.Amount),
 						new Money(record.UnitCurrency, record.UnitPrice!.Value),
 						new Money(record.TotalTransactionCurrency, Math.Abs(record.TotalTransactionAmount!.Value)),
 						record.Transaction);
 				case "staking":
-					return PartialActivity.CreateStakingReward(
+                    return PartialActivity.CreateStakingReward(
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
 						Math.Abs(record.Amount),
 						record.Transaction);
 				case "withdrawal":
-					if (isFiat)
+                 if (isFiat)
 					{
 						return PartialActivity.CreateCashWithdrawal(
-						currency,
-						dateTime,
-						Math.Abs(record.Amount),
-						new Money(Currency.EUR, Math.Abs(record.Amount)),
-						record.Transaction);
+							currency,
+							dateTime,
+							Math.Abs(record.Amount),
+							new Money(currency, Math.Abs(record.Amount)),
+							record.Transaction);
 					}
 					else
 					{
 						return PartialActivity.CreateSend(
-						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
-						Math.Abs(record.Amount),
-						record.Transaction);
+							dateTime,
+							new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
+							Math.Abs(record.Amount),
+							record.Transaction);
 					}
 				case "deposit":
-					if (isFiat)
+                 if (isFiat)
 					{
 						return PartialActivity.CreateCashDeposit(
-						currency,
-						dateTime,
-						Math.Abs(record.Amount),
-						new Money(Currency.EUR, Math.Abs(record.Amount)),
-						record.Transaction);
+							currency,
+							dateTime,
+							Math.Abs(record.Amount),
+							new Money(currency, Math.Abs(record.Amount)),
+							record.Transaction);
 					}
 					else
 					{
 						return PartialActivity.CreateReceive(
-						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
-						Math.Abs(record.Amount),
-						record.Transaction);
+							dateTime,
+							new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
+							Math.Abs(record.Amount),
+							record.Transaction);
 					}
 				case "rebate":
-					return PartialActivity.CreateGift(
-						currency,
+                  return PartialActivity.CreateGift(
 						dateTime,
+						new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
 						Math.Abs(record.Amount),
-						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 				case "affiliate":
-				case "campaign_new_user_incentive":
+             case "campaign_new_user_incentive":
 					return PartialActivity.CreateGift(
-						currency,
 						dateTime,
+						new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
 						Math.Abs(record.Amount),
-						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 				default:
 					throw new NotSupportedException();

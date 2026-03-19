@@ -87,18 +87,20 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateGift(
-			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
-			decimal amount,
-			string transactionId)
-		{
-			return new PartialActivity(PartialActivityType.GiftAsset, date, Currency.EUR, new Money(Currency.USD, 0), transactionId)
-			{
-				Amount = amount,
-				SymbolIdentifiers = symbolIdentifiers
-			};
-		}
+       public static PartialActivity CreateGift(
+		   DateTime date,
+		   ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+		   decimal amount,
+		   string transactionId)
+	   {
+		   // All PartialSymbolIdentifiers must have a PreferredCurrency, so use the first one's currency if available
+		   var preferredCurrency = symbolIdentifiers.FirstOrDefault()?.Currency ?? Currency.EUR;
+		   return new PartialActivity(PartialActivityType.GiftAsset, date, preferredCurrency, new Money(Currency.USD, 0), transactionId)
+		   {
+			   Amount = amount,
+			   SymbolIdentifiers = symbolIdentifiers
+		   };
+	   }
 
 		public static PartialActivity CreateInterest(
 			Currency currency,

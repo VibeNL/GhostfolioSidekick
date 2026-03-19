@@ -62,37 +62,40 @@ namespace GhostfolioSidekick.Parsers.Trading212
 				case "Limit buy":
 				case "Market buy":
 				case "Equity rights":
-					lst.Add(PartialActivity.CreateBuy(
-						currency,
-						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
-						record.NumberOfShares.GetValueOrDefault(),
-						new Money(currency, record.Price.GetValueOrDefault()),
-						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
-						record.Id));
+                   if (!string.IsNullOrWhiteSpace(record.ISIN))
+					   lst.Add(PartialActivity.CreateBuy(
+						   currency,
+						   record.Time,
+						   [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, currency)],
+						   record.NumberOfShares.GetValueOrDefault(),
+						   new Money(currency, record.Price.GetValueOrDefault()),
+						   new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						   record.Id));
 					break;
 				case "Limit sell":
 				case "Stop sell":
 				case "Market sell":
-					lst.Add(PartialActivity.CreateSell(
-						currency,
-						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
-						record.NumberOfShares.GetValueOrDefault(),
-						new Money(currency, record.Price.GetValueOrDefault()),
-						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
-						record.Id));
+                   if (!string.IsNullOrWhiteSpace(record.ISIN))
+					   lst.Add(PartialActivity.CreateSell(
+						   currency,
+						   record.Time,
+						   [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, currency)],
+						   record.NumberOfShares.GetValueOrDefault(),
+						   new Money(currency, record.Price.GetValueOrDefault()),
+						   new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						   record.Id));
 					break;
 				case "Stock distribution":
 				case "Stock dividends":
-					lst.Add(PartialActivity.CreateBuy(
-						currency,
-						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
-						record.NumberOfShares.GetValueOrDefault(),
-						new Money(currency, 0),
-						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
-						record.Id));
+                   if (!string.IsNullOrWhiteSpace(record.ISIN))
+					   lst.Add(PartialActivity.CreateBuy(
+						   currency,
+						   record.Time,
+						   [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, currency)],
+						   record.NumberOfShares.GetValueOrDefault(),
+						   new Money(currency, 0),
+						   new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						   record.Id));
 					break;
 				case "Dividend adjustment":
 					lst.Add(PartialActivity.CreateCashDeposit(
@@ -103,13 +106,14 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Id));
 					break;
 				case string d when d.Contains("Dividend"):
-					lst.Add(PartialActivity.CreateDividend(
-						currency,
-						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
-						record.Price!.GetValueOrDefault() * record.NumberOfShares.GetValueOrDefault(),
-						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
-						record.Id));
+                   if (!string.IsNullOrWhiteSpace(record.ISIN))
+					   lst.Add(PartialActivity.CreateDividend(
+						   currency,
+						   record.Time,
+						   [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, currency)],
+						   record.Price!.GetValueOrDefault() * record.NumberOfShares.GetValueOrDefault(),
+						   new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						   record.Id));
 					break;
 				case string d when d.Contains("Stock split"):
 					// Ignore

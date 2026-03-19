@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2025, 12, 30, 0, 0, 0, 0, DateTimeKind.Utc),
-						PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Ambitieus", "CENTRAALBEHEERMIXFONDSAMBITIEUS"),
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Ambitieus", Currency.EUR) },
 						1.6597M,
 						new Money(Currency.EUR, 45.05M),
 						new Money(Currency.EUR, 74.77M),
@@ -106,7 +106,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2025, 12, 30, 0, 0, 0, 0, DateTimeKind.Utc),
-						PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Ambitieus", "CENTRAALBEHEERMIXFONDSAMBITIEUS"),
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Ambitieus", Currency.EUR) },
 						1.6597M,
 						new Money(Currency.EUR, 45.05M),
 						new Money(Currency.EUR, 74.77M),
@@ -134,7 +134,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 					PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2025, 06, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-						PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Zeer Ambitieus", "CENTRAALBEHEERMIXFONDSZEERAMBITIEUS"),
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Zeer Ambitieus", Currency.EUR) },
 						46.94M,
 						new Money(Currency.EUR, 46.94M),
 						"CB-20250612-1"),

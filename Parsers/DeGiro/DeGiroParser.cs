@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -37,14 +37,16 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				case PartialActivityType.Undefined:
 					return [knownBalance];
 				case PartialActivityType.Buy:
-					partialActivity = PartialActivity.CreateBuy(
-						strategy.GetCurrency(record, currencyMapper),
-						recordDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
-						strategy.GetQuantity(record),
-						new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
-						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
-						record.TransactionId!);
+					partialActivity = !string.IsNullOrWhiteSpace(record.ISIN)
+						? PartialActivity.CreateBuy(
+							strategy.GetCurrency(record, currencyMapper),
+							recordDate,
+							new[] { PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!, Currency.EUR) },
+							strategy.GetQuantity(record),
+							new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
+							new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
+							record.TransactionId!)
+						: null;
 					break;
 				case PartialActivityType.CashDeposit:
 					partialActivity = PartialActivity.CreateCashDeposit(currencyRecord, recordDate, recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
@@ -53,8 +55,10 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateCashWithdrawal(currencyRecord, recordDate, recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
 					break;
 				case PartialActivityType.Dividend:
-					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!, record.Product), recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
+					partialActivity = !string.IsNullOrWhiteSpace(record.ISIN)
+						? PartialActivity.CreateDividend(currencyRecord, recordDate,
+							new[] { PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!, Currency.EUR) }, recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!)
+						: null;
 					break;
 				case PartialActivityType.Fee:
 					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
@@ -66,20 +70,24 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal, record.Description, new Money(currencyRecord, recordTotal), record.TransactionId!);
 					break;
 				case PartialActivityType.Sell:
-					partialActivity = PartialActivity.CreateSell(
-						strategy.GetCurrency(record, currencyMapper),
-						recordDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
-						strategy.GetQuantity(record),
-						new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
-						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
-						record.TransactionId!);
+					partialActivity = !string.IsNullOrWhiteSpace(record.ISIN)
+						 ? PartialActivity.CreateSell(
+							 strategy.GetCurrency(record, currencyMapper),
+							 recordDate,
+							 new[] { PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!, Currency.EUR) },
+							 strategy.GetQuantity(record),
+							 new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
+							 new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
+							 record.TransactionId!)
+						 : null;
 					break;
 				default:
 					throw new NotSupportedException();
 			}
 
-			return [knownBalance, partialActivity];
+			return new[] { knownBalance, partialActivity }
+						.Where(x => x is not null)
+						.Cast<PartialActivity>();
 		}
 
 		private static decimal GetNumber(string text)

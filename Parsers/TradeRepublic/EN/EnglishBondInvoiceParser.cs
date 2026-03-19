@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					yield return PartialActivity.CreateBuy(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+                   [PartialSymbolIdentifier.CreateStockBondAndETF(isin, currency)],
 						ParseDecimal(quantity),
 						new Money(currency, ParseDecimal(price) / 100), // Price is given in percentage of nominal value
 						new Money(currency, ParseDecimal(amount)),
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					yield return PartialActivity.CreateSell(
 						currency,
 					 date,
-					 [PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+                   [PartialSymbolIdentifier.CreateStockBondAndETF(isin, currency)],
 					 ParseDecimal(quantity),
 					 new Money(currency, ParseDecimal(price)),
 					 new Money(currency, ParseDecimal(amount)),

@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				return [PartialActivity.CreateDividend(
 					currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockAndETF(record.Isin.Replace("ISIN ", string.Empty))],
+                    [PartialSymbolIdentifier.CreateStockAndETF(record.Isin.Replace("ISIN ", string.Empty), currency)],
 					quantity * unitPrice,
 					new Money(currency, Math.Abs(record.UnitPrice.GetValueOrDefault(0))),
 					record.Reference

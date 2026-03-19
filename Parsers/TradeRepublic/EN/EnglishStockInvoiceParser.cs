@@ -58,11 +58,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
 
 				if (type == PartialActivityType.Buy)
-				{
+               {
 					yield return PartialActivity.CreateBuy(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+						[PartialSymbolIdentifier.CreateStockBondAndETF(isin, currency)],
 						ParseDecimal(quantity),
 						new Money(currency, ParseDecimal(price)),
 						new Money(currency, ParseDecimal(amount)),
@@ -70,11 +70,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 					);
 				}
 				else if (type == PartialActivityType.Sell)
-				{
+               {
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+						[PartialSymbolIdentifier.CreateStockBondAndETF(isin, currency)],
 						ParseDecimal(quantity),
 						new Money(currency, ParseDecimal(price)),
 						new Money(currency, ParseDecimal(amount)),

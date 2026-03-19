@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
 			
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("AAPL");
+           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("AAPL", Currency.EUR);
 			var identifier2 = new PartialSymbolIdentifier 
 			{ 
 				Identifier = "AAPL",
@@ -36,8 +36,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
 			
-			var identifier1 = PartialSymbolIdentifier.CreateGeneric("TEST"); // Has null asset classes
-			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST"); // Has specific asset classes
+           var identifier1 = PartialSymbolIdentifier.CreateGeneric("TEST", Currency.EUR); // Has null asset classes
+           var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR); // Has specific asset classes
 
 			// Act
 			dictionary[identifier1] = "Test Symbol";
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				Identifier = "TEST",
 				AllowedAssetClasses = [AssetClass.Undefined]
 			};
-			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST");
+           var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
 
 			// Act
 			dictionary[identifier1] = "Test Symbol";
@@ -78,8 +78,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
 			
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST"); // AssetClass.Equity
-			var identifier2 = PartialSymbolIdentifier.CreateCrypto("TEST"); // AssetClass.Liquidity
+           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR); // AssetClass.Equity
+           var identifier2 = PartialSymbolIdentifier.CreateCrypto("TEST", Currency.EUR); // AssetClass.Liquidity
 
 			// Act
 			dictionary[identifier1] = "Test Stock";

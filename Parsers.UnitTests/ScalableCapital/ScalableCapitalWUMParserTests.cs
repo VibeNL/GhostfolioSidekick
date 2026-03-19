@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")],
+               [PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95", Currency.EUR)],
 						5,
 						new Money(Currency.EUR, 8.685M),
 						new Money(Currency.EUR, 43.43M),
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")],
+               [PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95", Currency.EUR)],
 						5,
 						new Money(Currency.EUR, 8.685M),
 						new Money(Currency.EUR, 43.43M),
