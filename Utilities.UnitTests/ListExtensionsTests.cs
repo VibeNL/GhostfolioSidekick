@@ -317,5 +317,81 @@ namespace GhostfolioSidekick.Utilities.UnitTests
 		}
 
 		#endregion
+
+		#region TrimSymbolSuffixes Tests
+		[Theory]
+		[InlineData(new string[] { "SDIV.L" }, new string[] { "SDIV" })]
+		[InlineData(new string[] { "AAPL.DE", "MSFT.AS", "GOOG" }, new string[] { "AAPL", "MSFT", "GOOG" })]
+		[InlineData(new string[] { "TSLA", "TSLA.PA" }, new string[] { "TSLA" })]
+		[InlineData(new string[] { "VUSA.L", "VUSA" }, new string[] { "VUSA" })]
+		[InlineData(new string[] { "BRK.B" }, new string[] { "BRK" })]
+		[InlineData(new string[] { "AAPL" }, new string[] { "AAPL" })]
+		[InlineData(new string[] { "AAPL.DE", "AAPL.DE" }, new string[] { "AAPL" })]
+		public void TrimSymbolSuffixes_RemovesSuffixesAndReturnsDistinct(string[] input, string[] expected)
+		{
+			// Act
+			var result = input.TrimSymbolSuffixes();
+
+			// Assert
+			Assert.Equal(expected, result);
+		}
+
+		[Fact]
+		public void TrimSymbolSuffixes_RemovesDotSuffixes()
+		{
+			var list = new List<string?> { "AAPL.DE", "MSFT.AS", "GOOG.DE", "TSLA.AS" };
+			var result = list.TrimSymbolSuffixes();
+			Assert.Contains("AAPL", result);
+			Assert.Contains("MSFT", result);
+			Assert.Contains("GOOG", result);
+			Assert.Contains("TSLA", result);
+			Assert.DoesNotContain("AAPL.DE", result);
+			Assert.DoesNotContain("MSFT.AS", result);
+		}
+
+		[Fact]
+		public void TrimSymbolSuffixes_LeavesNonSuffixedSymbolsUnchanged()
+		{
+			var list = new List<string?> { "AAPL", "MSFT", "GOOG" };
+			var result = list.TrimSymbolSuffixes();
+			Assert.Equal(list.Select(x => x!).ToList(), result);
+		}
+
+		[Fact]
+		public void TrimSymbolSuffixes_FiltersNullAndEmpty()
+		{
+			var list = new List<string?> { null, "", "AAPL.DE", "GOOG" };
+			var result = list.TrimSymbolSuffixes();
+			Assert.Contains("AAPL", result);
+			Assert.Contains("GOOG", result);
+			Assert.DoesNotContain(null, result);
+			Assert.DoesNotContain("", result);
+		}
+
+		[Fact]
+		public void TrimSymbolSuffixes_ReturnsDistinctCaseInsensitive()
+		{
+			var list = new List<string?> { "AAPL.DE", "aapl.de", "AAPL", "aapl" };
+			var result = list.TrimSymbolSuffixes();
+			Assert.Single(result);
+			Assert.Equal("AAPL", result[0], ignoreCase: true);
+		}
+
+		[Fact]
+        public void TrimSymbolSuffixes_HandlesShortStringsAndNonMatchingSuffix()
+		{
+			var list = new List<string?> { "DE", "AS", "A.DE", "B.AS", ".DE", ".AS", "AAPL.DEX", "MSFT.ASX" };
+			var result = list.TrimSymbolSuffixes();
+			Assert.Contains("DE", result);
+			Assert.Contains("AS", result);
+			Assert.Contains("A", result); // "A.DE" becomes "A"
+			Assert.Contains("B", result); // "B.AS" becomes "B"
+			Assert.Contains(".DE", result);
+			Assert.Contains(".AS", result);
+			Assert.Contains("AAPL", result); // "AAPL.DEX" becomes "AAPL"
+			Assert.Contains("MSFT", result); // "MSFT.ASX" becomes "MSFT"
+		}
+
+		#endregion
 	}
 }

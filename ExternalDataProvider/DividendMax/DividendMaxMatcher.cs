@@ -113,6 +113,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 			return [.. searchTerms
 				.FilterInvalidNames()
+				.TrimSymbolSuffixes()
 				.FilterEmpty()
 				.Distinct()
 				];
