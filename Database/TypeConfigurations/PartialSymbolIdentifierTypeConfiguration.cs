@@ -1,7 +1,8 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
@@ -14,6 +15,9 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasColumnType("integer")
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
+
+			builder	.ComplexProperty(x => x.Currency)
+					.Property(x => x.Symbol).HasColumnName("Currency");
 
 			// Configure the list properties to be stored as JSON strings with sorted lists for canonical representation
 			builder.Property(e => e.AllowedAssetClasses)
