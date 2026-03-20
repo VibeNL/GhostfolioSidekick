@@ -83,13 +83,62 @@ namespace GhostfolioSidekick.Model.Activities
 	   }
 
        public override int GetHashCode()
-	   {
-		   var hash = new HashCode();
+       {
+          var hash = new HashCode();
 		   hash.Add(StringComparer.InvariantCultureIgnoreCase.GetHashCode(Identifier.Trim()));
-		   hash.Add(GetListHashCode(AllowedAssetClasses));
-		   hash.Add(GetListHashCode(AllowedAssetSubClasses));
-		   hash.Add(Currency);
+		   // Do NOT include asset class or subclass in hash code, as equality is lenient/compatible
+		   // Only include Currency if not NONE, to match comparer wildcard logic
+		   if (!Equals(Currency, GhostfolioSidekick.Model.Currency.NONE))
+		   {
+			   hash.Add(Currency);
+		   }
 		   return hash.ToHashCode();
+	   }
+
+	   private static int GetCompatibleAssetClassHash(List<AssetClass>? list)
+       {
+		   // If compatible with any (null, empty, or contains Undefined), always return 0
+		   if (IsAssetClassListCompatible(list))
+		   {
+			   return 0;
+		   }
+           unchecked
+		   {
+			   int hash = 17;
+			   foreach (var item in list!.OrderBy(x => x))
+			   {
+				   hash = hash * 23 + item.GetHashCode();
+			   }
+			   return hash;
+		   }
+	   }
+
+	   private static bool IsAssetClassListCompatible(List<AssetClass>? list)
+	   {
+		   return list == null || list.Count == 0 || list.Contains(AssetClass.Undefined);
+	   }
+
+	   private static int GetCompatibleAssetSubClassHash(List<AssetSubClass>? list)
+       {
+		   // If compatible with any (null, empty, or contains Undefined), always return 0
+		   if (IsAssetSubClassListCompatible(list))
+		   {
+			   return 0;
+		   }
+           unchecked
+		   {
+			   int hash = 17;
+			   foreach (var item in list!.OrderBy(x => x))
+			   {
+				   hash = hash * 23 + item.GetHashCode();
+			   }
+			   return hash;
+		   }
+	   }
+
+	   private static bool IsAssetSubClassListCompatible(List<AssetSubClass>? list)
+	   {
+		   return list == null || list.Count == 0 || list.Contains(AssetSubClass.Undefined);
 	   }
 
 		private static bool ListsEqual<T>(List<T>? list1, List<T>? list2)

@@ -5,27 +5,38 @@ namespace GhostfolioSidekick.Model.Activities
 	public class PartialSymbolIdentifierComparer : IEqualityComparer<PartialSymbolIdentifier>
 	{
 		public bool Equals(PartialSymbolIdentifier? x, PartialSymbolIdentifier? y)
-		{
+       {
 			if (x == null && y == null)
 				return true;
 			if (x == null || y == null)
 				return false;
 
-           // Primary comparison: Identifier must match (case-insensitive)
-		   if (!string.Equals(x.Identifier?.Trim(), y.Identifier?.Trim(), StringComparison.InvariantCultureIgnoreCase))
-		   {
-			   return false;
-		   }
+			// Primary comparison: Identifier must match (case-insensitive)
+			if (!string.Equals(x.Identifier?.Trim(), y.Identifier?.Trim(), StringComparison.InvariantCultureIgnoreCase))
+			{
+				return false;
+			}
 
-		   // PreferredCurrency must match
-		   if (!Equals(x.Currency, y.Currency))
-		   {
-			   return false;
-		   }
+			// Currency: treat NONE as wildcard (compatible with any)
+			if (x.Currency != null && y.Currency != null)
+			{
+				if (!IsCurrencyCompatible(x.Currency, y.Currency))
+				{
+					return false;
+				}
+			}
 
-		   // Lenient asset class comparison - allow compatible asset classes
-		   return AreAssetClassListsCompatible(x.AllowedAssetClasses, y.AllowedAssetClasses) &&
-				  AreAssetSubClassListsCompatible(x.AllowedAssetSubClasses, y.AllowedAssetSubClasses);
+			// Lenient asset class comparison - allow compatible asset classes
+			return AreAssetClassListsCompatible(x.AllowedAssetClasses, y.AllowedAssetClasses) &&
+				AreAssetSubClassListsCompatible(x.AllowedAssetSubClasses, y.AllowedAssetSubClasses);
+		}
+
+		private static bool IsCurrencyCompatible(Currency x, Currency y)
+		{
+			// Treat NONE as wildcard
+			if (Equals(x, GhostfolioSidekick.Model.Currency.NONE) || Equals(y, GhostfolioSidekick.Model.Currency.NONE))
+				return true;
+			return Equals(x, y);
 		}
 
 		public int GetHashCode([DisallowNull] PartialSymbolIdentifier obj)
@@ -33,7 +44,11 @@ namespace GhostfolioSidekick.Model.Activities
            // Use identifier and preferred currency for hash code
 		   var hash = new HashCode();
 		   hash.Add(obj.Identifier?.Trim().ToUpperInvariant());
-		   hash.Add(obj.Currency);
+		   // If currency is NONE, do not include it in hash (treat as wildcard)
+		   if (!Equals(obj.Currency, GhostfolioSidekick.Model.Currency.NONE))
+		   {
+			   hash.Add(obj.Currency);
+		   }
 		   return hash.ToHashCode();
 		}
 

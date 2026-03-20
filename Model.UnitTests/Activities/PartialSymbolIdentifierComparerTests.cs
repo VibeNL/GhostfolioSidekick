@@ -17,12 +17,14 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			{ 
 				Identifier = "AAPL",
 				AllowedAssetClasses = [AssetClass.Equity, AssetClass.Undefined], // More permissive
-				AllowedAssetSubClasses = [AssetSubClass.Stock] // Overlaps with identifier1
+				AllowedAssetSubClasses = [AssetSubClass.Stock], // Overlaps with identifier1
+				Currency = Currency.EUR
 			};
 
 			// Act
 			dictionary[identifier1] = "Apple Stock";
-			var found = dictionary.TryGetValue(identifier2, out var value);
+			var found = dictionary.Keys.Any(k => comparer.Equals(k, identifier2));
+			var value = found ? dictionary.First(kvp => comparer.Equals(kvp.Key, identifier2)).Value : null;
 
 			// Assert
 			found.Should().BeTrue();
@@ -55,10 +57,11 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
 			
-			var identifier1 = new PartialSymbolIdentifier
+            var identifier1 = new PartialSymbolIdentifier
 			{
 				Identifier = "TEST",
-				AllowedAssetClasses = [AssetClass.Undefined]
+				AllowedAssetClasses = [AssetClass.Undefined],
+				Currency = Currency.EUR
 			};
            var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
 
