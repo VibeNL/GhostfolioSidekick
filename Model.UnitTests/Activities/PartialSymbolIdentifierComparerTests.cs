@@ -9,17 +9,13 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Dictionary_WithCustomComparer_ShouldFindCompatibleIdentifiers()
 		{
 			// Arrange
-			var comparer = new PartialSymbolIdentifierComparer();
+           var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
-			
-           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("AAPL", Currency.EUR);
-			var identifier2 = new PartialSymbolIdentifier 
-			{ 
-				Identifier = "AAPL",
-				AllowedAssetClasses = [AssetClass.Equity, AssetClass.Undefined], // More permissive
-				AllowedAssetSubClasses = [AssetSubClass.Stock], // Overlaps with identifier1
-				Currency = Currency.EUR
-			};
+
+			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("AAPL", Currency.EUR);
+			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("AAPL", Currency.EUR);
+			identifier2.AllowedAssetClasses = [AssetClass.Equity, AssetClass.Undefined]; // More permissive
+			identifier2.AllowedAssetSubClasses = [AssetSubClass.Stock]; // Overlaps with identifier1
 
 			// Act
 			dictionary[identifier1] = "Apple Stock";
@@ -54,16 +50,13 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Dictionary_WithCustomComparer_ShouldConsiderUndefinedAsCompatible()
 		{
 			// Arrange
-			var comparer = new PartialSymbolIdentifierComparer();
+           var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
-			
-            var identifier1 = new PartialSymbolIdentifier
-			{
-				Identifier = "TEST",
-				AllowedAssetClasses = [AssetClass.Undefined],
-				Currency = Currency.EUR
-			};
-           var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
+
+			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
+			identifier1.AllowedAssetClasses = [AssetClass.Undefined];
+			identifier1.AllowedAssetSubClasses = null;
+			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
 
 			// Act
 			dictionary[identifier1] = "Test Symbol";

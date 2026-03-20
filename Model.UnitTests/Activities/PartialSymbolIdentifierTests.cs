@@ -33,14 +33,10 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnTrue_WhenAssetClassesAreEquivalent()
 		{
 			// Arrange
-           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.USD);
-		   var identifier2 = new PartialSymbolIdentifier
-		   {
-			   Identifier = "TEST",
-			   AllowedAssetClasses = [AssetClass.Equity],
-			   AllowedAssetSubClasses = [AssetSubClass.Stock, AssetSubClass.Etf], // Different order
-			   Currency = Currency.USD
-		   };
+          var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.USD);
+		   var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.USD);
+		   identifier2.AllowedAssetClasses = [AssetClass.Equity];
+		   identifier2.AllowedAssetSubClasses = [AssetSubClass.Stock, AssetSubClass.Etf]; // Different order
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeTrue();

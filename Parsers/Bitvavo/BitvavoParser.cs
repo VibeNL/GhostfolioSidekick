@@ -96,19 +96,43 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 							Math.Abs(record.Amount),
 							record.Transaction);
 					}
-				case "rebate":
-                  return PartialActivity.CreateGift(
-						dateTime,
-						new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
-						Math.Abs(record.Amount),
-						record.Transaction);
-				case "affiliate":
-             case "campaign_new_user_incentive":
-					return PartialActivity.CreateGift(
-						dateTime,
-						new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
-						Math.Abs(record.Amount),
-						record.Transaction);
+                case "rebate":
+					if (isFiat)
+					{
+						return PartialActivity.CreateGift(
+							currency,
+							dateTime,
+							Math.Abs(record.Amount),
+							new Money(currency, Math.Abs(record.Amount)),
+							record.Transaction);
+					}
+					else
+					{
+						return PartialActivity.CreateGift(
+							dateTime,
+							new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
+							Math.Abs(record.Amount),
+							record.Transaction);
+					}
+                case "affiliate":
+				case "campaign_new_user_incentive":
+					if (isFiat)
+					{
+						return PartialActivity.CreateGift(
+							currency,
+							dateTime,
+							Math.Abs(record.Amount),
+							new Money(currency, Math.Abs(record.Amount)),
+							record.Transaction);
+					}
+					else
+					{
+						return PartialActivity.CreateGift(
+							dateTime,
+							new[] { PartialSymbolIdentifier.CreateCrypto(record.Currency!, currency) },
+							Math.Abs(record.Amount),
+							record.Transaction);
+					}
 				default:
 					throw new NotSupportedException();
 			}
