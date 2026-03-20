@@ -59,28 +59,28 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 
 				if (type == PartialActivityType.Buy)
                {
-					yield return PartialActivity.CreateBuy(
-						currency,
-						date,
-						[PartialSymbolIdentifier.CreateStockBondAndETF(isin, currency)],
-						ParseDecimal(quantity),
-						new Money(currency, ParseDecimal(price)),
-						new Money(currency, ParseDecimal(amount)),
-						transactionId
-					);
-				}
-				else if (type == PartialActivityType.Sell)
-               {
-					yield return PartialActivity.CreateSell(
-						currency,
-						date,
-						[PartialSymbolIdentifier.CreateStockBondAndETF(isin, currency)],
-						ParseDecimal(quantity),
-						new Money(currency, ParseDecimal(price)),
-						new Money(currency, ParseDecimal(amount)),
-						transactionId
-					);
-				}
+				   yield return PartialActivity.CreateBuy(
+					   currency,
+					   date,
+					   [PartialSymbolIdentifier.CreateStockBondAndETF(isin, Currency.EUR)],
+					   ParseDecimal(quantity),
+					   new Money(currency, ParseDecimal(price)),
+					   new Money(currency, ParseDecimal(amount)),
+					   transactionId
+				   );
+			   }
+			   else if (type == PartialActivityType.Sell)
+			   {
+				   yield return PartialActivity.CreateSell(
+					   currency,
+					   date,
+					   [PartialSymbolIdentifier.CreateStockBondAndETF(isin, Currency.EUR)],
+					   ParseDecimal(quantity),
+					   new Money(currency, ParseDecimal(price)),
+					   new Money(currency, ParseDecimal(amount)),
+					   transactionId
+				   );
+			   }
 			}
 		}
 	}
