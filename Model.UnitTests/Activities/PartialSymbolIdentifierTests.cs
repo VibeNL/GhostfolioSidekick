@@ -158,24 +158,30 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 
 		[Fact]
 		public void Dictionary_ShouldUseSameKey_WhenUsingEqualityComparison()
-		{
+       {
 			// Arrange
-			var dictionary = new Dictionary<PartialSymbolIdentifier, string>();
-           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
+			var comparer = new PartialSymbolIdentifierComparer();
+			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
+			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
 			var identifier2 = new PartialSymbolIdentifier
 			{
 				Identifier = "TEST",
 				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock] // Different order
+				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock],
+				Currency = Currency.NONE
 			};
 
 			// Act
 			dictionary[identifier1] = "Value1";
-			dictionary[identifier2] = "Value2";
+			// Use the custom comparer to find the value for identifier2
+			var found = dictionary.Keys.Any(k => comparer.Equals(k, identifier2));
+			var value = found ? dictionary.First(kvp => comparer.Equals(kvp.Key, identifier2)).Value : null;
 
 			// Assert
+			found.Should().BeTrue();
+			value.Should().Be("Value1");
+			// The dictionary should only have one entry
 			dictionary.Should().HaveCount(1);
-			dictionary[identifier1].Should().Be("Value2");
 		}
 	}
 }

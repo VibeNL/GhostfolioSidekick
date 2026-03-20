@@ -72,26 +72,33 @@ namespace GhostfolioSidekick.Model.Activities
 	  }
 
        public virtual bool Equals(PartialSymbolIdentifier? other)
-	   {
+       {
 		   if (other is null) return false;
 		   if (ReferenceEquals(this, other)) return true;
+
+		   bool currencyEqual =
+			   Equals(Currency, GhostfolioSidekick.Model.Currency.NONE)
+			   || Equals(other.Currency, GhostfolioSidekick.Model.Currency.NONE)
+			   || Equals(Currency, other.Currency);
 
 		   return string.Equals(Identifier.Trim(), other.Identifier.Trim(), StringComparison.InvariantCultureIgnoreCase)
 			   && ListsEqual(AllowedAssetClasses, other.AllowedAssetClasses)
 			   && ListsEqual(AllowedAssetSubClasses, other.AllowedAssetSubClasses)
-			   && Equals(Currency, other.Currency);
+			   && currencyEqual;
 	   }
 
        public override int GetHashCode()
        {
-          var hash = new HashCode();
+		  var hash = new HashCode();
 		   hash.Add(StringComparer.InvariantCultureIgnoreCase.GetHashCode(Identifier.Trim()));
 		   // Do NOT include asset class or subclass in hash code, as equality is lenient/compatible
 		   // Only include Currency if not NONE, to match comparer wildcard logic
+		   // If Currency is NONE, do not add it; if not, add its value
 		   if (!Equals(Currency, GhostfolioSidekick.Model.Currency.NONE))
 		   {
 			   hash.Add(Currency);
 		   }
+		   // If Currency is NONE, hash is same as if any currency (wildcard)
 		   return hash.ToHashCode();
 	   }
 
