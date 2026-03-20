@@ -52,19 +52,19 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			}
 			else if (row.HasHeader(BondRepayment))
 			{
-				var positionColumn = row.Columns[2];
-				var isin = positionColumn[2].Text;
-				var amount = row.Columns[3][0].Text;
-				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+                    var positionColumn = row.Columns[2];
+					var isin = positionColumn[2].Text;
+					var amount = row.Columns[3][0].Text;
+					var currency = Currency.GetCurrency(row.Columns[3][1].Text);
 
-				yield return PartialActivity.CreateBondRepay(
-					currency,
-					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					new Money(currency, ParseDecimal(amount)),
-					new Money(currency, ParseDecimal(amount)),
-					transactionId
-				);
+					yield return PartialActivity.CreateBondRepay(
+						currency,
+						date,
+					   [PartialSymbolIdentifier.CreateStockBondAndETF(isin, Currency.EUR)],
+						new Money(currency, ParseDecimal(amount)),
+						new Money(currency, ParseDecimal(amount)),
+						transactionId
+					);
 			}
 		}
 	}

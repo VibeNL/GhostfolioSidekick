@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST")] }
+               new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>(); // No existing holdings to reuse
 
@@ -137,8 +137,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST1")] },
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST2")] }
+               new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST1", Currency.EUR)] },
+               new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST2", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>();
 
@@ -173,7 +173,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("UNKNOWN")] }
+               new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("UNKNOWN", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>();
 
@@ -225,7 +225,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("OLD_SYMBOL")] }
+               new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("OLD_SYMBOL", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>();
 
@@ -253,7 +253,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("CACHED_SYMBOL")] }
+               new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("CACHED_SYMBOL", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>();
 
@@ -287,7 +287,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("EXISTING_SYMBOL")] }
+               new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("EXISTING_SYMBOL", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>();
 			var existingSymbolProfile = new SymbolProfile 
@@ -333,7 +333,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("MULTI_MATCHER_SYMBOL")] }
+               new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("MULTI_MATCHER_SYMBOL", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>();
 
@@ -379,7 +379,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("TEST_SYMBOL")] }
+               new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("TEST_SYMBOL", Currency.EUR)] }
 			};
 			var holdings = new List<Holding>();
 
@@ -404,13 +404,13 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
-			var existingPartialId = PartialSymbolIdentifier.CreateGeneric("EXISTING");
+           var existingPartialId = PartialSymbolIdentifier.CreateGeneric("EXISTING", Currency.EUR);
 			var existingHolding = new Holding();
 			existingHolding.PartialSymbolIdentifiers.Add(existingPartialId);
 
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("EXISTING")] }
+               new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("EXISTING", Currency.EUR)] }
 			};
 			var holdings = new List<Holding> { existingHolding };
 
@@ -436,9 +436,9 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
 			var holding = new Holding();
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("FIRST"));
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("SECOND"));
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("THIRD"));
+           holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("FIRST", Currency.EUR));
+           holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("SECOND", Currency.EUR));
+           holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("THIRD", Currency.EUR));
 
 			var activities = new List<Activity>();
 			var holdings = new List<Holding> { holding };
@@ -486,12 +486,12 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var symbolProfile = new SymbolProfile { Symbol = "PRESERVED", DataSource = "TestSource" };
 			var holding = new Holding();
 			holding.SymbolProfiles.Add(symbolProfile);
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("FIRST"));
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("SECOND"));
+           holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("FIRST", Currency.EUR));
+           holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("SECOND", Currency.EUR));
 
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("NEW_SYMBOL")] }
+               new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("NEW_SYMBOL", Currency.EUR)] }
 			};
 			var holdings = new List<Holding> { holding };
 

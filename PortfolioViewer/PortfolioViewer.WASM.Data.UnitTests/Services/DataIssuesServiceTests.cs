@@ -606,7 +606,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("AAPL")
+               PartialSymbolIdentifier.CreateStockAndETF("AAPL", Currency.EUR)
 			};
 
 			return new BuyActivity(
@@ -628,7 +628,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("AAPL")
+               PartialSymbolIdentifier.CreateStockAndETF("AAPL", Currency.EUR)
 			};
 
 			return new SellActivity(
@@ -650,7 +650,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN")
+               PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN", Currency.EUR)
 			};
 
 			var activity = new BuyActivity(
@@ -675,7 +675,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN")
+               PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN", Currency.EUR)
 			};
 
 			var activity = new SellActivity(
@@ -700,7 +700,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN")
+               PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN", Currency.EUR)
 			};
 
 			var activity = new DividendActivity(
@@ -723,7 +723,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN")
+               PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN", Currency.EUR)
 			};
 
 			var activity = new ReceiveActivity(
@@ -746,7 +746,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN")
+               PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN", Currency.EUR)
 			};
 
 			var activity = new SendActivity(
@@ -769,7 +769,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN")
+               PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN", Currency.EUR)
 			};
 
 			var activity = new StakingRewardActivity(
@@ -792,7 +792,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			var partialIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN")
+               PartialSymbolIdentifier.CreateStockAndETF("UNKNOWN", Currency.EUR)
 			};
 
 			var activity = new GiftAssetActivity(

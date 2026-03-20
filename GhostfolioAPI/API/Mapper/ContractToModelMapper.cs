@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			// Create partial symbol identifiers based on the symbol profile
 			var partialSymbolIdentifiers = new List<Model.Activities.PartialSymbolIdentifier>
 			{
-				Model.Activities.PartialSymbolIdentifier.CreateGeneric(symbol.Symbol)
+               Model.Activities.PartialSymbolIdentifier.CreateGeneric(symbol.Symbol, Currency.GetCurrency(symbol.Currency))
 			};
 
 			// Create money objects for amounts

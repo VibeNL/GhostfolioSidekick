@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public class SpanishInterestPaymentInvoiceParser : BaseSubParser
 	{
-		// Original text: "POSICIÓN", "NOMINALES", "CUPÓN", "CANTIDAD"
+		// Original text: "POSICIÃ“N", "NOMINALES", "CUPÃ“N", "CANTIDAD"
 		private readonly string[] InterestPayment = ["POSICI\u00d3N", "NOMINALES", "CUP\u00d3N", "CANTIDAD"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 				yield return PartialActivity.CreateDividend(
 					currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+                   [PartialSymbolIdentifier.CreateStockBondAndETF(isin, Currency.EUR)],
 					ParseDecimal(amount),
 					new Money(currency, ParseDecimal(amount)),
 					transactionId

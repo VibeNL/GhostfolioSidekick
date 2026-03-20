@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateBuy(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+               [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)],
 						record.Quantity,
 						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+               [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)],
 						record.Quantity * -1,
 						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value).Times(-1),
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+               [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)],
 						record.Quantity,
 						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
@@ -80,10 +80,10 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						id);
 					break;
 				case "Receive":
-					yield return PartialActivity.CreateReceive(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+                   yield return PartialActivity.CreateReceive(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)], record.Quantity, id);
 					break;
 				case "Send":
-					yield return PartialActivity.CreateSend(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+                   yield return PartialActivity.CreateSend(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)], record.Quantity, id);
 					break;
 				case "Convert":
 					var result = ParseNote(record.Notes);
@@ -92,9 +92,9 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 
 					var lst = PartialActivity.CreateAssetConvert(
 						date,
-						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+               [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)],
 						record.Quantity,
-						[PartialSymbolIdentifier.CreateCrypto(parsedAsset)],
+               [PartialSymbolIdentifier.CreateCrypto(parsedAsset, Currency.EUR)],
 						parseAmount,
 						id);
 
@@ -106,10 +106,10 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 				case "Staking Income":
 				case "Rewards Income":
 				case "Reward Income":
-					yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+                   yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)], record.Quantity, id);
 					break;
 				case "Learning Reward":
-					yield return PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+                   yield return PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset, Currency.EUR)], record.Quantity, id);
 					break;
 				default:
 					throw new NotSupportedException(record.Type);

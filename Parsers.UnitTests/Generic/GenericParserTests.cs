@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
-						PartialSymbolIdentifier.CreateGeneric("NVDA", "NVIDIA", "US67066G1040"),
+                        new[] { PartialSymbolIdentifier.CreateGeneric("NVDA", Currency.USD) },
 						0.0267001000M,
 						new Money(Currency.USD, 453.33M),
 						new Money(Currency.USD,  12.103956333M),
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 					PartialActivity.CreateSell(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
+                        [PartialSymbolIdentifier.CreateGeneric("US67066G1040", Currency.USD)],
 						0.0267001000M,
 						new Money(Currency.USD, 453.33M),
 						new Money(Currency.USD, 12.103956333M),
@@ -108,7 +108,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
+                        [PartialSymbolIdentifier.CreateGeneric("US67066G1040", Currency.USD)],
 						0.0267001000M,
 						"Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
+                        [PartialSymbolIdentifier.CreateGeneric("US67066G1040", Currency.USD)],
 						0.0267001000M,
 						"Send_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
@@ -355,7 +355,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 					PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("US2546871060")],
+                        [PartialSymbolIdentifier.CreateGeneric("US2546871060", Currency.EUR)],
 						Amount,
 						new Money(Currency.EUR, Amount),
 						"Dividend_US2546871060_2023-08-08_0.3247_EUR_0"),
@@ -401,7 +401,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 10, 6, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("US2546871060")],
+                        [PartialSymbolIdentifier.CreateGeneric("US2546871060", Currency.EUR)],
 						0.3247M,
 						"GiftAsset_US2546871060_2023-10-06_0.3247_EUR_"),
 				]);

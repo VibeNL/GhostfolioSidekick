@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -37,49 +37,54 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 			switch (record.ActivityType)
 			{
-				case PartialActivityType.Receive:
-					lst.Add(PartialActivity.CreateReceive(
-						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
-						record.Quantity,
-						record.Id));
-					break;
-				case PartialActivityType.Buy:
-					lst.Add(PartialActivity.CreateBuy(
-						currency,
-						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
-						record.Quantity,
-						new Money(currency, unitPrice),
-						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
-						record.Id));
-					break;
-				case PartialActivityType.Send:
-					lst.Add(PartialActivity.CreateSend(
-						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
-						record.Quantity,
-						record.Id));
-					break;
-				case PartialActivityType.Sell:
-					lst.Add(PartialActivity.CreateSell(
-						currency,
-						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
-						record.Quantity,
-						new Money(currency, unitPrice),
-						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
-						record.Id));
-					break;
-				case PartialActivityType.Dividend:
-					lst.Add(PartialActivity.CreateDividend(
-						currency,
-						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
-						record.Quantity * record.UnitPrice,
-						new Money(currency, record.Quantity * record.UnitPrice),
-						record.Id));
-					break;
+               case PartialActivityType.Receive:
+                   if (!string.IsNullOrWhiteSpace(record.Symbol))
+					   lst.Add(PartialActivity.CreateReceive(
+						   record.Date,
+						   [PartialSymbolIdentifier.CreateGeneric(record.Symbol, currency)],
+						   record.Quantity,
+						   record.Id));
+				   break;
+               case PartialActivityType.Buy:
+                   if (!string.IsNullOrWhiteSpace(record.Symbol))
+					   lst.Add(PartialActivity.CreateBuy(
+						   currency,
+						   record.Date,
+						   [PartialSymbolIdentifier.CreateGeneric(record.Symbol, currency)],
+						   record.Quantity,
+						   new Money(currency, unitPrice),
+						   new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
+						   record.Id));
+				   break;
+               case PartialActivityType.Send:
+                   if (!string.IsNullOrWhiteSpace(record.Symbol))
+					   lst.Add(PartialActivity.CreateSend(
+						   record.Date,
+						   [PartialSymbolIdentifier.CreateGeneric(record.Symbol, currency)],
+						   record.Quantity,
+						   record.Id));
+				   break;
+               case PartialActivityType.Sell:
+                   if (!string.IsNullOrWhiteSpace(record.Symbol))
+					   lst.Add(PartialActivity.CreateSell(
+						   currency,
+						   record.Date,
+						   [PartialSymbolIdentifier.CreateGeneric(record.Symbol, currency)],
+						   record.Quantity,
+						   new Money(currency, unitPrice),
+						   new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
+						   record.Id));
+				   break;
+               case PartialActivityType.Dividend:
+                   if (!string.IsNullOrWhiteSpace(record.Symbol))
+					   lst.Add(PartialActivity.CreateDividend(
+						   currency,
+						   record.Date,
+						   [PartialSymbolIdentifier.CreateGeneric(record.Symbol, currency)],
+						   record.Quantity * record.UnitPrice,
+						   new Money(currency, record.Quantity * record.UnitPrice),
+						   record.Id));
+				   break;
 				case PartialActivityType.Interest:
 					lst.Add(PartialActivity.CreateInterest(
 						currency,
@@ -126,13 +131,13 @@ namespace GhostfolioSidekick.Parsers.Generic
 						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
-				case PartialActivityType.GiftAsset:
-					lst.Add(PartialActivity.CreateGift(
-						record.Date,
-						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
-						record.Quantity,
-						record.Id));
-					break;
+               case PartialActivityType.GiftAsset:
+				   lst.Add(PartialActivity.CreateGift(
+					   record.Date,
+					   [PartialSymbolIdentifier.CreateGeneric(record.Symbol!, currency)],
+					   record.Quantity,
+					   record.Id));
+				   break;
 				case PartialActivityType.CashDeposit:
 					lst.Add(PartialActivity.CreateCashDeposit(
 						currency,

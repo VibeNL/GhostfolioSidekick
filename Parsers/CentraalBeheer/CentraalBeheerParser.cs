@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateBuy(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
+               new[] { PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, Currency.EUR) },
 							quantity,
 							new Money(currency, unitPrice),
 							new Money(currency, totalAmount),
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateSell(
 						currency,
 						record.TransactionDate,
-						PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
+               new[] { PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, Currency.EUR) },
 						quantity,
 						new Money(currency, unitPrice),
 						new Money(currency, totalAmount),
@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateDividend(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
+               new[] { PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, Currency.EUR) },
 							Math.Abs(grossAmount),
 							new Money(currency, Math.Abs(grossAmount)),
 							transactionId);

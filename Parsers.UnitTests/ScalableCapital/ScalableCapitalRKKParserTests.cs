@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2023, 8, 2, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US92343V1044")],
+               [PartialSymbolIdentifier.CreateStockAndETF("US92343V1044", Currency.EUR)],
 						14 * 0.5057142857142857142857142857M,
 						new Money(Currency.EUR, 7.08M),
 						"WWEK 16100100")

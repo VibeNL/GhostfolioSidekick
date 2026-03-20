@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.Model.Activities
 	public class PartialSymbolIdentifierComparer : IEqualityComparer<PartialSymbolIdentifier>
 	{
 		public bool Equals(PartialSymbolIdentifier? x, PartialSymbolIdentifier? y)
-		{
+       {
 			if (x == null && y == null)
 				return true;
 			if (x == null || y == null)
@@ -17,16 +17,39 @@ namespace GhostfolioSidekick.Model.Activities
 				return false;
 			}
 
+			// Currency: treat NONE as wildcard (compatible with any)
+			if (x.Currency != null && y.Currency != null)
+			{
+				if (!IsCurrencyCompatible(x.Currency, y.Currency))
+				{
+					return false;
+				}
+			}
+
 			// Lenient asset class comparison - allow compatible asset classes
 			return AreAssetClassListsCompatible(x.AllowedAssetClasses, y.AllowedAssetClasses) &&
-				   AreAssetSubClassListsCompatible(x.AllowedAssetSubClasses, y.AllowedAssetSubClasses);
+				AreAssetSubClassListsCompatible(x.AllowedAssetSubClasses, y.AllowedAssetSubClasses);
+		}
+
+		private static bool IsCurrencyCompatible(Currency x, Currency y)
+		{
+			// Treat NONE as wildcard
+			if (Equals(x, GhostfolioSidekick.Model.Currency.NONE) || Equals(y, GhostfolioSidekick.Model.Currency.NONE))
+				return true;
+			return Equals(x, y);
 		}
 
 		public int GetHashCode([DisallowNull] PartialSymbolIdentifier obj)
 		{
-			// Use only the identifier for hash code to ensure identifiers with compatible 
-			// but different asset classes get the same hash for dictionary lookups
-			return obj.Identifier?.Trim().ToUpperInvariant().GetHashCode() ?? 0;
+           // Use identifier and preferred currency for hash code
+		   var hash = new HashCode();
+		   hash.Add(obj.Identifier?.Trim().ToUpperInvariant());
+		   // If currency is NONE, do not include it in hash (treat as wildcard)
+		   if (!Equals(obj.Currency, GhostfolioSidekick.Model.Currency.NONE))
+		   {
+			   hash.Add(obj.Currency);
+		   }
+		   return hash.ToHashCode();
 		}
 
 		private static bool AreAssetClassListsCompatible(List<AssetClass>? list1, List<AssetClass>? list2)

@@ -72,9 +72,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
 
 				yield return PartialActivity.CreateBuy(
-					currency,
+                   currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin, currency)],
 					ParseDecimal(quantity),
 					new Money(currency, ParseDecimal(price)),
 					new Money(currency, ParseDecimal(amount)),

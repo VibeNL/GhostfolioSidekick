@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
 
 			// Act
@@ -44,11 +44,11 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var firstBatch = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
 			var secondBatch = new List<PartialActivity>
 			{
-				PartialActivity.CreateSell(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL2")], 5, new Money(Currency.USD, 20), new Money(Currency.USD, 100), "T2")
+               PartialActivity.CreateSell(Currency.USD, DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL2", Currency.EUR) }, 5, new Money(Currency.USD, 20), new Money(Currency.USD, 100), "T2")
 			};
 
 			// Act
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
 
@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.USD) }, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 10, new Money(Currency.USD, 10), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
 
@@ -123,7 +123,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
 			_activityManager.AddPartialActivity("NonExistentAccount", partialActivities);
 
@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.USD)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateTax(Currency.USD, DateTime.Now, 5, new Money(Currency.USD, 5), "T1"),
 				PartialActivity.CreateTax(Currency.EUR, DateTime.Now, 3, new Money(Currency.EUR, 3), "T1")
 			};
@@ -163,7 +163,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateSell(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
+               PartialActivity.CreateSell(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 2, new Money(Currency.USD, 2), "T1"),
 				PartialActivity.CreateFee(Currency.EUR, DateTime.Now, 1, new Money(Currency.EUR, 1), "T1"),
 				PartialActivity.CreateTax(Currency.USD, DateTime.Now, 5, new Money(Currency.USD, 5), "T1")
@@ -187,7 +187,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateCashDeposit(Currency.USD, DateTime.Now, 50, new Money(Currency.USD, 50), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
@@ -214,7 +214,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var partialActivities = new List<PartialActivity>
 			{
 				PartialActivity.CreateCashDeposit(Currency.USD, DateTime.Now, 50, new Money(Currency.USD, 50), "T1"),
-				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
+               PartialActivity.CreateBuy(Currency.USD, DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
 
@@ -279,7 +279,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			// Arrange
 			var date = DateTime.UtcNow; // Use UTC to avoid timezone issues
-			var partialActivity = PartialActivity.CreateBuy(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 5), new Money(Currency.USD, 50), "T1");
+         var partialActivity = PartialActivity.CreateBuy(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.USD)], 10, new Money(Currency.USD, 5), new Money(Currency.USD, 50), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
@@ -302,7 +302,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			// Arrange
 			var date = DateTime.UtcNow; // Use UTC to avoid timezone issues
-			var partialActivity = PartialActivity.CreateDividend(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 100, new Money(Currency.USD, 100), "T1");
+               var partialActivity = PartialActivity.CreateDividend(Currency.USD, date, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 100, new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
@@ -321,7 +321,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		public async Task GenerateActivities_ShouldCalculateCorrectTotalTransactionAmount_WhenNotProvided()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 5, new Money(Currency.USD, 20), new Money(Currency.USD, 100), "T1");
+               var partialActivity = PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 5, new Money(Currency.USD, 20), new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
@@ -339,8 +339,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange - Create a custom partial activity with duplicate symbol identifiers
 			var duplicateSymbolIds = new List<PartialSymbolIdentifier>
 			{
-				PartialSymbolIdentifier.CreateGeneric("SYMBOL1"),
-				PartialSymbolIdentifier.CreateGeneric("SYMBOL1") // Duplicate
+               PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR),
+			   PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) // Duplicate
 			};
 			var partialActivity = PartialActivity.CreateBuy(Currency.USD, DateTime.Now, duplicateSymbolIds, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateReceive(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, "T1"),
+               PartialActivity.CreateReceive(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 5, new Money(Currency.USD, 5), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
@@ -381,7 +381,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateSend(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, "T1"),
+               PartialActivity.CreateSend(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 3, new Money(Currency.USD, 3), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
@@ -402,7 +402,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				PartialActivity.CreateDividend(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 100, new Money(Currency.USD, 100), "T1"),
+               PartialActivity.CreateDividend(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 100, new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 2, new Money(Currency.USD, 2), "T1"),
 				PartialActivity.CreateTax(Currency.USD, DateTime.Now, 15, new Money(Currency.USD, 15), "T1")
 			};
@@ -454,8 +454,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleGiftAssetActivity()
 		{
-			// Arrange
-			var partialActivity = PartialActivity.CreateGift(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, "T1");
+          // Arrange
+			var partialActivity = PartialActivity.CreateGift(DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 10, "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
@@ -470,8 +470,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleStakingRewardActivity()
 		{
-			// Arrange
-			var partialActivity = PartialActivity.CreateStakingReward(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 5, "T1");
+          // Arrange
+			var partialActivity = PartialActivity.CreateStakingReward(DateTime.Now, new[] { PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR) }, 5, "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
@@ -519,7 +519,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		public async Task GenerateActivities_ShouldHandleBondRepayActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateBondRepay(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("BOND1")], new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), "T1");
+               var partialActivity = PartialActivity.CreateBondRepay(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric("BOND1", Currency.EUR)], new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
@@ -583,11 +583,11 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			return activityType switch
 			{
-				PartialActivityType.Buy => PartialActivity.CreateBuy(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), transactionId),
-				PartialActivityType.Sell => PartialActivity.CreateSell(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), transactionId),
-				PartialActivityType.Receive => PartialActivity.CreateReceive(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, transactionId),
-				PartialActivityType.Send => PartialActivity.CreateSend(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, transactionId),
-				PartialActivityType.Dividend => PartialActivity.CreateDividend(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 100, new Money(Currency.USD, 100), transactionId),
+               PartialActivityType.Buy => PartialActivity.CreateBuy(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), transactionId),
+			   PartialActivityType.Sell => PartialActivity.CreateSell(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), transactionId),
+			   PartialActivityType.Receive => PartialActivity.CreateReceive(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, transactionId),
+			   PartialActivityType.Send => PartialActivity.CreateSend(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, transactionId),
+			   PartialActivityType.Dividend => PartialActivity.CreateDividend(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 100, new Money(Currency.USD, 100), transactionId),
 				PartialActivityType.Interest => PartialActivity.CreateInterest(Currency.USD, date, 50, "Interest", new Money(Currency.USD, 50), transactionId),
 				PartialActivityType.Fee => PartialActivity.CreateFee(Currency.USD, date, 5, new Money(Currency.USD, 5), transactionId),
 				PartialActivityType.CashDeposit => PartialActivity.CreateCashDeposit(Currency.USD, date, 100, new Money(Currency.USD, 100), transactionId),
@@ -596,9 +596,9 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				PartialActivityType.Valuable => PartialActivity.CreateValuable(Currency.USD, date, "Valuable", new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), transactionId),
 				PartialActivityType.Liability => PartialActivity.CreateLiability(Currency.USD, date, "Liability", new Money(Currency.USD, 500), new Money(Currency.USD, 500), transactionId),
 				PartialActivityType.GiftFiat => PartialActivity.CreateGift(Currency.USD, date, 100, new Money(Currency.USD, 100), transactionId),
-				PartialActivityType.GiftAsset => PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 10, transactionId),
-				PartialActivityType.StakingReward => PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1")], 5, transactionId),
-				PartialActivityType.BondRepay => PartialActivity.CreateBondRepay(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("BOND1")], new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), transactionId),
+               PartialActivityType.GiftAsset => PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 10, transactionId),
+			   PartialActivityType.StakingReward => PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateGeneric("SYMBOL1", Currency.EUR)], 5, transactionId),
+				PartialActivityType.BondRepay => PartialActivity.CreateBondRepay(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric("BOND1", Currency.USD)], new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), transactionId),
 				_ => throw new NotSupportedException($"Activity type {activityType} not supported in test helper")
 			};
 		}

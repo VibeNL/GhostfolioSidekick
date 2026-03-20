@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public class SpanishBondRepaymentInvoiceParser : BaseSubParser
 	{
-		// Original text: "NÚM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"
+		// Original text: "NÃšM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"
 		private readonly string[] BondRepayment = ["N\u00daM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 		
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 				yield return PartialActivity.CreateBondRepay(
 					currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+                   [PartialSymbolIdentifier.CreateStockBondAndETF(isin, Currency.EUR)],
 					new Money(currency, ParseDecimal(amount)),
 					new Money(currency, ParseDecimal(amount)),
 					transactionId

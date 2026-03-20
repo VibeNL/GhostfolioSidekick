@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateBuy(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+               [PartialSymbolIdentifier.CreateStockAndETF(record.Isin, Currency.EUR)],
 						record.Shares!.Value,
 						new Money(currency, record.Price!.Value),
 						new Money(currency, Math.Abs(record.Amount)),
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateSell(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+               [PartialSymbolIdentifier.CreateStockAndETF(record.Isin, Currency.EUR)],
 						record.Shares!.Value,
 						new Money(currency, record.Price!.Value),
 						new Money(currency, Math.Abs(record.Amount)),
@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateDividend(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+               [PartialSymbolIdentifier.CreateStockAndETF(record.Isin, Currency.EUR)],
 						Math.Abs(record.Amount),
 						new Money(currency, Math.Abs(record.Amount)),
 						record.Reference);

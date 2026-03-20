@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		{
 			yield return PartialActivity.CreateReceive(
 								record.DateTime,
-								[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency, Currency.EUR)],
 								Math.Abs(record.OutputAmount),
 								record.Transaction);
 		}
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		{
 			yield return PartialActivity.CreateSend(
 								record.DateTime,
-								[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency, Currency.EUR)],
 								Math.Abs(record.InputAmount),
 								record.Transaction);
 		}
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			{
 				yield return PartialActivity.CreateGift(
 								record.DateTime,
-								[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency, Currency.EUR)],
 								Math.Abs(record.OutputAmount),
 								record.Transaction);
 			}
@@ -118,9 +118,9 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			{
 				var activities = PartialActivity.CreateAssetConvert(
 							record.DateTime,
-							[PartialSymbolIdentifier.CreateCrypto(record.InputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.InputCurrency, Currency.EUR)],
 							Math.Abs(record.InputAmount),
-							[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency, Currency.EUR)],
 							Math.Abs(record.OutputAmount),
 							record.Transaction);
 				foreach (var activity in activities)
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				yield return PartialActivity.CreateSell(
 							outputCurrency,
 							record.DateTime,
-							[PartialSymbolIdentifier.CreateCrypto(record.InputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.InputCurrency, Currency.EUR)],
 							Math.Abs(record.InputAmount),
 							new Money(Currency.USD, Math.Abs(record.OutputAmount) / Math.Abs(record.InputAmount)),
 							new Money(Currency.USD, record.USDEquivalent),
@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				yield return PartialActivity.CreateBuy(
 							inputCurrency,
 							record.DateTime,
-							[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency, Currency.EUR)],
 							Math.Abs(record.OutputAmount),
 							new Money(Currency.USD, Math.Abs(record.InputAmount) / Math.Abs(record.OutputAmount)),
 							new Money(Currency.USD, record.USDEquivalent),
@@ -170,7 +170,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			{
 				yield return PartialActivity.CreateStakingReward(
 								record.DateTime,
-								[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
+               [PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency, Currency.EUR)],
 								Math.Abs(record.OutputAmount),
 								record.Transaction);
 			}

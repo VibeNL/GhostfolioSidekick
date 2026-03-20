@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -20,34 +20,40 @@ namespace GhostfolioSidekick.Parsers.Trine
 			switch (record.Type)
 			{
 				case "Investment":
-					yield return PartialActivity.CreateBuy(
+                 if (!string.IsNullOrWhiteSpace(record.Loan))
+					{
+						yield return PartialActivity.CreateBuy(
 						Currency.EUR,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric([record.Loan]),
+						new[] { PartialSymbolIdentifier.CreateGeneric(record.Loan, Currency.EUR) },
 						1,
 						new Money(Currency.EUR, record.OutstandingPortfolioChange),
 						new Money(Currency.EUR, record.OutstandingPortfolioChange),
 						transactionsId
-					);
+						);
+					}
 					break;
 				case "Repayment":
-					yield return PartialActivity.CreateDividend(
+                    if (!string.IsNullOrWhiteSpace(record.Loan))
+					{
+						yield return PartialActivity.CreateDividend(
 						Currency.EUR,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric([record.Loan]),
+						new[] { PartialSymbolIdentifier.CreateGeneric(record.Loan, Currency.EUR) },
 						record.RepaidInterest.GetValueOrDefault(),
 						new Money(Currency.EUR, record.RepaidInterest.GetValueOrDefault()),
 						transactionsId
-					);
-					yield return PartialActivity.CreateSell(
+						);
+						yield return PartialActivity.CreateSell(
 						Currency.EUR,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric([record.Loan]),
+						new[] { PartialSymbolIdentifier.CreateGeneric(record.Loan, Currency.EUR) },
 						1,
 						new Money(Currency.EUR, record.RepaidCapital.GetValueOrDefault()),
 						new Money(Currency.EUR, record.RepaidCapital.GetValueOrDefault()),
 						transactionsId
-					);
+						);
+					}
 					break;
 				case "Withdrawal":
 					yield return PartialActivity.CreateCashWithdrawal(

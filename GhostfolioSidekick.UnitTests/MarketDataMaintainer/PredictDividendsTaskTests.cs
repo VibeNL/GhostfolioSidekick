@@ -295,7 +295,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			return new DividendActivity(
 				new Account("Test"),
 				null,
-				[PartialSymbolIdentifier.CreateGeneric(symbol)],
+                [PartialSymbolIdentifier.CreateGeneric(symbol, Currency.USD)],
 				paymentDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 				new Money(Currency.USD, amount),
 				Guid.NewGuid().ToString(),

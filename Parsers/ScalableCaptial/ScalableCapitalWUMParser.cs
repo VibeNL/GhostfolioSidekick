@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				"Verkauf" => [PartialActivity.CreateSell(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+               [PartialSymbolIdentifier.CreateStockAndETF(record.Isin, Currency.EUR)],
 						Math.Abs(record.Quantity.GetValueOrDefault()),
 						new Money(currency, record.UnitPrice.GetValueOrDefault()),
 						new Money(currency, record.TotalPrice.GetValueOrDefault()),
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				"Kauf" => [PartialActivity.CreateBuy(
 						currency,
 						date,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+               [PartialSymbolIdentifier.CreateStockAndETF(record.Isin, Currency.EUR)],
 						Math.Abs(record.Quantity.GetValueOrDefault()),
 						new Money(currency, record.UnitPrice.GetValueOrDefault()),
 						new Money(currency, record.TotalPrice.GetValueOrDefault()),

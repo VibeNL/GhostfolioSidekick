@@ -1,6 +1,7 @@
 using System.Net;
 using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 using Moq;
 using Moq.Protected;
@@ -37,8 +38,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
 			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] {
-				PartialSymbolIdentifier.CreateGeneric("AAPL"),
-				PartialSymbolIdentifier.CreateGeneric("Apple")
+               PartialSymbolIdentifier.CreateGeneric("AAPL", Currency.USD),
+			   PartialSymbolIdentifier.CreateGeneric("Apple", Currency.USD)
 			};
 
 			// Act
@@ -61,7 +62,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var suggestJson = "[]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
 			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
-			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ") };
+          var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ", Currency.USD) };
 
 			// Act
 			var result = await matcher.MatchSymbol(identifiers);
@@ -79,7 +80,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var suggestJson = "[{\"Id\":2,\"Name\":\"Not Related\",\"Path\":\"/stocks/us/not-related\",\"Ticker\":\"NR\",\"Flag\":\"US\"}]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
 			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
-			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL") };
+          var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL", Currency.USD) };
 
 			// Act
 			var result = await matcher.MatchSymbol(identifiers);

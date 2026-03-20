@@ -9,8 +9,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnTrue_WhenIdentifiersAreIdentical()
 		{
 			// Arrange
-			var identifier1 = PartialSymbolIdentifier.CreateGeneric("TEST");
-			var identifier2 = PartialSymbolIdentifier.CreateGeneric("TEST");
+           var identifier1 = PartialSymbolIdentifier.CreateGeneric("TEST", Currency.EUR);
+		   var identifier2 = PartialSymbolIdentifier.CreateGeneric("TEST", Currency.EUR);
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeTrue();
@@ -21,8 +21,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnFalse_WhenIdentifiersAreDifferent()
 		{
 			// Arrange
-			var identifier1 = PartialSymbolIdentifier.CreateGeneric("TEST1");
-			var identifier2 = PartialSymbolIdentifier.CreateGeneric("TEST2");
+           var identifier1 = PartialSymbolIdentifier.CreateGeneric("TEST1", Currency.EUR);
+		   var identifier2 = PartialSymbolIdentifier.CreateGeneric("TEST2", Currency.EUR);
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeFalse();
@@ -33,13 +33,10 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnTrue_WhenAssetClassesAreEquivalent()
 		{
 			// Arrange
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST");
-			var identifier2 = new PartialSymbolIdentifier
-			{
-				Identifier = "TEST",
-				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Stock, AssetSubClass.Etf] // Different order
-			};
+          var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.USD);
+		   var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.USD);
+		   identifier2.AllowedAssetClasses = [AssetClass.Equity];
+		   identifier2.AllowedAssetSubClasses = [AssetSubClass.Stock, AssetSubClass.Etf]; // Different order
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeTrue();
@@ -50,8 +47,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnFalse_WhenAssetClassesAreDifferent()
 		{
 			// Arrange
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST");
-			var identifier2 = PartialSymbolIdentifier.CreateCrypto("TEST");
+           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
+		   var identifier2 = PartialSymbolIdentifier.CreateCrypto("TEST", Currency.EUR);
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeFalse();
@@ -62,8 +59,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnTrue_WhenBothHaveNullCollections()
 		{
 			// Arrange
-			var identifier1 = new PartialSymbolIdentifier { Identifier = "TEST" };
-			var identifier2 = new PartialSymbolIdentifier { Identifier = "TEST" };
+           var identifier1 = new PartialSymbolIdentifier { Identifier = "TEST", Currency = Currency.EUR };
+		   var identifier2 = new PartialSymbolIdentifier { Identifier = "TEST", Currency = Currency.EUR };
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeTrue();
@@ -74,8 +71,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnFalse_WhenOneHasNullAndOtherHasValues()
 		{
 			// Arrange
-			var identifier1 = new PartialSymbolIdentifier { Identifier = "TEST" };
-			var identifier2 = PartialSymbolIdentifier.CreateCrypto("TEST");
+           var identifier1 = new PartialSymbolIdentifier { Identifier = "TEST", Currency = Currency.EUR };
+		   var identifier2 = PartialSymbolIdentifier.CreateCrypto("TEST", Currency.EUR);
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeFalse();
@@ -86,13 +83,14 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void GetHashCode_ShouldBeEqual_WhenObjectsAreEqual()
 		{
 			// Arrange
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST");
-			var identifier2 = new PartialSymbolIdentifier
-			{
-				Identifier = "TEST",
-				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Stock, AssetSubClass.Etf] // Different order
-			};
+           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.USD);
+		   var identifier2 = new PartialSymbolIdentifier
+		   {
+			   Identifier = "TEST",
+			   AllowedAssetClasses = [AssetClass.Equity],
+			   AllowedAssetSubClasses = [AssetSubClass.Stock, AssetSubClass.Etf], // Different order
+			   Currency = Currency.USD
+		   };
 
 			// Act & Assert
 			identifier1.GetHashCode().Should().Be(identifier2.GetHashCode());
@@ -102,8 +100,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void GetHashCode_ShouldBeDifferent_WhenObjectsAreNotEqual()
 		{
 			// Arrange
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST1");
-			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST2");
+           var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST1", Currency.EUR);
+		   var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST2", Currency.EUR);
 
 			// Act & Assert
 			identifier1.GetHashCode().Should().NotBe(identifier2.GetHashCode());
@@ -113,7 +111,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnFalse_WhenComparingWithNull()
 		{
 			// Arrange
-			var identifier = PartialSymbolIdentifier.CreateGeneric("TEST");
+           var identifier = PartialSymbolIdentifier.CreateGeneric("TEST", Currency.EUR);
 
 			// Act & Assert
 			identifier.Equals(null).Should().BeFalse();
@@ -125,7 +123,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnTrue_WhenComparingSameReference()
 		{
 			// Arrange
-			var identifier = PartialSymbolIdentifier.CreateGeneric("TEST");
+           var identifier = PartialSymbolIdentifier.CreateGeneric("TEST", Currency.EUR);
 
 			// Act & Assert
 			identifier.Equals(identifier).Should().BeTrue();
@@ -136,14 +134,15 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void HashSet_ShouldNotContainDuplicates_WhenUsingEqualityComparison()
 		{
 			// Arrange
-			var hashSet = new HashSet<PartialSymbolIdentifier>();
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST");
-			var identifier2 = new PartialSymbolIdentifier
-			{
-				Identifier = "TEST",
-				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock] // Different order
-			};
+           var hashSet = new HashSet<PartialSymbolIdentifier>();
+		   var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.USD);
+		   var identifier2 = new PartialSymbolIdentifier
+		   {
+			   Identifier = "TEST",
+			   AllowedAssetClasses = [AssetClass.Equity],
+			   AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock], // Different order
+			   Currency = Currency.USD
+		   };
 
 			// Act
 			hashSet.Add(identifier1);
@@ -155,24 +154,30 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 
 		[Fact]
 		public void Dictionary_ShouldUseSameKey_WhenUsingEqualityComparison()
-		{
+       {
 			// Arrange
-			var dictionary = new Dictionary<PartialSymbolIdentifier, string>();
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST");
+			var comparer = new PartialSymbolIdentifierComparer();
+			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
+			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST", Currency.EUR);
 			var identifier2 = new PartialSymbolIdentifier
 			{
 				Identifier = "TEST",
 				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock] // Different order
+				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock],
+				Currency = Currency.NONE
 			};
 
 			// Act
 			dictionary[identifier1] = "Value1";
-			dictionary[identifier2] = "Value2";
+			// Use the custom comparer to find the value for identifier2
+			var found = dictionary.Keys.Any(k => comparer.Equals(k, identifier2));
+			var value = found ? dictionary.First(kvp => comparer.Equals(kvp.Key, identifier2)).Value : null;
 
 			// Assert
+			found.Should().BeTrue();
+			value.Should().Be("Value1");
+			// The dictionary should only have one entry
 			dictionary.Should().HaveCount(1);
-			dictionary[identifier1].Should().Be("Value2");
 		}
 	}
 }

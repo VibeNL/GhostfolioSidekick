@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2024, 06, 03, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909", Currency.EUR)],
 						99m,
 						new Money(Currency.EUR, 0.99345m),
 						new Money(Currency.EUR, 98.35m),
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2025, 01, 30, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("US4581401001")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("US4581401001", Currency.EUR)],
 						133,
 						new Money(Currency.EUR, 18.702m),
 						new Money(Currency.EUR, 2487.37m),
@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2025, 03, 12, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("US02079K3059")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("US02079K3059", Currency.EUR)],
 						3,
 						new Money(Currency.EUR, 152.44M),
 						new Money(Currency.EUR, 457.32M),
@@ -154,7 +154,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2025, 02, 03, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("IE00B5BMR087")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("IE00B5BMR087", Currency.EUR)],
 						0.081275m,
 						new Money(Currency.EUR, 615.19m),
 						new Money(Currency.EUR, 50m),
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateDividend(
 						Currency.USD,
 						new DateTime(2025, 03, 17, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("US02079K3059")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("US02079K3059", Currency.EUR)],
 						4.54m,
 						new Money(Currency.USD, 4.54m),
 						"Trade_Republic_single_dividend_stock.pdf")
@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2024, 12, 12, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909", Currency.EUR)],
 						2.19m,
 						new Money(Currency.EUR, 2.19m),
 						"Trade_Republic_single_interest_bond.pdf")
@@ -218,7 +218,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				[PartialActivity.CreateBondRepay(
 						Currency.EUR,
 						new DateTime(2024, 12, 12, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
+               [PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909", Currency.EUR)],
 						new Money(Currency.EUR, 99.6m),
 						new Money(Currency.EUR, 99.6m),
 						"Trade_Republic_single_repayment_bond.pdf")
