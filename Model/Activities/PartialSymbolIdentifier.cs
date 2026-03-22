@@ -51,15 +51,19 @@ namespace GhostfolioSidekick.Model.Activities
 			if (other is null) return false;
 			if (ReferenceEquals(this, other)) return true;
 
-			return string.Equals(Identifier.Trim(), other.Identifier.Trim(), StringComparison.InvariantCultureIgnoreCase) &&
-				   ListsEqual(AllowedAssetClasses, other.AllowedAssetClasses) &&
-				   ListsEqual(AllowedAssetSubClasses, other.AllowedAssetSubClasses);
+			return string.Equals(Identifier.Trim(), other.Identifier.Trim(), StringComparison.InvariantCultureIgnoreCase)
+				&& IdentifierType == other.IdentifierType
+				&& Currency == other.Currency
+				&& ListsEqual(AllowedAssetClasses, other.AllowedAssetClasses)
+				&& ListsEqual(AllowedAssetSubClasses, other.AllowedAssetSubClasses);
 		}
 
 		public override int GetHashCode()
 		{
-			var hash = new HashCode();
+          var hash = new HashCode();
 			hash.Add(StringComparer.InvariantCultureIgnoreCase.GetHashCode(Identifier.Trim()));
+			hash.Add(IdentifierType);
+			hash.Add(Currency);
 			hash.Add(GetListHashCode(AllowedAssetClasses));
 			hash.Add(GetListHashCode(AllowedAssetSubClasses));
 			return hash.ToHashCode();
@@ -92,8 +96,8 @@ namespace GhostfolioSidekick.Model.Activities
 		}
 
 		public override string ToString()
-		{
-			return $"{Identifier}([{string.Join(",", AllowedAssetClasses ?? [])}][{string.Join(",", AllowedAssetSubClasses ?? [])}])";
+       {
+			return $"{Identifier} ({IdentifierType}, {Currency}) ([{string.Join(",", AllowedAssetClasses ?? [])}][{string.Join(",", AllowedAssetSubClasses ?? [])}])";
 		}
 	}
-}
+}	
