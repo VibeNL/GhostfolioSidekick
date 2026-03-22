@@ -2,7 +2,7 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{
-		private PartialSymbolIdentifier(IdentifierType identifierType, string id, Currency currency, List<AssetClass> allowedAssetClasses, List<AssetSubClass> allowedAssetSubClasses)
+		public PartialSymbolIdentifier(IdentifierType identifierType, string id, Currency currency, List<AssetClass> allowedAssetClasses, List<AssetSubClass> allowedAssetSubClasses)
 		{
 			if (string.IsNullOrWhiteSpace(id))
 			{
