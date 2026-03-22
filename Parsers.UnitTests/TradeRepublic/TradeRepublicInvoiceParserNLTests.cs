@@ -54,14 +54,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
-				[PartialActivity.CreateDividend(
-						Currency.USD,
-						new DateTime(2024, 06, 27, 0, 0, 0, DateTimeKind.Utc),
-               [PartialSymbolIdentifier.CreateStockBondAndETF("IE0032895942", Currency.EUR)],
-						1.5m,
-						new Money(Currency.USD, 1.5m),
-						"Trade_Republic_single_dividend.pdf")
-				]);
+               [PartialActivity.CreateDividend(
+					   Currency.USD,
+					   new DateTime(2024, 06, 27, 0, 0, 0, DateTimeKind.Utc),
+			   [PartialSymbolIdentifier.CreateStockBondAndETF("IE0032895942", Currency.USD)],
+					   1.5m,
+					   new Money(Currency.USD, 1.5m),
+					   "Trade_Republic_single_dividend.pdf")
+			   ]);
 		}
 	}
 }

@@ -51,13 +51,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
-						PartialActivity.CreateBuy(
+                      PartialActivity.CreateBuy(
 							Currency.USD,
 							new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("US40434L1052", Currency.EUR) },
-							5,
-							new Money(Currency.USD, 21.31m),
-							new Money(Currency.USD, 106.55M),
+				   new[] { PartialSymbolIdentifier.CreateStockAndETF("US40434L1052", Currency.USD) },
+						5,
+						new Money(Currency.USD, 21.31m),
+						new Money(Currency.USD, 106.55M),
 							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
 						PartialActivity.CreateFee(
 							Currency.GBP,
@@ -87,14 +87,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
-						PartialActivity.CreateBuy(
+                      PartialActivity.CreateBuy(
 							Currency.GBP,
 							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", Currency.EUR) },
-							0.5m,
-							new Money(Currency.GBP, 1m),
-							new Money(Currency.GBP, 0.5M),
-							"Buy_2024-08-09 16:10:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
+				   new[] { PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", Currency.GBP) },
+						0.5m,
+						new Money(Currency.GBP, 1m),
+						new Money(Currency.GBP, 0.5M),
+						"Buy_2024-08-09 16:10:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}
@@ -111,14 +111,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
-						PartialActivity.CreateSell(
+                     PartialActivity.CreateSell(
 							Currency.GBP,
 							new DateTime(2024, 08, 07, 15, 30, 0, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", Currency.EUR) },
-							0.02m,
-							new Money(Currency.GBP, 1m),
-							new Money(Currency.GBP, 0.02M),
-							"Sell_2024-08-07 15:30:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
+				   new[] { PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", Currency.GBP) },
+						0.02m,
+						new Money(Currency.GBP, 1m),
+						new Money(Currency.GBP, 0.02M),
+						"Sell_2024-08-07 15:30:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}
@@ -147,9 +147,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						1.38M,
 						2),
 					PartialActivity.CreateDividend(
-						Currency.USD,
+                       Currency.USD,
 						new DateTime(2024, 07, 04, 7, 40, 0, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("US40434L1052", Currency.EUR) },
+			   new[] { PartialSymbolIdentifier.CreateStockAndETF("US40434L1052", Currency.GetCurrency(string.Empty)) },
 						1.38M,
 						new Money(Currency.USD, 1.38M),
 						transactionId!),
@@ -174,13 +174,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
-						PartialActivity.CreateDividend(
+                     PartialActivity.CreateDividend(
 							Currency.GBP,
 							new DateTime(2024, 08, 08, 15, 27, 0, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", Currency.EUR) },
-							0.5m,
-							new Money(Currency.GBP, 0.5M),
-							"Dividend_2024-08-08 15:27:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_GBP")
+				   new[] { PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", Currency.GetCurrency(string.Empty)) },
+						0.5m,
+						new Money(Currency.GBP, 0.5M),
+						"Dividend_2024-08-08 15:27:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_GBP")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}

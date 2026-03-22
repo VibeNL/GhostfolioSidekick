@@ -62,28 +62,28 @@ namespace GhostfolioSidekick.Parsers.Trading212
 				case "Limit buy":
 				case "Market buy":
 				case "Equity rights":
-                   if (!string.IsNullOrWhiteSpace(record.ISIN))
-					   lst.Add(PartialActivity.CreateBuy(
-						   currency,
-						   record.Time,
-						   [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, currency)],
-						   record.NumberOfShares.GetValueOrDefault(),
-						   new Money(currency, record.Price.GetValueOrDefault()),
-						   new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
-						   record.Id));
+                  if (!string.IsNullOrWhiteSpace(record.ISIN))
+					  lst.Add(PartialActivity.CreateBuy(
+						  currency,
+						  record.Time,
+						  [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, Currency.EUR)],
+						  record.NumberOfShares.GetValueOrDefault(),
+						  new Money(currency, record.Price.GetValueOrDefault()),
+						  new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						  record.Id));
 					break;
 				case "Limit sell":
 				case "Stop sell":
 				case "Market sell":
-                   if (!string.IsNullOrWhiteSpace(record.ISIN))
-					   lst.Add(PartialActivity.CreateSell(
-						   currency,
-						   record.Time,
-						   [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, currency)],
-						   record.NumberOfShares.GetValueOrDefault(),
-						   new Money(currency, record.Price.GetValueOrDefault()),
-						   new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
-						   record.Id));
+                  if (!string.IsNullOrWhiteSpace(record.ISIN))
+					  lst.Add(PartialActivity.CreateSell(
+						  currency,
+						  record.Time,
+						  [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, Currency.EUR)],
+						  record.NumberOfShares.GetValueOrDefault(),
+						  new Money(currency, record.Price.GetValueOrDefault()),
+						  new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						  record.Id));
 					break;
 				case "Stock distribution":
 				case "Stock dividends":
