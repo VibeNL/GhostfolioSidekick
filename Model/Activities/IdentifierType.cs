@@ -4,6 +4,8 @@ namespace GhostfolioSidekick.Model.Activities
 	{
 		ISIN,
 
+		Ticker,
+
 		Name,
 
 		Default,
