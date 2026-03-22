@@ -2,13 +2,7 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{
-		public PartialSymbolIdentifier()
-		{
-			// EF Core
-			Identifier = null!;
-		}
-
-		private PartialSymbolIdentifier(string id)
+		private PartialSymbolIdentifier(IdentifierType identifierType, string id, Currency currency, List<AssetClass> allowedAssetClasses, List<AssetSubClass> allowedAssetSubClasses)
 		{
 			if (string.IsNullOrWhiteSpace(id))
 			{
@@ -16,54 +10,40 @@ namespace GhostfolioSidekick.Model.Activities
 			}
 
 			Identifier = id;
+			IdentifierType = identifierType;
+			Currency = currency;
+			AllowedAssetClasses = allowedAssetClasses;
+			AllowedAssetSubClasses = allowedAssetSubClasses;
 		}
 
 		public string Identifier { get; set; }
 
-		public List<AssetClass>? AllowedAssetClasses { get; set; }
+		public List<AssetClass> AllowedAssetClasses { get; set; }
 
-		public List<AssetSubClass>? AllowedAssetSubClasses { get; set; }
+		public List<AssetSubClass> AllowedAssetSubClasses { get; set; }
 
-		public static PartialSymbolIdentifier CreateCrypto(string id)
+		public Currency Currency { get; set; }
+
+		public IdentifierType IdentifierType { get; set; }
+
+		public static PartialSymbolIdentifier CreateCrypto(IdentifierType identifierType, string id, Currency currency)
 		{
-			return new PartialSymbolIdentifier(id)
-			{
-				AllowedAssetClasses = [AssetClass.Liquidity],
-				AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-			};
+			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Liquidity], [AssetSubClass.CryptoCurrency]);
 		}
 
-		public static PartialSymbolIdentifier CreateGeneric(string id)
+		public static PartialSymbolIdentifier CreateGeneric(IdentifierType identifierType, string id, Currency currency)
 		{
-			return new PartialSymbolIdentifier(id);
+			return new PartialSymbolIdentifier(identifierType, id, currency, [], []);
 		}
 
-		public static PartialSymbolIdentifier[] CreateGeneric(params string?[] ids)
+		public static PartialSymbolIdentifier CreateStockAndETF(IdentifierType identifierType, string id, Currency currency)
 		{
-			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateGeneric(x!))];
+			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Equity], [AssetSubClass.Etf, AssetSubClass.Stock]);
 		}
 
-		public static PartialSymbolIdentifier CreateStockAndETF(string id)
+		public static PartialSymbolIdentifier CreateStockBondAndETF(IdentifierType identifierType, string id, Currency currency)
 		{
-			return new PartialSymbolIdentifier(id)
-			{
-				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock]
-			};
-		}
-
-		public static PartialSymbolIdentifier[] CreateStockAndETF(params string?[] ids)
-		{
-			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateStockAndETF(x!))];
-		}
-
-		public static PartialSymbolIdentifier CreateStockBondAndETF(string id)
-		{
-			return new PartialSymbolIdentifier(id)
-			{
-				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock, AssetSubClass.Bond]
-			};
+			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Equity], [AssetSubClass.Etf, AssetSubClass.Stock, AssetSubClass.Bond]);
 		}
 
 		public virtual bool Equals(PartialSymbolIdentifier? other)
