@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			await parser.ParseActivities("./TestFiles/DeGiro/PT/BuyOrders/single_buy_GBX.csv", activityManager, account.Name);
 
 			// Assert
-			activityManager.PartialActivities.Should().BeEquivalentTo(
+          activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.GBP,
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(
 						Currency.GBX,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("AU000000GBP6", Currency.EUR) },
+				   new[] { PartialSymbolIdentifier.CreateStockAndETF("AU000000GBP6", Currency.GBX) },
 						1,
 						new Money(Currency.GBX, 235M),
 						new Money(Currency.GBP, 49.35M),

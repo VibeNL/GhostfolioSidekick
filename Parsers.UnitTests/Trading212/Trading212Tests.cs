@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("US67066G1040", Currency.EUR) },
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("US67066G1040", Currency.USD) },
 						0.0267001M,
 						new Money(Currency.USD, 453.33M),
 						new Money(Currency.EUR, 11.02M),
@@ -224,7 +224,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("US67066G1040", Currency.EUR) },
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("US67066G1040", Currency.USD) },
 						0.0267001M,
 						new Money(Currency.USD, 453.33M),
 						new Money(Currency.EUR, 11.02M),
@@ -252,7 +252,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.GBX,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("GB0007188757", Currency.EUR) },
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("GB0007188757", Currency.GBX) },
 						0.18625698M,
 						new Money(Currency.GBX, 4947.00M),
 						new Money(Currency.EUR, 10.75M),
@@ -308,7 +308,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateDividend(
 						Currency.USD,
 						new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("US0378331005", Currency.EUR) },
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("US0378331005", Currency.USD) },
 						0.025583540000M,
 						new Money(Currency.EUR, 0.02M),
 						"Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
@@ -349,7 +349,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateDividend(
 						Currency.GBX,
 						new DateTime(2024, 01, 12, 13, 25, 07, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63", Currency.EUR) },
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63", Currency.GBX) },
 						478.496796400000M,
 						new Money(Currency.EUR, 5.57M),
 						"Dividend (Dividend)_GG00BYZSSY63_2024-01-12_5.57_GBX")
@@ -370,7 +370,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.GBX,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
-               new[] { PartialSymbolIdentifier.CreateStockAndETF("GB0007188757", Currency.EUR) },
+               new[] { PartialSymbolIdentifier.CreateStockAndETF("GB0007188757", Currency.GBX) },
 						0.18625698M,
 						new Money(Currency.GBX,4947.00M),
 						new Money(Currency.EUR, 10.75M),
