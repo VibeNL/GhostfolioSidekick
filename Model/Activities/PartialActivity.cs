@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateSell(
 			Currency currency,
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			Money unitPrice,
 			Money totalTransactionAmount,
