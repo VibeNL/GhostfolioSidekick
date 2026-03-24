@@ -235,7 +235,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		private static bool IsAllowedSymbolType(SearchResult searchResult, PartialSymbolIdentifier identifier)
 		{
-			if (identifier.AllowedAssetClasses == null)
+			if (identifier.AllowedAssetClasses == null || identifier.AllowedAssetClasses.Count == 0)
 			{
 				return true;
 			}
@@ -245,7 +245,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return false;
 			}
 
-			if (identifier.AllowedAssetSubClasses == null)
+			if (identifier.AllowedAssetSubClasses == null || identifier.AllowedAssetSubClasses.Count == 0)
 			{
 				return true;
 			}
