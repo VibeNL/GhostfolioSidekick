@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -31,6 +31,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
 
+			var symbolIds = new[] { 
+				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, record.ISIN!, currencyRecord),
+				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, record.Product!, currencyRecord)
+			};
+
 			switch (activityType)
 			{
 				case null:
@@ -40,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateBuy(
 						strategy.GetCurrency(record, currencyMapper),
 						recordDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
+						symbolIds,
 						strategy.GetQuantity(record),
 						new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
 						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
@@ -54,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					break;
 				case PartialActivityType.Dividend:
 					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!, record.Product), recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
+						symbolIds, recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
 					break;
 				case PartialActivityType.Fee:
 					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
@@ -69,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateSell(
 						strategy.GetCurrency(record, currencyMapper),
 						recordDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
+						symbolIds,
 						strategy.GetQuantity(record),
 						new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
 						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
