@@ -202,7 +202,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return new SymbolProfile(
 				symbol.Symbol,
 				GetName(symbol),
-				ListExtensions.FilterEmpty([symbol.Symbol, GetName(symbol)]),
+				[
+					new SymbolIdentifier { Identifier = symbol.Symbol, IdentifierType = IdentifierType.Ticker },
+					.. ListExtensions.FilterEmpty(new string?[] { GetName(symbol) }).Select(n => new SymbolIdentifier { Identifier = n, IdentifierType = IdentifierType.Name })
+				],
 				Currency.GetCurrency(symbol.Currency),
 				Datasource.YAHOO,
 				ParseQuoteType(symbol.QuoteType),

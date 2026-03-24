@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 						name: bestMatch.Result.Name,
 						dataSource: DataSource,
 						currency: Currency.NONE,
-						identifiers: [.. cleanedIdentifiers.Select(id => id.Identifier)],
+						identifiers: [.. cleanedIdentifiers.Select(id => new SymbolIdentifier { Identifier = id.Identifier, IdentifierType = id.IdentifierType })],
 						assetClass: AssetClass.Equity,
 						assetSubClass: null,
 						countries: [],

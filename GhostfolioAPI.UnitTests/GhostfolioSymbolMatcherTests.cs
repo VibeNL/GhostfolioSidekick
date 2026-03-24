@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldReturnNull_WhenIdentifierIsEmpty()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "_", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "_", null)! };
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile(It.IsAny<string>(), false)).ReturnsAsync([]);
 
 			// Act
@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldReturnCachedResult_WhenSymbolIsCached()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 			var expectedSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldReturnSymbol_WhenFoundByApiWrapper()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 			var expectedSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -205,7 +205,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldCacheNullResult_WhenNoSymbolFound()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "UNKNOWN", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "UNKNOWN", null)! };
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile(It.IsAny<string>(), false))
 				.ReturnsAsync([]);
@@ -284,7 +284,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldRetryApiCall_WhenInitialCallReturnsEmpty()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 			var expectedSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -316,7 +316,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldPreferExactMatch_OverFuzzyMatch()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
 			var exactMatch = new SymbolProfile
 			{
@@ -353,7 +353,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldPreferExpectedCurrency()
 		{
 			// Arrange - This test verifies that well-known currencies are preferred
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
 			var usdSymbol = new SymbolProfile
 			{
@@ -398,7 +398,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
          var symbolMatcher = new GhostfolioSymbolMatcher(settingsMock.Object, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object);
 
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null) };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
 			var yahooSymbol = new SymbolProfile
 			{
@@ -494,8 +494,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("WBTC");
-		}
-	}
-	}
-}
+					result!.Symbol.Should().Be("WBTC");
+					}
+				}
+			}

@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.Activities
 			var activity = GenerateActivity(
 				account,
 				sourceTransaction.ActivityType,
-				sourceTransaction.SymbolIdentifiers,
+				[.. sourceTransaction.SymbolIdentifiers.Where(x => x != null).OfType<PartialSymbolIdentifier>()],
 				sourceTransaction.Date,
 				sourceTransaction.Amount,
 				sourceTransaction.UnitPrice ?? Money.One(Currency.EUR),
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.Activities
 				activity = GenerateActivity(
 					account,
 					transaction.ActivityType,
-					sourceTransaction.SymbolIdentifiers,
+					[.. sourceTransaction.SymbolIdentifiers.Where(x => x != null).OfType<PartialSymbolIdentifier>()],
 					transaction.Date,
 					transaction.Amount,
 					transaction.UnitPrice ?? Money.One(Currency.EUR),

@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
@@ -47,11 +48,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return symbol;
 		}
 
-		private static List<string> MapIdentifiers(Contract.SymbolProfile symbolProfile)
+		private static List<SymbolIdentifier> MapIdentifiers(Contract.SymbolProfile symbolProfile)
 		{
-			List<string> value = ListExtensions.FilterEmpty([symbolProfile.ISIN, symbolProfile.Symbol]);
-			value = [.. value.Where(x => !string.IsNullOrWhiteSpace(x))];
-			return value;
+			var result = new List<SymbolIdentifier>();
+			if (!string.IsNullOrWhiteSpace(symbolProfile.ISIN))
+				result.Add(new SymbolIdentifier { Identifier = symbolProfile.ISIN, IdentifierType = IdentifierType.ISIN });
+			if (!string.IsNullOrWhiteSpace(symbolProfile.Symbol))
+				result.Add(new SymbolIdentifier { Identifier = symbolProfile.Symbol, IdentifierType = IdentifierType.Ticker });
+			return result;
 		}
 
 		private static SectorWeight[] MapSectors(Contract.Sector[] sectors)
@@ -69,10 +73,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
 
 			// Create partial symbol identifiers based on the symbol profile
-			var partialSymbolIdentifiers = new List<Model.Activities.PartialSymbolIdentifier>
+			var partialSymbolIdentifiers = new Model.Activities.PartialSymbolIdentifier?[]
 			{
-				Model.Activities.PartialSymbolIdentifier.CreateGeneric(symbol.Symbol)
-			};
+				Model.Activities.PartialSymbolIdentifier.CreateGeneric(Model.Activities.IdentifierType.ISIN, symbol.Symbol, Currency.GetCurrency(symbol.Currency))
+			}.Where(x => x != null).OfType<Model.Activities.PartialSymbolIdentifier>().ToList();
 
 			// Create money objects for amounts
 			var currency = Currency.GetCurrency(symbol.Currency);

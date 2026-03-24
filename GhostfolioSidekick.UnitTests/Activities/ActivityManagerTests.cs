@@ -337,7 +337,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		public async Task GenerateActivities_ShouldRemoveDuplicateSymbolIdentifiers()
 		{
 			// Arrange - Create a custom partial activity with duplicate symbol identifiers
-			var duplicateSymbolIds = new List<PartialSymbolIdentifier>
+			var duplicateSymbolIds = new List<PartialSymbolIdentifier?>
 			{
 				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null),
 				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null) // Duplicate

@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Model.Symbols
 		public SymbolProfile(
 			string symbol,
 			string? name,
-			List<string> identifiers,
+			List<SymbolIdentifier> identifiers,
 			Currency currency,
 			string dataSource,
 			AssetClass assetClass,
@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string? ISIN { get; set; }
 
-		public List<string> Identifiers { get; set; }
+		public List<SymbolIdentifier> Identifiers { get; set; }
 
 		public string? Comment { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,13 +16,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.ComplexProperty(b => b.Currency).Property(p => p.Symbol).HasColumnName("Currency");
 
 			builder.Property(e => e.Identifiers)
-					.HasConversion(
-						v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
-						v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null!)!,
-						new ValueComparer<ICollection<string>>(
-							(c1, c2) => c1!.SequenceEqual(c2!),
-							c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-							c => (ICollection<string>)c.ToList()));
+						.HasConversion(
+							v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
+							v => JsonSerializer.Deserialize<List<SymbolIdentifier>>(v, (JsonSerializerOptions)null!)!,
+							new ValueComparer<List<SymbolIdentifier>>(
+								(c1, c2) => c1!.SequenceEqual(c2!),
+								c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+								c => c.ToList()));
 
 			builder.Property(e => e.SectorWeights)
 					.HasConversion(

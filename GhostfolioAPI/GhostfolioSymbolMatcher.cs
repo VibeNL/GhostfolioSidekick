@@ -116,8 +116,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			var filteredAsset = allAssets
 				.Where(x => x != null)
 				.Select(FixYahooCrypto)
-				.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
-				.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+				.Where(x => expectedAssetClass == null || expectedAssetClass.Length == 0 || expectedAssetClass.Contains(x.AssetClass))
+					.Where(x => expectedAssetSubClass == null || expectedAssetSubClass.Length == 0 || expectedAssetSubClass.Contains(x.AssetSubClass.GetValueOrDefault()))
 				.OrderBy(x => identifiers.Exists(y => MatchId(x, y)) ? 0 : 1)
 				.ThenByDescending(x => FussyMatch(identifiers, x))
 				.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)

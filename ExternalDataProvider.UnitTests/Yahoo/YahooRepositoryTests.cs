@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "AAPL" }
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], [])
 			};
 
 			// Act
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		public async Task GetStockMarketData_ShouldReturnMarketData()
 		{
 			// Arrange
-			var symbol = new SymbolProfile("AAPL", "Apple Inc.", ["AAPL"], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
 			var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
 
 			// Act
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		public async Task GetStockSplits_ShouldReturnStockSplits()
 		{
 			// Arrange
-			var symbol = new SymbolProfile("AAPL", "Apple Inc.", ["AAPL"], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
 			var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
 
 			// Act
@@ -91,8 +91,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "AAPL" },
-				new PartialSymbolIdentifier { Identifier = "APPLE" }
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], []),
+				new PartialSymbolIdentifier(IdentifierType.Name, "APPLE", null, [], [])
 			};
 
 			// Act
@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "Apple" }
+				new PartialSymbolIdentifier(IdentifierType.Name, "Apple", null, [], [])
 			};
 
 			// Act
@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "NonExistentSymbol" }
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "NonExistentSymbol", null, [], [])
 			};
 
 			// Act

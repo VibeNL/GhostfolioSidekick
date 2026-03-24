@@ -349,10 +349,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 		{
 			var uniqueSymbol = $"{symbol}_{++_symbolProfileCounter}";
 			return new SymbolProfile(
-				uniqueSymbol,
-				name,
-				[uniqueSymbol],
-				currency,
+					uniqueSymbol,
+					name,
+					[new SymbolIdentifier { Identifier = uniqueSymbol, IdentifierType = IdentifierType.Ticker }],
+					currency,
 				Datasource.YAHOO,
 				AssetClass.Equity,
 				AssetSubClass.Stock,

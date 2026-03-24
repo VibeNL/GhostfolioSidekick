@@ -672,10 +672,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		private static SymbolProfile CreateTestSymbolProfile(string symbol)
 		{
 			return new SymbolProfile(
-				symbol,
-				$"{symbol} Company",
-				[symbol],
-				Currency.USD,
+					symbol,
+					$"{symbol} Company",
+					[new SymbolIdentifier { Identifier = symbol, IdentifierType = IdentifierType.Ticker }],
+					Currency.USD,
 				"TEST",
 				AssetClass.Equity,
 				null,

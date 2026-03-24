@@ -2,14 +2,14 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{
-		public PartialSymbolIdentifier(IdentifierType identifierType, string id, Currency? currency, List<AssetClass> allowedAssetClasses, List<AssetSubClass> allowedAssetSubClasses)
+		public PartialSymbolIdentifier(IdentifierType identifierType, string identifier, Currency? currency, List<AssetClass> allowedAssetClasses, List<AssetSubClass> allowedAssetSubClasses)
 		{
-			if (string.IsNullOrWhiteSpace(id))
+			if (string.IsNullOrWhiteSpace(identifier))
 			{
-				throw new ArgumentException("Identifier cannot be null or whitespace.", nameof(id));
+				throw new ArgumentException("Identifier cannot be null or whitespace.", nameof(identifier));
 			}
 
-			Identifier = id;
+			Identifier = identifier;
 			IdentifierType = identifierType;
 			Currency = currency;
 			AllowedAssetClasses = allowedAssetClasses;
