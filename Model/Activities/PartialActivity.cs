@@ -11,7 +11,6 @@ namespace GhostfolioSidekick.Model.Activities
 			TransactionId = default!;
 		}
 
-
 		public PartialActivity(
 			PartialActivityType activityType,
 			DateTime dateTime,
@@ -37,7 +36,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public string TransactionId { get; set; }
 
-		public ICollection<PartialSymbolIdentifier> SymbolIdentifiers { get; private set; }
+		public ICollection<PartialSymbolIdentifier?> SymbolIdentifiers { get; private set; }
 
 		public Money? UnitPrice { get; private set; }
 
@@ -89,7 +88,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateGift(
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -159,7 +158,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateBuy(
 			Currency currency,
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 			decimal amount,
 			Money unitPrice,
 			Money totalTransactionAmount,
@@ -176,7 +175,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateSell(
 			Currency currency,
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 			decimal amount,
 			Money unitPrice,
 			Money totalTransactionAmount,
@@ -193,7 +192,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateDividend(
 			Currency currency,
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 			decimal amount,
 			Money totalTransactionAmount,
 			string transactionId)
@@ -226,7 +225,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateStakingReward(
 				DateTime date,
-				ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+				ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 				decimal amount,
 				string transactionId)
 		{
@@ -239,7 +238,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateSend(
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -252,7 +251,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateReceive(
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -265,9 +264,9 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static IEnumerable<PartialActivity> CreateAssetConvert(
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> source,
+			ICollection<PartialSymbolIdentifier?> source,
 			decimal sourceAmount,
-			ICollection<PartialSymbolIdentifier> target,
+			ICollection<PartialSymbolIdentifier?> target,
 			decimal targetAmount,
 			string transactionId)
 		{
@@ -318,7 +317,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateBondRepay(
 			Currency currency,
 			DateTime date,
-			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
 			Money unitPrice,
 			Money totalTransactionAmount,
 			string transactionId)
@@ -337,7 +336,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public override string ToString()
 		{
-			return $"{ActivityType} {Date.ToInvariantString()} {Amount} {Currency} {string.Join(",", SymbolIdentifiers.Select(x => x.Identifier))} {UnitPrice} {TotalTransactionAmount} {TransactionId}";
+			return $"{ActivityType} {Date.ToInvariantString()} {Amount} {Currency} {string.Join(",", SymbolIdentifiers.Select(x => x?.Identifier))} {UnitPrice} {TotalTransactionAmount} {TransactionId}";
 		}
 	}
 }
