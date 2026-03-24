@@ -26,23 +26,27 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public IdentifierType IdentifierType { get; set; }
 
-		public static PartialSymbolIdentifier CreateCrypto(IdentifierType identifierType, string id, Currency? currency)
+		public static PartialSymbolIdentifier? CreateCrypto(IdentifierType identifierType, string? id, Currency? currency)
 		{
+			if (string.IsNullOrWhiteSpace(id)) return null;
 			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Liquidity], [AssetSubClass.CryptoCurrency]);
 		}
 
-		public static PartialSymbolIdentifier CreateGeneric(IdentifierType identifierType, string id, Currency? currency)
+		public static PartialSymbolIdentifier? CreateGeneric(IdentifierType identifierType, string? id, Currency? currency)
 		{
+			if (string.IsNullOrWhiteSpace(id)) return null;
 			return new PartialSymbolIdentifier(identifierType, id, currency, [], []);
 		}
 
-		public static PartialSymbolIdentifier CreateStockAndETF(IdentifierType identifierType, string id, Currency? currency)
+		public static PartialSymbolIdentifier? CreateStockAndETF(IdentifierType identifierType, string? id, Currency? currency)
 		{
+			if (string.IsNullOrWhiteSpace(id)) return null;
 			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Equity], [AssetSubClass.Etf, AssetSubClass.Stock]);
 		}
 
-		public static PartialSymbolIdentifier CreateStockBondAndETF(IdentifierType identifierType, string id, Currency? currency)
+		public static PartialSymbolIdentifier? CreateStockBondAndETF(IdentifierType identifierType, string? id, Currency? currency)
 		{
+			if (string.IsNullOrWhiteSpace(id)) return null;
 			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Equity], [AssetSubClass.Etf, AssetSubClass.Stock, AssetSubClass.Bond]);
 		}
 
