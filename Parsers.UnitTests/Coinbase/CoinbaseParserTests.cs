@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.EUR)],
 						0.00213232M,
 						new Money(Currency.EUR,1810.23M),
 						new Money(Currency.EUR,4.85M),
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.EUR)],
 						0.00213232M,
 						new Money(Currency.EUR,1810.23M),
 						new Money(Currency.EUR,4.85M),
@@ -149,11 +149,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
-						0.564634M,
-						new Money(Currency.EUR,100000.58M),
-						new Money(Currency.EUR,54321231.60M),
-						"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.EUR)],
+							0.564634M,
+							new Money(Currency.EUR,100000.58M),
+							new Money(Currency.EUR,54321231.60M),
+							"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
@@ -174,9 +174,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Assert
 			var a = PartialActivity.CreateAssetConvert(
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.EUR)],
 						0.00087766M,
-						[PartialSymbolIdentifier.CreateCrypto("USDC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDC", Currency.EUR)],
 						1.629352M,
 						"Convert_ETH_2023-04-20 04:05:40:+00:00").ToArray();
 			activityManager.PartialActivities.Should().BeEquivalentTo(
@@ -206,7 +206,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 07, 14, 10, 40, 14, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("USDC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDC", Currency.EUR)],
 						11.275271M,
 						new Money(Currency.EUR,0.886900M),
 						new Money(Currency.EUR,10),
@@ -227,7 +227,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 04, 22, 06, 24, 44, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.EUR)],
 						0.000000010M,
 						"Receive_ETH_2023-04-22 06:24:44:+00:00")
 				]);
@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2023, 08, 19, 17, 23, 39, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.EUR)],
 						0.00205323M,
 						"Send_BTC_2023-08-19 17:23:39:+00:00")
 				]);
@@ -265,7 +265,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2023, 5, 19, 18, 14, 56, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH2", Currency.EUR)],
 						0.00002103M,
 						"Rewards Income_ETH2_2023-05-19 18:14:56:+00:00")
 				]);
@@ -284,7 +284,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2023, 5, 19, 18, 14, 56, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH2", Currency.EUR)],
 						0.00002103M,
 						"Staking Income_ETH2_2023-05-19 18:14:56:+00:00")
 				]);
@@ -303,7 +303,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2024, 04, 05, 06, 06, 14, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("USDC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDC", Currency.EUR)],
 						0.002727M,
 						"660f94d6d272349fba8637d9")
 				]);
@@ -322,7 +322,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2025, 11, 08, 20, 22, 48, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ATOM", Currency.EUR)],
 						0.001588522705M,
 						"690fa6983c920d2d896b469b")
 				]);
@@ -341,7 +341,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 04, 20, 06, 02, 33, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("GRT")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "GRT", Currency.EUR)],
 						6.40204865M,
 						"Learning Reward_GRT_2023-04-20 06:02:33:+00:00")
 				]);
@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2025, 03, 26, 20, 52, 58, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ZETACHAIN")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ZETACHAIN", Currency.EUR)],
 						2.8530670470756063M,
 						"67e4692afcea853e96a80ab9")
 				]);
@@ -380,15 +380,15 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2025, 01, 21, 21, 32, 45, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH2", Currency.EUR)],
 						0.000001113544M,
 						new Money(Currency.EUR,3184.30887255M),
 						new Money(Currency.EUR,0.00355M),
 						"6790127d6c31887f25ab4567"),
-					PartialActivity.CreateBuy(
-						Currency.EUR,
-						new DateTime(2025, 01, 21, 21, 32, 46, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						PartialActivity.CreateBuy(
+							Currency.EUR,
+							new DateTime(2025, 01, 21, 21, 32, 46, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.EUR)],
 						0.000001113544M,
 						new Money(Currency.EUR,3184.30887255M),
 						new Money(Currency.EUR,0.00355M),
@@ -410,19 +410,19 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2024, 08, 04, 06, 30, 32, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ATOM", Currency.EUR)],
 						0.556122M,
 						new Money(Currency.EUR,4.7662852990772308149M),
 						new Money(Currency.EUR,2.65064M),
 						"66af2008503e08532ee0e75a"),
-					PartialActivity.CreateBuy(
-						Currency.EUR,
-						new DateTime(2024, 08, 04, 06, 30, 32, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
-						0.556122M,
-						new Money(Currency.EUR,4.7662852990772308149M),
-						new Money(Currency.EUR,2.65064M),
-						"66af2008503e08532ee0e75b")
+						PartialActivity.CreateBuy(
+							Currency.EUR,
+							new DateTime(2024, 08, 04, 06, 30, 32, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ATOM", Currency.EUR)],
+							0.556122M,
+							new Money(Currency.EUR,4.7662852990772308149M),
+							new Money(Currency.EUR,2.65064M),
+							"66af2008503e08532ee0e75b")
 				]);
 		}
 
@@ -440,15 +440,15 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2024, 04, 04, 20, 00, 07, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH2", Currency.EUR)],
 						0.00000061M,
 						new Money(Currency.EUR,3104.2616559390651302605M),
 						new Money(Currency.EUR,0.00189M),
 						"660f06c78a810e688190e4eb"),
-					PartialActivity.CreateBuy(
-						Currency.EUR,
-						new DateTime(2024, 04, 04, 20, 00, 07, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						PartialActivity.CreateBuy(
+							Currency.EUR,
+							new DateTime(2024, 04, 04, 20, 00, 07, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.EUR)],
 						0.00000061M,
 						new Money(Currency.EUR,3104.542743477622319285M),
 						new Money(Currency.EUR,0.00189M),

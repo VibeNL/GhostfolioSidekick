@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 08, 29, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("ecoligo 16")],
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "ecoligo 16", Currency.EUR)],
 						1m,
 						new Money(Currency.EUR, 25M),
 						new Money(Currency.EUR, 25M),
@@ -79,14 +79,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 					PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2024, 05, 24, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("ecoligo 16")],
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "ecoligo 16", Currency.EUR)],
 						0.32M,
 						new Money(Currency.EUR, 0.32M),
 						"Repayment_ecoligo 16_2024-05-24_25.96"),
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2024, 05, 24, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("ecoligo 16")],
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "ecoligo 16", Currency.EUR)],
 						1m,
 						new Money(Currency.EUR, 0.36M),
 						new Money(Currency.EUR, 0.36M),
