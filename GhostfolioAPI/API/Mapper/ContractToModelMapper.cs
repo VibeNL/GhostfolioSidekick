@@ -75,7 +75,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			// Create partial symbol identifiers based on the symbol profile
 			var partialSymbolIdentifiers = new Model.Activities.PartialSymbolIdentifier?[]
 			{
-				Model.Activities.PartialSymbolIdentifier.CreateGeneric(Model.Activities.IdentifierType.ISIN, symbol.Symbol, Currency.GetCurrency(symbol.Currency))
+				Model.Activities.PartialSymbolIdentifier.CreateGeneric(Model.Activities.IdentifierType.ISIN, symbol.ISIN, Currency.GetCurrency(symbol.Currency)),
+				Model.Activities.PartialSymbolIdentifier.CreateGeneric(Model.Activities.IdentifierType.Ticker, symbol.Symbol, Currency.GetCurrency(symbol.Currency))
 			}.Where(x => x != null).OfType<Model.Activities.PartialSymbolIdentifier>().ToList();
 
 			// Create money objects for amounts
