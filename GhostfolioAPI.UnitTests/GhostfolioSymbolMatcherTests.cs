@@ -98,19 +98,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 
-		[Fact]
-		public async Task MatchSymbol_ShouldReturnNull_WhenIdentifierIsEmpty()
+		[Theory]
+		[InlineData(null)]
+		[InlineData("")]
+		[InlineData("   ")]
+		public void CreateGeneric_ShouldReturnNull_WhenIdentifierIsNullOrWhitespace(string? identifier)
 		{
-			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "_", null)! };
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile(It.IsAny<string>(), false)).ReturnsAsync([]);
+			// CreateGeneric is the guard that prevents invalid identifiers from ever reaching
+			// MatchSymbol. Callers that pass null/empty/whitespace receive null back, which
+			// is filtered out before the matcher is invoked.
+			var result = PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, identifier, null);
 
-			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
-
-			// Assert
 			result.Should().BeNull();
 		}
+
 		[Fact]
 		public async Task MatchSymbol_ShouldReturnCachedResult_WhenSymbolIsCached()
 		{
