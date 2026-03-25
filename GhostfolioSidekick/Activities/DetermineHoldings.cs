@@ -56,10 +56,16 @@ namespace GhostfolioSidekick.Activities
 				validPartialIdentifiers.Add(partialIdentifiers);
 			}
 
-			foreach (var partialIdentifiers in validPartialIdentifiers
-					.GroupBy(x => string.Join("|", x.Select(id => id.Identifier).OrderBy(id => id)))
-					.Select(g => (IList<PartialSymbolIdentifier>)g.SelectMany(ids => ids).ToList())
-					.OrderBy(x => x[0].Identifier))
+			IEnumerable<IList<PartialSymbolIdentifier>> partialIdentifiersList = validPartialIdentifiers
+						.GroupBy(x => string.Join("|", x.Select(id => id.Identifier).OrderBy(id => id)))
+						.Select(g => (IList<PartialSymbolIdentifier>)[.. g.SelectMany(ids => ids)
+							.OrderBy(id => GetIdentifierTypePriority(id.IdentifierType))
+							.ThenBy(id => GetCurrencyPriority(id.Currency))])
+						.OrderBy(x => GetIdentifierTypePriority(x[0].IdentifierType))
+						.ThenBy(x => GetCurrencyPriority(x[0].Currency))
+						.ThenBy(x => x[0].Identifier)
+						.ToList();
+			foreach (var partialIdentifiers in partialIdentifiersList)
 			{
 				var ids = GetIds(partialIdentifiers);
 				await CreateOrReuseHolding(logger, databaseContext, partialIdentifierMap, symbolProfileMap, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
@@ -167,7 +173,7 @@ namespace GhostfolioSidekick.Activities
 				found = true;
 
 				var symbolKey = $"{symbolProfile.Symbol}|{symbolProfile.DataSource}";
-				
+
 				// First check if we already have a holding for this specific partial identifier
 				if (FindHolding(partialIdentifierMap, partialIdentifiers, out var existingHolding) && existingHolding != null)
 				{
@@ -184,7 +190,7 @@ namespace GhostfolioSidekick.Activities
 
 					continue;
 				}
-				
+
 				// Then check if we already have a holding for this symbol profile
 				if (symbolProfileMap.TryGetValue(symbolKey, out existingHolding))
 				{
@@ -196,7 +202,7 @@ namespace GhostfolioSidekick.Activities
 
 					continue;
 				}
-								
+
 				logger.LogDebug("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", symbolProfile.Symbol);
 
 				// Try to reuse an existing holding, otherwise create a new one
@@ -229,7 +235,7 @@ namespace GhostfolioSidekick.Activities
 
 		private static void AddPartialIdentifiersToMap(
 			Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
-			IList<PartialSymbolIdentifier> partialIdentifiers, 
+			IList<PartialSymbolIdentifier> partialIdentifiers,
 			Holding existingHolding)
 		{
 			foreach (var identifier in partialIdentifiers)
@@ -281,8 +287,8 @@ namespace GhostfolioSidekick.Activities
 
 		private static int GetIdentifierTypePriority(IdentifierType identifierType) => identifierType switch
 		{
-			IdentifierType.ISIN => 0,
-			IdentifierType.Ticker => 1,
+			IdentifierType.Ticker => 0,
+			IdentifierType.ISIN => 1,
 			IdentifierType.Default => 2,
 			IdentifierType.Name => 3,
 			_ => 4,

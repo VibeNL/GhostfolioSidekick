@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		}
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-       {
+	   {
 			try
 			{
 				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
@@ -55,20 +55,33 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 					SearchResult? bestMatch = null;
 
-					// Prefer exact symbol match (case-insensitive) with any identifier
+					var expectedCurrency = symbolIdentifiers
+						.Where(i => i.Currency != null)
+						.Select(i => i.Currency)
+						.FirstOrDefault();
+
+					// Prefer exact symbol match (case-insensitive) with any identifier, preferring currency match
 					foreach (var identifier in symbolIdentifiers)
 					{
-						bestMatch = searchResults.FirstOrDefault(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase));
-						if (bestMatch != null)
-							break;
+						var exactMatches = searchResults
+							.Where(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase))
+							.ToList();
+						if (exactMatches.Count == 0)
+						{
+							continue;
+						}
+
+						bestMatch = exactMatches.MaxBy(r => GetCurrencyMatchScore(r, expectedCurrency));
+						break;
 					}
 
-					// If no exact match, use semantic match score
+					// If no exact match, use semantic match score with currency as tiebreaker
 					if (bestMatch == null)
 					{
 						var identifierValues = symbolIdentifiers.Select(i => i.Identifier).Where(v => !string.IsNullOrWhiteSpace(v)).ToArray();
 						bestMatch = searchResults
 							.OrderByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(identifierValues, new[] { r.Symbol, r.ShortName ?? string.Empty }))
+							.ThenByDescending(r => GetCurrencyMatchScore(r, expectedCurrency))
 							.First();
 					}
 
@@ -354,6 +367,32 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 
 			return [new CountryWeight(securityProfile.Country, string.Empty, string.Empty, 1)];
+		}
+
+		private static int GetCurrencyMatchScore(SearchResult result, Currency? expectedCurrency)
+		{
+			if (expectedCurrency == null)
+				return 0;
+
+			var exchangeCurrency = GetExchangeCurrency(result.Exchange);
+			return string.Equals(exchangeCurrency, expectedCurrency.Symbol, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+		}
+
+		private static string? GetExchangeCurrency(string exchange)
+		{
+			return exchange switch
+			{
+				"NYQ" or "NMS" or "NGM" or "PCX" or "NCM" or "BTS" => "USD",
+				"GER" or "FRA" or "BER" or "HAM" or "STU" or "DUS" or "MUN" => "EUR",
+				"PAR" or "AMS" or "BRU" or "MCE" or "LIS" or "OSL" or "HEL" or "VIE" => "EUR",
+				"LSE" => "GBP",
+				"TOR" => "CAD",
+				"ASX" => "AUD",
+				"SWX" => "CHF",
+				"JPX" => "JPY",
+				"HKG" => "HKD",
+				_ => null,
+			};
 		}
 
 		private static AssetClass ParseQuoteType(string quoteType)
