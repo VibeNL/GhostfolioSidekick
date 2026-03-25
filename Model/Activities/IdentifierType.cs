@@ -2,12 +2,12 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public enum IdentifierType
 	{
-		ISIN,
+		Default = 0,
 
-		Ticker,
+		ISIN = 1,
 
-		Name,
+		Ticker = 2,
 
-		Default,
+		Name = 3,
 	}
 }
