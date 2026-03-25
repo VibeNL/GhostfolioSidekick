@@ -19,6 +19,7 @@ namespace GhostfolioSidekick.Activities
 			IApplicationSettings settings) : IScheduledWork
 	{
 		private readonly Mapping[] mappings = settings?.ConfigurationInstance?.Mappings ?? [];
+		private readonly string primaryCurrency = settings?.ConfigurationInstance?.Settings?.PrimaryCurrency ?? string.Empty;
 
 		public TaskPriority Priority => TaskPriority.DetermineHoldings;
 
@@ -56,8 +57,9 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			foreach (var partialIdentifiers in validPartialIdentifiers
-				.DistinctBy(x => string.Join("|", x.Select(id => id.Identifier).OrderBy(id => id)))
-				.OrderBy(x => x[0].Identifier))
+					.GroupBy(x => string.Join("|", x.Select(id => id.Identifier).OrderBy(id => id)))
+					.Select(g => (IList<PartialSymbolIdentifier>)g.SelectMany(ids => ids).ToList())
+					.OrderBy(x => x[0].Identifier))
 			{
 				var ids = GetIds(partialIdentifiers);
 				await CreateOrReuseHolding(logger, databaseContext, partialIdentifierMap, symbolProfileMap, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
@@ -86,7 +88,11 @@ namespace GhostfolioSidekick.Activities
 					var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", holding.PartialSymbolIdentifiers)}";
 					if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
 					{
-						symbolProfile = await symbolMatcher.MatchSymbol([.. holding.PartialSymbolIdentifiers]).ConfigureAwait(false);
+						var orderedIdentifiers = holding.PartialSymbolIdentifiers
+							.OrderBy(x => GetIdentifierTypePriority(x.IdentifierType))
+							.ThenBy(x => GetCurrencyPriority(x.Currency))
+							.ToArray();
+						symbolProfile = await symbolMatcher.MatchSymbol(orderedIdentifiers).ConfigureAwait(false);
 						if (symbolProfile != null)
 						{
 							var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
@@ -267,7 +273,26 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			return [.. ids.DistinctBy(x => x.Identifier)];
+			return [.. ids
+				.OrderBy(x => GetIdentifierTypePriority(x.IdentifierType))
+				.ThenBy(x => GetCurrencyPriority(x.Currency))
+				.DistinctBy(x => x.Identifier)];
 		}
+
+		private static int GetIdentifierTypePriority(IdentifierType identifierType) => identifierType switch
+		{
+			IdentifierType.ISIN => 0,
+			IdentifierType.Ticker => 1,
+			IdentifierType.Default => 2,
+			IdentifierType.Name => 3,
+			_ => 4,
+		};
+
+		private int GetCurrencyPriority(Currency? currency) => currency switch
+		{
+			null => 2,
+			_ when currency.Symbol == primaryCurrency => 0,
+			_ => 1,
+		};
 	}
 }
