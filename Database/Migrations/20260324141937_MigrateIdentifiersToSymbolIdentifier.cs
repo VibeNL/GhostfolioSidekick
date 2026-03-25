@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,6 +10,15 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // All pre-existing rows lack IdentifierType context and would receive the incorrect
+            // default value of 0 (IdentifierType.Default). Since the correct type (ISIN, Ticker,
+            // Name, …) cannot be inferred from the Identifier string alone, purge the stale rows.
+            // The application will regenerate them with correct IdentifierType values on next run.
+            // SQLite disables FK enforcement by default so the CASCADE on the join table will not
+            // fire automatically — delete the join table first to avoid orphaned rows.
+            migrationBuilder.Sql("DELETE FROM PartialSymbolIdentifierActivity");
+            migrationBuilder.Sql("DELETE FROM PartialSymbolIdentifiers");
+
             migrationBuilder.DropIndex(
                 name: "IX_PartialSymbolIdentifiers_Identifier_AllowedAssetClass_AllowedAssetSubClass",
                 table: "PartialSymbolIdentifiers");
