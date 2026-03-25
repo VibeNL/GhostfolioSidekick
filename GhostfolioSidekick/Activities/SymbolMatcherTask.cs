@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Activities
 			{
 				// Try to find existing holding
 				holding ??= currentHoldings.SingleOrDefault(x => CompareSymbolName(x, symbol));
-				holding ??= currentHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x.IdentifierType, x.Identifier, null)).Where(y => y != null).Any(y => x.IdentifierContainsInList(y!)));
+				holding ??= currentHoldings.SingleOrDefault(x => symbol.Identifiers.Select(si => PartialSymbolIdentifier.CreateGeneric(si.IdentifierType, si.Identifier, si.Currency)).Where(y => y != null).Any(y => x.IdentifierContainsInList(y!)));
 			}
 
 			// Create new holding if not found, should not happen
