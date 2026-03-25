@@ -16,7 +16,31 @@ namespace GhostfolioSidekick.Model.Activities
 			AllowedAssetSubClasses = allowedAssetSubClasses;
 		}
 
-		public string Identifier { get; set; }
+      // Required for EF Core + Castle.DynamicProxy lazy-loading proxy materialization.
+		// The validating constructor must NOT be used during DB reads to avoid crashing
+		// on any pre-existing rows that contain an empty Identifier.
+		protected PartialSymbolIdentifier()
+		{
+			_identifier = default!;
+			AllowedAssetClasses = [];
+			AllowedAssetSubClasses = [];
+		}
+
+		private string _identifier = default!;
+
+		public string Identifier
+		{
+			get => _identifier;
+			set
+			{
+				if (string.IsNullOrWhiteSpace(value))
+				{
+					throw new ArgumentException("Identifier cannot be null or whitespace.", nameof(value));
+				}
+
+				_identifier = value;
+			}
+		}
 
 		public List<AssetClass> AllowedAssetClasses { get; set; }
 

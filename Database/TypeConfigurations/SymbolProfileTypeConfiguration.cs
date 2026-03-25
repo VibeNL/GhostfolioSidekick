@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -18,7 +19,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(e => e.Identifiers)
 						.HasConversion(
 							v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
-							v => JsonSerializer.Deserialize<List<SymbolIdentifier>>(v, (JsonSerializerOptions)null!)!,
+							v => DeserializeIdentifiers(v),
 							new ValueComparer<List<SymbolIdentifier>>(
 								(c1, c2) => c1!.SequenceEqual(c2!),
 								c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
@@ -47,6 +48,23 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.HasMany(x => x.MarketData).WithOne().OnDelete(DeleteBehavior.Cascade);
 			builder.HasMany(x => x.StockSplits).WithOne().OnDelete(DeleteBehavior.Cascade);
+		}
+
+		private static List<SymbolIdentifier> DeserializeIdentifiers(string json)
+		{
+			using var doc = JsonDocument.Parse(json);
+			var root = doc.RootElement;
+
+			if (root.ValueKind == JsonValueKind.Array
+				&& root.GetArrayLength() > 0
+				&& root[0].ValueKind == JsonValueKind.String)
+			{
+				// Old format: array of plain strings - convert to SymbolIdentifier with Default type
+				return [.. root.EnumerateArray()
+					.Select(e => new SymbolIdentifier { Identifier = e.GetString()!, IdentifierType = IdentifierType.Default })];
+			}
+
+			return JsonSerializer.Deserialize<List<SymbolIdentifier>>(json, (JsonSerializerOptions)null!) ?? [];
 		}
 	}
 }
