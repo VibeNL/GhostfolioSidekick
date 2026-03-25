@@ -2,12 +2,12 @@ using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
-	public class SymbolIdentifier
+	public record SymbolIdentifier
 	{
-		public string Identifier { get; set; } = string.Empty!;
+		public string Identifier { get; init; } = string.Empty!;
 
-		public Currency? Currency { get; set; }
+		public Currency? Currency { get; init; }
 
-		public IdentifierType IdentifierType { get; set; }
+		public IdentifierType IdentifierType { get; init; }
 	}
 }
