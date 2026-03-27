@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 			// Wait for transactions to load
 			logger.LogInformation("Waiting for transactions to load...");
-			await page.WaitForSelectorAsync("button:text('Export CSV')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+			await page.WaitForSelectorAsync("input#search", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
 			return new TransactionPage(page, logger);
 		}
