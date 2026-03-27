@@ -389,8 +389,17 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			if (expectedCurrency == null)
 				return 0;
 
-			symbolCurrencies.TryGetValue(result.Symbol, out var actualCurrency);
-			return string.Equals(actualCurrency, expectedCurrency.Symbol, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+			symbolCurrencies.TryGetValue(result.Symbol, out var actualCurrencySymbol);
+			if (actualCurrencySymbol == null)
+				return 0;
+
+			var actualCurrency = Currency.GetCurrency(actualCurrencySymbol);
+
+			// Normalize to source currency so that GBX/GBp and GBP are treated as equivalent
+			var (actualSource, _) = actualCurrency.GetSourceCurrency();
+			var (expectedSource, _) = expectedCurrency.GetSourceCurrency();
+
+			return actualSource == expectedSource ? 1 : 0;
 		}
 
 		private async Task<string?> GetActualCurrencyAsync(string symbolName)
