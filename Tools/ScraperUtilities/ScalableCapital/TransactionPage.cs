@@ -178,6 +178,23 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				};
 			}
 
+			var otherDiv = page.GetByTestId("icon-OTHERS");
+			if (await otherDiv.IsVisibleAsync())
+			{
+				var headerText = await otherDiv.Locator("..").InnerTextAsync();
+				if (headerText.Contains("Withdrawal"))
+				{
+					var dateDeposit = await GetHistoryDate("Payment settled");
+
+					return new CashWithdrawalActivity
+					{
+						Amount = await GetMoneyField("Amount"),
+						Date = dateDeposit,
+						TransactionId = await GetField<string>(Description),
+					};
+				}
+			}
+
 			// If is Deposit or Withdrawal
 			if (await page.GetByTestId("icon-DEPOSIT").IsVisibleAsync())
 			{
