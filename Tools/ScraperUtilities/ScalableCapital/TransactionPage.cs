@@ -34,6 +34,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 						// Click on the transaction to open the details
 						await transaction.ScrollIntoViewIfNeededAsync();
+						await page.EvaluateAsync("window.scrollBy(0, 100)");
 
 						await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
 
