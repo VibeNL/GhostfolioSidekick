@@ -60,28 +60,43 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 						.Select(i => i.Currency)
 						.FirstOrDefault();
 
+					var symbolCurrencies = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+					foreach (var result in searchResults)
+					{
+						symbolCurrencies[result.Symbol] = await GetActualCurrencyAsync(result.Symbol);
+					}
+
 					// Prefer exact symbol match (case-insensitive) with any identifier, preferring currency match
 					foreach (var identifier in symbolIdentifiers)
 					{
+						var cleanedIdentifier = SymbolNameCleaner.CleanTickerSymbol(identifier.Identifier);
 						var exactMatches = searchResults
-							.Where(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase))
+							.Where(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase)
+									 || SymbolNameCleaner.CleanTickerSymbol(r.Symbol).Equals(cleanedIdentifier, StringComparison.OrdinalIgnoreCase))
 							.ToList();
 						if (exactMatches.Count == 0)
 						{
 							continue;
 						}
 
-						bestMatch = exactMatches.MaxBy(r => GetCurrencyMatchScore(r, expectedCurrency));
+						bestMatch = exactMatches.MaxBy(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies));
 						break;
 					}
 
 					// If no exact match, use semantic match score with currency as tiebreaker
 					if (bestMatch == null)
 					{
-						var identifierValues = symbolIdentifiers.Select(i => i.Identifier).Where(v => !string.IsNullOrWhiteSpace(v)).ToArray();
+						var identifierValues = symbolIdentifiers
+							.Select(i => i.Identifier)
+							.Where(v => !string.IsNullOrWhiteSpace(v))
+							.Concat(symbolIdentifiers
+								.Select(i => SymbolNameCleaner.CleanTickerSymbol(i.Identifier))
+								.Where(v => !string.IsNullOrWhiteSpace(v)))
+							.Distinct(StringComparer.OrdinalIgnoreCase)
+							.ToArray();
 						bestMatch = searchResults
-							.OrderByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(identifierValues, new[] { r.Symbol, r.ShortName ?? string.Empty }))
-							.ThenByDescending(r => GetCurrencyMatchScore(r, expectedCurrency))
+							.OrderByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(identifierValues, new[] { r.Symbol, SymbolNameCleaner.CleanTickerSymbol(r.Symbol), r.ShortName ?? string.Empty }))
+							.ThenByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
 							.First();
 					}
 
@@ -369,30 +384,25 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return [new CountryWeight(securityProfile.Country, string.Empty, string.Empty, 1)];
 		}
 
-		private static int GetCurrencyMatchScore(SearchResult result, Currency? expectedCurrency)
+		private static int GetCurrencyMatchScore(SearchResult result, Currency? expectedCurrency, IReadOnlyDictionary<string, string?> symbolCurrencies)
 		{
 			if (expectedCurrency == null)
 				return 0;
 
-			var exchangeCurrency = GetExchangeCurrency(result.Exchange);
-			return string.Equals(exchangeCurrency, expectedCurrency.Symbol, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+			symbolCurrencies.TryGetValue(result.Symbol, out var actualCurrency);
+			return string.Equals(actualCurrency, expectedCurrency.Symbol, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
 		}
 
-		private static string? GetExchangeCurrency(string exchange)
+		private async Task<string?> GetActualCurrencyAsync(string symbolName)
 		{
-			return exchange switch
+			var symbols = await GetSymbolDetails(symbolName);
+			if (symbols == null)
 			{
-				"NYQ" or "NMS" or "NGM" or "PCX" or "NCM" or "BTS" => "USD",
-				"GER" or "FRA" or "BER" or "HAM" or "STU" or "DUS" or "MUN" => "EUR",
-				"PAR" or "AMS" or "BRU" or "MCE" or "LIS" or "OSL" or "HEL" or "VIE" => "EUR",
-				"LSE" => "GBP",
-				"TOR" => "CAD",
-				"ASX" => "AUD",
-				"SWX" => "CHF",
-				"JPX" => "JPY",
-				"HKG" => "HKD",
-				_ => null,
-			};
+				return null;
+			}
+
+			symbols.TryGetValue(symbolName, out var security);
+			return security?.Currency;
 		}
 
 		private static AssetClass ParseQuoteType(string quoteType)
