@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 						.Select(i => i.Currency)
 						.FirstOrDefault();
 
-					var symbolCurrencies = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+					var symbolCurrencies = new Dictionary<string, Currency?>(StringComparer.OrdinalIgnoreCase);
 					foreach (var result in searchResults)
 					{
 						symbolCurrencies[result.Symbol] = await GetActualCurrencyAsync(result.Symbol);
@@ -384,16 +384,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return [new CountryWeight(securityProfile.Country, string.Empty, string.Empty, 1)];
 		}
 
-		private static int GetCurrencyMatchScore(SearchResult result, Currency? expectedCurrency, IReadOnlyDictionary<string, string?> symbolCurrencies)
+		private static int GetCurrencyMatchScore(SearchResult result, Currency? expectedCurrency, IReadOnlyDictionary<string, Currency?> symbolCurrencies)
 		{
 			if (expectedCurrency == null)
 				return 0;
 
-			symbolCurrencies.TryGetValue(result.Symbol, out var actualCurrencySymbol);
-			if (actualCurrencySymbol == null)
+			symbolCurrencies.TryGetValue(result.Symbol, out var actualCurrency);
+			if (actualCurrency == null)
 				return 0;
-
-			var actualCurrency = Currency.GetCurrency(actualCurrencySymbol);
 
 			// Normalize to source currency so that GBX/GBp and GBP are treated as equivalent
 			var (actualSource, _) = actualCurrency.GetSourceCurrency();
@@ -402,7 +400,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return actualSource == expectedSource ? 1 : 0;
 		}
 
-		private async Task<string?> GetActualCurrencyAsync(string symbolName)
+		private async Task<Currency?> GetActualCurrencyAsync(string symbolName)
 		{
 			var symbols = await GetSymbolDetails(symbolName);
 			if (symbols == null)
@@ -411,7 +409,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 
 			symbols.TryGetValue(symbolName, out var security);
-			return security?.Currency;
+			return security?.Currency is string currencySymbol ? Currency.GetCurrency(currencySymbol) : null;
 		}
 
 		private static AssetClass ParseQuoteType(string quoteType)
