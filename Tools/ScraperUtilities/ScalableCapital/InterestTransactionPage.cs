@@ -1,44 +1,44 @@
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 {
 	internal class InterestTransactionPage(IPage page, ILogger logger) : TransactionPage(page, logger)
 	{
-		protected override async Task OpenTransactionDetail(ILocator transaction)
+		protected override Task OpenTransactionDetail(ILocator transaction)
 		{
-			await transaction.ScrollIntoViewIfNeededAsync();
-			await Page.EvaluateAsync("window.scrollBy(0, 100)");
-			await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } });
-			await Page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+			return Task.CompletedTask;
 		}
 
-		protected override async Task CloseTransactionDetail()
+		protected override Task CloseTransactionDetail()
 		{
-			await Page.GetByRole(AriaRole.Button, new() { Name = "Close" }).ClickAsync();
+			return Task.CompletedTask;	
 		}
 
 		protected override async Task<Activity?> ProcessDetails(ILocator transaction)
 		{
-			if (await Page.GetByTestId("icon-deposit").IsVisibleAsync())
+			var item = await transaction.InnerTextAsync();
+			var itemHTML = await transaction.InnerHTMLAsync();
+
+			// Date is 3 up, first child. Dateformat: Wednesday, 25 March 2026
+			var dateString = await transaction.Locator("xpath=..").Locator("xpath=..").Locator("xpath=..").Locator("div").First.InnerTextAsync();
+			var date = DateTime.Parse(dateString, new CultureInfo("en-US"));
+
+			// Amount the the last child of the transaction locator. Format: €200.00
+			var amountString = await transaction.Locator("div").Last.InnerTextAsync();
+			var amount = decimal.Parse(amountString.Replace("€", "").Trim(), new CultureInfo("en-US"));
+
+			if (await transaction.GetByTestId("icon-deposit").IsVisibleAsync())
 			{
 				return new CashDepositActivity
 				{
-					Amount = await GetMoneyField("Amount"),
-					Date = await GetHistoryDate("Deposit settled"),
-					TransactionId = await GetField<string>(Description),
-				};
-			}
-
-			if (await Page.GetByTestId("icon-withdrawal").IsVisibleAsync())
-			{
-				return new CashWithdrawalActivity
-				{
-					Amount = await GetMoneyField("Amount"),
-					Date = await GetHistoryDate("Withdrawal settled"),
-					TransactionId = await GetField<string>(Description),
+					Amount = new Model.Money(Currency.EUR, amount),
+					Date = date,
+					TransactionId = (await transaction.GetAttributeAsync("data-testid")) ?? string.Empty,
 				};
 			}
 
