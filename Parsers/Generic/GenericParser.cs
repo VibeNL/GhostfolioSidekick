@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -35,12 +35,18 @@ namespace GhostfolioSidekick.Parsers.Generic
 				record.Quantity = 1;
 			}
 
+			var symbolIdentifier = new[] {
+				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, record.Symbol!, currency),
+				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Name, record.Name!, currency),
+				PartialSymbolIdentifier.CreateGeneric(IdentifierType.ISIN, record.ISIN!, currency)	
+			};
+
 			switch (record.ActivityType)
 			{
 				case PartialActivityType.Receive:
 					lst.Add(PartialActivity.CreateReceive(
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
+						symbolIdentifier,
 						record.Quantity,
 						record.Id));
 					break;
@@ -48,7 +54,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 					lst.Add(PartialActivity.CreateBuy(
 						currency,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
+						symbolIdentifier,
 						record.Quantity,
 						new Money(currency, unitPrice),
 						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
@@ -57,7 +63,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 				case PartialActivityType.Send:
 					lst.Add(PartialActivity.CreateSend(
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
+						symbolIdentifier,
 						record.Quantity,
 						record.Id));
 					break;
@@ -65,7 +71,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 					lst.Add(PartialActivity.CreateSell(
 						currency,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
+						symbolIdentifier,
 						record.Quantity,
 						new Money(currency, unitPrice),
 						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
@@ -75,7 +81,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 					lst.Add(PartialActivity.CreateDividend(
 						currency,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
+						symbolIdentifier,
 						record.Quantity * record.UnitPrice,
 						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
@@ -129,7 +135,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 				case PartialActivityType.GiftAsset:
 					lst.Add(PartialActivity.CreateGift(
 						record.Date,
-						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
+						symbolIdentifier,
 						record.Quantity,
 						record.Id));
 					break;

@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 		public async Task MatchSymbol_ShouldReturn_SymbolProfile_WhenIdentifierMatches()
 		{
 			// Arrange
-			var identifiers = new[] { new PartialSymbolIdentifier { Identifier = "btc", AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency] } };
+			var identifiers = new[] { new PartialSymbolIdentifier(IdentifierType.Ticker, "btc", null, [], [AssetSubClass.CryptoCurrency]) };
 			var coinGeckoAsset = new CoinGeckoAsset { Id = "bitcoin", Name = "Bitcoin", Symbol = "btc" };
 			restClientMock.Setup(c => c.Api.GetAssetsAsync(default, default)).ReturnsAsync(new WebCallResult<CoinGeckoAsset[]>(
 				null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, [coinGeckoAsset], null));
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 		public async Task MatchSymbol_ShouldReturn_Null_WhenNoIdentifierMatches()
 		{
 			// Arrange
-			var identifiers = new[] { new PartialSymbolIdentifier { Identifier = "unknown", AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency] } };
+			var identifiers = new[] { new PartialSymbolIdentifier(IdentifierType.Ticker, "unknown", null, [], [AssetSubClass.CryptoCurrency]) };
 			restClientMock.Setup(c => c.Api.GetAssetsAsync(default, default)).ReturnsAsync(new WebCallResult<CoinGeckoAsset[]>(
 				null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, [], null));
 
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 		public async Task GetStockMarketData_ShouldReturn_MarketData_WhenSymbolMatches()
 		{
 			// Arrange
-			var symbolProfile = new SymbolProfile("btc", "Bitcoin", ["btc"], Currency.USD, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
+			var symbolProfile = new SymbolProfile("btc", "Bitcoin", [new SymbolIdentifier { Identifier = "btc", IdentifierType = IdentifierType.Ticker }], Currency.USD, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
 			var coinGeckoAsset = new CoinGeckoAsset { Id = "bitcoin", Name = "Bitcoin", Symbol = "btc" };
 			var ohlcData = new CoinGeckoOhlc[] { new() { Timestamp = DateTime.UtcNow, Open = 100, Close = 200, High = 300, Low = 50 } };
 			restClientMock.Setup(c => c.Api.GetOhlcAsync("bitcoin", "usd", 365, default, CancellationToken.None)).ReturnsAsync(new WebCallResult<CoinGeckoOhlc[]>(
@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 		public async Task GetStockMarketData_ShouldReturn_Empty_WhenSymbolDoesNotMatch()
 		{
 			// Arrange
-			var symbolProfile = new SymbolProfile("unknown", "Unknown", ["unknown"], Currency.USD, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
+			var symbolProfile = new SymbolProfile("unknown", "Unknown", [new SymbolIdentifier { Identifier = "unknown", IdentifierType = IdentifierType.Ticker }], Currency.USD, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
 			restClientMock.Setup(c => c.Api.GetOhlcAsync("unknown", "usd", 365, default, CancellationToken.None)).ReturnsAsync(new WebCallResult<CoinGeckoOhlc[]>(
 				null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, [], null));
 			restClientMock.Setup(c => c.Api.GetOhlcAsync("unknown", "usd", 30, default, CancellationToken.None)).ReturnsAsync(new WebCallResult<CoinGeckoOhlc[]>(

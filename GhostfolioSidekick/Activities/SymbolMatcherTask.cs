@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Activities
 			{
 				// Try to find existing holding
 				holding ??= currentHoldings.SingleOrDefault(x => CompareSymbolName(x, symbol));
-				holding ??= currentHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
+				holding ??= currentHoldings.SingleOrDefault(x => symbol.Identifiers.Select(si => PartialSymbolIdentifier.CreateGeneric(si.IdentifierType, si.Identifier, si.Currency)).Where(y => y != null).Any(y => x.IdentifierContainsInList(y!)));
 			}
 
 			// Create new holding if not found, should not happen
@@ -159,12 +159,7 @@ namespace GhostfolioSidekick.Activities
 			var lst = new List<PartialSymbolIdentifier>();
 			foreach (var item in symbol.Identifiers)
 			{
-				lst.Add(new PartialSymbolIdentifier
-				{
-					Identifier = item,
-					AllowedAssetClasses = [symbol.AssetClass],
-					AllowedAssetSubClasses = symbol.AssetSubClass != null ? [symbol.AssetSubClass.Value] : null
-				});
+				lst.Add(new PartialSymbolIdentifier(item.IdentifierType, item.Identifier, item.Currency, [symbol.AssetClass], symbol.AssetSubClass != null ? [symbol.AssetSubClass.Value] : []));
 			}
 
 			return lst;
@@ -195,3 +190,4 @@ namespace GhostfolioSidekick.Activities
 		}
 	}
 }
+

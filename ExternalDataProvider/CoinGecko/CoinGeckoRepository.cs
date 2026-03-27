@@ -48,7 +48,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 						var symbolProfile = new SymbolProfile(
 							coinGeckoAsset.Symbol,
 							coinGeckoAsset.Name,
-							[coinGeckoAsset.Symbol, coinGeckoAsset.Name],
+							[
+								new SymbolIdentifier { Identifier = coinGeckoAsset.Symbol, IdentifierType = IdentifierType.Ticker },
+								new SymbolIdentifier { Identifier = coinGeckoAsset.Name, IdentifierType = IdentifierType.Name }
+							],
 							Currency.USD with { },
 							Datasource.COINGECKO,
 							AssetClass.Liquidity,

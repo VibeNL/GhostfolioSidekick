@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 						AssetClass = sp.AssetClass,
 						AssetSubClass = sp.AssetSubClass,
 						Currency = sp.Currency.Symbol,
-						Identifiers = sp.Identifiers,
+						Identifiers = [.. sp.Identifiers.Select(i => i.Identifier)],
 						MatchedPartialIdentifiers = [.. holding.PartialSymbolIdentifiers
 							.Where(pi => ContainsIdentifier(sp, pi.Identifier))
 							.Select(pi => pi.Identifier)],
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		private static bool ContainsIdentifier(Model.Symbols.SymbolProfile symbolProfile, string identifier)
 		{
 			return symbolProfile.Identifiers.Any(id =>
-				string.Equals(id, identifier, StringComparison.OrdinalIgnoreCase)) ||
+				string.Equals(id.Identifier, identifier, StringComparison.OrdinalIgnoreCase)) ||
 				string.Equals(symbolProfile.Symbol, identifier, StringComparison.OrdinalIgnoreCase) ||
 				(!string.IsNullOrEmpty(symbolProfile.ISIN) && string.Equals(symbolProfile.ISIN, identifier, StringComparison.OrdinalIgnoreCase));
 		}

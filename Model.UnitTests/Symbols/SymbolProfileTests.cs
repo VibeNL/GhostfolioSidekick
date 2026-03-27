@@ -10,8 +10,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		public void PropertyTests()
 		{
 			// Arrange
-			List<string> identifiers = ["id1", "id2"];
-			var symbolProfile = new SymbolProfile("symbol", "name", identifiers, Currency.USD, "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], []);
+				List<SymbolIdentifier> identifiers = [new SymbolIdentifier { Identifier = "id1" }, new SymbolIdentifier { Identifier = "id2" }];
+				var symbolProfile = new SymbolProfile("symbol", "name", identifiers, Currency.USD, "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], []);
 			var newCurrency = Currency.EUR;
 			
 			// Act

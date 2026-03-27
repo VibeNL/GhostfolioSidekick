@@ -9,9 +9,9 @@
 3. **AI Components** - AI-powered features using Semantic Kernel and Web LLM for chat capabilities
 4. **Supporting Libraries** - Parsers, database access, API integrations, and utilities
 
-**Repository Size**: ~45 projects in a single solution
-**Primary Languages**: C# 14.0 (preview)
-**Target Framework**: .NET 10.0 (preview)
+**Repository Size**: ~45 projects in a single solution  
+**Primary Languages**: C# 14.0 (preview)  
+**Target Framework**: .NET 10.0 (preview)  
 **Key Technologies**: Blazor WebAssembly, .NET Aspire, Entity Framework Core, Playwright (UI testing), xUnit
 
 ## Build & Validation
@@ -26,7 +26,8 @@
 
 ### Build Commands
 
-**Standard build** - Builds all 45 projects in the solution:
+Standard build - Builds all 45 projects in the solution:
+
 ```bash
 dotnet build
 ```
@@ -38,17 +39,20 @@ dotnet build
 ### Testing
 
 **Run all tests**:
+
 ```bash
 dotnet test
 ```
 
 **Run tests with coverage** (as done in CI):
+
 ```bash
 dotnet tool install --global dotnet-coverage
 dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
 ```
 
 **Install Playwright browsers** (required before running UI tests):
+
 ```bash
 # Install for all test projects
 find . -type f -name 'playwright.ps1' | while read script; do
@@ -66,12 +70,14 @@ Get-ChildItem -Recurse -Include "playwright.ps1" | ForEach-Object { pwsh $_.Full
 ### Running the Application
 
 **Development (Aspire AppHost)**:
+
 ```bash
 dotnet run --project PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj
 ```
 This launches the Aspire dashboard and runs both the API service and Blazor WASM client.
 
 **GhostfolioSidekick Console App**:
+
 ```bash
 dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 ```
@@ -203,7 +209,7 @@ All project assemblies follow the pattern: `GhostfolioSidekick.<ProjectName>`
 ### Code Quality
 
 - **Production-Ready Code**: Always produce production-ready code following SOLID principles, DRY (Don't Repeat Yourself), YAGNI (You Aren't Gonna Need It), and other software engineering best practices
-- **Verification Required**: Always verify build (`dotnet build`) and tests (`dotnet test`) pass before marking any task as complete
+- **Verification Required**: Always verify build (`dotnet build`) and tests (`dotnet test`) pass before marking any task as complete. Always run `dotnet build` and the relevant unit tests (using run_tests or run_build tools) after every code change, and verify all pass before marking a task complete.
 - **Treat Warnings as Errors**: ALL warnings must be resolved before committing
 - **SonarCloud**: Code must pass quality gate (see badge in README.md)
 - **Exclusions**: JavaScript files and certain generated code excluded from analysis (via `<SonarQubeSetting>` in `.csproj` files)

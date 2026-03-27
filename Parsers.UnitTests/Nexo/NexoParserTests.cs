@@ -93,16 +93,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("USDC")],
-						161.90485771M,
-						new Money(Currency.USD, 0.9264700400075475907102725806M),
-						new Money(Currency.USD, 161.9M),
-						"NXTyPxhiopNL3")
-				]);
-		}
+									[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDC", Currency.USD)],
+									161.90485771M,
+									new Money(Currency.USD, 0.9264700400075475907102725806M),
+									new Money(Currency.USD, 161.9M),
+									"NXTyPxhiopNL3")
+								]);
+						}
 
-		[Fact]
-		public async Task ConvertActivitiesForAccount_SingleSell_Converted()
+						[Fact]
+						public async Task ConvertActivitiesForAccount_SingleSell_Converted()
 		{
 			// Arrange
 
@@ -115,16 +115,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("USDC")],
-						161.90485771M,
-						new Money(Currency.USD, 0.9264700400075475907102725806M),
-						new Money(Currency.USD, 161.9M),
-						"NXTyPxhiopNL3")
-				]);
-		}
+									[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDC", Currency.USD)],
+									161.90485771M,
+									new Money(Currency.USD, 0.9264700400075475907102725806M),
+									new Money(Currency.USD, 161.9M),
+									"NXTyPxhiopNL3")
+								]);
+						}
 
-		[Fact]
-		public async Task ConvertActivitiesForAccount_SingleConvert_Converted()
+						[Fact]
+						public async Task ConvertActivitiesForAccount_SingleConvert_Converted()
 		{
 			// Arrange
 
@@ -135,9 +135,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 					PartialActivity.CreateAssetConvert(
 						new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("USDC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDC", Currency.USD)],
 						200M,
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.USD)],
 						0.00716057M,
 						"NXTVDI4DJFWqB63pTcCuTpgc")
 				);
@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 10, 12, 10, 44, 32, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.USD)],
 						0.00000040M,
 						"NXT2yQdOutpLLE1Lz51xXt6uW")
 				]);
@@ -207,7 +207,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 08, 25, 16, 43, 55, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.USD)],
 						0.00096332M,
 						"NXTk6FBYyxOqH")
 				]);
@@ -226,7 +226,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 12, 7, 19, 37, 32, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("OP")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "OP", Currency.USD)],
 						9.32835820M,
 						"NXT53xOZQ1kJJOpfGPXe4RxWo")
 				]);
@@ -299,7 +299,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2024, 01, 10, 06, 00, 00, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.USD)],
 						0.00000083M,
 						"NXT4t20tunYP8Bjy5diZEOCk7")
 				]);
@@ -354,7 +354,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2025, 04, 03, 08, 03, 05, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.USD)],
 						0.00001600m,
 						"NXT59tKUFomL7Gww59SZk9eQK")
 				]);
@@ -373,12 +373,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2024, 02, 10, 20, 47, 49, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.USD)],
 						0.00707603m,
 						"NXT3vH2lxWtke3GkY2ymoERBO[AssetConvertSource]"),
-					PartialActivity.CreateReceive(
-						new DateTime(2024, 02, 10, 20, 47, 49, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("USDT")],
+						PartialActivity.CreateReceive(
+							new DateTime(2024, 02, 10, 20, 47, 49, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDT", Currency.USD)],
 						339.64944000m,
 						"NXT3vH2lxWtke3GkY2ymoERBO[AssetConvertTarget]")
 				]);
@@ -396,9 +396,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				PartialActivity.CreateAssetConvert(
 					new DateTime(2026, 02, 27, 8, 3, 13, DateTimeKind.Utc),
-					[PartialSymbolIdentifier.CreateCrypto("USDC")],
+					[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "USDC", Currency.USD)],
 					901.07000000M,
-					[PartialSymbolIdentifier.CreateCrypto("BTC")],
+					[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "BTC", Currency.USD)],
 					0.01000000M,
 					"NXT5HFEVhtm5EUIMFlKzCfraI"
 				).ToList()
@@ -418,7 +418,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2025, 11, 27, 22, 17, 39, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.USD)],
 						0.03876226M,
 						"NXT5vmFI34J16j6hv1qFpintU"
 					)

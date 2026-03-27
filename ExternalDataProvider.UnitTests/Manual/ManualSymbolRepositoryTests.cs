@@ -312,7 +312,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			return new SymbolProfile(
 				symbol: symbol,
 				name: name,
-				identifiers: [symbol],
+				identifiers: [new SymbolIdentifier { Identifier = symbol, IdentifierType = IdentifierType.Default }],
 				currency: Currency.USD,
 				dataSource: Datasource.MANUAL,
 				assetClass: AssetClass.Equity,

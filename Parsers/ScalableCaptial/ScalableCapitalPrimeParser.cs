@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -17,6 +17,10 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			var currency = currencyMapper.Map(record.Currency);
 			var dateTime = record.Date.ToDateTime(record.Time, DateTimeKind.Utc);
 
+			var symbolIds = new [] { 
+				PartialSymbolIdentifier.CreateStockAndETF( IdentifierType.ISIN, record.Isin, currency) 
+			};
+
 			switch (record.Type)
 			{
 				case "Buy":
@@ -24,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateBuy(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+						symbolIds,
 						record.Shares!.Value,
 						new Money(currency, record.Price!.Value),
 						new Money(currency, Math.Abs(record.Amount)),
@@ -34,7 +38,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateSell(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+						symbolIds,
 						record.Shares!.Value,
 						new Money(currency, record.Price!.Value),
 						new Money(currency, Math.Abs(record.Amount)),
@@ -44,7 +48,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateDividend(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+						symbolIds,
 						Math.Abs(record.Amount),
 						new Money(currency, Math.Abs(record.Amount)),
 						record.Reference);

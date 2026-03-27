@@ -97,16 +97,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			result.Should().BeNull();
 		}
 
-		[Fact]
-		public async Task MatchSymbol_ShouldReturnNull_WhenIdentifierIsEmpty()
+
+		[Theory]
+		[InlineData(null)]
+		[InlineData("")]
+		[InlineData("   ")]
+		public void CreateGeneric_ShouldReturnNull_WhenIdentifierIsNullOrWhitespace(string? identifier)
 		{
-			// Arrange
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = string.Empty } };
+			// CreateGeneric is the guard that prevents invalid identifiers from ever reaching
+			// MatchSymbol. Callers that pass null/empty/whitespace receive null back, which
+			// is filtered out before the matcher is invoked.
+			var result = PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, identifier, null);
 
-			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
-
-			// Assert
 			result.Should().BeNull();
 		}
 
@@ -114,7 +116,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldReturnCachedResult_WhenSymbolIsCached()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 			var expectedSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -140,7 +142,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldReturnSymbol_WhenFoundByApiWrapper()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 			var expectedSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -169,11 +171,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var symbolIdentifiers = new[]
 			{
-				new PartialSymbolIdentifier
-				{
-					Identifier = "BTC",
-					AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-				}
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "BTC", null, [], [AssetSubClass.CryptoCurrency])
 			};
 
 			var cryptoSymbol = new SymbolProfile
@@ -208,7 +206,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldCacheNullResult_WhenNoSymbolFound()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "UNKNOWN" } };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "UNKNOWN", null)! };
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile(It.IsAny<string>(), false))
 				.ReturnsAsync([]);
@@ -231,11 +229,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var symbolIdentifiers = new[]
 			{
-				new PartialSymbolIdentifier
-				{
-					Identifier = "AAPL",
-					AllowedAssetClasses = [AssetClass.FixedIncome] // Only bonds allowed
-				}
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [AssetClass.FixedIncome], []) // Only bonds allowed
 			};
 
 			var stockSymbol = new SymbolProfile
@@ -264,11 +258,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var symbolIdentifiers = new[]
 			{
-				new PartialSymbolIdentifier
-				{
-					Identifier = "AAPL",
-					AllowedAssetSubClasses = [AssetSubClass.Bond] // Only bonds allowed
-				}
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], [AssetSubClass.Bond]) // Only bonds allowed
 			};
 
 			var stockSymbol = new SymbolProfile
@@ -295,7 +285,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldRetryApiCall_WhenInitialCallReturnsEmpty()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 			var expectedSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -327,7 +317,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldPreferExactMatch_OverFuzzyMatch()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
 			var exactMatch = new SymbolProfile
 			{
@@ -364,7 +354,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldPreferExpectedCurrency()
 		{
 			// Arrange - This test verifies that well-known currencies are preferred
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
 			var usdSymbol = new SymbolProfile
 			{
@@ -409,7 +399,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
          var symbolMatcher = new GhostfolioSymbolMatcher(settingsMock.Object, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object);
 
-			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
+			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
 			var yahooSymbol = new SymbolProfile
 			{
@@ -448,11 +438,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var symbolIdentifiers = new[]
 			{
-				new PartialSymbolIdentifier
-				{
-					Identifier = "BTC",
-					AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-				}
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "BTC", null, [], [AssetSubClass.CryptoCurrency])
 			};
 
 			var yahooCryptoSymbol = new SymbolProfile
@@ -487,11 +473,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var symbolIdentifiers = new[]
 			{
-				new PartialSymbolIdentifier
-				{
-					Identifier = "WBTC",
-					AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-				}
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "WBTC", null, [], [AssetSubClass.CryptoCurrency])
 			};
 
 			var cryptoSymbol = new SymbolProfile
@@ -513,7 +495,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("WBTC");
-		}
-	}
-}
+					result!.Symbol.Should().Be("WBTC");
+					}
+				}
+			}

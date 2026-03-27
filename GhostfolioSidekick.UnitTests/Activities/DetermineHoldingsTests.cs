@@ -3,6 +3,7 @@ using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
 using Moq.EntityFrameworkCore;
@@ -100,7 +101,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST")] }
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!] }
 			};
 			var holdings = new List<Holding>(); // No existing holdings to reuse
 
@@ -137,8 +138,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST1")] },
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST2")] }
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST1", null)!] },
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST2", null)!] }
 			};
 			var holdings = new List<Holding>();
 
@@ -173,7 +174,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("UNKNOWN")] }
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "UNKNOWN", null)!] }
 			};
 			var holdings = new List<Holding>();
 
@@ -225,7 +226,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("OLD_SYMBOL")] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "OLD_SYMBOL", null)!] }
 			};
 			var holdings = new List<Holding>();
 
@@ -253,7 +254,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("CACHED_SYMBOL")] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "CACHED_SYMBOL", null)!] }
 			};
 			var holdings = new List<Holding>();
 
@@ -287,7 +288,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("EXISTING_SYMBOL")] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "EXISTING_SYMBOL", null)!] }
 			};
 			var holdings = new List<Holding>();
 			var existingSymbolProfile = new SymbolProfile 
@@ -333,7 +334,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("MULTI_MATCHER_SYMBOL")] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "MULTI_MATCHER_SYMBOL", null)!] }
 			};
 			var holdings = new List<Holding>();
 
@@ -379,7 +380,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("TEST_SYMBOL")] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST_SYMBOL", null)!] }
 			};
 			var holdings = new List<Holding>();
 
@@ -404,13 +405,13 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
-			var existingPartialId = PartialSymbolIdentifier.CreateGeneric("EXISTING");
+			var existingPartialId = PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "EXISTING", null)!;
 			var existingHolding = new Holding();
 			existingHolding.PartialSymbolIdentifiers.Add(existingPartialId);
 
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("EXISTING")] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "EXISTING", null)!] }
 			};
 			var holdings = new List<Holding> { existingHolding };
 
@@ -436,9 +437,9 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
 			var holding = new Holding();
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("FIRST"));
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("SECOND"));
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("THIRD"));
+			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "FIRST", null)!);
+			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SECOND", null)!);
+			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "THIRD", null)!);
 
 			var activities = new List<Activity>();
 			var holdings = new List<Holding> { holding };
@@ -486,12 +487,12 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var symbolProfile = new SymbolProfile { Symbol = "PRESERVED", DataSource = "TestSource" };
 			var holding = new Holding();
 			holding.SymbolProfiles.Add(symbolProfile);
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("FIRST"));
-			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric("SECOND"));
+			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "FIRST", null)!);
+			holding.PartialSymbolIdentifiers.Add(PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SECOND", null)!);
 
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric("NEW_SYMBOL")] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "NEW_SYMBOL", null)!] }
 			};
 			var holdings = new List<Holding> { holding };
 

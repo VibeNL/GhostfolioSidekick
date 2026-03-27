@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var activities = new List<Activity>
 			{
-				new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = [new PartialSymbolIdentifier { Identifier = "SYM1" }] }
+				new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = [new PartialSymbolIdentifier(IdentifierType.Default, "SYM1", null, [], [])] }
 			};
 
 			var holdings = new List<Holding>();
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var activities = new List<Activity>
 			{
-				new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = [new PartialSymbolIdentifier { Identifier = "SYM1" }] }
+				new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = [new PartialSymbolIdentifier(IdentifierType.Default, "SYM1", null, [], [])] }
 			};
 
 			var holdings = new List<Holding>
