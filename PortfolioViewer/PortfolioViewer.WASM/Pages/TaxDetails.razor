@@ -1,0 +1,79 @@
+@page "/tax-details"
+@inherits PortfolioViewer.WASM.Pages.TaxDetailsBase
+
+<PageTitle>Tax Details</PageTitle>
+
+<h1>Tax Details Per Year Per Account</h1>
+
+<div class="mb-3">
+	<label for="yearSelect" class="form-label fw-bold">Select Year:</label>
+	<select id="yearSelect" class="form-select w-auto d-inline-block" @bind="SelectedYear">
+		@foreach (var year in Years)
+		{
+			<option value="@year">@year</option>
+		}
+	</select>
+</div>
+
+@if (Accounts == null)
+{
+	<div>Loading accounts...</div>
+}
+else
+{
+    foreach (var account in Accounts.Where(HasValues))
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <span class="fw-bold">@account.Name</span> <span class="text-muted ms-2">@account.AccountType</span>
+            </div>
+            <div class="card-body">
+                <h5>Positions Overview (1-1 and 31-12)</h5>
+                <table class="table table-sm table-bordered w-auto">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Quantity 1-1</th>
+                            <th>Value 1-1</th>
+                            <th>Quantity 31-12</th>
+                            <th>Value 31-12</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (account.SymbolRows != null && account.SymbolRows.Count > 0)
+                        {
+                            <Virtualize Items="account.SymbolRows" Context="row">
+                                <tr>
+                                    <td>@row.Symbol</td>
+                                    <td>@row.StartQuantity</td>
+                                    <td>@FormatCurrency(row.StartValue)</td>
+                                    <td>@row.EndQuantity</td>
+                                    <td>@FormatCurrency(row.EndValue)</td>
+                                </tr>
+                            </Virtualize>
+                            <tr class="fw-bold">
+                                <td>Total Balance</td>
+                                <td></td>
+                                <td>@FormatCurrency(account.TotalStartValue)</td>
+                                <td></td>
+                                <td>@FormatCurrency(account.TotalEndValue)</td>
+                            </tr>
+                            <tr class="fw-bold">
+                                <td>Total Cash</td>
+                                <td></td>
+                                <td>@FormatCurrency(account.StartCashBalance)</td>
+                                <td></td>
+                                <td>@FormatCurrency(account.EndCashBalance)</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr><td colspan="5">No holdings for @SelectedYear.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+

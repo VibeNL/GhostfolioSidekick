@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
@@ -13,6 +13,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		Task<List<Account>> GetAccountsAsync(string? symbolFilter, CancellationToken cancellationToken = default);
 
-		Task<List<string>> GetSymbolProfilesAsync(int? accountFilter, CancellationToken cancellationToken = default);
+        Task<List<string>> GetSymbolProfilesAsync(int? accountFilter, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets tax account details for a given year
+        /// </summary>
+        /// <param name="year">Year to filter</param>
+        /// <returns>List of tax account display models</returns>
+        Task<List<TaxAccountDisplayModel>> GetTaxAccountDetailsAsync(int year);
 	}
 }

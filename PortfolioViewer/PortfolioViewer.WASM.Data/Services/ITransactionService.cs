@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
@@ -14,11 +14,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			TransactionQueryParameters parameters,
 			CancellationToken cancellationToken = default);
 
-		/// <summary>
-		/// Gets all available transaction types from the database
-		/// </summary>
-		/// <param name="cancellationToken">Cancellation token</param>
-		/// <returns>List of unique transaction types</returns>
-		Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Gets all available transaction types from the database
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of unique transaction types</returns>
+        Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets all available years for transactions
+        /// </summary>
+        /// <returns>List of years</returns>
+        Task<List<int>> GetAvailableYearsAsync();
 	}
 }
