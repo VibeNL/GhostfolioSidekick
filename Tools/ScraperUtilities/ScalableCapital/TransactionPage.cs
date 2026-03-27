@@ -108,6 +108,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		private async Task SetExecutedOnly(IPage page)
 		{
+			if (!page.Url.Contains("/broker"))
+			{
+				logger.LogInformation("Skipping status filter (not a broker account).");
+				return;
+			}
+
 			// Select Executed Status only
 			logger.LogInformation("Setting status to Executed only...");
 			await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
