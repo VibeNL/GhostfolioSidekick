@@ -135,5 +135,45 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Assert
 			Assert.True(result == null || result is SymbolProfile);
 		}
+
+		[Fact]
+		public async Task MatchSymbol_WithGBXExpectedCurrency_ShouldMatchLSESymbol()
+		{
+			// Arrange
+			// LLOY.L trades on the London Stock Exchange; Yahoo Finance returns GBp as the currency.
+			// GBX and GBp share GBP as their source currency (both are pence-denominated),
+			// so the currency match score should be 1 and the symbol should be found.
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "LLOY.L", Currency.GBX, [AssetClass.Equity], [AssetSubClass.Stock])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("LLOY.L", result.Symbol);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_WithGBPExpectedCurrency_ShouldMatchLSESymbolWithGBpActualCurrency()
+		{
+			// Arrange
+			// LLOY.L trades on the London Stock Exchange; Yahoo Finance returns GBp as the currency.
+			// GBP and GBp share GBP as their source currency, so the currency match score
+			// should be 1 and the symbol should be found.
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "LLOY.L", Currency.GBP, [AssetClass.Equity], [AssetSubClass.Stock])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("LLOY.L", result.Symbol);
+		}
 	}
 }
