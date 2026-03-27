@@ -1,7 +1,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using System.Globalization;
@@ -9,18 +8,22 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 {
-	internal partial class TransactionPage(IPage page, ILogger logger)
+	internal abstract partial class TransactionPage(IPage page, ILogger logger)
 	{
-		private const string Description = "Transaction reference";
+		protected const string Description = "Transaction reference";
 
 		private const string Url = "https://de.scalable.capital/cockpit/";
 
+		// Exposed as properties so derived classes can use them without re-capturing the primary constructor parameters (avoids CS9107/CS9124)
+		protected IPage Page { get; } = page;
+		protected ILogger Logger { get; } = logger;
+
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
-			logger.LogInformation("Scraping transactions...");
+			Logger.LogInformation("Scraping transactions...");
 
-			await SetExecutedOnly(page);
-			await ScrollDown(page);
+			await SetupFilters();
+			await ScrollDown(Page);
 
 			var list = new List<ActivityWithSymbol>();
 			int counter = 0;
@@ -30,18 +33,13 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				{
 					try
 					{
-						logger.LogInformation("Processing transaction {Counter}...", counter);
+						Logger.LogInformation("Processing transaction {Counter}...", counter);
 
-						// Click on the transaction to open the details
-						await transaction.ScrollIntoViewIfNeededAsync();
-
-						await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
-
-						// Wait for the transaction to load
-						await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+						// Open the transaction detail panel
+						await OpenTransactionDetail(transaction);
 
 						// Process transaction details
-						var generatedTransaction = await ProcessDetails();
+						var generatedTransaction = await ProcessDetails(transaction);
 						if (generatedTransaction != null)
 						{
 							var symbol = await AddSymbol(generatedTransaction);
@@ -50,27 +48,27 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 								list.Add(symbol);
 							}
 
-							logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
+							Logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
 						}
 
-						// Press Close button to close the details
-						await page.GetByRole(AriaRole.Button, new() { Name = "Close" }).ClickAsync();
+						// Close the transaction detail panel
+						await CloseTransactionDetail();
 
 						break;
 					}
 					catch (Exception ex)
 					{
-						// Try to close the details if open
+						// Try to close the detail panel if open
 						try
 						{
-							await page.GetByRole(AriaRole.Button, new() { Name = "Close" }).ClickAsync();
+							await CloseTransactionDetail();
 						}
 						catch
 						{
 							// Ignore
 						}
 
-						logger.LogError(ex, "Error processing transaction {Counter}: {Message}", counter, ex.Message);
+						Logger.LogError(ex, "Error processing transaction {Counter}: {Message}", counter, ex.Message);
 					}
 				}
 
@@ -80,9 +78,17 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			return list;
 		}
 
+		protected virtual Task SetupFilters() => Task.CompletedTask;
+
+		protected virtual Task OpenTransactionDetail(ILocator transaction) => Task.CompletedTask;
+
+		protected virtual Task CloseTransactionDetail() => Task.CompletedTask;
+
+		protected abstract Task<Activity?> ProcessDetails(ILocator transaction);
+
 		private async Task ScrollDown(IPage page)
 		{
-			logger.LogInformation("Scrolling down to load all transactions...");
+			Logger.LogInformation("Scrolling down to load all transactions...");
 
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
@@ -102,29 +108,17 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				isScrolling = (DateTime.UtcNow - lastUpdate).TotalSeconds < 5;
 			}
 
-			logger.LogInformation("All transactions loaded.");
+			Logger.LogInformation("All transactions loaded.");
 		}
 
-		private async Task SetExecutedOnly(IPage page)
-		{
-			// Select Executed Status only
-			logger.LogInformation("Setting status to Executed only...");
-			await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
-			await page.GetByTestId("EXECUTED").Locator("div").First.ClickAsync();
-
-			Thread.Sleep(1000);
-			await page.Mouse.ClickAsync(2, 2);
-			logger.LogInformation("Status set to Executed only.");
-		}
-
-		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
+		protected virtual async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
 		{
 			if (generatedTransaction is null)
 			{
 				return null;
 			}
 
-			if (generatedTransaction is CashDepositActivity || generatedTransaction is CashWithdrawalActivity)
+			if (generatedTransaction is CashDepositActivity || generatedTransaction is CashWithdrawalActivity || generatedTransaction is InterestActivity)
 			{
 				return new ActivityWithSymbol
 				{
@@ -133,7 +127,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				};
 			}
 
-			var link = page.Locator("[href*=\"/broker/security?\"]").Last;
+			var link = Page.Locator("[href*=\"/broker/security?\"]").Last;
 			var name = await link.InnerTextAsync();
 			var url = await link.GetAttributeAsync("href");
 			if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
@@ -154,153 +148,21 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		private Task<IReadOnlyList<ILocator>> GetTransactions()
 		{
-			return page.GetByTestId(TransactionTestId()).AllAsync();
+			return Page.GetByTestId(TransactionTestId()).AllAsync();
 		}
 
 		private Task<int> GetTransacionsCount()
 		{
 			// Count number of divs with role list
-			return page.GetByTestId(TransactionTestId()).CountAsync();
+			return Page.GetByTestId(TransactionTestId()).CountAsync();
 		}
 
-		private async Task<Activity?> ProcessDetails()
-		{
-			// If is Interest
-			if (await page.GetByTestId("icon-INTEREST").IsVisibleAsync())
-			{
-				var dateInterest = await GetHistoryDate("Interest booked\r\n");
-
-				return new InterestActivity
-				{
-					Amount = await GetMoneyField("Amount"),
-					Date = dateInterest,
-					TransactionId = await GetField<string>(Description),
-				};
-			}
-
-			// If is Deposit or Withdrawal
-			if (await page.GetByTestId("icon-DEPOSIT").IsVisibleAsync())
-			{
-				var dateDeposit = await GetHistoryDate("Deposit settled");
-
-				return new CashDepositActivity
-				{
-					Amount = await GetMoneyField("Amount"),
-					Date = dateDeposit,
-					TransactionId = await GetField<string>(Description),
-				};
-			}
-
-			if (await page.GetByTestId("icon-WITHDRAWAL").IsVisibleAsync())
-			{
-				var dateWithdrawal = await GetHistoryDate("Withdrawal settled");
-
-				return new CashWithdrawalActivity
-				{
-					Amount = (await GetMoneyField("Amount")).Times(-1),
-					Date = dateWithdrawal,
-					TransactionId = await GetField<string>(Description),
-				};
-			}
-
-			// If is Buy or Sell
-			var isSaving = await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync();
-			var isBuy = await page.GetByTestId("icon-BUY").IsVisibleAsync();
-			var isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
-			var isReinvest = await page.GetByTestId("icon-REINVESTMENT").IsVisibleAsync();
-
-			var isSecurity = await page.GetByTestId("icon-SECURITY").IsVisibleAsync();
-			if (isSecurity)
-			{
-				// Get parent div & compare text to 'Buy' or 'Sell'
-				var icon = page.GetByTestId("icon-SECURITY");
-				var parent = icon.Locator("..");
-				var text = await parent.InnerTextAsync();
-
-				switch (text)
-				{
-					case string s when s.Contains("Buy"):
-						isBuy = true;
-						break;
-					case string s when s.Contains("Sell"):
-						isSell = true;
-						break;
-					default:
-						throw new NotSupportedException();
-				}
-			}
-
-			if (isSaving ||
-				isBuy ||
-				isSell ||
-				isReinvest)
-			{
-				var date = await GetHistoryDate("Execution confirmed");
-				Money? fee = null;
-				if (!isSaving && !isReinvest)
-				{
-					fee = await GetMoneyField("Order fee");
-				}
-
-				if (isSell)
-				{
-					return new SellActivity
-					{
-						Quantity = await GetField<decimal>("Executed quantity"),
-						UnitPrice = await GetMoneyField("Execution price"),
-						TotalTransactionAmount = await GetMoneyField("Market valuation"),
-						Fees = fee != null ? [new SellActivityFee(fee)] : [],
-						Date = date,
-						TransactionId = await GetField<string>(Description),
-					};
-				}
-
-				return new BuyActivity
-				{
-					Quantity = await GetField<decimal>("Executed quantity"),
-					UnitPrice = await GetMoneyField("Execution price"),
-					TotalTransactionAmount = await GetMoneyField("Market valuation"),
-					Fees = fee != null ? [new BuyActivityFee(fee)] : [],
-					Date = date,
-					TransactionId = await GetField<string>(Description),
-				};
-			}
-
-			// If is Distribution
-			if (await page.GetByTestId("icon-DIVIDEND").IsVisibleAsync())
-			{
-				return new DividendActivity
-				{
-					Amount = await GetMoneyField("Amount"),
-					Date = await GetHistoryDate("Dividend settled"),
-					TransactionId = await GetField<string>(Description),
-				};
-			}
-
-			// If is Transfer In or Out
-			if (await page.GetByTestId("icon-TRANSFER_IN").IsVisibleAsync())
-			{
-				// Ignore for now
-				logger.LogWarning("Ignoring TRANSFER IN transaction.");
-				return null;
-			}
-
-			if (await page.GetByTestId("icon-TRANSFER_OUT").IsVisibleAsync())
-			{
-				// Ignore for now
-				logger.LogWarning("Ignoring TRANSFER OUT transaction.");
-				return null;
-			}
-
-			throw new NotSupportedException();
-		}
-
-		private async Task<DateTime> GetHistoryDate(string description)
+		protected async Task<DateTime> GetHistoryDate(string description)
 		{
 			try
 			{
 				// find the div with the first child containing the text History
-				var historyNode = page.Locator("div").GetByText("History").First;
+				var historyNode = Page.Locator("div").GetByText("History").First;
 				var parentHistoryNode = historyNode.Locator("..");
 				var nodeFromDescription = parentHistoryNode.Locator("div").GetByText(description).First;
 				var parent = nodeFromDescription.Locator("..");
@@ -325,14 +187,14 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			}
 		}
 
-		private async Task<Money> GetMoneyField(string description)
+		protected async Task<Money> GetMoneyField(string description)
 		{
 			return new Money(Currency.EUR, await GetField<decimal>(description));
 		}
 
-		private async Task<T> GetField<T>(string description)
+		protected async Task<T> GetField<T>(string description)
 		{
-			var container = page
+			var container = Page
 					.GetByTestId("container")
 					.Locator("div")
 					.GetByText(description)
@@ -353,7 +215,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		internal async Task GoToMainPage()
 		{
-			await page.GotoAsync(Url);
+			await Page.GotoAsync(Url);
 		}
 
 		[GeneratedRegex(".*transaction.*")]
