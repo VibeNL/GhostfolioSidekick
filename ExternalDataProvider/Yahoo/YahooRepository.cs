@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-			var symbol = symbols.OrderBy(x => x.Value.Symbol == match.Symbol).First().Value;
+			var symbol = symbols.GetValueOrDefault(match.Symbol);
 			if (symbol == null)
 			{
 				return null;
