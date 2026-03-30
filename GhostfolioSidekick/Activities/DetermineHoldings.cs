@@ -101,7 +101,9 @@ namespace GhostfolioSidekick.Activities
 						symbolProfile = await symbolMatcher.MatchSymbol(orderedIdentifiers).ConfigureAwait(false);
 						if (symbolProfile != null)
 						{
-							var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
+							var existingSymbolProfile = databaseContext.SymbolProfiles.Local
+								.FirstOrDefault(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource)
+								?? await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
 							symbolProfile = existingSymbolProfile ?? symbolProfile;
 							memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
 						}
@@ -155,7 +157,9 @@ namespace GhostfolioSidekick.Activities
 					// Check if symbol profile already exists
 					if (symbolProfile != null)
 					{
-						var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
+						var existingSymbolProfile = databaseContext.SymbolProfiles.Local
+							.FirstOrDefault(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource)
+							?? await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
 						symbolProfile = existingSymbolProfile ?? symbolProfile;
 						memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
 					}
