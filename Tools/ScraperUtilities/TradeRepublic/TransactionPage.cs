@@ -251,6 +251,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				int counter = 1;
 				foreach (var item in links)
 				{
+					// Ignore links with Activation. h4 with class detailDocuments__documentTitle
+					if (item.Locator("h4[class='detailDocuments__documentTitle']").First.InnerTextAsync().Result.Contains("Activation"))
+					{
+						continue;
+					}
+
 					// open the link in a new tab
 					var countPages = page.Context.Pages.Count;
 					await item.ClickAsync();
