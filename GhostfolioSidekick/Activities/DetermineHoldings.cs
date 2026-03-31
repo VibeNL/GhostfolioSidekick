@@ -90,6 +90,8 @@ namespace GhostfolioSidekick.Activities
 
 			using var matchingContext = await databaseContextFactory.CreateDbContextAsync();
 			var holdingsForMatching = await matchingContext.Holdings
+				.Include(h => h.PartialSymbolIdentifiers)
+				.Include(h => h.SymbolProfiles)
 				.Where(h => usedHoldingIds.Contains(h.Id))
 				.ToListAsync();
 			await MatchOtherMatchers(logger, matchingContext, holdingsForMatching).ConfigureAwait(false);
@@ -135,7 +137,11 @@ namespace GhostfolioSidekick.Activities
 		private async Task ClearExistingHoldings()
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
-			var existingHoldings = await databaseContext.Holdings.ToListAsync();
+			var existingHoldings = await databaseContext.Holdings
+				.Include(h => h.SymbolProfiles)
+				.Include(h => h.PartialSymbolIdentifiers)
+				.Include(h => h.Activities)
+				.ToListAsync();
 
 			// Reset all existing holdings to a clean state
 			foreach (var holding in existingHoldings)
