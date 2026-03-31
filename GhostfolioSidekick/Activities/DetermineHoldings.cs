@@ -90,15 +90,14 @@ namespace GhostfolioSidekick.Activities
 
 			using var matchingContext = await databaseContextFactory.CreateDbContextAsync();
 			var holdingsForMatching = await matchingContext.Holdings
-				.Include(h => h.PartialSymbolIdentifiers)
-				.Include(h => h.SymbolProfiles)
+             .Include(h => h.SymbolProfiles)
 				.Where(h => usedHoldingIds.Contains(h.Id))
 				.ToListAsync();
 			await MatchOtherMatchers(logger, matchingContext, holdingsForMatching).ConfigureAwait(false);
 		}
 
 		private async Task MatchOtherMatchers(ILogger logger, DatabaseContext databaseContext, List<Holding> usedHoldings)
-		{
+       {
 			var resolvedProfilesMap = new Dictionary<string, SymbolProfile>();
 			foreach (var holding in usedHoldings)
 			{
@@ -108,9 +107,9 @@ namespace GhostfolioSidekick.Activities
 					if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
 					{
 						var orderedIdentifiers = holding.PartialSymbolIdentifiers
-						.OrderBy(x => GetIdentifierTypePriority(x.IdentifierType))
-						.ThenBy(x => GetCurrencyPriority(x.Currency))
-						.ToArray();
+							.OrderBy(x => GetIdentifierTypePriority(x.IdentifierType))
+							.ThenBy(x => GetCurrencyPriority(x.Currency))
+							.ToArray();
 						symbolProfile = await symbolMatcher.MatchSymbol(orderedIdentifiers).ConfigureAwait(false);
 						memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
 					}
@@ -129,17 +128,16 @@ namespace GhostfolioSidekick.Activities
 						holding.MergeSymbolProfiles(symbolProfile);
 					}
 				}
-
-				await databaseContext.SaveChangesAsync();
 			}
+
+			await databaseContext.SaveChangesAsync();
 		}
 
 		private async Task ClearExistingHoldings()
-		{
+       {
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var existingHoldings = await databaseContext.Holdings
 				.Include(h => h.SymbolProfiles)
-				.Include(h => h.PartialSymbolIdentifiers)
 				.Include(h => h.Activities)
 				.ToListAsync();
 
