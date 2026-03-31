@@ -11,14 +11,15 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			// Arrange
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
-			
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("AAPL");
-			var identifier2 = new PartialSymbolIdentifier 
-			{ 
-				Identifier = "AAPL",
-				AllowedAssetClasses = [AssetClass.Equity, AssetClass.Undefined], // More permissive
-				AllowedAssetSubClasses = [AssetSubClass.Stock] // Overlaps with identifier1
-			};
+
+			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Default, "AAPL", Currency.USD)!;
+			var identifier2 = new PartialSymbolIdentifier(
+				IdentifierType.Default,
+				"AAPL",
+				Currency.USD,
+				new List<AssetClass> { AssetClass.Equity, AssetClass.Undefined }, // More permissive
+				new List<AssetSubClass> { AssetSubClass.Stock } // Overlaps with identifier1
+			);
 
 			// Act
 			dictionary[identifier1] = "Apple Stock";
@@ -35,9 +36,9 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			// Arrange
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
-			
-			var identifier1 = PartialSymbolIdentifier.CreateGeneric("TEST"); // Has null asset classes
-			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST"); // Has specific asset classes
+
+			var identifier1 = PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", Currency.USD)!; // Has null asset classes
+			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Default, "TEST", Currency.USD)!; // Has specific asset classes
 
 			// Act
 			dictionary[identifier1] = "Test Symbol";
@@ -54,13 +55,15 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			// Arrange
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
-			
-			var identifier1 = new PartialSymbolIdentifier
-			{
-				Identifier = "TEST",
-				AllowedAssetClasses = [AssetClass.Undefined]
-			};
-			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF("TEST");
+
+			var identifier1 = new PartialSymbolIdentifier(
+				 IdentifierType.Default,
+				 "TEST",
+				 Currency.USD,
+				 new List<AssetClass> { AssetClass.Undefined },
+				 new List<AssetSubClass>()
+			 );
+			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Default, "TEST", Currency.USD)!;
 
 			// Act
 			dictionary[identifier1] = "Test Symbol";
@@ -77,9 +80,9 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			// Arrange
 			var comparer = new PartialSymbolIdentifierComparer();
 			var dictionary = new Dictionary<PartialSymbolIdentifier, string>(comparer);
-			
-			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF("TEST"); // AssetClass.Equity
-			var identifier2 = PartialSymbolIdentifier.CreateCrypto("TEST"); // AssetClass.Liquidity
+
+			var identifier1 = PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Default, "TEST", Currency.USD)!; // AssetClass.Equity
+			var identifier2 = PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "TEST", Currency.USD)!; // AssetClass.Liquidity
 
 			// Act
 			dictionary[identifier1] = "Test Stock";

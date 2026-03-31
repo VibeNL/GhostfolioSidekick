@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 					return PartialActivity.CreateBuy(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, record.Currency!, Currency.GetCurrency(record.UnitCurrency!))],
 						Math.Abs(record.Amount),
 						new Money(record.UnitCurrency, record.UnitPrice!.Value),
 						new Money(record.TotalTransactionCurrency, Math.Abs(record.TotalTransactionAmount!.Value)),
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 					return PartialActivity.CreateSell(
 						currency,
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, record.Currency!, Currency.GetCurrency(record.UnitCurrency!))],
 						Math.Abs(record.Amount),
 						new Money(record.UnitCurrency, record.UnitPrice!.Value),
 						new Money(record.TotalTransactionCurrency, Math.Abs(record.TotalTransactionAmount!.Value)),
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 				case "staking":
 					return PartialActivity.CreateStakingReward(
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, record.Currency!, null)], // No currency for staking rewards, as they are paid in the asset
 						Math.Abs(record.Amount),
 						record.Transaction);
 				case "withdrawal":
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 					{
 						return PartialActivity.CreateSend(
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, record.Currency!, null)], // No currency for withdrawals, as they are paid in the asset
 						Math.Abs(record.Amount),
 						record.Transaction);
 					}
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 					{
 						return PartialActivity.CreateReceive(
 						dateTime,
-						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, record.Currency!, null)], // No currency for deposits, as they are paid in the asset
 						Math.Abs(record.Amount),
 						record.Transaction);
 					}

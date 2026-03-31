@@ -2,68 +2,76 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{
-		public PartialSymbolIdentifier()
+		public PartialSymbolIdentifier(IdentifierType identifierType, string identifier, Currency? currency, List<AssetClass> allowedAssetClasses, List<AssetSubClass> allowedAssetSubClasses)
 		{
-			// EF Core
-			Identifier = null!;
-		}
-
-		private PartialSymbolIdentifier(string id)
-		{
-			if (string.IsNullOrWhiteSpace(id))
+			if (string.IsNullOrWhiteSpace(identifier))
 			{
-				throw new ArgumentException("Identifier cannot be null or whitespace.", nameof(id));
+				throw new ArgumentException("Identifier cannot be null or whitespace.", nameof(identifier));
 			}
 
-			Identifier = id;
+			Identifier = identifier;
+			IdentifierType = identifierType;
+			Currency = currency;
+			AllowedAssetClasses = allowedAssetClasses;
+			AllowedAssetSubClasses = allowedAssetSubClasses;
 		}
 
-		public string Identifier { get; set; }
-
-		public List<AssetClass>? AllowedAssetClasses { get; set; }
-
-		public List<AssetSubClass>? AllowedAssetSubClasses { get; set; }
-
-		public static PartialSymbolIdentifier CreateCrypto(string id)
+      // Required for EF Core + Castle.DynamicProxy lazy-loading proxy materialization.
+		// The validating constructor must NOT be used during DB reads to avoid crashing
+		// on any pre-existing rows that contain an empty Identifier.
+		protected PartialSymbolIdentifier()
 		{
-			return new PartialSymbolIdentifier(id)
+			_identifier = default!;
+			AllowedAssetClasses = [];
+			AllowedAssetSubClasses = [];
+		}
+
+		private string _identifier = default!;
+
+		public string Identifier
+		{
+			get => _identifier;
+			set
 			{
-				AllowedAssetClasses = [AssetClass.Liquidity],
-				AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-			};
+				if (string.IsNullOrWhiteSpace(value))
+				{
+					throw new ArgumentException("Identifier cannot be null or whitespace.", nameof(value));
+				}
+
+				_identifier = value;
+			}
 		}
 
-		public static PartialSymbolIdentifier CreateGeneric(string id)
+		public List<AssetClass> AllowedAssetClasses { get; set; }
+
+		public List<AssetSubClass> AllowedAssetSubClasses { get; set; }
+
+		public Currency? Currency { get; set; }
+
+		public IdentifierType IdentifierType { get; set; }
+
+		public static PartialSymbolIdentifier? CreateCrypto(IdentifierType identifierType, string? id, Currency? currency)
 		{
-			return new PartialSymbolIdentifier(id);
+			if (string.IsNullOrWhiteSpace(id)) return null;
+			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Liquidity], [AssetSubClass.CryptoCurrency]);
 		}
 
-		public static PartialSymbolIdentifier[] CreateGeneric(params string?[] ids)
+		public static PartialSymbolIdentifier? CreateGeneric(IdentifierType identifierType, string? id, Currency? currency)
 		{
-			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateGeneric(x!))];
+			if (string.IsNullOrWhiteSpace(id)) return null;
+			return new PartialSymbolIdentifier(identifierType, id, currency, [], []);
 		}
 
-		public static PartialSymbolIdentifier CreateStockAndETF(string id)
+		public static PartialSymbolIdentifier? CreateStockAndETF(IdentifierType identifierType, string? id, Currency? currency)
 		{
-			return new PartialSymbolIdentifier(id)
-			{
-				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock]
-			};
+			if (string.IsNullOrWhiteSpace(id)) return null;
+			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Equity], [AssetSubClass.Etf, AssetSubClass.Stock]);
 		}
 
-		public static PartialSymbolIdentifier[] CreateStockAndETF(params string?[] ids)
+		public static PartialSymbolIdentifier? CreateStockBondAndETF(IdentifierType identifierType, string? id, Currency? currency)
 		{
-			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateStockAndETF(x!))];
-		}
-
-		public static PartialSymbolIdentifier CreateStockBondAndETF(string id)
-		{
-			return new PartialSymbolIdentifier(id)
-			{
-				AllowedAssetClasses = [AssetClass.Equity],
-				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock, AssetSubClass.Bond]
-			};
+			if (string.IsNullOrWhiteSpace(id)) return null;
+			return new PartialSymbolIdentifier(identifierType, id, currency, [AssetClass.Equity], [AssetSubClass.Etf, AssetSubClass.Stock, AssetSubClass.Bond]);
 		}
 
 		public virtual bool Equals(PartialSymbolIdentifier? other)
@@ -71,15 +79,19 @@ namespace GhostfolioSidekick.Model.Activities
 			if (other is null) return false;
 			if (ReferenceEquals(this, other)) return true;
 
-			return string.Equals(Identifier.Trim(), other.Identifier.Trim(), StringComparison.InvariantCultureIgnoreCase) &&
-				   ListsEqual(AllowedAssetClasses, other.AllowedAssetClasses) &&
-				   ListsEqual(AllowedAssetSubClasses, other.AllowedAssetSubClasses);
+			return string.Equals(Identifier.Trim(), other.Identifier.Trim(), StringComparison.InvariantCultureIgnoreCase)
+				&& IdentifierType == other.IdentifierType
+				&& Currency == other.Currency
+				&& ListsEqual(AllowedAssetClasses, other.AllowedAssetClasses)
+				&& ListsEqual(AllowedAssetSubClasses, other.AllowedAssetSubClasses);
 		}
 
 		public override int GetHashCode()
 		{
-			var hash = new HashCode();
+          var hash = new HashCode();
 			hash.Add(StringComparer.InvariantCultureIgnoreCase.GetHashCode(Identifier.Trim()));
+			hash.Add(IdentifierType);
+			hash.Add(Currency);
 			hash.Add(GetListHashCode(AllowedAssetClasses));
 			hash.Add(GetListHashCode(AllowedAssetSubClasses));
 			return hash.ToHashCode();
@@ -112,8 +124,8 @@ namespace GhostfolioSidekick.Model.Activities
 		}
 
 		public override string ToString()
-		{
-			return $"{Identifier}([{string.Join(",", AllowedAssetClasses ?? [])}][{string.Join(",", AllowedAssetSubClasses ?? [])}])";
+       {
+			return $"{Identifier} ({IdentifierType}, {Currency}) ([{string.Join(",", AllowedAssetClasses ?? [])}][{string.Join(",", AllowedAssetSubClasses ?? [])}])";
 		}
 	}
 }

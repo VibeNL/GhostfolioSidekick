@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 12, 13, 14, 39, 02, 473, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("STORJ")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "STORJ", Currency.EUR)],
 						34.75825253M,
 						new Money(Currency.EUR, 0.71746M),
 						new Money(Currency.EUR, 25),
@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "ATOM", null)],
 						15.586311M,
 						"af86c3d8-ff57-4866-b6ce-7a549db31eda"),
 				]);
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2023, 09, 07, 21, 39, 25, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("XLM")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "XLM", null)],
 						87.339658M,
 						"7d62b00a-60c2-42ac-b10e-4199e54cf4c8"),
 				]);
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 12, 13, 14, 45, 51, 803, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("ADA")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "ADA", Currency.EUR)],
 						45.802549M,
 						new Money(Currency.EUR, 0.56714M),
 						new Money(Currency.EUR, 25.93M),
@@ -186,7 +186,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2023, 12, 11, 10, 32, 26, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("AXS")],
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "AXS", null)],
 						0.00000272M,
 						"15895215-8c11-4497-8151-eb5e5701180e")
 				]);

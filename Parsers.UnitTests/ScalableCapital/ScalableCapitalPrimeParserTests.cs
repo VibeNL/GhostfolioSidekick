@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -59,16 +59,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2021,11,20, 2,0,0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
-						2,
-						new Money(Currency.EUR,227.85M),
-						new Money(Currency.EUR,455.7M),
-						"abcde")
-				]);
-		}
+									[PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, "US5949181045", Currency.EUR)],
+									2,
+									new Money(Currency.EUR,227.85M),
+									new Money(Currency.EUR,455.7M),
+									"abcde")
+								]);
+						}
 
-		[Fact]
-		public async Task ParseActivities_SingleSavingsPlan_CorrectlyParsed()
+						[Fact]
+						public async Task ParseActivities_SingleSavingsPlan_CorrectlyParsed()
 		{
 			// Arrange
 
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 06, 11, 11, 29, 06, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00BJ0KDQ92")],
+						[PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, "IE00BJ0KDQ92", Currency.EUR)],
 						4.981M,
 						new Money(Currency.EUR,100.38M),
 						new Money(Currency.EUR,499.99278M),
@@ -109,16 +109,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2021, 11, 20, 02, 00, 00, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
-						2,
-						new Money(Currency.EUR,227.85M),
-						new Money(Currency.EUR,455.7M),
-						"abcde")
-				]);
-		}
+									[PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, "US5949181045", Currency.EUR)],
+									2,
+									new Money(Currency.EUR,227.85M),
+									new Money(Currency.EUR,455.7M),
+									"abcde")
+								]);
+						}
 
-		[Fact]
-		public async Task ParseActivities_SingleDeposit_CorrectlyParsed()
+						[Fact]
+						public async Task ParseActivities_SingleDeposit_CorrectlyParsed()
 		{
 			// Arrange
 
@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2022, 11, 12, 11, 40, 50, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
+						[PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, "US5949181045", Currency.EUR)],
 						1.08M,
 						new Money(Currency.EUR, 1.08M),
 						"abcde")
@@ -216,16 +216,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2021,11,20, 2,0,0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
-						2,
-						new Money(Currency.EUR,227.85M),
-						new Money(Currency.EUR,455.7M),
-						"abcde")
-				]);
-		}
+									[PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, "US5949181045", Currency.EUR)],
+									2,
+									new Money(Currency.EUR,227.85M),
+									new Money(Currency.EUR,455.7M),
+									"abcde")
+								]);
+						}
 
-		[Fact]
-		public async Task ParseActivities_Invalid_ThrowsException()
+						[Fact]
+						public async Task ParseActivities_Invalid_ThrowsException()
 		{
 			// Arrange
 

@@ -27,6 +27,23 @@ namespace GhostfolioSidekick.Utilities
 			return cleaned;
 		}
 
+		/// <summary>
+		/// Strips the exchange suffix from a Yahoo Finance-style ticker symbol (e.g., SHEL.AS -> SHEL, SHEL.L -> SHEL).
+		/// </summary>
+		/// <param name="symbol">The ticker symbol to clean.</param>
+		/// <returns>The base ticker without any exchange suffix.</returns>
+		public static string CleanTickerSymbol(string symbol)
+		{
+			if (string.IsNullOrWhiteSpace(symbol))
+				return symbol;
+
+			var dotIndex = symbol.IndexOf('.');
+			if (dotIndex > 0)
+				return symbol[..dotIndex];
+
+			return symbol;
+		}
+
 		[GeneratedRegex("\\s+")]
 		private static partial Regex MyRegex();
 	}

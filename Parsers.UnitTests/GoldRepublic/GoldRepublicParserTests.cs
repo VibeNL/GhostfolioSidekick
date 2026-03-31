@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 				PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 06, 09, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("Gold")],
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "Gold", Currency.EUR)],
 						0.001744m,
 						new Money(Currency.EUR, 59610.09174311926605504587156m),
 						new Money(Currency.EUR, 103.96m),
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 				PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 07, 26, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("Gold")],
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "Gold", Currency.EUR)],
 						0.001744m,
 						new Money(Currency.EUR, 56662.844036697247706422018349m),
 						new Money(Currency.EUR, 98.82m),

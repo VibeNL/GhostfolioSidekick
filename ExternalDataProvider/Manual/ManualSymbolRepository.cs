@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 							string.Equals(x.Symbol, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
 							string.Equals(x.ISIN, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
 							string.Equals(x.Name, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
-							x.Identifiers.Any(y => string.Equals(y, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase)));
+							x.Identifiers.Any(y => string.Equals(y.Identifier, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase)));
 				if (symbolProfile != null)
 				{
 					return symbolProfile;

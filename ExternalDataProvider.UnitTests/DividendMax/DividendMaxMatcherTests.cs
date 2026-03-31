@@ -37,8 +37,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
 			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
 			var identifiers = new[] {
-				PartialSymbolIdentifier.CreateGeneric("AAPL"),
-				PartialSymbolIdentifier.CreateGeneric("Apple")
+				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)!,
+				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Name, "Apple", null)!
 			};
 
 			// Act
@@ -49,8 +49,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			Assert.Equal("AAPL", result.Symbol);
 			Assert.Equal("Apple Inc", result.Name);
 			Assert.Equal(Datasource.DividendMax, result.DataSource);
-			Assert.Contains("AAPL", result.Identifiers);
-			Assert.Contains("Apple", result.Identifiers);
+			Assert.Contains(result.Identifiers, id => id.Identifier == "AAPL");
+			Assert.Contains(result.Identifiers, id => id.Identifier == "Apple");
 			Assert.Equal("https://www.dividendmax.com/stocks/us/apple-inc-aapl", result.WebsiteUrl);
 		}
 
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var suggestJson = "[]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
 			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
-			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ") };
+			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "ZZZZ", null)! };
 
 			// Act
 			var result = await matcher.MatchSymbol(identifiers);
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var suggestJson = "[{\"Id\":2,\"Name\":\"Not Related\",\"Path\":\"/stocks/us/not-related\",\"Ticker\":\"NR\",\"Flag\":\"US\"}]";
 			var httpClientFactory = CreateHttpClientFactory(suggestJson);
 			var matcher = new DividendMaxMatcher(httpClientFactory, _loggerMock.Object);
-			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL") };
+			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
 			// Act
 			var result = await matcher.MatchSymbol(identifiers);

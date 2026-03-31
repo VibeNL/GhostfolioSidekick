@@ -19,6 +19,13 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			var currency = currencyMapper.Map(currencySymbol!);
 			var currencyTotal = currencyMapper.Map(record.CurrencyTotal!);
 
+			var symbolIds = new [] {
+				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, record.ISIN!, currency),
+				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, record.Ticker!, currency),
+				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, record.Name!, currency)
+			}
+			;
+
 			switch (record.Action)
 			{
 				case "Deposit":
@@ -65,7 +72,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateBuy(
 						currency,
 						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
+						symbolIds,
 						record.NumberOfShares.GetValueOrDefault(),
 						new Money(currency, record.Price.GetValueOrDefault()),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
@@ -77,7 +84,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateSell(
 						currency,
 						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
+						symbolIds,
 						record.NumberOfShares.GetValueOrDefault(),
 						new Money(currency, record.Price.GetValueOrDefault()),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
@@ -88,7 +95,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateBuy(
 						currency,
 						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
+						symbolIds,
 						record.NumberOfShares.GetValueOrDefault(),
 						new Money(currency, 0),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
@@ -106,7 +113,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateDividend(
 						currency,
 						record.Time,
-						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
+						symbolIds,
 						record.Price!.GetValueOrDefault() * record.NumberOfShares.GetValueOrDefault(),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));

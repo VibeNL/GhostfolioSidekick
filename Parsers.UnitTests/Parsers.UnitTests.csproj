@@ -370,33 +370,6 @@
 		<None Update="TestFiles\NIBC\Invalid\invalid_description.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\BuyOrders\SingleBuy\rkk.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\BuyOrders\SingleBuy\wum.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\CashTransactions\single_dividend.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\CashTransactions\single_known_saldo.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\Invalid\empty_rkk.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\Invalid\invalid_action.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\Invalid\no_executiondate_rkk.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\SellOrders\SingleSell\rkk.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\ScalableCapital\BaaderBank\SellOrders\SingleSell\wum.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 		<None Update="TestFiles\ScalableCapital\Prime\BuyOrders\single_buy_euro_tax.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

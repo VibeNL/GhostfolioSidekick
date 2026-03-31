@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 				yield return PartialActivity.CreateBuy(
 					currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					[PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, isin, currency)],
 					ParseDecimal(quantity),
 					new Money(currency, ParseDecimal(price)),
 					new Money(currency, ParseDecimal(amount)),

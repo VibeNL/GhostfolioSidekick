@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 					yield return PartialActivity.CreateBuy(
 						Currency.EUR,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric([record.Loan]),
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, record.Loan!, Currency.EUR)],
 						1,
 						new Money(Currency.EUR, record.OutstandingPortfolioChange),
 						new Money(Currency.EUR, record.OutstandingPortfolioChange),
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 					yield return PartialActivity.CreateDividend(
 						Currency.EUR,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric([record.Loan]),
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, record.Loan!, Currency.EUR)],
 						record.RepaidInterest.GetValueOrDefault(),
 						new Money(Currency.EUR, record.RepaidInterest.GetValueOrDefault()),
 						transactionsId
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 					yield return PartialActivity.CreateSell(
 						Currency.EUR,
 						record.Date,
-						PartialSymbolIdentifier.CreateGeneric([record.Loan]),
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, record.Loan!, Currency.EUR)],
 						1,
 						new Money(Currency.EUR, record.RepaidCapital.GetValueOrDefault()),
 						new Money(Currency.EUR, record.RepaidCapital.GetValueOrDefault()),

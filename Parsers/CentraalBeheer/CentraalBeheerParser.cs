@@ -16,6 +16,11 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 			var stockIdentifier = "Centraal Beheer " + record.FundName?.Trim();
 
+			var ids = new[] { 
+				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, stockIdentifier, Currency.EUR),
+				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, ConstructTicker(stockIdentifier), Currency.EUR)
+			};
+
 			switch (record.TransactionType)
 			{
 				case "Aankoop": // Purchase
@@ -29,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateBuy(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
+							ids,
 							quantity,
 							new Money(currency, unitPrice),
 							new Money(currency, totalAmount),
@@ -59,7 +64,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateSell(
 						currency,
 						record.TransactionDate,
-						PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
+						ids,
 						quantity,
 						new Money(currency, unitPrice),
 						new Money(currency, totalAmount),
@@ -109,7 +114,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateDividend(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
+							ids,
 							Math.Abs(grossAmount),
 							new Money(currency, Math.Abs(grossAmount)),
 							transactionId);
@@ -136,9 +141,9 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private static string? GetConstructedId(string? fundName)
+		private static string ConstructTicker(string? fundName)
 		{
-			return fundName?.Trim().ToUpperInvariant().Replace(" ", "");
+			return fundName?.Trim().ToUpperInvariant().Replace(" ", "") ?? string.Empty;
 		}
 
 		protected override Encoding Encoding => Encoding.BigEndianUnicode;

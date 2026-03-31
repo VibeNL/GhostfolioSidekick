@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "AAPL" }
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], [])
 			};
 
 			// Act
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		public async Task GetStockMarketData_ShouldReturnMarketData()
 		{
 			// Arrange
-			var symbol = new SymbolProfile("AAPL", "Apple Inc.", ["AAPL"], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
 			var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
 
 			// Act
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		public async Task GetStockSplits_ShouldReturnStockSplits()
 		{
 			// Arrange
-			var symbol = new SymbolProfile("AAPL", "Apple Inc.", ["AAPL"], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
 			var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
 
 			// Act
@@ -91,8 +91,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "AAPL" },
-				new PartialSymbolIdentifier { Identifier = "APPLE" }
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], []),
+				new PartialSymbolIdentifier(IdentifierType.Name, "APPLE", null, [], [])
 			};
 
 			// Act
@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "Apple" }
+				new PartialSymbolIdentifier(IdentifierType.Name, "Apple", null, [], [])
 			};
 
 			// Act
@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier { Identifier = "NonExistentSymbol" }
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "NonExistentSymbol", null, [], [])
 			};
 
 			// Act
@@ -134,6 +134,46 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 
 			// Assert
 			Assert.True(result == null || result is SymbolProfile);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_WithGBXExpectedCurrency_ShouldMatchLSESymbol()
+		{
+			// Arrange
+			// LLOY.L trades on the London Stock Exchange; Yahoo Finance returns GBp as the currency.
+			// GBX and GBp share GBP as their source currency (both are pence-denominated),
+			// so the currency match score should be 1 and the symbol should be found.
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "LLOY.L", Currency.GBX, [AssetClass.Equity], [AssetSubClass.Stock])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("LLOY.L", result.Symbol);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_WithGBPExpectedCurrency_ShouldMatchLSESymbolWithGBpActualCurrency()
+		{
+			// Arrange
+			// LLOY.L trades on the London Stock Exchange; Yahoo Finance returns GBp as the currency.
+			// GBP and GBp share GBP as their source currency, so the currency match score
+			// should be 1 and the symbol should be found.
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "LLOY.L", Currency.GBP, [AssetClass.Equity], [AssetSubClass.Stock])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("LLOY.L", result.Symbol);
 		}
 	}
 }

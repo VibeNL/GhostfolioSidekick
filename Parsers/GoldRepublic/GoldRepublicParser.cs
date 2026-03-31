@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 	public partial class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		private static readonly TableDefinition TableDefinition = new(
-			["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"], 
+			["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"],
 			"Closing balance",
 			[],
 			true);
@@ -171,13 +171,15 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				var transactionValue = subTable.TransactionValue;
 				var fee = subTable.Fee;
 				var volume = subTable.Volume / 1000; // In gram, store as KG
-				
+
+				var symbolIds = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, bullion ?? "<??>", Currency.EUR) };
+
 				if (action.Equals("Sell", StringComparison.InvariantCultureIgnoreCase))
 				{
 					yield return PartialActivity.CreateSell(
 						Currency.EUR,
 						dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
+						symbolIds,
 						volume,
 						new Money(Currency.EUR, transactionValue / volume),
 						new Money(Currency.EUR, transactionValue),
@@ -189,7 +191,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 					yield return PartialActivity.CreateBuy(
 						Currency.EUR,
 						dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
+						symbolIds,
 						volume,
 						new Money(Currency.EUR, transactionValue / volume),
 						new Money(Currency.EUR, transactionValue),

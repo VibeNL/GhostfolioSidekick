@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null)
+			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now, 10, "tx1", null, null)
 			{
 				UnitPrice = new Money(Currency.USD, 100)
 			};
@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var giftAssetActivity = new GiftAssetActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null)
+			var giftAssetActivity = new GiftAssetActivity(account, null, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now, 10, "tx1", null, null)
 			{
 				UnitPrice = new Money(Currency.USD, 100)
 			};
@@ -246,10 +246,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
 			var holding = new Holding();
-			var buyActivity = new BuyActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now.AddDays(-1), 100, new Money(Currency.USD, 10), "tx0", null, null);
+			var buyActivity = new BuyActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now.AddDays(-1), 100, new Money(Currency.USD, 10), "tx0", null, null);
 			holding.Activities = [buyActivity];
 
-			var repayBondActivity = new RepayBondActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, new Money(Currency.USD, 1200), "tx1", null, null);
+			var repayBondActivity = new RepayBondActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now, new Money(Currency.USD, 1200), "tx1", null, null);
 			var activities = new List<Activity> { repayBondActivity };
 
 			List<Activity> capturedActivities = [];
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var repayBondActivity = new RepayBondActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, new Money(Currency.USD, 1200), "tx1", null, null);
+			var repayBondActivity = new RepayBondActivity(account, null, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now, new Money(Currency.USD, 1200), "tx1", null, null);
 			var activities = new List<Activity> { repayBondActivity };
 
 			List<Activity> capturedActivities = [];
@@ -293,7 +293,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var dividendActivity = new DividendActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, new Money(Currency.USD, -50), "tx1", null, null);
+			var dividendActivity = new DividendActivity(account, null, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now, new Money(Currency.USD, -50), "tx1", null, null);
 			var activities = new List<Activity> { dividendActivity };
 
 			List<Activity> capturedActivities = [];
@@ -316,7 +316,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var dividendActivity = new DividendActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, new Money(Currency.USD, 50), "tx1", null, null);
+			var dividendActivity = new DividendActivity(account, null, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now, new Money(Currency.USD, 50), "tx1", null, null);
 			var activities = new List<Activity> { dividendActivity };
 
 			List<Activity> capturedActivities = [];
@@ -339,7 +339,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null)
+			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST", null)!], DateTime.Now, 10, "tx1", null, null)
 			{
 				UnitPrice = new Money(Currency.USD, 100),
 				AdjustedQuantity = 20,

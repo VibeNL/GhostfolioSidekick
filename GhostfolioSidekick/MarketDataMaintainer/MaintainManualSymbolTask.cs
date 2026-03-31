@@ -1,7 +1,8 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,10 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			symbol.AssetSubClass = EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass);
 			symbol.ISIN = manualSymbolConfiguration.ISIN;
 			symbol.Currency = Currency.GetCurrency(manualSymbolConfiguration.Currency);
-			symbol.Identifiers = ListExtensions.FilterEmpty([symbol.Name, symbol.ISIN]);
+			symbol.Identifiers = [
+				.. ListExtensions.FilterEmpty(new string?[] { symbol.Name }).Select(id => new SymbolIdentifier { Identifier = id, IdentifierType = IdentifierType.Name }),
+				.. ListExtensions.FilterEmpty(new string?[] { symbol.ISIN }).Select(id => new SymbolIdentifier { Identifier = id, IdentifierType = IdentifierType.ISIN })
+			];
 			symbol.CountryWeight = manualSymbolConfiguration.Countries.Select(x => new CountryWeight
 			{
 				Name = x.Name,
