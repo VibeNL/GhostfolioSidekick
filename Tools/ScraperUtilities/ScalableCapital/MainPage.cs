@@ -29,6 +29,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		internal static async Task SwitchToAccount(ILocator account)
 		{
 			await account.ClickAsync();
+
+			// Wait for the page to update after clicking the account
+			await account.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 		}
 	}
 }

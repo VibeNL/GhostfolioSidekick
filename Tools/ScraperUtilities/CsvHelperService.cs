@@ -33,6 +33,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				{
 					ActivityType = PartialActivityType.Buy,
 					Symbol = activity.Symbol,
+					Name = activity.SymbolName,
+					ISIN = activity.ISIN,
 					Date = buyActivity.Date,
 					Currency = buyActivity.UnitPrice.Currency.Symbol,
 					Quantity = buyActivity.Quantity,
@@ -48,6 +50,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				{
 					ActivityType = PartialActivityType.Sell,
 					Symbol = activity.Symbol,
+					Name = activity.SymbolName,
+					ISIN = activity.ISIN,
 					Date = sellActivity.Date,
 					Currency = sellActivity.UnitPrice.Currency.Symbol,
 					Quantity = sellActivity.Quantity,
@@ -63,6 +67,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				{
 					ActivityType = PartialActivityType.Dividend,
 					Symbol = activity.Symbol,
+					Name = activity.SymbolName,
+					ISIN = activity.ISIN,
 					Date = dividendActivity.Date,
 					Currency = dividendActivity.Amount.Currency.Symbol,
 					Quantity = 1,
@@ -108,6 +114,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				{
 					ActivityType = PartialActivityType.GiftAsset,
 					Symbol = activity.Symbol,
+					Name = activity.SymbolName,
+					ISIN = activity.ISIN,
 					Date = giftAsset.Date,
 					Currency = giftAsset.UnitPrice.Currency.Symbol,
 					Quantity = giftAsset.Quantity,
@@ -121,7 +129,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			{
 				return new GenericRecord
 				{
-					ActivityType = PartialActivityType.GiftAsset,
+					ActivityType = PartialActivityType.GiftFiat,
 					Symbol = activity.Symbol,
 					Date = giftFiat.Date,
 					Currency = giftFiat.Amount.Currency.Symbol,

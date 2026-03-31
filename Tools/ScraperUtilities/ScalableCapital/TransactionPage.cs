@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.Extensions.Logging;
@@ -142,7 +143,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			{
 				Activity = generatedTransaction,
 				Symbol = isin,
-				SymbolName = name
+				SymbolName = name,
+				ISIN = isin,
 			};
 		}
 
@@ -216,6 +218,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		internal async Task GoToMainPage()
 		{
 			await Page.GotoAsync(Url);
+
+			// Wait for the page to update after clicking the account
+			await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 		}
 
 		[GeneratedRegex(".*transaction.*")]
