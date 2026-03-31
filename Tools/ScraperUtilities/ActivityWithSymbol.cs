@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
@@ -9,5 +9,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 		public string? Symbol { get; set; }
 
 		internal string? SymbolName { get; set; }
+
+		internal string? ISIN { get; set; }
 	}
 }
