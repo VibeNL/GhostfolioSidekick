@@ -67,10 +67,13 @@ namespace GhostfolioSidekick.Activities
 					.ThenBy(x => GetCurrencyPriority(x[0].Currency))
 					.ThenBy(x => x[0].Identifier)
 					.ToList();
+				// Tracks the single authoritative SymbolProfile instance per {Symbol|DataSource} key within this context,
+				// preventing EF from tracking two different C# objects for the same composite key.
+				var resolvedProfilesMap = new Dictionary<string, SymbolProfile>();
 				foreach (var partialIdentifiers in partialIdentifiersList)
 				{
 					var ids = GetIds(partialIdentifiers);
-					await CreateOrReuseHolding(logger, databaseContext, partialIdentifierMap, symbolProfileMap, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
+					await CreateOrReuseHolding(logger, databaseContext, resolvedProfilesMap, partialIdentifierMap, symbolProfileMap, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
 				}
 
 				// Remove any unused holdings
@@ -94,6 +97,7 @@ namespace GhostfolioSidekick.Activities
 
 		private async Task MatchOtherMatchers(ILogger logger, DatabaseContext databaseContext, List<Holding> usedHoldings)
 		{
+			var resolvedProfilesMap = new Dictionary<string, SymbolProfile>();
 			foreach (var holding in usedHoldings)
 			{
 				foreach (var symbolMatcher in symbolMatchers.Where(x => !x.AllowedForDeterminingHolding))
@@ -111,10 +115,14 @@ namespace GhostfolioSidekick.Activities
 
 					if (symbolProfile != null)
 					{
-						// FindAsync checks the identity map (including Added entities) before hitting the DB,
-						// ensuring we always use the single tracked instance for a given {Symbol, DataSource} key.
-						var existingSymbolProfile = await databaseContext.SymbolProfiles.FindAsync(symbolProfile.Symbol, symbolProfile.DataSource).ConfigureAwait(false);
-						symbolProfile = existingSymbolProfile ?? symbolProfile;
+						var spKey = $"{symbolProfile.Symbol}|{symbolProfile.DataSource}";
+						if (!resolvedProfilesMap.TryGetValue(spKey, out var resolvedProfile))
+						{
+							var existing = await databaseContext.SymbolProfiles.FindAsync(symbolProfile.Symbol, symbolProfile.DataSource).ConfigureAwait(false);
+							resolvedProfile = existing ?? symbolProfile;
+							resolvedProfilesMap[spKey] = resolvedProfile;
+						}
+						symbolProfile = resolvedProfile;
 						logger.LogDebug("Matching additional symbol profile for holding {HoldingId}: {Symbol} ({DataSource})", holding.Id, symbolProfile.Symbol, symbolProfile.DataSource);
 						holding.MergeSymbolProfiles(symbolProfile);
 					}
@@ -143,6 +151,7 @@ namespace GhostfolioSidekick.Activities
 		private async Task CreateOrReuseHolding(
 		ILogger logger,
 		DatabaseContext databaseContext,
+		Dictionary<string, SymbolProfile> resolvedProfilesMap,
 		Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
 		Dictionary<string, Holding> symbolProfileMap,
 		Queue<Holding> availableHoldings,
@@ -161,10 +170,14 @@ namespace GhostfolioSidekick.Activities
 
 				if (symbolProfile != null)
 				{
-					// FindAsync checks the identity map (including Added entities) before hitting the DB,
-					// ensuring we always use the single tracked instance for a given {Symbol, DataSource} key.
-					var existingSymbolProfile = await databaseContext.SymbolProfiles.FindAsync(symbolProfile.Symbol, symbolProfile.DataSource).ConfigureAwait(false);
-					symbolProfile = existingSymbolProfile ?? symbolProfile;
+					var spKey = $"{symbolProfile.Symbol}|{symbolProfile.DataSource}";
+					if (!resolvedProfilesMap.TryGetValue(spKey, out var resolvedProfile))
+					{
+						var existing = await databaseContext.SymbolProfiles.FindAsync(symbolProfile.Symbol, symbolProfile.DataSource).ConfigureAwait(false);
+						resolvedProfile = existing ?? symbolProfile;
+						resolvedProfilesMap[spKey] = resolvedProfile;
+					}
+					symbolProfile = resolvedProfile;
 				}
 
 				if (symbolProfile == null)
