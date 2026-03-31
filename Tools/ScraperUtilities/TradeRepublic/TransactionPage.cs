@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				"Card payment", "Card refund",
 				"Round up", "Saveback", "Savings Plan" ];
 
-		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(string outputDirectory)
+		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			logger.LogInformation("Scraping transactions...");
 
@@ -36,7 +36,16 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				await page.WaitForSelectorAsync("h3:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
 				// Process transaction details
-				await DownloadFiles(outputDirectory);
+				var generatedTransaction = await ProcessDetails(knownProfiles, outputDirectory);
+				if (generatedTransaction == null)
+				{
+					logger.LogWarning("Transaction {Counter} skipped. No valid activity found.", counter);
+				}
+				else
+				{
+					list.Add(generatedTransaction);
+					logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.Activity.ToString());
+				}
 
 				// Press Close button to close the details
 				var closeButtons = await page.Locator("svg[class='closeIcon']").AllAsync();
@@ -84,7 +93,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
-		private async Task DownloadFiles(string outputDirectory)
+		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			var table = await ParseTable(0);
 			var status = table.FirstOrDefault(x => sourceArray.Contains(x.Item1)).Item2;
@@ -93,7 +102,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			if (table.Count == 0 || !completedStatus.Contains(status))
 			{
-				return;
+				return null;
 			}
 
 			// Find the h2 with class detailHeader__heading
@@ -154,72 +163,188 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			if (parsedTime == DateTime.MinValue)
 			{
 				logger.LogWarning("Could not parse date for transaction: {HeaderText}", headerText);
-				return;
+				return null;
 			}
 
-
-			var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
-
-			// Download the attached document if available
-			var links = await page.Locator("div[class='detailDocuments__entry']").AllAsync();
-			int counter = 1;
-			foreach (var item in links)
+			// Depending on the text in the header, we can determine the type of transaction
+			if (headerText.Contains("You received") || headerText.Contains("You added"))
 			{
-				// open the link in a new tab
-				var countPages = page.Context.Pages.Count;
-				await item.ClickAsync();
+				var @event = table.FirstOrDefault(x => x.Item1 == "Event").Item2;
 
-				while (page.Context.Pages.Count <= countPages)
+				if (@event == "Dividend")
 				{
-					await Task.Delay(100);
+					return new ActivityWithSymbol
+					{
+						Activity = new DividendActivity
+						{
+							Amount = ParseMoneyFromHeader(headerText),
+							Date = parsedTime,
+							TransactionId = GenerateTransactionId(parsedTime, table),
+							Description = headerText,
+						},
+						Symbol = default!,
+					};
 				}
 
-				var newPage = page.Context.Pages.Count > countPages ? page.Context.Pages[^1] : null;
-				if (newPage != null)
+				var annualRate = table.FirstOrDefault(x => x.Item1 == "Annual rate").Item2;
+				if (annualRate != null)
 				{
-					try
+					return new ActivityWithSymbol
 					{
-						// Wait for the new page to load
-						await newPage.WaitForLoadStateAsync(LoadState.NetworkIdle);
-					}
-					catch
-					{
-						// Ignore for now
-					}
-
-					// Get Url
-					var url = newPage.Url;
-
-					// Download from url
-					logger.LogInformation("Downloading document from {Url}", url);
-					var fileName = $"{parsedTime:yyyy-MM-dd-HH-mm-ss} {asset} {counter++}.pdf";
-					var directory = Path.Combine(outputDirectory, "TradeRepublic");
-					var filePath = Path.Combine(directory, fileName);
-					if (!Directory.Exists(directory))
-					{
-						Directory.CreateDirectory(directory);
-					}
-
-					using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-					{
-						// Get manually from url
-						var response = await newPage.Context.APIRequest.GetAsync(url);
-						if (response.Ok)
+						Activity = new InterestActivity
 						{
-							var body = await response.BodyAsync();
-							// Write the response body to the file
-							await fileStream.WriteAsync(body);
-						}
-						else
-						{
-							logger.LogWarning("Failed to download document from {Url}. Status code: {StatusCode}", url, response.Status);
-						}
-					}
-
-					// Close the new page
-					await newPage.CloseAsync();
+							Amount = ParseMoneyFromHeader(headerText),
+							Date = parsedTime,
+							TransactionId = GenerateTransactionId(parsedTime, table),
+							Description = headerText,
+						},
+						Symbol = default!,
+					};
 				}
+
+				return new ActivityWithSymbol
+				{
+					Activity = new CashDepositActivity
+					{
+						Amount = ParseMoneyFromHeader(headerText),
+						Date = parsedTime,
+						TransactionId = GenerateTransactionId(parsedTime, table),
+						Description = headerText,
+					},
+					Symbol = default!,
+				};
 			}
+
+			if (headerText.Contains("You sent") || headerText.Contains("You spent"))
+			{
+				return new ActivityWithSymbol
+				{
+					Activity = new CashWithdrawalActivity
+					{
+						Amount = ParseMoneyFromHeader(headerText),
+						Date = parsedTime,
+						TransactionId = GenerateTransactionId(parsedTime, table),
+						Description = headerText,
+					},
+					Symbol = default!,
+				};
+			}
+
+			var rewards = headerText.Contains("Your reward of");
+			var saving = headerText.Contains("You saved");
+			var saveBack = headerText.Contains("You earned");
+			if (headerText.Contains("You invested") || saving || rewards || saveBack)
+			{
+				var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
+
+				var symbol = knownProfiles
+				.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
+
+				if (symbol == null)
+				{
+					logger.LogWarning("Symbol not found: {Asset}", asset);
+					return null;
+				}
+
+				// Download the attached document if available
+				var links = await page.Locator("div[class='detailDocuments__entry']").AllAsync();
+				int counter = 1;
+				foreach (var item in links)
+				{
+					// open the link in a new tab
+					var countPages = page.Context.Pages.Count;
+					await item.ClickAsync();
+
+					while (page.Context.Pages.Count <= countPages)
+					{
+						await Task.Delay(100);
+					}
+
+					var newPage = page.Context.Pages.Count > countPages ? page.Context.Pages[^1] : null;
+					if (newPage != null)
+					{
+						try
+						{
+							// Wait for the new page to load
+							await newPage.WaitForLoadStateAsync(LoadState.NetworkIdle);
+						}
+						catch
+						{
+							// Ignore for now
+						}
+
+						// Get Url
+						var url = newPage.Url;
+
+						// Download from url
+						logger.LogInformation("Downloading document from {Url}", url);
+						var fileName = $"{parsedTime:yyyy-MM-dd-HH-mm-ss} {symbol.ISIN} {counter++}.pdf";
+						var directory = Path.Combine(outputDirectory, "TradeRepublic");
+						var filePath = Path.Combine(directory, fileName);
+						if (!Directory.Exists(directory))
+						{
+							Directory.CreateDirectory(directory);
+						}
+
+						using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+						{
+							// Get manually from url
+							var response = await newPage.Context.APIRequest.GetAsync(url);
+							if (response.Ok)
+							{
+								var body = await response.BodyAsync();
+								// Write the response body to the file
+								await fileStream.WriteAsync(body);
+							}
+							else
+							{
+								logger.LogWarning("Failed to download document from {Url}. Status code: {StatusCode}", url, response.Status);
+							}
+						}
+
+						// Close the new page
+						await newPage.CloseAsync();
+					}
+				}
+
+				return null; // We have documents
+			}
+
+			return null;
+		}
+
+		private static Money ParseMoneyFromHeader(string headerText)
+		{
+			// Parse the value from strings like 'You received €1,105.00'
+			// Or 'You added €5.00 via Direct Debit'
+			var euroPattern = new Regex(@"€\s?([\d,\.]+)", RegexOptions.None, TimeSpan.FromSeconds(1));
+
+			// Parse the value from strings like 'You received 74.17 EUR'
+			var eurPattern = new Regex(@"([\d,\.]+)\s*EUR", RegexOptions.None, TimeSpan.FromSeconds(1));
+
+			var euroMatch = euroPattern.Match(headerText);
+			if (euroMatch.Success)
+			{
+				var amount = euroMatch.Groups[1].Value;
+				return new Money(
+					Currency.EUR,
+					decimal.Parse(amount, NumberStyles.Currency, CultureInfo.InvariantCulture));
+			}
+
+			var eurMatch = eurPattern.Match(headerText);
+			if (eurMatch.Success)
+			{
+				var amount = eurMatch.Groups[1].Value;
+				return new Money(
+					Currency.EUR,
+					decimal.Parse(amount, NumberStyles.Currency, CultureInfo.InvariantCulture));
+			}
+
+			return new Money();
+		}
+		private static string GenerateTransactionId(DateTime time, List<(string, string)> table)
+		{
+			return time + string.Join("|", table.Select(x => x.Item2));
 		}
 
 		private async Task<List<(string, string)>> ParseTable(int number)
