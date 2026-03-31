@@ -90,42 +90,71 @@ namespace GhostfolioSidekick.Activities
 
 			using var matchingContext = await databaseContextFactory.CreateDbContextAsync();
 			var holdingsForMatching = await matchingContext.Holdings
-             .Include(h => h.SymbolProfiles)
+			 .Include(h => h.SymbolProfiles)
 				.Where(h => usedHoldingIds.Contains(h.Id))
 				.ToListAsync();
 			await MatchOtherMatchers(logger, matchingContext, holdingsForMatching).ConfigureAwait(false);
 		}
 
 		private async Task MatchOtherMatchers(ILogger logger, DatabaseContext databaseContext, List<Holding> usedHoldings)
-       {
+		{
 			var resolvedProfilesMap = new Dictionary<string, SymbolProfile>();
 			foreach (var holding in usedHoldings)
 			{
 				foreach (var symbolMatcher in symbolMatchers.Where(x => !x.AllowedForDeterminingHolding))
 				{
 					var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", holding.PartialSymbolIdentifiers)}";
-					if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
+					if (!memoryCache.TryGetValue<(string Symbol, string DataSource)>(cacheKey, out var symbolProfileKey))
 					{
 						var orderedIdentifiers = holding.PartialSymbolIdentifiers
 							.OrderBy(x => GetIdentifierTypePriority(x.IdentifierType))
 							.ThenBy(x => GetCurrencyPriority(x.Currency))
 							.ToArray();
-						symbolProfile = await symbolMatcher.MatchSymbol(orderedIdentifiers).ConfigureAwait(false);
-						memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
+						var symbolProfile = await symbolMatcher.MatchSymbol(orderedIdentifiers).ConfigureAwait(false);
+						if (symbolProfile != null)
+						{
+							symbolProfileKey = (symbolProfile.Symbol, symbolProfile.DataSource);
+							memoryCache.Set(cacheKey, symbolProfileKey, CacheDuration.Short());
+						}
+						else
+						{
+							symbolProfileKey = default;
+						}
 					}
 
-					if (symbolProfile != null)
+					if (symbolProfileKey != default)
 					{
-						var spKey = $"{symbolProfile.Symbol}|{symbolProfile.DataSource}";
-						if (!resolvedProfilesMap.TryGetValue(spKey, out var resolvedProfile))
+						var (symbol, dataSource) = symbolProfileKey;
+                        if (!resolvedProfilesMap.TryGetValue($"{symbol}|{dataSource}", out var resolvedProfile))
 						{
-							var existing = await databaseContext.SymbolProfiles.FindAsync(symbolProfile.Symbol, symbolProfile.DataSource).ConfigureAwait(false);
-							resolvedProfile = existing ?? symbolProfile;
-							resolvedProfilesMap[spKey] = resolvedProfile;
+							var existing = await databaseContext.SymbolProfiles.FindAsync(symbol, dataSource).ConfigureAwait(false);
+							if (existing != null)
+							{
+								resolvedProfile = existing;
+							}
+							else
+							{
+								// If not found, try to get a fresh SymbolProfile from the matcher
+								var orderedIdentifiers = holding.PartialSymbolIdentifiers
+									.OrderBy(x => GetIdentifierTypePriority(x.IdentifierType))
+									.ThenBy(x => GetCurrencyPriority(x.Currency))
+									.ToArray();
+								resolvedProfile = await symbolMatcher.MatchSymbol(orderedIdentifiers).ConfigureAwait(false);
+								if (resolvedProfile != null)
+								{
+									databaseContext.SymbolProfiles.Add(resolvedProfile);
+								}
+							}
+							if (resolvedProfile != null)
+							{
+								resolvedProfilesMap[$"{symbol}|{dataSource}"] = resolvedProfile;
+							}
 						}
-						symbolProfile = resolvedProfile;
-						logger.LogDebug("Matching additional symbol profile for holding {HoldingId}: {Symbol} ({DataSource})", holding.Id, symbolProfile.Symbol, symbolProfile.DataSource);
-						holding.MergeSymbolProfiles(symbolProfile);
+						if (resolvedProfile != null)
+						{
+							logger.LogDebug("Matching additional symbol profile for holding {HoldingId}: {Symbol} ({DataSource})", holding.Id, resolvedProfile.Symbol, resolvedProfile.DataSource);
+							holding.MergeSymbolProfiles(resolvedProfile);
+						}
 					}
 				}
 			}
@@ -134,7 +163,7 @@ namespace GhostfolioSidekick.Activities
 		}
 
 		private async Task ClearExistingHoldings()
-       {
+		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var existingHoldings = await databaseContext.Holdings
 				.Include(h => h.SymbolProfiles)
@@ -166,38 +195,62 @@ namespace GhostfolioSidekick.Activities
 			foreach (var symbolMatcher in symbolMatchers.Where(x => x.AllowedForDeterminingHolding))
 			{
 				var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
-				if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
+				if (!memoryCache.TryGetValue<(string Symbol, string DataSource)>(cacheKey, out var symbolProfileKey))
 				{
-					symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
-					memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
-				}
-
-				if (symbolProfile != null)
-				{
-					var spKey = $"{symbolProfile.Symbol}|{symbolProfile.DataSource}";
-					if (!resolvedProfilesMap.TryGetValue(spKey, out var resolvedProfile))
+					var symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
+					if (symbolProfile != null)
 					{
-						var existing = await databaseContext.SymbolProfiles.FindAsync(symbolProfile.Symbol, symbolProfile.DataSource).ConfigureAwait(false);
-						resolvedProfile = existing ?? symbolProfile;
-						resolvedProfilesMap[spKey] = resolvedProfile;
+						symbolProfileKey = (symbolProfile.Symbol, symbolProfile.DataSource);
+						memoryCache.Set(cacheKey, symbolProfileKey, CacheDuration.Short());
 					}
-					symbolProfile = resolvedProfile;
+					else
+					{
+						symbolProfileKey = default;
+					}
 				}
 
-				if (symbolProfile == null)
+				if (symbolProfileKey == default)
+				{
+					continue;
+				}
+
+				var (symbol, dataSource) = symbolProfileKey;
+                if (!resolvedProfilesMap.TryGetValue($"{symbol}|{dataSource}", out var resolvedProfile))
+				{
+					var existing = await databaseContext.SymbolProfiles.FindAsync(symbol, dataSource).ConfigureAwait(false);
+					if (existing != null)
+					{
+						resolvedProfile = existing;
+					}
+					else
+					{
+						var symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
+						if (symbolProfile != null)
+						{
+							databaseContext.SymbolProfiles.Add(symbolProfile);
+							resolvedProfile = symbolProfile;
+						}
+					}
+					if (resolvedProfile != null)
+					{
+						resolvedProfilesMap[$"{symbol}|{dataSource}"] = resolvedProfile;
+					}
+				}
+
+				if (resolvedProfile == null)
 				{
 					continue;
 				}
 
 				found = true;
 
-				var symbolKey = $"{symbolProfile.Symbol}|{symbolProfile.DataSource}";
+				var symbolKey = $"{resolvedProfile.Symbol}|{resolvedProfile.DataSource}";
 
 				// First check if we already have a holding for this specific partial identifier
 				if (FindHolding(partialIdentifierMap, partialIdentifiers, out var existingHolding) && existingHolding != null)
 				{
-					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", symbolProfile.Symbol);
-					existingHolding.MergeSymbolProfiles(symbolProfile);
+					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", resolvedProfile.Symbol);
+					existingHolding.MergeSymbolProfiles(resolvedProfile);
 					existingHolding.MergeIdentifiers(partialIdentifiers);
 
 					AddPartialIdentifiersToMap(partialIdentifierMap, partialIdentifiers, existingHolding);
@@ -213,8 +266,8 @@ namespace GhostfolioSidekick.Activities
 				// Then check if we already have a holding for this symbol profile
 				if (symbolProfileMap.TryGetValue(symbolKey, out existingHolding))
 				{
-					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", symbolProfile.Symbol);
-					existingHolding.MergeSymbolProfiles(symbolProfile);
+					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", resolvedProfile.Symbol);
+					existingHolding.MergeSymbolProfiles(resolvedProfile);
 					existingHolding.MergeIdentifiers(partialIdentifiers);
 
 					AddPartialIdentifiersToMap(partialIdentifierMap, partialIdentifiers, existingHolding);
@@ -222,23 +275,23 @@ namespace GhostfolioSidekick.Activities
 					continue;
 				}
 
-				logger.LogDebug("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", symbolProfile.Symbol);
+				logger.LogDebug("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", resolvedProfile.Symbol);
 
 				// Try to reuse an existing holding, otherwise create a new one
 				Holding holding;
 				if (availableHoldings.TryDequeue(out var reusedHolding))
 				{
-					logger.LogTrace("CreateOrReuseHolding: Reusing existing holding (ID: {HoldingId}) for symbol {Symbol}", reusedHolding.Id, symbolProfile.Symbol);
+					logger.LogTrace("CreateOrReuseHolding: Reusing existing holding (ID: {HoldingId}) for symbol {Symbol}", reusedHolding.Id, resolvedProfile.Symbol);
 					holding = reusedHolding;
 				}
 				else
 				{
-					logger.LogTrace("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", symbolProfile.Symbol);
+					logger.LogTrace("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", resolvedProfile.Symbol);
 					holding = new Holding();
 					databaseContext.Holdings.Add(holding);
 				}
 
-				holding.MergeSymbolProfiles(symbolProfile);
+				holding.MergeSymbolProfiles(resolvedProfile);
 				holding.MergeIdentifiers(partialIdentifiers);
 
 				AddPartialIdentifiersToMap(partialIdentifierMap, partialIdentifiers, holding);
