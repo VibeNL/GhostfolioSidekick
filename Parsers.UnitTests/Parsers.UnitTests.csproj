@@ -235,6 +235,9 @@
 		<None Update="TestFiles\GenericStockSplit\single_split.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Generic\BuyOrders\single_buy_with_asset_type.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Generic\BuyOrders\single_liability.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
