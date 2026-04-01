@@ -171,22 +171,22 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		private static IEnumerable<PartialSymbolIdentifier> GetSymbolIdentifiers(GenericRecord record, Currency currency)
 		{
-			var assetClass = record.AssetClass;
-			var assetSubClass = record.AssetSubClass;
+			List<AssetClass> assetClass = record.AssetClass == AssetClass.Undefined ? [] : [record.AssetClass];
+			List<AssetSubClass> assetSubClass = record.AssetSubClass == AssetSubClass.Undefined ? [] : [record.AssetSubClass];
 
 			if (!string.IsNullOrWhiteSpace(record.Symbol))
 			{
-				yield return new PartialSymbolIdentifier(IdentifierType.Ticker, record.Symbol!, currency, [assetClass], [assetSubClass]);
+				yield return new PartialSymbolIdentifier(IdentifierType.Ticker, record.Symbol!, currency, assetClass, assetSubClass);
 			}
 
 			if (!string.IsNullOrWhiteSpace(record.Name))
 			{
-				yield return new PartialSymbolIdentifier(IdentifierType.Name, record.Name!, currency, [assetClass], [assetSubClass]);
+				yield return new PartialSymbolIdentifier(IdentifierType.Name, record.Name!, currency, assetClass, assetSubClass);
 			}
 
 			if (!string.IsNullOrWhiteSpace(record.ISIN))
 			{
-				yield return new PartialSymbolIdentifier(IdentifierType.ISIN, record.ISIN!, currency, [assetClass], [assetSubClass]);
+				yield return new PartialSymbolIdentifier(IdentifierType.ISIN, record.ISIN!, currency, assetClass, assetSubClass);
 			}
 		}
 
