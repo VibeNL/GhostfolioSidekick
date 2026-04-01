@@ -58,6 +58,16 @@ namespace GhostfolioSidekick.Parsers.Generic
 					.Where(x => x != AssetClass.Undefined)
 					.ToList();
 		}
+
+		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		{
+			if (value is IEnumerable<AssetClass> list)
+			{
+				return string.Join(";", list);
+			}
+
+			return base.ConvertToString(value, row, memberMapData);
+		}
 	}
 
 	public class AssetSubClassListConverter : DefaultTypeConverter
@@ -73,6 +83,16 @@ namespace GhostfolioSidekick.Parsers.Generic
 					.Select(x => Enum.TryParse<AssetSubClass>(x.Trim(), true, out var val) ? val : AssetSubClass.Undefined)
 					.Where(x => x != AssetSubClass.Undefined)
 					.ToList();
+		}
+
+		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		{
+			if (value is IEnumerable<AssetSubClass> list)
+			{
+				return string.Join(";", list);
+			}
+
+			return base.ConvertToString(value, row, memberMapData);
 		}
 	}
 }
