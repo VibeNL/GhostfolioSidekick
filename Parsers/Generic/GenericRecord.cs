@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.Generic
@@ -6,6 +6,12 @@ namespace GhostfolioSidekick.Parsers.Generic
 	public class GenericRecord
 	{
 		public PartialActivityType ActivityType { get; set; }
+
+		[Optional]
+		public AssetClass AssetClass { get; set; } = AssetClass.Undefined;
+
+		[Optional]
+		public AssetSubClass AssetSubClass { get; set; } = AssetSubClass.Undefined;
 
 		public string? Symbol { get; set; }
 

@@ -1,0 +1,2 @@
+ActivityType,Symbol,Name,ISIN,Date,Currency,Quantity,UnitPrice,Fee,AssetClass,AssetSubClass
+Buy,NVDA,NVIDIA,US67066G1040,2023-08-07,USD,0.5,100,0.1,Equity,Stock

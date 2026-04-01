@@ -35,11 +35,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 				record.Quantity = 1;
 			}
 
-			var symbolIdentifier = new[] {
-				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, record.Symbol!, currency),
-				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Name, record.Name!, currency),
-				PartialSymbolIdentifier.CreateGeneric(IdentifierType.ISIN, record.ISIN!, currency)	
-			};
+			var symbolIdentifier = GetSymbolIdentifiers(record, currency).ToArray();
 
 			switch (record.ActivityType)
 			{
@@ -171,6 +167,27 @@ namespace GhostfolioSidekick.Parsers.Generic
 			}
 
 			return lst.ToList();
+		}
+
+		private static IEnumerable<PartialSymbolIdentifier> GetSymbolIdentifiers(GenericRecord record, Currency currency)
+		{
+			var assetClass = record.AssetClass;
+			var assetSubClass = record.AssetSubClass;
+
+			if (!string.IsNullOrWhiteSpace(record.Symbol))
+			{
+				yield return new PartialSymbolIdentifier(IdentifierType.Ticker, record.Symbol!, currency, [assetClass], [assetSubClass]);
+			}
+
+			if (!string.IsNullOrWhiteSpace(record.Name))
+			{
+				yield return new PartialSymbolIdentifier(IdentifierType.Name, record.Name!, currency, [assetClass], [assetSubClass]);
+			}
+
+			if (!string.IsNullOrWhiteSpace(record.ISIN))
+			{
+				yield return new PartialSymbolIdentifier(IdentifierType.ISIN, record.ISIN!, currency, [assetClass], [assetSubClass]);
+			}
 		}
 
 		protected override CsvConfiguration GetConfig()

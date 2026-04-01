@@ -442,5 +442,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuyWithAssetType_ParsesAssetClassAndSubClass()
+		{
+			// Arrange
+			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_buy_with_asset_type.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						new DateTime(2023, 10, 6, 0, 0, 0, DateTimeKind.Utc),
+						new PartialSymbolIdentifier?[] {
+							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US2546871060", Currency.EUR),
+							null,
+							null,
+						},
+						0.3247M,
+						"GiftAsset_US2546871060_2023-10-06_0.3247_EUR_"),
+				]);
+		}
 	}
 }
