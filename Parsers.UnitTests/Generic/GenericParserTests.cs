@@ -81,14 +81,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateSell(
+				  [
+					  PartialActivity.CreateSell(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						new PartialSymbolIdentifier?[] {
-							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US67066G1040", Currency.USD),
-							null,
-							null,
+							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US67066G1040", Currency.USD)
 						},
 						0.0267001000M,
 						new Money(Currency.USD, 453.33M),
@@ -100,7 +98,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						0.02M,
 						new Money(Currency.USD, 0.02M),
 						"Sell_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
-				]);
+				  ]);
 		}
 
 		[Fact]
@@ -113,13 +111,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateReceive(
+				  [
+					  PartialActivity.CreateReceive(
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						new PartialSymbolIdentifier?[] {
-							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US67066G1040", Currency.USD),
-							null,
-							null,
+							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US67066G1040", Currency.USD)
 						},
 						0.0267001000M,
 						"Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
@@ -129,7 +125,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						0.02M,
 						new Money(Currency.USD, 0.02M),
 						"Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
-				]);
+				  ]);
 		}
 
 		[Fact]
@@ -142,13 +138,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateSend(
+				  [
+					  PartialActivity.CreateSend(
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						new PartialSymbolIdentifier?[] {
-							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US67066G1040", Currency.USD),
-							null,
-							null,
+							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US67066G1040", Currency.USD)
 						},
 						0.0267001000M,
 						"Send_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
@@ -158,7 +152,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						0.02M,
 						new Money(Currency.USD, 0.02M),
 						"Send_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
-				]);
+				  ]);
 		}
 
 		[Fact]
@@ -367,14 +361,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Assert
 			const decimal Amount = (decimal)(0.3247 * 0.27);
 			activityManager.PartialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateDividend(
+				  [
+					  PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						new PartialSymbolIdentifier?[] {
-							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US2546871060", Currency.EUR),
-							null,
-							null,
+							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US2546871060", Currency.EUR)
 						},
 						Amount,
 						new Money(Currency.EUR, Amount),
@@ -385,7 +377,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						0.02M,
 						new Money(Currency.EUR, 0.02M),
 						"Dividend_US2546871060_2023-08-08_0.3247_EUR_0")
-				]);
+				  ]);
 		}
 
 		[Fact]
@@ -418,13 +410,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateGift(
+				  [
+					  PartialActivity.CreateGift(
 						new DateTime(2023, 10, 6, 0, 0, 0, DateTimeKind.Utc),
 						new PartialSymbolIdentifier?[] {
-							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US2546871060", Currency.EUR),
-							null,
-							null,
+							PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "US2546871060", Currency.EUR)
 						},
 						0.3247M,
 						"GiftAsset_US2546871060_2023-10-06_0.3247_EUR_"),
@@ -441,6 +431,96 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuyWithAssetType_ParsesAssetClassAndSubClass()
+		{
+			// Arrange
+			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_buy_with_asset_type.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateFee(
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
+						0.1M,
+						new Money(Currency.USD, 0.1M),
+						"Buy_NVDA_2023-08-07_0.5_USD_0.1"),
+					PartialActivity.CreateBuy(
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
+						new[] {
+							new PartialSymbolIdentifier(
+								IdentifierType.Ticker,
+								"NVDA",
+								Currency.USD,
+								new List<AssetClass> { AssetClass.Equity },
+								new List<AssetSubClass> { AssetSubClass.Stock }),
+							new PartialSymbolIdentifier(
+								IdentifierType.Name,
+								"NVIDIA",
+								Currency.USD,
+								new List<AssetClass> { AssetClass.Equity },
+								new List<AssetSubClass> { AssetSubClass.Stock }),
+							new PartialSymbolIdentifier(
+								IdentifierType.ISIN,
+								"US67066G1040",
+								Currency.USD,
+								new List<AssetClass> { AssetClass.Equity },
+								new List<AssetSubClass> { AssetSubClass.Stock }),
+						},
+						0.5M,
+						new Money(Currency.USD, 100M),
+						new Money(Currency.USD, 50M),
+						"Buy_NVDA_2023-08-07_0.5_USD_0.1"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuyWithMultipleAssetSubClasses_ParsesAllSubClasses()
+		{
+			// Arrange
+			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_buy_with_multiple_subclasses.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateFee(
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
+						0.1M,
+						new Money(Currency.USD, 0.1M),
+						"Buy_NVDA_2023-08-07_0.5_USD_0.1"),
+					PartialActivity.CreateBuy(
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
+						new[] {
+							new PartialSymbolIdentifier(
+								IdentifierType.Ticker,
+								"NVDA",
+								Currency.USD,
+								new List<AssetClass> { AssetClass.Equity },
+							  new List<AssetSubClass> { AssetSubClass.Stock, AssetSubClass.Etf }),
+							new PartialSymbolIdentifier(
+								IdentifierType.Name,
+								"NVIDIA",
+								Currency.USD,
+								new List<AssetClass> { AssetClass.Equity },
+							  new List<AssetSubClass> { AssetSubClass.Stock, AssetSubClass.Etf }),
+							new PartialSymbolIdentifier(
+								IdentifierType.ISIN,
+								"US67066G1040",
+								Currency.USD,
+								new List<AssetClass> { AssetClass.Equity },
+							  new List<AssetSubClass> { AssetSubClass.Stock, AssetSubClass.Etf }),
+						},
+						0.5M,
+						new Money(Currency.USD, 100M),
+						new Money(Currency.USD, 50M),
+						"Buy_NVDA_2023-08-07_0.5_USD_0.1"),
+				]);
 		}
 	}
 }

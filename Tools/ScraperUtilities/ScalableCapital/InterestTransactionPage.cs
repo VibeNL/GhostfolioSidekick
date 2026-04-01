@@ -26,7 +26,16 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 			// Date is 3 up, first child. Dateformat: Wednesday, 25 March 2026
 			var dateString = await transaction.Locator("xpath=..").Locator("xpath=..").Locator("xpath=..").Locator("div").First.InnerTextAsync();
-			var date = DateTime.Parse(dateString, new CultureInfo("en-US"));
+
+			DateTime date;
+			if (dateString == "Today")
+			{
+				date = DateTime.Today;
+			}
+			else
+			{
+				date = DateTime.Parse(dateString, new CultureInfo("en-US"));
+			}
 
 			// Amount the the last child of the transaction locator. Format: €200.00
 			var amountString = await transaction.Locator("div").Last.InnerTextAsync();
