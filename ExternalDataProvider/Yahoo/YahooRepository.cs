@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		}
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-	   {
+		{
 			try
 			{
 				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
@@ -409,7 +409,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 
 			symbols.TryGetValue(symbolName, out var security);
-			return security?.Currency is string currencySymbol ? Currency.GetCurrency(currencySymbol) : null;
+
+			try
+			{
+				return security?.Currency is string currencySymbol ? Currency.GetCurrency(currencySymbol) : null;
+			}
+			catch (KeyNotFoundException ex)
+			{
+				logger.LogWarning(ex, "Failed to get currency for symbol {SymbolName}", symbolName);
+				return null;
+			}
 		}
 
 		private static AssetClass ParseQuoteType(string quoteType)
