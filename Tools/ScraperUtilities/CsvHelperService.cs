@@ -41,6 +41,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					UnitPrice = buyActivity.UnitPrice.Amount,
 					Fee = Sum(buyActivity.Fees.Select(x => x.Money)),
 					Tax = Sum(buyActivity.Taxes.Select(x => x.Money)),
+					AssetClass = [AssetClass.Equity],
+					AssetSubClass = [AssetSubClass.Stock, AssetSubClass.Etf],
 				};
 			}
 
@@ -58,6 +60,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					UnitPrice = sellActivity.UnitPrice.Amount,
 					Fee = Sum(sellActivity.Fees.Select(x => x.Money)),
 					Tax = Sum(sellActivity.Taxes.Select(x => x.Money)),
+					AssetClass = [AssetClass.Equity],
+					AssetSubClass = [AssetSubClass.Stock, AssetSubClass.Etf],
 				};
 			}
 
@@ -75,6 +79,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					UnitPrice = dividendActivity.Amount.Amount,
 					Fee = Sum(dividendActivity.Fees.Select(x => x.Money)),
 					Tax = Sum(dividendActivity.Taxes.Select(x => x.Money)),
+					AssetClass = [AssetClass.Equity],
+					AssetSubClass = [AssetSubClass.Stock, AssetSubClass.Etf],
 				};
 			}
 
@@ -122,6 +128,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					UnitPrice = giftAsset.UnitPrice.Amount,
 					Fee = 0,
 					Tax = 0,
+					AssetClass = [AssetClass.Equity],
+					AssetSubClass = [AssetSubClass.Stock, AssetSubClass.Etf],
 				};
 			}
 

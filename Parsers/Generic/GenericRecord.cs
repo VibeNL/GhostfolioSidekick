@@ -1,4 +1,7 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
+using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.Generic
@@ -6,6 +9,14 @@ namespace GhostfolioSidekick.Parsers.Generic
 	public class GenericRecord
 	{
 		public PartialActivityType ActivityType { get; set; }
+
+		[Optional]
+		[TypeConverter(typeof(AssetClassListConverter))]
+		public List<AssetClass> AssetClass { get; set; } = new();
+
+		[Optional]
+		[TypeConverter(typeof(AssetSubClassListConverter))]
+		public List<AssetSubClass> AssetSubClass { get; set; } = new();
 
 		public string? Symbol { get; set; }
 
@@ -32,5 +43,56 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		[Optional]
 		public string? Id { get; set; }
+	}
+
+	public class AssetClassListConverter : DefaultTypeConverter
+	{
+		public override object ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+		{
+			if (string.IsNullOrWhiteSpace(text))
+			{
+				return new List<AssetClass>();
+			}
+			return text.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries)
+					.Select(x => Enum.TryParse<AssetClass>(x.Trim(), true, out var val) ? val : AssetClass.Undefined)
+					.Where(x => x != AssetClass.Undefined)
+					.ToList();
+		}
+
+		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		{
+			if (value is IEnumerable<AssetClass> list)
+			{
+				return string.Join(";", list);
+			}
+
+			return base.ConvertToString(value, row, memberMapData);
+		}
+	}
+
+	public class AssetSubClassListConverter : DefaultTypeConverter
+	{
+		public override object ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+		{
+			if (string.IsNullOrWhiteSpace(text))
+			{
+				return new List<AssetSubClass>();
+			}
+
+			return text.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries)
+					.Select(x => Enum.TryParse<AssetSubClass>(x.Trim(), true, out var val) ? val : AssetSubClass.Undefined)
+					.Where(x => x != AssetSubClass.Undefined)
+					.ToList();
+		}
+
+		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		{
+			if (value is IEnumerable<AssetSubClass> list)
+			{
+				return string.Join(";", list);
+			}
+
+			return base.ConvertToString(value, row, memberMapData);
+		}
 	}
 }
