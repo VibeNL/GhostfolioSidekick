@@ -20,6 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		private readonly Mock<ITransactionService> _mockTransactionService;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
 		private readonly Mock<IServerConfigurationService> _mockServerConfigurationService;
+		private readonly Mock<IHoldingsDataService> _mockHoldingsDataService;
 		private readonly MockNavigationManager _mockNavigationManager;
 
 		public AccountDetailTests()
@@ -28,16 +29,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockTransactionService = new Mock<ITransactionService>();
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
 			_mockServerConfigurationService = new Mock<IServerConfigurationService>();
+			_mockHoldingsDataService = new Mock<IHoldingsDataService>();
 			_mockNavigationManager = new MockNavigationManager();
 
 			// Setup default behavior for server configuration service
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.EUR);
+
+			// Setup default behavior for holdings service (returns empty list unless overridden)
+			_mockHoldingsDataService.Setup(x => x.GetHoldingsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 
 			// Register services
 			Services.AddSingleton(_mockAccountDataService.Object);
 			Services.AddSingleton(_mockTransactionService.Object);
 			Services.AddSingleton(_mockCurrencyExchange.Object);
 			Services.AddSingleton(_mockServerConfigurationService.Object);
+			Services.AddSingleton(_mockHoldingsDataService.Object);
 			Services.AddSingleton<NavigationManager>(_mockNavigationManager);
 
 			// Add the missing ITestContextService
@@ -500,6 +507,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 
+			_mockHoldingsDataService.Setup(x => x.GetHoldingsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
+
 			SetupBasicTransactionService();
 		}
 
@@ -522,6 +532,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(history);
+
+			_mockHoldingsDataService.Setup(x => x.GetHoldingsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 
 			SetupBasicTransactionService();
 		}

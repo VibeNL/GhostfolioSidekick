@@ -1,4 +1,4 @@
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -169,19 +169,19 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			ICollection<Activity> activities,
 			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>> preLoadedMarketData)
 		{
-			if (activities.Count == 0)
+			var quantityActivities = activities.OfType<ActivityWithQuantityAndUnitPrice>().ToList();
+			if (quantityActivities.Count == 0)
 			{
 				return [];
 			}
 
-			var minDate = DateOnly.FromDateTime(activities.Min(x => x.Date));
+			var minDate = DateOnly.FromDateTime(quantityActivities.Min(x => x.Date));
 			var maxDate = DateOnly.FromDateTime(DateTime.Today);
 
 			var dayCount = maxDate.DayNumber - minDate.DayNumber + 1;
 			var snapshots = new List<CalculatedSnapshot>(dayCount);
 
-			var activitiesByDate = activities
-			.OfType<ActivityWithQuantityAndUnitPrice>()
+			var activitiesByDate = quantityActivities
 			.GroupBy(x => DateOnly.FromDateTime(x.Date))
 			.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 
@@ -261,42 +261,43 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			foreach (var activity in dayActivities)
-			{
-				var convertedTotal = await currencyExchange.ConvertMoney(
-					activity.TotalTransactionAmount,
-					targetCurrency,
-					date)
-				.ConfigureAwait(false);
-
-				var sign = 0;
-				sign = activity switch
 				{
-					BuyActivity or ReceiveActivity or GiftAssetActivity or StakingRewardActivity => 1,
-					SellActivity or SendActivity => -1,
-					_ => throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}"),
-				};
-
-				if (sign == 1)
-				{
-					// For buy/receive/gift/staking, add the invested amount and update average cost price
-					snapshot.TotalInvested += convertedTotal.Amount;
-					snapshot.Quantity += activity.AdjustedQuantity;
-					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
-				}
-				else
-				{
-					// For sell/send, first calculate cost basis reduction using current average cost price
-					var costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
-					snapshot.TotalInvested -= costBasisReduction;
-					snapshot.Quantity -= activity.AdjustedQuantity;
-
-					// Average cost price remains the same after a sell (unless quantity becomes zero)
-					if (snapshot.Quantity <= 0)
+					var sign = activity switch
 					{
-						snapshot.AverageCostPrice = 0;
+						BuyActivity or ReceiveActivity or GiftAssetActivity or StakingRewardActivity => 1,
+						SellActivity or SendActivity => -1,
+						_ => throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}"),
+					};
+
+					if (sign == 1)
+					{
+						var convertedTotal = await currencyExchange.ConvertMoney(
+							activity.TotalTransactionAmount,
+							targetCurrency,
+							date)
+						.ConfigureAwait(false);
+
+						// For buy/receive/gift/staking, add the invested amount and update average cost price
+						snapshot.TotalInvested += convertedTotal.Amount;
+						snapshot.Quantity += activity.AdjustedQuantity;
+						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
+					}
+					else
+					{
+						// For sell/send, first calculate cost basis reduction using current average cost price
+						var costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
+						snapshot.TotalInvested -= costBasisReduction;
+						snapshot.Quantity -= activity.AdjustedQuantity;
+
+						// Average cost price remains the same after a sell (unless position is fully closed)
+						if (snapshot.Quantity <= 0)
+						{
+							snapshot.Quantity = 0;
+							snapshot.TotalInvested = 0;
+							snapshot.AverageCostPrice = 0;
+						}
 					}
 				}
-			}
 		}
 
 		private static decimal CalculateAverageCostPrice(CalculatedSnapshot snapshot)

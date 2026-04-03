@@ -282,6 +282,128 @@
             </div>
         </div>
 
+        <!-- Asset Holdings Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-pie-chart me-2"></i>Asset Holdings
+                            @if (Holdings.Count > 0)
+                            {
+                                <small class="text-muted">(@(HideZeroQuantityHoldings ? Holdings.Count(h => h.Quantity != 0) : Holdings.Count) positions)</small>
+                            }
+                        </h5>
+                        <button type="button"
+                                class="btn btn-sm @(HideZeroQuantityHoldings ? "btn-secondary" : "btn-outline-secondary")"
+                                @onclick="@(() => HideZeroQuantityHoldings = !HideZeroQuantityHoldings)"
+                                title="@(HideZeroQuantityHoldings ? "Show zero quantity assets" : "Hide zero quantity assets")">
+                            <i class="bi @(HideZeroQuantityHoldings ? "bi-eye-slash" : "bi-eye") me-1"></i>
+                            @(HideZeroQuantityHoldings ? "Show zero positions" : "Hide zero positions")
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        @if (IsHoldingsLoading)
+                        {
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary mb-2" role="status">
+                                    <span class="visually-hidden">Loading holdings...</span>
+                                </div>
+                                <div class="text-muted">Loading holdings...</div>
+                            </div>
+                        }
+                        else if (!Holdings.Any())
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-pie-chart text-muted" style="font-size: 3rem;"></i>
+                                <h6 class="text-muted mt-3">No Holdings Found</h6>
+                                <p class="text-muted mb-0">No asset positions found for this account.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">Symbol</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col" class="text-end">Quantity</th>
+                                            <th scope="col" class="text-end">Current Price</th>
+                                            <th scope="col" class="text-end">Avg. Cost</th>
+                                            <th scope="col" class="text-end">Current Value</th>
+                                            <th scope="col" class="text-end">Gain/Loss</th>
+                                            <th scope="col" class="text-end">%</th>
+                                            <th scope="col" class="text-end">Weight</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var holding in Holdings
+                                            .Where(h => !HideZeroQuantityHoldings || h.Quantity != 0)
+                                            .OrderByDescending(h => h.CurrentValue.Amount))
+                                        {
+                                            <tr class="account-row" style="cursor: pointer;" @onclick="@(() => NavigateToHoldingDetail(holding.Symbol))">
+                                                <td>
+                                                    <strong class="text-primary">@holding.Symbol</strong>
+                                                </td>
+                                                <td>
+                                                    <small>@holding.Name</small>
+                                                </td>
+                                                <td class="text-end">
+                                                    <small>@holding.Quantity.ToString("N4")</small>
+                                                </td>
+                                                <td class="text-end">
+                                                    <small>@CurrencyDisplay.DisplaySignAndAmount(holding.CurrentPrice)</small>
+                                                </td>
+                                                <td class="text-end">
+                                                    <small>@CurrencyDisplay.DisplaySignAndAmount(holding.AveragePrice)</small>
+                                                </td>
+                                                <td class="text-end">
+                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(holding.CurrentValue)</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(holding.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(holding.GainLoss)
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(holding.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                        @holding.GainLossPercentage.ToString("P2")
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <small class="text-muted">@holding.Weight.ToString("P1")</small>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="5"><strong>Total</strong></td>
+                                            <td class="text-end">
+                                                <strong>@CurrencyDisplay.DisplaySignAndAmount(CurrentAssetValue)</strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="@(CurrentGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                    @CurrencyDisplay.DisplaySignAndAmount(CurrentGainLoss)
+                                                </strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="@(CurrentGainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                    @CurrentGainLossPercentage.ToString("P2")
+                                                </strong>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Transactions Section -->
         <div class="row">
             <div class="col-12">
@@ -483,7 +605,7 @@
     }
 
     .breadcrumb-item + .breadcrumb-item::before {
-        content: "›";
+        content: "â€º";
         color: #6c757d;
     }
 </style>

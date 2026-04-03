@@ -35,7 +35,10 @@ namespace GhostfolioSidekick.Performance
 			List<int> holdingIds;
 			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
 			{
-				holdingIds = await dbContext.Holdings.Select(h => h.Id).ToListAsync();
+				holdingIds = await dbContext.Holdings
+					.Where(h => h.SymbolProfiles.Any())
+					.Select(h => h.Id)
+					.ToListAsync();
 			}
 
 			if (holdingIds == null || holdingIds.Count == 0)
@@ -47,47 +50,46 @@ namespace GhostfolioSidekick.Performance
 			int totalHoldings = holdingIds.Count;
 			int processedHoldings = 0;
 
-			logger.LogInformation("Total holdings to process: {Total}", totalHoldings);
+					logger.LogInformation("Total holdings to process: {Total}", totalHoldings);
 
-			foreach (var holdingId in holdingIds)
-			{
-				using var dbContext = await dbContextFactory.CreateDbContextAsync();
-				var holding = await dbContext.Holdings
-					.Include(h => h.CalculatedSnapshots)
-					.FirstOrDefaultAsync(h => h.Id == holdingId) ?? throw new NotSupportedException();
-				
-				try
-				{
-					// Calculate new snapshots for this holding
-					var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
+						foreach (var holdingId in holdingIds)
+						{
+							using var dbContext = await dbContextFactory.CreateDbContextAsync();
+							try
+							{
+								var holding = await dbContext.Holdings
+									.Include(h => h.CalculatedSnapshots)
+									.FirstOrDefaultAsync(h => h.Id == holdingId);
 
-					// Update the holding's calculated snapshots
-					await ReplaceCalculatedSnapshotsAsync(holding, newSnapshots, dbContext);
+								if (holding == null)
+								{
+									logger.LogWarning("Holding {HoldingId} not found, skipping", holdingId);
+								}
+								else
+								{
+									// Calculate new snapshots for this holding
+									var newSnapshots = (await performanceCalculator.GetCalculatedSnapshots(holding, currency)).ToList();
+
+									foreach (var newSnapshot in newSnapshots)
+									{
+										newSnapshot.Id = Guid.NewGuid();
+										newSnapshot.HoldingId = holding.Id;
+										dbContext.CalculatedSnapshots.Add(newSnapshot);
+									}
+
+									await dbContext.SaveChangesAsync();
+								}
+							}
+							catch (Exception ex)
+							{
+								logger.LogError(ex, "Error calculating performance for holding {HoldingId}", holdingId);
+							}
+
+							processedHoldings++;
+							logger.LogInformation("Processed {Processed}/{Total} holdings", processedHoldings, totalHoldings);
+						}
+
+						logger.LogInformation("Performance calculation completed for {Count} holdings", totalHoldings);
+					}
 				}
-				catch (Exception ex)
-				{
-					logger.LogError(ex, "Error calculating performance for holding {HoldingId}", holding.Id);
-				}
-
-				await dbContext.SaveChangesAsync();
-
-				processedHoldings++;
-				logger.LogInformation("Processed {Processed}/{Total} holdings", processedHoldings, totalHoldings);
 			}
-
-			logger.LogInformation("Performance calculation completed for {Count} holdings", totalHoldings);
-		}
-
-		private static async Task ReplaceCalculatedSnapshotsAsync(Model.Holding holding, ICollection<CalculatedSnapshot> newSnapshots, DatabaseContext dbContext)
-		{
-			// Add all new snapshots
-			foreach (var newSnapshot in newSnapshots)
-			{
-				newSnapshot.Id = Guid.NewGuid();
-				newSnapshot.HoldingId = holding.Id;
-				holding.CalculatedSnapshots.Add(newSnapshot);
-				dbContext.CalculatedSnapshots.Add(newSnapshot);
-			}
-		}
-	}
-}
