@@ -782,7 +782,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			decimal totalInvested = 1000,
 			decimal totalValue = 1100)
 		{
-			return new CalculatedSnapshot(id: Guid.NewGuid(), accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
+			return new CalculatedSnapshot(id: Guid.NewGuid(), accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue)
+			{
+				Holding = new Holding { SymbolProfiles = [new SymbolProfile { Symbol = "TEST" }] },
+			};
 		}
 
 		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
@@ -796,7 +799,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				accountId: 1,
 				date: date,
 				quantity: quantity,
-				currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0);
+				currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0)
+			{
+				Holding = new Holding { SymbolProfiles = [new SymbolProfile { Symbol = "TEST" }] },
+			};
 		}
 	}
 }
