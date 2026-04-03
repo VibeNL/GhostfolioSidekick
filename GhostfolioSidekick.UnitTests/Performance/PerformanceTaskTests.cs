@@ -1,6 +1,8 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Performance;
 using GhostfolioSidekick.PerformanceCalculations;
 using Microsoft.Data.Sqlite;
@@ -23,7 +25,14 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var dbContext = new DatabaseContext(options);
 			await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-			var holding = new Holding { Id = 1 };
+			var holding = new Holding
+			{
+				Id = 1,
+				SymbolProfiles =
+				[
+					new SymbolProfile { Symbol = "TEST", Name = "Test Holding", Currency = Currency.USD, DataSource = "YAHOO", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }
+				]
+			};
 			dbContext.Holdings.Add(holding);
 			await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -82,6 +91,10 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var holding = new Holding
 			{
 				Id = 1,
+				SymbolProfiles =
+				[
+					new SymbolProfile { Symbol = "TEST", Name = "Test Holding", Currency = Currency.USD, DataSource = "YAHOO", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }
+				],
 				CalculatedSnapshots =
 				[
 					new()
@@ -156,6 +169,10 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var holding = new Holding
 			{
 				Id = 1,
+				SymbolProfiles =
+				[
+					new SymbolProfile { Symbol = "TEST", Name = "Test Holding", Currency = Currency.USD, DataSource = "YAHOO", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }
+				],
 				CalculatedSnapshots =
 				[
 					new()
@@ -226,6 +243,43 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			Assert.Single(updatedHolding.CalculatedSnapshots);
 			Assert.Equal(new DateOnly(2024, 1, 1), updatedHolding.CalculatedSnapshots.First().Date);
 
+			await dbContext.DisposeAsync();
+			await verifyContext.DisposeAsync();
+		}
+
+		[Fact]
+		public async Task DoWork_SkipsHoldingsWithoutSymbolProfiles()
+		{
+			using var connection = new SqliteConnection("Filename=:memory:");
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
+			var options = CreateOptions(connection);
+			var dbContext = new DatabaseContext(options);
+			await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+
+			// Holding with no SymbolProfiles — should be skipped
+			var holding = new Holding { Id = 1 };
+			dbContext.Holdings.Add(holding);
+			await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+			var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+			dbFactoryMock.Setup(x => x.CreateDbContextAsync(default)).ReturnsAsync(() => new DatabaseContext(options));
+
+			var calculatorMock = new Mock<IPerformanceCalculator>();
+			var loggerMock = new Mock<ILogger>();
+			var appSettingsMock = new Mock<IApplicationSettings>();
+			var settings = new Settings { PrimaryCurrency = "USD", DataProviderPreference = "YAHOO;COINGECKO" };
+			var configInstance = new ConfigurationInstance { Settings = settings };
+			appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
+
+			// Act
+			await task.DoWork(loggerMock.Object);
+
+			// Assert — calculator never called, no snapshots written
+			calculatorMock.Verify(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), It.IsAny<Currency>()), Times.Never);
+			var verifyContext = new DatabaseContext(options);
+			var snapshotCount = await verifyContext.CalculatedSnapshots.CountAsync(TestContext.Current.CancellationToken);
+			Assert.Equal(0, snapshotCount);
 			await dbContext.DisposeAsync();
 			await verifyContext.DisposeAsync();
 		}
