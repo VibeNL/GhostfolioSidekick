@@ -73,6 +73,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.Where(x => (accountId == 0 || x.AccountId == accountId) &&
 							x.Date >= startDate &&
 							x.Date <= endDate)
+				.Where(x => x.Holding != null && x.Holding.SymbolProfiles.Any())
 				.GroupBy(x => x.Date)
 				.Select(g => new PortfolioValueHistoryPoint
 				{

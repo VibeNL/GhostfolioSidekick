@@ -45,6 +45,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var snapShots = await databaseContext.CalculatedSnapshots
 				.Where(s => s.Date >= startDate && s.Date <= endDate)
+				.Where(s => s.Holding != null && s.Holding.SymbolProfiles.Any())
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
 				{
