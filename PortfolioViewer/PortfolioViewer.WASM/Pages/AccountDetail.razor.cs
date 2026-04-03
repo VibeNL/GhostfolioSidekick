@@ -76,6 +76,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Holdings
 		protected List<HoldingDisplayModel> Holdings { get; set; } = [];
 		protected bool IsHoldingsLoading { get; set; }
+		protected bool HideZeroQuantityHoldings { get; set; } = true;
 
 		// Transactions
 		protected List<TransactionDisplayModel> Transactions { get; set; } = [];

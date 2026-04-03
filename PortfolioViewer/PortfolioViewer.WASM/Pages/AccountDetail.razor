@@ -291,9 +291,16 @@
                             <i class="bi bi-pie-chart me-2"></i>Asset Holdings
                             @if (Holdings.Count > 0)
                             {
-                                <small class="text-muted">(@Holdings.Count positions)</small>
+                                <small class="text-muted">(@(HideZeroQuantityHoldings ? Holdings.Count(h => h.Quantity != 0) : Holdings.Count) positions)</small>
                             }
                         </h5>
+                        <button type="button"
+                                class="btn btn-sm @(HideZeroQuantityHoldings ? "btn-secondary" : "btn-outline-secondary")"
+                                @onclick="@(() => HideZeroQuantityHoldings = !HideZeroQuantityHoldings)"
+                                title="@(HideZeroQuantityHoldings ? "Show zero quantity assets" : "Hide zero quantity assets")">
+                            <i class="bi @(HideZeroQuantityHoldings ? "bi-eye-slash" : "bi-eye") me-1"></i>
+                            @(HideZeroQuantityHoldings ? "Show zero positions" : "Hide zero positions")
+                        </button>
                     </div>
                     <div class="card-body">
                         @if (IsHoldingsLoading)
@@ -331,7 +338,9 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var holding in Holdings.OrderByDescending(h => h.CurrentValue.Amount))
+                                        @foreach (var holding in Holdings
+                                            .Where(h => !HideZeroQuantityHoldings || h.Quantity != 0)
+                                            .OrderByDescending(h => h.CurrentValue.Amount))
                                         {
                                             <tr class="account-row" style="cursor: pointer;" @onclick="@(() => NavigateToHoldingDetail(holding.Symbol))">
                                                 <td>
