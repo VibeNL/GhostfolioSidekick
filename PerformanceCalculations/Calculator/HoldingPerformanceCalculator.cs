@@ -261,42 +261,43 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			foreach (var activity in dayActivities)
-			{
-				var convertedTotal = await currencyExchange.ConvertMoney(
-					activity.TotalTransactionAmount,
-					targetCurrency,
-					date)
-				.ConfigureAwait(false);
-
-				var sign = 0;
-				sign = activity switch
 				{
-					BuyActivity or ReceiveActivity or GiftAssetActivity or StakingRewardActivity => 1,
-					SellActivity or SendActivity => -1,
-					_ => throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}"),
-				};
-
-				if (sign == 1)
-				{
-					// For buy/receive/gift/staking, add the invested amount and update average cost price
-					snapshot.TotalInvested += convertedTotal.Amount;
-					snapshot.Quantity += activity.AdjustedQuantity;
-					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
-				}
-				else
-				{
-					// For sell/send, first calculate cost basis reduction using current average cost price
-					var costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
-					snapshot.TotalInvested -= costBasisReduction;
-					snapshot.Quantity -= activity.AdjustedQuantity;
-
-					// Average cost price remains the same after a sell (unless quantity becomes zero)
-					if (snapshot.Quantity <= 0)
+					var sign = activity switch
 					{
-						snapshot.AverageCostPrice = 0;
+						BuyActivity or ReceiveActivity or GiftAssetActivity or StakingRewardActivity => 1,
+						SellActivity or SendActivity => -1,
+						_ => throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}"),
+					};
+
+					if (sign == 1)
+					{
+						var convertedTotal = await currencyExchange.ConvertMoney(
+							activity.TotalTransactionAmount,
+							targetCurrency,
+							date)
+						.ConfigureAwait(false);
+
+						// For buy/receive/gift/staking, add the invested amount and update average cost price
+						snapshot.TotalInvested += convertedTotal.Amount;
+						snapshot.Quantity += activity.AdjustedQuantity;
+						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
+					}
+					else
+					{
+						// For sell/send, first calculate cost basis reduction using current average cost price
+						var costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
+						snapshot.TotalInvested -= costBasisReduction;
+						snapshot.Quantity -= activity.AdjustedQuantity;
+
+						// Average cost price remains the same after a sell (unless position is fully closed)
+						if (snapshot.Quantity <= 0)
+						{
+							snapshot.Quantity = 0;
+							snapshot.TotalInvested = 0;
+							snapshot.AverageCostPrice = 0;
+						}
 					}
 				}
-			}
 		}
 
 		private static decimal CalculateAverageCostPrice(CalculatedSnapshot snapshot)
