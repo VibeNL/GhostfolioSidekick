@@ -24,6 +24,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		private readonly Mock<ITransactionService> _mockTransactionService;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
 		private readonly Mock<IServerConfigurationService> _mockServerConfigurationService;
+		private readonly Mock<IHoldingsDataService> _mockHoldingsDataService;
 
 		public AccountDetailIntegrationTests()
 		{
@@ -31,15 +32,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockTransactionService = new Mock<ITransactionService>();
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
 			_mockServerConfigurationService = new Mock<IServerConfigurationService>();
+			_mockHoldingsDataService = new Mock<IHoldingsDataService>();
 
 			// Setup default behavior
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.EUR);
+
+			// Setup default behavior for holdings service (returns empty list unless overridden)
+			_mockHoldingsDataService.Setup(x => x.GetHoldingsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 
 			// Register services
 			this.Services.AddSingleton(_mockAccountDataService.Object);
 			this.Services.AddSingleton(_mockTransactionService.Object);
 			this.Services.AddSingleton(_mockCurrencyExchange.Object);
 			this.Services.AddSingleton(_mockServerConfigurationService.Object);
+			this.Services.AddSingleton(_mockHoldingsDataService.Object);
 			this.Services.AddSingleton<NavigationManager>(new MockNavigationManager());
 
 			// Add the missing ITestContextService
@@ -444,6 +451,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(transactionResult);
+
+			_mockHoldingsDataService.Setup(x => x.GetHoldingsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 		}
 
 		private class MockNavigationManager : NavigationManager
