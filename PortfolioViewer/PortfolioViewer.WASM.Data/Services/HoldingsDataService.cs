@@ -49,15 +49,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToListAsync(cancellationToken);
 
 			var snapShots = new List<HoldingPriceHistoryPoint>();
-			foreach (var group in rawSnapShots)
-			{
-				snapShots.Add(new HoldingPriceHistoryPoint
+				foreach (var group in rawSnapShots)
 				{
-					Date = group.Key,
-					Price = group.Min(x => x.CurrentUnitPrice),
-					AveragePrice = group.Sum(y => y.AverageCostPrice * y.Quantity) / group.Sum(x => x.Quantity),
-				});
-			}
+					var totalQuantity = group.Sum(x => x.Quantity);
+						snapShots.Add(new HoldingPriceHistoryPoint
+						{
+							Date = group.Key,
+							Price = group.Min(x => x.CurrentUnitPrice),
+							AveragePrice = totalQuantity == 0 ? 0 : group.Sum(y => y.AverageCostPrice * y.Quantity) / totalQuantity,
+						});
+				}
 
 			return snapShots;
 		}
@@ -70,9 +71,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var snapShots = await databaseContext.CalculatedSnapshots
-				.Where(x => (accountId == 0 || x.AccountId == accountId) &&
-							x.Date >= startDate &&
-							x.Date <= endDate)
+					.Where(x => (accountId == null || accountId == 0 || x.AccountId == accountId) &&
+								x.Date >= startDate &&
+								x.Date <= endDate)
 				.Where(x => x.Holding != null && x.Holding.SymbolProfiles.Any())
 				.GroupBy(x => x.Date)
 				.Select(g => new PortfolioValueHistoryPoint

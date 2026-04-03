@@ -1,4 +1,4 @@
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -169,19 +169,19 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			ICollection<Activity> activities,
 			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>> preLoadedMarketData)
 		{
-			if (activities.Count == 0)
+			var quantityActivities = activities.OfType<ActivityWithQuantityAndUnitPrice>().ToList();
+			if (quantityActivities.Count == 0)
 			{
 				return [];
 			}
 
-			var minDate = DateOnly.FromDateTime(activities.Min(x => x.Date));
+			var minDate = DateOnly.FromDateTime(quantityActivities.Min(x => x.Date));
 			var maxDate = DateOnly.FromDateTime(DateTime.Today);
 
 			var dayCount = maxDate.DayNumber - minDate.DayNumber + 1;
 			var snapshots = new List<CalculatedSnapshot>(dayCount);
 
-			var activitiesByDate = activities
-			.OfType<ActivityWithQuantityAndUnitPrice>()
+			var activitiesByDate = quantityActivities
 			.GroupBy(x => DateOnly.FromDateTime(x.Date))
 			.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 

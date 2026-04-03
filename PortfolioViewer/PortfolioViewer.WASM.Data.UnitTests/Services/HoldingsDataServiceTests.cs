@@ -536,17 +536,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task GetPortfolioValueHistoryAsync_WithNullAccountId_ShouldReturnEmptyWhenConditionNeverMatches()
+		public async Task GetPortfolioValueHistoryAsync_WithNullAccountId_ShouldReturnAllAccounts()
 		{
 			// Arrange
 			var startDate = new DateOnly(2023, 1, 1);
 			var endDate = new DateOnly(2023, 1, 31);
 
-			// According to the implementation, when accountId is null, the condition is:
-			// (accountId == 0 || x.AccountId == accountId) which becomes:
-			// (null == 0 || x.AccountId == null) = (false || false) = false
-			// Since AccountId is int (non-nullable), x.AccountId == null is always false
-			// So when accountId is null, the condition never matches and returns empty result
 			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateTestCalculatedSnapshot(1, startDate, 10, 100, 110, 1000, 1100),
@@ -560,7 +555,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			// Assert
 			result.Should().NotBeNull();
-			result.Should().BeEmpty(); // When accountId is null, the condition never matches
+			result.Should().HaveCount(1); // Grouped by date
+			result[0].Value.Should().Be(2200); // null means all accounts
 		}
 
 		[Fact]
