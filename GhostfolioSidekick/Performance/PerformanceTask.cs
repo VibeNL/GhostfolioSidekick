@@ -35,7 +35,10 @@ namespace GhostfolioSidekick.Performance
 			List<int> holdingIds;
 			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
 			{
-				holdingIds = await dbContext.Holdings.Select(h => h.Id).ToListAsync();
+				holdingIds = await dbContext.Holdings
+					.Where(h => h.SymbolProfiles.Any())
+					.Select(h => h.Id)
+					.ToListAsync();
 			}
 
 			if (holdingIds == null || holdingIds.Count == 0)
