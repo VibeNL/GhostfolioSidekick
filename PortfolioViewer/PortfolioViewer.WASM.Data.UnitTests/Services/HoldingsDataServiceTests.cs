@@ -536,17 +536,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task GetPortfolioValueHistoryAsync_WithNullAccountId_ShouldReturnEmptyWhenConditionNeverMatches()
+		public async Task GetPortfolioValueHistoryAsync_WithNullAccountId_ShouldReturnAllAccounts()
 		{
 			// Arrange
 			var startDate = new DateOnly(2023, 1, 1);
 			var endDate = new DateOnly(2023, 1, 31);
 
-			// According to the implementation, when accountId is null, the condition is:
-			// (accountId == 0 || x.AccountId == accountId) which becomes:
-			// (null == 0 || x.AccountId == null) = (false || false) = false
-			// Since AccountId is int (non-nullable), x.AccountId == null is always false
-			// So when accountId is null, the condition never matches and returns empty result
 			var snapshots = new List<CalculatedSnapshot>
 			{
 				CreateTestCalculatedSnapshot(1, startDate, 10, 100, 110, 1000, 1100),
@@ -560,7 +555,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			// Assert
 			result.Should().NotBeNull();
-			result.Should().BeEmpty(); // When accountId is null, the condition never matches
+			result.Should().HaveCount(1); // Grouped by date
+			result[0].Value.Should().Be(2200); // null means all accounts
 		}
 
 		[Fact]
@@ -782,7 +778,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			decimal totalInvested = 1000,
 			decimal totalValue = 1100)
 		{
-			return new CalculatedSnapshot(id: Guid.NewGuid(), accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue);
+			return new CalculatedSnapshot(id: Guid.NewGuid(), accountId: accountId ?? 1, date: date ?? DateOnly.FromDateTime(DateTime.Now), quantity: quantity, currency: Currency.USD, averageCostPrice: averageCostPrice, currentUnitPrice: currentUnitPrice, totalInvested: totalInvested, totalValue: totalValue)
+			{
+				Holding = new Holding { SymbolProfiles = [new SymbolProfile { Symbol = "TEST" }] },
+			};
 		}
 
 		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
@@ -796,7 +795,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				accountId: 1,
 				date: date,
 				quantity: quantity,
-				currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0);
+				currency: Currency.USD, averageCostPrice: averageCostPrice.Amount, currentUnitPrice: currentUnitPrice?.Amount ?? 0, totalInvested: 0, totalValue: 0)
+			{
+				Holding = new Holding { SymbolProfiles = [new SymbolProfile { Symbol = "TEST" }] },
+			};
 		}
 	}
 }

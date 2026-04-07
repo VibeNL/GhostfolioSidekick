@@ -712,7 +712,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				Date = date,
 				AccountId = accountId,
 				TotalValue = totalValue,
-				TotalInvested = totalInvested
+				TotalInvested = totalInvested,
+				Holding = new Holding { SymbolProfiles = [ new SymbolProfile { Symbol = "TEST" } ] },
 			};
 		}
 

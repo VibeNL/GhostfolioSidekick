@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -22,6 +23,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject]
 		private ITransactionService? TransactionService { get; set; }
+
+		[Inject]
+		private IHoldingsDataService? HoldingsDataService { get; set; }
 
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
@@ -68,6 +72,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected Money CurrentInvested { get; set; } = Money.Zero(Currency.EUR);
 		protected Money CurrentGainLoss { get; set; } = Money.Zero(Currency.EUR);
 		protected decimal CurrentGainLossPercentage { get; set; }
+
+		// Holdings
+		protected List<HoldingDisplayModel> Holdings { get; set; } = [];
+		protected bool IsHoldingsLoading { get; set; }
+		protected bool HideZeroQuantityHoldings { get; set; } = true;
 
 		// Transactions
 		protected List<TransactionDisplayModel> Transactions { get; set; } = [];
@@ -141,7 +150,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				await PrepareChartData();
 				CalculateCurrentValues();
 
-				// Load transactions asynchronously
+				// Load holdings and transactions asynchronously
+				_ = InvokeAsync(async () =>
+				{
+					try
+					{
+						await LoadHoldingsAsync();
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Error loading holdings: {ex.Message}");
+						StateHasChanged();
+					}
+				});
+
 				_ = InvokeAsync(async () =>
 				{
 					try
@@ -164,6 +186,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			finally
 			{
 				IsLoading = false;
+				StateHasChanged();
+			}
+		}
+
+		private async Task LoadHoldingsAsync()
+		{
+			IsHoldingsLoading = true;
+			StateHasChanged();
+
+			try
+			{
+				if (HoldingsDataService == null)
+				{
+					return;
+				}
+
+				Holdings = await HoldingsDataService.GetHoldingsAsync(AccountId);
+			}
+			finally
+			{
+				IsHoldingsLoading = false;
 				StateHasChanged();
 			}
 		}
