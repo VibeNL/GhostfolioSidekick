@@ -13,6 +13,35 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 	/// </summary>
 	public class YahooRepositoryTests
 	{
+        [Fact]
+		public async Task GetStockMarketData_ShouldIncludeCurrentPriceIfNotPresent()
+		{
+			// Arrange
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
+
+			// Act
+			var result = (await _repository.GetStockMarketData(symbol, fromDate)).ToList();
+
+			// Assert
+			var today = DateOnly.FromDateTime(DateTime.Now);
+			Assert.Contains(result, x => x.Date == today);
+		}
+
+		[Fact]
+		public async Task GetStockMarketData_ShouldNotDuplicateTodayIfAlreadyPresent()
+		{
+			// Arrange
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var fromDate = DateOnly.FromDateTime(DateTime.Now);
+
+			// Act
+			var result = (await _repository.GetStockMarketData(symbol, fromDate)).ToList();
+
+			// Assert
+			var today = DateOnly.FromDateTime(DateTime.Now);
+			Assert.True(result.Count(x => x.Date == today) == 1);
+		}
 		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
 		private readonly YahooRepository _repository;
 

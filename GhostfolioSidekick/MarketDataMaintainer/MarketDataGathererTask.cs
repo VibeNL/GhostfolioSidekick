@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						}
 
 						// skip the current day
-						if (maxDate >= DateOnly.FromDateTime(DateTime.Today))
+						if (maxDate > DateOnly.FromDateTime(DateTime.Today))
 						{
 							// For now skip today
 							logger.LogDebug("Market data for {Symbol} from {DataSource} is up to date", symbol.Symbol, symbol.DataSource);

@@ -240,7 +240,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Market data for AAPL from TEST_SOURCE is up to date")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-				Times.Once);
+				Times.Never);
 		}
 
 		[Fact]
