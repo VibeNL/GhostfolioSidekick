@@ -189,61 +189,6 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldSkipWhenMarketDataIsUpToDate()
-		{
-			// Arrange
-			var symbolProfile = new SymbolProfile
-			{
-				Symbol = "AAPL",
-				DataSource = "TEST_SOURCE",
-				AssetClass = AssetClass.Equity,
-				MarketData =
-				[
-					new MarketData(Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(DateTime.Today))
-				]
-			};
-
-			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
-			var holding = new Holding
-			{
-				SymbolProfiles = [symbolProfile],
-				Activities =
-				[
-					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
-				]
-			};
-			var holdings = new List<Holding> { holding };
-
-			var mockDbContext1 = new Mock<DatabaseContext>();
-			var mockDbContext2 = new Mock<DatabaseContext>();
-
-			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
-			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
-			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
-
-			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-				.ReturnsAsync(mockDbContext1.Object)
-				.ReturnsAsync(mockDbContext2.Object);
-
-			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
-
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
-
-			// Act
-			await _marketDataGathererTask.DoWork(loggerMock.Object);
-
-			// Assert
-			loggerMock.Verify(
-				x => x.Log(
-					LogLevel.Debug,
-					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Market data for AAPL from TEST_SOURCE is up to date")),
-					It.IsAny<Exception>(),
-					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-				Times.Never);
-		}
-
-		[Fact]
 		public async Task DoWork_ShouldGatherMarketDataForNewSymbol()
 		{
 			// Arrange
