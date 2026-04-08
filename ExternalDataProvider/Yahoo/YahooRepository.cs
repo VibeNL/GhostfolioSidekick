@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			if (symbolFields != null && symbolFields.TryGetValue(symbol.Symbol, out var symbolItem) && symbolItem != null)
 			{
-				var marketVolume = symbolItem.Fields.ContainsKey("RegularMarketVolume") ? symbolItem.RegularMarketVolume : 0;
+				var marketVolume = symbolItem.Fields.ContainsKey(Field.RegularMarketVolume.ToString()) ? symbolItem.RegularMarketVolume : 0;
 
 				var item = new MarketData(
 					symbol.Currency,
