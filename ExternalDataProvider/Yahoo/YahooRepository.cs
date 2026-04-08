@@ -141,17 +141,20 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			// Always update today's price with the latest
 			var today = DateOnly.FromDateTime(DateTime.Now);
-			var symbolFields = await YahooFinanceApi.Yahoo.Symbols(symbol.Symbol)
-				.Fields(
-					Field.RegularMarketPrice,
-					Field.RegularMarketOpen,
-					Field.RegularMarketDayHigh,
-					Field.RegularMarketDayLow,
-					Field.RegularMarketVolume)
-				.QueryAsync();
-			symbolFields.TryGetValue(symbol.Symbol, out var symbolItem);
+			var symbolFields = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger)
+				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+				.ExecuteAsync(() =>
+					YahooFinanceApi.Yahoo.Symbols(symbol.Symbol)
+						.Fields(
+							Field.RegularMarketPrice,
+							Field.RegularMarketOpen,
+							Field.RegularMarketDayHigh,
+							Field.RegularMarketDayLow,
+							Field.RegularMarketVolume)
+						.QueryAsync()
+				);
 
-			if (symbolItem != null)
+			if (symbolFields != null && symbolFields.TryGetValue(symbol.Symbol, out var symbolItem) && symbolItem != null)
 			{
 				var marketVolume = symbolItem.Fields.ContainsKey("RegularMarketVolume") ? symbolItem.RegularMarketVolume : 0;
 
