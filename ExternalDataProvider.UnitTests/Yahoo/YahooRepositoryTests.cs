@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 	/// </summary>
 	public class YahooRepositoryTests
 	{
-        [Fact]
+		[Fact]
 		public async Task GetStockMarketData_ShouldIncludeCurrentPriceIfNotPresent()
 		{
 			// Arrange
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 
 			// Assert
 			var today = DateOnly.FromDateTime(DateTime.Now);
-			Assert.True(result.Count(x => x.Date == today) == 1);
+			Assert.Equal(1, result.Count(x => x.Date == today));
 		}
 		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
 		private readonly YahooRepository _repository;
@@ -162,7 +162,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			var result = await _repository.MatchSymbol(identifiers);
 
 			// Assert
-			Assert.True(result == null || result is SymbolProfile);
+			Assert.True(result is null || result is SymbolProfile);
 		}
 
 		[Fact]
