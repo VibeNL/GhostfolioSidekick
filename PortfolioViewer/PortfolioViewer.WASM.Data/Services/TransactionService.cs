@@ -118,6 +118,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private static async Task<Dictionary<string, int>> GetTransactionTypeBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
 		{
 			// Use specific activity types to avoid GetType().Name in LINQ
+
 			var breakdowns = new Dictionary<string, int>();
 
 			// Query for each activity type separately with user-friendly names
@@ -267,12 +268,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				return quantityActivity.TotalTransactionAmount.Amount;
 			}
-			
+
 			if (activity is ActivityWithAmount amountActivity)
 			{
 				return amountActivity.Amount.Amount;
 			}
-			
+
 			return 0;
 		}
 
@@ -310,6 +311,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToList();
 
 			return result;
+		}
+
+		public async Task<List<int>> GetAvailableYearsAsync()
+		{
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			var minDate = await databaseContext.Activities.MinAsync(a => a.Date);
+			var maxDate = await databaseContext.Activities.MaxAsync(a => a.Date);
+			var minYear = minDate.Year;
+			var maxYear = maxDate.Year;
+			var years = new List<int>();
+			for (var y = minYear; y <= maxYear; y++)
+			{
+				years.Add(y);
+			}
+			return years;
 		}
 	}
 }
