@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
-        {
+		{
 			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
 				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
 				.ExecuteAsync(() =>
