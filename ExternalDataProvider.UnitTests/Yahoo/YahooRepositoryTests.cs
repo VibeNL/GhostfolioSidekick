@@ -13,6 +13,15 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 	/// </summary>
 	public class YahooRepositoryTests
 	{
+		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
+		private readonly YahooRepository _repository;
+
+		public YahooRepositoryTests()
+		{
+			_loggerMock = new Mock<ILogger<YahooRepository>>();
+			_repository = new YahooRepository(_loggerMock.Object);
+		}
+
 		[Fact]
 		public async Task GetStockMarketData_ShouldIncludeCurrentPriceIfNotPresent()
 		{
@@ -42,14 +51,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			var today = DateOnly.FromDateTime(DateTime.Now);
 			Assert.Equal(1, result.Count(x => x.Date == today));
 		}
-		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
-		private readonly YahooRepository _repository;
 
-		public YahooRepositoryTests()
-		{
-			_loggerMock = new Mock<ILogger<YahooRepository>>();
-			_repository = new YahooRepository(_loggerMock.Object);
-		}
 
 		[Fact]
 		public async Task GetCurrencyHistory_ShouldReturnMarketData()

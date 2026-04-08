@@ -113,66 +113,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
-		{
-			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
-				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
-				.ExecuteAsync(() =>
-					YahooFinanceApi
-						.Yahoo
-						.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily)
-				);
-
-			var list = new List<MarketData>();
-			if (history != null)
-			{
-				foreach (var candle in history)
-				{
-					var item = new MarketData(
-						symbol.Currency,
-						candle.Close,
-						candle.Open,
-						candle.High,
-						candle.Low,
-						candle.Volume,
-						DateOnly.FromDateTime(candle.DateTime.Date));
-					list.Add(item);
-				}
-			}
-
-			// Always update today's price with the latest
-			var today = DateOnly.FromDateTime(DateTime.Now);
-			var symbolFields = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger)
-				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
-				.ExecuteAsync(() =>
-					YahooFinanceApi.Yahoo.Symbols(symbol.Symbol)
-						.Fields(
-							Field.RegularMarketPrice,
-							Field.RegularMarketOpen,
-							Field.RegularMarketDayHigh,
-							Field.RegularMarketDayLow,
-							Field.RegularMarketVolume)
-						.QueryAsync()
-				);
-
-			if (symbolFields != null && symbolFields.TryGetValue(symbol.Symbol, out var symbolItem) && symbolItem != null)
-			{
-				var marketVolume = symbolItem.Fields.ContainsKey(Field.RegularMarketVolume.ToString()) ? symbolItem.RegularMarketVolume : 0;
-
-				var item = new MarketData(
-					symbol.Currency,
-					(decimal)symbolItem.RegularMarketPrice,
-					(decimal)symbolItem.RegularMarketOpen,
-					(decimal)symbolItem.RegularMarketDayHigh,
-					(decimal)symbolItem.RegularMarketDayLow,
-					marketVolume,
-					today);
-
-				// Remove any existing entry for today
-				list.RemoveAll(md => md.Date == today);
-				list.Add(item);
-			}
-
-			return list;
+       {
+			return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
 		}
 
 		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate)
@@ -336,7 +278,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				}
 			}
 
-			// Today
+            // Always update today's price with the latest
+			var today = DateOnly.FromDateTime(DateTime.Now);
 			var symbolFields = await YahooFinanceApi.Yahoo.Symbols(symbol)
 				.Fields(
 					Field.RegularMarketPrice,
@@ -352,13 +295,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				var marketVolume = symbolItem.Fields.ContainsKey("RegularMarketVolume") ? symbolItem.RegularMarketVolume : 0;
 
 				var item = new MarketData(
-									currency,
-									(decimal)symbolItem.RegularMarketPrice,
-									(decimal)symbolItem.RegularMarketOpen,
-									(decimal)symbolItem.RegularMarketDayHigh,
-									(decimal)symbolItem.RegularMarketDayLow,
-									marketVolume,
-									DateOnly.FromDateTime(DateTime.Now));
+					currency,
+					(decimal)symbolItem.RegularMarketPrice,
+					(decimal)symbolItem.RegularMarketOpen,
+					(decimal)symbolItem.RegularMarketDayHigh,
+					(decimal)symbolItem.RegularMarketDayLow,
+					marketVolume,
+					today);
+
+				// Remove any existing entry for today
+				list.RemoveAll(md => md.Date == today);
 				list.Add(item);
 			}
 
