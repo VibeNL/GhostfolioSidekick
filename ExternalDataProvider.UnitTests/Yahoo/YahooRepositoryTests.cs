@@ -23,6 +23,37 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		}
 
 		[Fact]
+		public async Task GetStockMarketData_ShouldIncludeCurrentPriceIfNotPresent()
+		{
+			// Arrange
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
+
+			// Act
+			var result = (await _repository.GetStockMarketData(symbol, fromDate)).ToList();
+
+			// Assert
+			var today = DateOnly.FromDateTime(DateTime.Now);
+			Assert.Contains(result, x => x.Date == today);
+		}
+
+		[Fact]
+		public async Task GetStockMarketData_ShouldNotDuplicateTodayIfAlreadyPresent()
+		{
+			// Arrange
+			var symbol = new SymbolProfile("AAPL", "Apple Inc.", [new SymbolIdentifier { Identifier = "AAPL", IdentifierType = IdentifierType.Ticker }], Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, [], []);
+			var fromDate = DateOnly.FromDateTime(DateTime.Now);
+
+			// Act
+			var result = (await _repository.GetStockMarketData(symbol, fromDate)).ToList();
+
+			// Assert
+			var today = DateOnly.FromDateTime(DateTime.Now);
+			Assert.Equal(1, result.Count(x => x.Date == today));
+		}
+
+
+		[Fact]
 		public async Task GetCurrencyHistory_ShouldReturnMarketData()
 		{
 			// Arrange
@@ -133,7 +164,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			var result = await _repository.MatchSymbol(identifiers);
 
 			// Assert
-			Assert.True(result == null || result is SymbolProfile);
+			Assert.True(result is null || result is SymbolProfile);
 		}
 
 		[Fact]
