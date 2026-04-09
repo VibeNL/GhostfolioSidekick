@@ -70,7 +70,9 @@ namespace GhostfolioSidekick.Performance
 								ExpectedDate = dividend.PaymentDate,
 								Amount = dividend.Amount.Amount,
 								Currency = dividend.Amount.Currency,
-								AmountPrimaryCurrency = converted.Amount
+								AmountPrimaryCurrency = converted.Amount,
+								DividendType = dividend.DividendType,
+								DividendState = dividend.DividendState
 							});
 						}
 					}
@@ -106,7 +108,9 @@ namespace GhostfolioSidekick.Performance
 									ExpectedDate = expectedDate,
 									Amount = avgAmount,
 									Currency = currency,
-									AmountPrimaryCurrency = converted.Amount
+									AmountPrimaryCurrency = converted.Amount,
+									DividendType = DividendType.Cash, // Prediction always cash
+									DividendState = DividendState.Predicted
 								});
 							}
 						}
