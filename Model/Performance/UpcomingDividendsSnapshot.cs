@@ -10,6 +10,6 @@ public class UpcomingDividendsSnapshot
 	public DateOnly CalculationDate { get; set; }
 	public decimal TotalExpectedReturn { get; set; }
 	public Currency Currency { get; set; } = default!;
-	public decimal TotalExpectedReturnPrimary { get; set; }
+ public decimal TotalExpectedReturnPrimary { get; set; }
 }
 }
