@@ -30,6 +30,8 @@ namespace GhostfolioSidekick
 
 		PerformanceCalculations,
 
+		UpcomingDividendsCalculations,
+
 		CovertToPrimaryCurrency,
 
 		CleanupDatabase,

@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+// Do not import Model.Performance to avoid ambiguity
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -39,6 +40,8 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<TaskRunLog> TaskRunLogs { get; set; }
 
 		public virtual DbSet<Dividend> Dividends { get; set; }
+
+       public virtual DbSet<UpcomingDividendsSnapshot> UpcomingDividendsSnapshots { get; set; }
 
 		public DatabaseContext()
 		{
