@@ -32,14 +32,13 @@ namespace GhostfolioSidekick.Performance
 			var primaryCurrency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 			var holdings = await dbContext.Holdings.Include(h => h.SymbolProfiles).ToListAsync();
 
-			// Remove all previous snapshots
-			await dbContext.UpcomingDividendsSnapshots.ExecuteDeleteAsync();
+			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync();
 
 			int totalHoldings = holdings.Count;
 			int processedHoldings = 0;
 			logger.LogInformation("Total holdings to process for dividends: {Total}", totalHoldings);
 
-			foreach (var holding in holdings)
+           foreach (var holding in holdings)
 			{
 				try
 				{
@@ -47,6 +46,7 @@ namespace GhostfolioSidekick.Performance
 					decimal totalExpectedReturnPrimary = 0;
 					Currency? currency = null;
 					bool hasOfficial = false;
+					var timelineEntries = new List<UpcomingDividendTimelineEntry>();
 					foreach (var symbolProfile in holding.SymbolProfiles)
 					{
 						var officialDividends = await dbContext.Dividends
@@ -60,9 +60,18 @@ namespace GhostfolioSidekick.Performance
 						{
 							totalExpectedReturn += dividend.Amount.Amount;
 							currency ??= dividend.Amount.Currency;
-							var converted = await currencyExchange.ConvertMoney(dividend.Amount, primaryCurrency, today);
+							var converted = await currencyExchange.ConvertMoney(dividend.Amount, primaryCurrency, dividend.PaymentDate);
 							totalExpectedReturnPrimary += converted.Amount;
 							hasOfficial = true;
+							timelineEntries.Add(new UpcomingDividendTimelineEntry
+							{
+								Id = Guid.NewGuid(),
+								HoldingId = holding.Id,
+								ExpectedDate = dividend.PaymentDate,
+								Amount = dividend.Amount.Amount,
+								Currency = dividend.Amount.Currency,
+								AmountPrimaryCurrency = converted.Amount
+							});
 						}
 					}
 
@@ -78,35 +87,35 @@ namespace GhostfolioSidekick.Performance
 
 						if (pastDividends.Count > 0)
 						{
-							// Predict next dividend as average of last 3, and project for 1 year (assume same frequency)
 							var avgAmount = pastDividends.Average(a => a.Amount.Amount);
 							currency = pastDividends.First().Amount.Currency;
-							// Estimate frequency (days between dividends)
 							var intervals = pastDividends.Zip(pastDividends.Skip(1), (a, b) => (a.Date - b.Date).Days).ToList();
-							int avgInterval = intervals.Count > 0 ? (int)intervals.Average() : 90; // fallback: quarterly
+							int avgInterval = intervals.Count > 0 ? (int)intervals.Average() : 90;
 							int numPeriods = avgInterval > 0 ? (int)Math.Floor(365.0 / avgInterval) : 4;
-							for (int i = 0; i < numPeriods; i++)
+							var lastDate = pastDividends.First().Date;
+							for (int i = 1; i <= numPeriods; i++)
 							{
+								var expectedDate = DateOnly.FromDateTime(lastDate.AddDays(i * avgInterval));
 								totalExpectedReturn += avgAmount;
-								var converted = await currencyExchange.ConvertMoney(new Money(currency, avgAmount), primaryCurrency, today);
+								var converted = await currencyExchange.ConvertMoney(new Money(currency, avgAmount), primaryCurrency, expectedDate);
 								totalExpectedReturnPrimary += converted.Amount;
+								timelineEntries.Add(new UpcomingDividendTimelineEntry
+								{
+									Id = Guid.NewGuid(),
+									HoldingId = holding.Id,
+									ExpectedDate = expectedDate,
+									Amount = avgAmount,
+									Currency = currency,
+									AmountPrimaryCurrency = converted.Amount
+								});
 							}
 						}
 					}
 
-					if (totalExpectedReturn > 0 && currency is not null)
+                    if (totalExpectedReturn > 0 && currency is not null)
 					{
-						var snapshot = new UpcomingDividendsSnapshot
-						{
-							Id = Guid.NewGuid(),
-							HoldingId = holding.Id,
-							CalculationDate = today,
-							TotalExpectedReturn = totalExpectedReturn,
-							Currency = currency,
-							TotalExpectedReturnPrimary = totalExpectedReturnPrimary,
-						};
-						dbContext.UpcomingDividendsSnapshots.Add(snapshot);
-						logger.LogInformation("Persisted upcoming dividends snapshot for holding {HoldingId}: {Amount} {Currency} ({AmountPrimary} {PrimaryCurrency})", holding.Id, totalExpectedReturn, currency.Symbol, totalExpectedReturnPrimary, primaryCurrency.Symbol);
+						dbContext.UpcomingDividendTimelineEntries.AddRange(timelineEntries);
+						logger.LogInformation("Persisted upcoming dividends timeline for holding {HoldingId}: {Amount} {Currency} ({AmountPrimary} {PrimaryCurrency})", holding.Id, totalExpectedReturn, currency.Symbol, totalExpectedReturnPrimary, primaryCurrency.Symbol);
 					}
 				}
 				catch (Exception ex)

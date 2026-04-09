@@ -66,9 +66,9 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new UpcomingDividendsTask(dbFactoryMock.Object, currencyExchangeMock.Object, appSettingsMock.Object);
 			await task.DoWork(loggerMock.Object);
 
-			var result = dbContext.UpcomingDividendsSnapshots.FirstOrDefault();
+			var result = dbContext.UpcomingDividendTimelineEntries.FirstOrDefault(x => x.HoldingId == 1);
 			Assert.NotNull(result);
-			Assert.Equal(100, result.TotalExpectedReturn);
+			Assert.Equal(100, result.Amount);
 			Assert.Equal("USD", result.Currency.Symbol);
 		}
 
@@ -108,10 +108,10 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new UpcomingDividendsTask(dbFactoryMock.Object, currencyExchangeMock.Object, appSettingsMock.Object);
 			await task.DoWork(loggerMock.Object);
 
-			var result = dbContext.UpcomingDividendsSnapshots.FirstOrDefault(x => x.HoldingId == 2);
+			var result = dbContext.UpcomingDividendTimelineEntries.FirstOrDefault(x => x.HoldingId == 2);
 			Assert.NotNull(result);
 			Assert.Equal("EUR", result.Currency.Symbol);
-			Assert.True(result.TotalExpectedReturn > 0);
+			Assert.True(result.Amount > 0);
 		}
 	}
 }
