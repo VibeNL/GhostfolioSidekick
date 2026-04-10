@@ -96,11 +96,12 @@ namespace GhostfolioSidekick.UnitTests.Performance
             dbContext.Holdings.Add(holding);
             await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
+            var eur = Currency.GetCurrency("EUR");
             var activities = new List<DividendActivity>
             {
-                new DividendActivity { Amount = new Money(Currency.EUR, 50), Date = DateTime.Today.AddMonths(-3), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding },
-                new DividendActivity { Amount = new Money(Currency.EUR, 60), Date = DateTime.Today.AddMonths(-6), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding },
-                new DividendActivity { Amount = new Money(Currency.EUR, 70), Date = DateTime.Today.AddMonths(-9), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding }
+                new DividendActivity { Amount = new Money(eur, 50), Date = DateTime.Today.AddMonths(-3), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding },
+                new DividendActivity { Amount = new Money(eur, 60), Date = DateTime.Today.AddMonths(-6), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding },
+                new DividendActivity { Amount = new Money(eur, 70), Date = DateTime.Today.AddMonths(-9), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding }
             };
             dbContext.AddRange(activities);
             await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);

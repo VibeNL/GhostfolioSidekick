@@ -30,7 +30,10 @@ namespace GhostfolioSidekick.Performance
 			var today = DateOnly.FromDateTime(DateTime.Today);
 			var oneYearFromNow = today.AddYears(1);
 			var primaryCurrency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
-			var holdings = await dbContext.Holdings.Include(h => h.SymbolProfiles).ToListAsync();
+			var holdings = await dbContext.Holdings
+				.Include(h => h.SymbolProfiles)
+				.Include(h => h.Activities)
+				.ToListAsync();
 
 			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync();
 
@@ -38,7 +41,7 @@ namespace GhostfolioSidekick.Performance
 			int processedHoldings = 0;
 			logger.LogInformation("Total holdings to process for dividends: {Total}", totalHoldings);
 
-           foreach (var holding in holdings)
+			foreach (var holding in holdings)
 			{
 				try
 				{
@@ -87,10 +90,22 @@ namespace GhostfolioSidekick.Performance
 							.Take(3)
 							.ToList();
 
+						Currency? predictedCurrency = pastDividends
+							 .Select(a => a.Amount?.Currency)
+							 .FirstOrDefault(c => c != null && !string.IsNullOrWhiteSpace(c.Symbol));
+						if (predictedCurrency == null)
+						{
+							predictedCurrency = Currency.EUR;
+						}
+
 						if (pastDividends.Count > 0)
 						{
 							var avgAmount = pastDividends.Average(a => a.Amount.Amount);
-							currency = pastDividends.First().Amount.Currency;
+							currency = predictedCurrency;
+							if (currency == null || string.IsNullOrWhiteSpace(currency.Symbol))
+							{
+								currency = Currency.EUR;
+							}
 							var intervals = pastDividends.Zip(pastDividends.Skip(1), (a, b) => (a.Date - b.Date).Days).ToList();
 							int avgInterval = intervals.Count > 0 ? (int)intervals.Average() : 90;
 							int numPeriods = avgInterval > 0 ? (int)Math.Floor(365.0 / avgInterval) : 4;
@@ -107,7 +122,8 @@ namespace GhostfolioSidekick.Performance
 									HoldingId = holding.Id,
 									ExpectedDate = expectedDate,
 									Amount = avgAmount,
-									Currency = currency,
+									// Removed duplicate initialization of Currency property
+									// Removed duplicate initialization of Currency property
 									AmountPrimaryCurrency = converted.Amount,
 									DividendType = DividendType.Cash, // Prediction always cash
 									DividendState = DividendState.Predicted
@@ -116,10 +132,18 @@ namespace GhostfolioSidekick.Performance
 						}
 					}
 
-                    if (totalExpectedReturn > 0 && currency is not null)
+					if (totalExpectedReturn > 0 && currency is not null)
 					{
+						// Ensure all timeline entries have a valid Currency.Symbol
+						foreach (var entry in timelineEntries)
+						{
+							if (entry.Currency == null || string.IsNullOrWhiteSpace(entry.Currency.Symbol))
+							{
+								entry.Currency = new Currency { Symbol = "EUR" };
+							}
+						}
 						dbContext.UpcomingDividendTimelineEntries.AddRange(timelineEntries);
-						logger.LogInformation("Persisted upcoming dividends timeline for holding {HoldingId}: {Amount} {Currency} ({AmountPrimary} {PrimaryCurrency})", holding.Id, totalExpectedReturn, currency.Symbol, totalExpectedReturnPrimary, primaryCurrency.Symbol);
+						logger.LogInformation("Persisted upcoming dividends timeline for holding {HoldingId}: {Amount} {Currency} ({AmountPrimary} {PrimaryCurrency})", holding.Id, totalExpectedReturn, timelineEntries.First().Currency.Symbol, totalExpectedReturnPrimary, primaryCurrency.Symbol);
 					}
 				}
 				catch (Exception ex)
