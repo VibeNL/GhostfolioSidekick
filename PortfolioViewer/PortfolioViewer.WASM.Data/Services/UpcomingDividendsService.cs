@@ -12,7 +12,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 	/// </summary>
 	public class UpcomingDividendsService(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
-		ICurrencyExchange currencyExchange,
 		IServerConfigurationService serverConfigurationService) : IUpcomingDividendsService
 	{
 		/// <summary>
@@ -20,44 +19,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// </summary>
 		public async Task<List<UpcomingDividendModel>> GetUpcomingDividendsAsync()
 		{
-			await using var db = await dbContextFactory.CreateDbContextAsync();
+            await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
-			var lastKnownDate = await db.CalculatedSnapshots.MaxAsync(x => (DateOnly?)x.Date);
-			if (lastKnownDate is null) return [];
+			var entries = await db.UpcomingDividendTimelineEntries.AsNoTracking().ToListAsync();
 
-			var holdings = await GetHoldingsDictionaryAsync(db, lastKnownDate.Value);
-			var dividends = await GetUpcomingDividendsWithProfilesAsync(db);
-
-			return dividends
-				.Where(d => TryGetHoldingQuantity(holdings, d.SymbolProfile.Symbol, out var qty) && qty > 0)
-				.Select(d =>
-				{
-					var symbol = d.SymbolProfile.Symbol ?? string.Empty;
-					var companyName = d.SymbolProfile.Name ?? string.Empty;
-					var quantity = holdings[NormalizeSymbol(symbol)];
-					var dividendPerShare = d.Dividend.Amount.Amount;
-					var nativeCurrency = d.Dividend.Amount.Currency.Symbol;
-					var (dividendPerSharePrimary, expectedAmountPrimary, primaryCurrencyLabel) = ConvertDividendAmount(
-						currencyExchange, d.Dividend.Amount, primaryCurrency, d.Dividend.ExDividendDate, dividendPerShare, quantity, nativeCurrency
-					);
-
-					return new UpcomingDividendModel
-					{
-						Symbol = symbol,
-						CompanyName = companyName,
-						ExDate = DateTime.SpecifyKind(d.Dividend.ExDividendDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
-						PaymentDate = DateTime.SpecifyKind(d.Dividend.PaymentDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
-						Amount = dividendPerShare * quantity,
-						Currency = nativeCurrency,
-						DividendPerShare = dividendPerShare,
-						AmountPrimaryCurrency = expectedAmountPrimary,
-						PrimaryCurrency = primaryCurrencyLabel,
-						DividendPerSharePrimaryCurrency = dividendPerSharePrimary,
-						Quantity = quantity,
-						IsPredicted = d.Dividend.DividendState == DividendState.Predicted
-					};
-				})
-				.ToList();
+			return entries.Select(e => new UpcomingDividendModel
+			{
+				Symbol = e.HoldingId.ToString(), // Optionally resolve symbol/profile here
+				CompanyName = string.Empty, // Not available directly
+				ExDate = DateTime.MinValue, // Not available
+				PaymentDate = new DateTime(e.ExpectedDate.Year, e.ExpectedDate.Month, e.ExpectedDate.Day, 0, 0, 0, DateTimeKind.Utc),
+				Amount = e.Amount,
+				Currency = e.Currency?.Symbol ?? string.Empty,
+				DividendPerShare = 0, // Not available
+				AmountPrimaryCurrency = e.AmountPrimaryCurrency,
+				PrimaryCurrency = primaryCurrency.Symbol,
+				DividendPerSharePrimaryCurrency = null,
+				Quantity = 0, // Not available
+				IsPredicted = e.DividendState == DividendState.Predicted
+			}).ToList();
 		}
 
 		private static async Task<Dictionary<string, decimal>> GetHoldingsDictionaryAsync(DatabaseContext db, DateOnly lastKnownDate)

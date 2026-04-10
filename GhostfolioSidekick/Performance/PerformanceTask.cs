@@ -1,7 +1,6 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PerformanceCalculations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

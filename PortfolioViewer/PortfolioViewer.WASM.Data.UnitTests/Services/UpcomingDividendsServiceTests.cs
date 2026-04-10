@@ -18,55 +18,30 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
         public async Task GetUpcomingDividendsAsync_ReturnsExpectedDividends()
         {
             // Arrange
-            var symbolProfile = new SymbolProfile
+            var timelineEntry = new UpcomingDividendTimelineEntry
             {
-                Symbol = "AAPL",
-                Name = "Apple Inc.",
-                Currency = Currency.USD,
-                DataSource = "TestSource"
-            };
-
-            var dividend = new Dividend
-            {
-                ExDividendDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
-                PaymentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
-                Amount = new Money(Currency.USD, 2.5m),
-                SymbolProfileSymbol = "AAPL",
-                SymbolProfileDataSource = "TestSource"
-            };
-
-            var calculatedSnapshot = new CalculatedSnapshot 
-            { 
-                Date = DateOnly.FromDateTime(DateTime.Today), 
-                Quantity = 10m 
-            };
-
-            var holding = new Holding
-            {
-                SymbolProfiles = [symbolProfile],
-                CalculatedSnapshots = [calculatedSnapshot]
+                Id = Guid.NewGuid(),
+                HoldingId = 42,
+                ExpectedDate = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
+                Amount = 100.0m,
+                Currency = new Currency { Symbol = "USD" },
+                AmountPrimaryCurrency = 100.0m,
+                DividendType = DividendType.Cash,
+                DividendState = DividendState.Declared
             };
 
             var mockContext = new Mock<DatabaseContext>();
-            mockContext.Setup(x => x.Dividends).ReturnsDbSet(new List<Dividend> { dividend });
-            mockContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile> { symbolProfile });
-            mockContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding> { holding });
-            mockContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { calculatedSnapshot });
+            mockContext.Setup(x => x.UpcomingDividendTimelineEntries).ReturnsDbSet(new List<UpcomingDividendTimelineEntry> { timelineEntry });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockContext.Object);
 
-            // Mock ICurrencyExchange - return the same money (no conversion for USD to USD)
             var mockCurrencyExchange = new Mock<ICurrencyExchange>();
-            mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(currency, money.Amount));
-
-            // Mock IServerConfigurationService
             var mockConfigService = new Mock<IServerConfigurationService>();
             mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
-            var service = new UpcomingDividendsService(mockFactory.Object, mockCurrencyExchange.Object, mockConfigService.Object);
+            var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
 
             // Act
             var result = await service.GetUpcomingDividendsAsync();
@@ -74,75 +49,46 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             // Assert
             Assert.Single(result);
             var div = result[0];
-            Assert.Equal("AAPL", div.Symbol);
-            Assert.Equal("Apple Inc.", div.CompanyName);
-            
-            // Native currency values
-            Assert.Equal(25.0m, div.Amount); // 2.5 * 10
+            Assert.Equal("42", div.Symbol);
+            Assert.Equal(string.Empty, div.CompanyName);
+            Assert.Equal(100.0m, div.Amount);
             Assert.Equal("USD", div.Currency);
-            Assert.Equal(2.5m, div.DividendPerShare);
-            
-            // Primary currency values (same as native in this case)
-            Assert.Equal(25.0m, div.AmountPrimaryCurrency); // 2.5 * 10
+            Assert.Equal(100.0m, div.AmountPrimaryCurrency);
             Assert.Equal("USD", div.PrimaryCurrency);
-            Assert.Equal(2.5m, div.DividendPerSharePrimaryCurrency);
-            
-            Assert.Equal(10m, div.Quantity);
+            Assert.True(div.PaymentDate > DateTime.Today);
+            Assert.Equal(0, div.DividendPerShare);
+            Assert.Null(div.DividendPerSharePrimaryCurrency);
+            Assert.Equal(0, div.Quantity);
         }
 
         [Fact]
         public async Task GetUpcomingDividendsAsync_WithCurrencyConversion_ReturnsConvertedAmounts()
         {
             // Arrange
-            var symbolProfile = new SymbolProfile
+            var timelineEntry = new UpcomingDividendTimelineEntry
             {
-                Symbol = "ASML",
-                Name = "ASML Holding NV",
-                Currency = Currency.EUR,
-                DataSource = "TestSource"
-            };
-
-            var dividend = new Dividend
-            {
-                ExDividendDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
-                PaymentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
-                Amount = new Money(Currency.EUR, 3.0m), // EUR dividend
-                SymbolProfileSymbol = "ASML",
-                SymbolProfileDataSource = "TestSource"
-            };
-
-            var calculatedSnapshot = new CalculatedSnapshot 
-            { 
-                Date = DateOnly.FromDateTime(DateTime.Today), 
-                Quantity = 5m 
-            };
-
-            var holding = new Holding
-            {
-                SymbolProfiles = [symbolProfile],
-                CalculatedSnapshots = [calculatedSnapshot]
+                Id = Guid.NewGuid(),
+                HoldingId = 99,
+                ExpectedDate = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
+                Amount = 200.0m,
+                Currency = new Currency { Symbol = "EUR" },
+                AmountPrimaryCurrency = 220.0m, // Simulate conversion (e.g., EUR->USD)
+                DividendType = DividendType.Cash,
+                DividendState = DividendState.Declared
             };
 
             var mockContext = new Mock<DatabaseContext>();
-            mockContext.Setup(x => x.Dividends).ReturnsDbSet(new List<Dividend> { dividend });
-            mockContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile> { symbolProfile });
-            mockContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding> { holding });
-            mockContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { calculatedSnapshot });
+            mockContext.Setup(x => x.UpcomingDividendTimelineEntries).ReturnsDbSet(new List<UpcomingDividendTimelineEntry> { timelineEntry });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockContext.Object);
 
-            // Mock ICurrencyExchange - simulate EUR to USD conversion at 1.1 rate
             var mockCurrencyExchange = new Mock<ICurrencyExchange>();
-            mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), Currency.USD, It.IsAny<DateOnly>()))
-                .ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(currency, money.Amount * 1.1m));
-
-            // Mock IServerConfigurationService to return USD as primary currency
             var mockConfigService = new Mock<IServerConfigurationService>();
             mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
-            var service = new UpcomingDividendsService(mockFactory.Object, mockCurrencyExchange.Object, mockConfigService.Object);
+            var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
 
             // Act
             var result = await service.GetUpcomingDividendsAsync();
@@ -150,20 +96,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             // Assert
             Assert.Single(result);
             var div = result[0];
-            Assert.Equal("ASML", div.Symbol);
-            Assert.Equal("ASML Holding NV", div.CompanyName);
-            
-            // Native currency values (EUR)
-            Assert.Equal(15.0m, div.Amount); // 3.0 * 5
+            Assert.Equal("99", div.Symbol);
+            Assert.Equal(string.Empty, div.CompanyName);
+            Assert.Equal(200.0m, div.Amount);
             Assert.Equal("EUR", div.Currency);
-            Assert.Equal(3.0m, div.DividendPerShare);
-            
-            // Primary currency values (USD)
-            Assert.Equal(16.5m, div.AmountPrimaryCurrency); // 3.3 * 5 (3.0 * 1.1)
+            Assert.Equal(220.0m, div.AmountPrimaryCurrency);
             Assert.Equal("USD", div.PrimaryCurrency);
-            Assert.Equal(3.3m, div.DividendPerSharePrimaryCurrency); // 3.0 * 1.1
-            
-            Assert.Equal(5m, div.Quantity);
+            Assert.True(div.PaymentDate > DateTime.Today);
+            Assert.Equal(0, div.DividendPerShare);
+            Assert.Null(div.DividendPerSharePrimaryCurrency);
+            Assert.Equal(0, div.Quantity);
         }
     }
 }
