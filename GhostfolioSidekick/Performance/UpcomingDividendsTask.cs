@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using GhostfolioSidekick.Model.Activities.Types;
 
 namespace GhostfolioSidekick.Performance
 {
@@ -32,7 +33,7 @@ namespace GhostfolioSidekick.Performance
 			var primaryCurrency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 			var holdings = await dbContext.Holdings
 				   .Include(h => h.SymbolProfiles)
-				   .Include(h => h.Activities)
+				   .Include(h => h.Activities.Where(a => a is DividendActivity))
 				   .Include(h => h.CalculatedSnapshots)
 				   .ToListAsync();
 
