@@ -122,8 +122,7 @@ namespace GhostfolioSidekick.Performance
 									HoldingId = holding.Id,
 									ExpectedDate = expectedDate,
 									Amount = avgAmount,
-									// Removed duplicate initialization of Currency property
-									// Removed duplicate initialization of Currency property
+									Currency = currency,
 									AmountPrimaryCurrency = converted.Amount,
 									DividendType = DividendType.Cash, // Prediction always cash
 									DividendState = DividendState.Predicted
@@ -134,16 +133,14 @@ namespace GhostfolioSidekick.Performance
 
 					if (totalExpectedReturn > 0 && currency is not null)
 					{
-						// Ensure all timeline entries have a valid Currency.Symbol
-						foreach (var entry in timelineEntries)
+						// Remove entries without a valid Currency
+						timelineEntries = [.. timelineEntries.Where(e => e.Currency != null)];
+						if (timelineEntries.Count > 0)
 						{
-							if (entry.Currency == null || string.IsNullOrWhiteSpace(entry.Currency.Symbol))
-							{
-								entry.Currency = new Currency { Symbol = "EUR" };
-							}
+							dbContext.UpcomingDividendTimelineEntries.AddRange(timelineEntries);
+							var firstCurrencySymbol = timelineEntries.First().Currency.Symbol;
+							logger.LogInformation("Persisted upcoming dividends timeline for holding {HoldingId}: {Amount} {Currency} ({AmountPrimary} {PrimaryCurrency})", holding.Id, totalExpectedReturn, firstCurrencySymbol, totalExpectedReturnPrimary, primaryCurrency.Symbol);
 						}
-						dbContext.UpcomingDividendTimelineEntries.AddRange(timelineEntries);
-						logger.LogInformation("Persisted upcoming dividends timeline for holding {HoldingId}: {Amount} {Currency} ({AmountPrimary} {PrimaryCurrency})", holding.Id, totalExpectedReturn, timelineEntries.First().Currency.Symbol, totalExpectedReturnPrimary, primaryCurrency.Symbol);
 					}
 				}
 				catch (Exception ex)
