@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.Performance
 								HoldingId = holding.Id,
 								ExpectedDate = dividend.PaymentDate,
 								Amount = dividend.Amount.Amount,
-								Currency = Currency.Create(dividend.Amount.Currency.Symbol),
+								Currency = Currency.GetCurrency(dividend.Amount.Currency.Symbol),
 								AmountPrimaryCurrency = converted.Amount,
 								DividendType = dividend.DividendType,
 								DividendState = dividend.DividendState
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.Performance
 							 .FirstOrDefault(c => c != null && !string.IsNullOrWhiteSpace(c.Symbol));
 						if (predictedCurrency == null)
 						{
-							predictedCurrency = Currency.Create("EUR");
+							predictedCurrency = Currency.EUR;
 						}
 
 						if (pastDividends.Count > 0)
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.Performance
 							currency = predictedCurrency;
 							if (currency == null || string.IsNullOrWhiteSpace(currency.Symbol))
 							{
-								currency = Currency.Create("EUR");
+								currency = Currency.EUR;
 							}
 							// Ensure currency is not null for Money constructor
 							var safeCurrency = currency;
@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.Performance
 									HoldingId = holding.Id,
 									ExpectedDate = expectedDate,
 									Amount = avgAmount,
-									Currency = Currency.Create(!string.IsNullOrWhiteSpace(currency?.Symbol) ? currency.Symbol : "EUR"),
+									Currency = Currency.GetCurrency(!string.IsNullOrWhiteSpace(currency?.Symbol) ? currency.Symbol : "EUR"),
 									AmountPrimaryCurrency = converted.Amount,
 									DividendType = DividendType.Cash, // Prediction always cash
 									DividendState = DividendState.Predicted
@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.Performance
 						{
 							if (entry.Currency == null || string.IsNullOrWhiteSpace(entry.Currency.Symbol))
 							{
-								entry.Currency = Currency.Create("EUR");
+								entry.Currency = Currency.EUR;
 							}
 						}
 
