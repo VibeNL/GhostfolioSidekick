@@ -1,5 +1,4 @@
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Performance;
 
 namespace GhostfolioSidekick.Model.Accounts
 {

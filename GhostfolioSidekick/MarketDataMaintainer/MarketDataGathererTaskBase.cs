@@ -1,6 +1,5 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;

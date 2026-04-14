@@ -4,7 +4,6 @@ using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using Moq.EntityFrameworkCore;
 

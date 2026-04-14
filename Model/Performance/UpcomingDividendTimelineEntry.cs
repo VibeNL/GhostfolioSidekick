@@ -1,6 +1,3 @@
-using GhostfolioSidekick.Model;
-using System;
-
 namespace GhostfolioSidekick.Model.Performance
 {
 using GhostfolioSidekick.Model.Market;

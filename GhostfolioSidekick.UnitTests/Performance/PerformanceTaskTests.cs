@@ -1,10 +1,7 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Performance;
-using GhostfolioSidekick.PerformanceCalculations;
 using Microsoft.Data.Sqlite;
 
 namespace GhostfolioSidekick.UnitTests.Performance

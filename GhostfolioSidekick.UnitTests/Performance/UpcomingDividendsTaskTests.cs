@@ -1,21 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Performance;
 using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace GhostfolioSidekick.UnitTests.Performance
 {

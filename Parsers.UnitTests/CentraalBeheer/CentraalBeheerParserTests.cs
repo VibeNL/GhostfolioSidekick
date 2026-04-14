@@ -1,12 +1,9 @@
 using AutoFixture;
 using AwesomeAssertions;
-using CsvHelper;
-using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.CentraalBeheer;
-using System.Globalization;
 using System.Text;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer

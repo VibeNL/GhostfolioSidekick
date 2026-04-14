@@ -5,10 +5,8 @@ using Moq.EntityFrameworkCore;
 using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
-using GhostfolioSidekick.Database.Repository;
 
 namespace PortfolioViewer.WASM.Data.UnitTests.Services
 {

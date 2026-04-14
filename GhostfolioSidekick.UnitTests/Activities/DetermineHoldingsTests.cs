@@ -3,7 +3,6 @@ using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
 using Moq.EntityFrameworkCore;

@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Activities.Comparer;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
