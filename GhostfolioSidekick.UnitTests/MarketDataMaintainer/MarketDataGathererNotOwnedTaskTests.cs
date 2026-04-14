@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var priority = _marketDataGathererTask.Priority;
 
 			// Assert
-			priority.Should().Be(TaskPriority.MarketDataGatherer);
+			priority.Should().Be(TaskPriority.MarketDataGathererNotOwned);
 		}
 
 		[Fact]
