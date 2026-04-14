@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
                 .Options;
 
         [Fact]
-        public async Task DoWork_OfficialDividends_SnapshotIsCreated()
+        public async Task DoWork_OfficialDividends_TimelineEntryIsCreated()
         {
             using var connection = new SqliteConnection("Filename=:memory:");
             await connection.OpenAsync(TestContext.Current.CancellationToken);
