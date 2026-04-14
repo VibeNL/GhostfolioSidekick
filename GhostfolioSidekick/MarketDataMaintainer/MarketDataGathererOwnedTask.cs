@@ -13,6 +13,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public override string Name => "Market Data Gatherer (Owned)";
 
+		public override TaskPriority Priority => TaskPriority.MarketDataGatherer;
+
 		protected override bool ShouldProcess(bool isCurrentlyOwned) => isCurrentlyOwned;
 	}
 }

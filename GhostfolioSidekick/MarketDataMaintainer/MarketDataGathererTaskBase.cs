@@ -13,13 +13,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
-
 		public abstract TimeSpan ExecutionFrequency { get; }
 
 		public bool ExceptionsAreFatal => false;
 
 		public abstract string Name { get; }
+		public abstract TaskPriority Priority { get; }
 
 		protected abstract bool ShouldProcess(bool isCurrentlyOwned);
 
