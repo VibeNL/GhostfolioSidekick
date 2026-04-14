@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.Performance
 								HoldingId = holding.Id,
 								ExpectedDate = dividend.PaymentDate,
 								Amount = dividend.Amount.Amount,
-								Currency = dividend.Amount.Currency,
+								Currency = Currency.Create(dividend.Amount.Currency.Symbol),
 								AmountPrimaryCurrency = converted.Amount,
 								DividendType = dividend.DividendType,
 								DividendState = dividend.DividendState
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.Performance
 							 .FirstOrDefault(c => c != null && !string.IsNullOrWhiteSpace(c.Symbol));
 						if (predictedCurrency == null)
 						{
-							predictedCurrency = Currency.EUR;
+							predictedCurrency = Currency.Create("EUR");
 						}
 
 						if (pastDividends.Count > 0)
@@ -104,8 +104,10 @@ namespace GhostfolioSidekick.Performance
 							currency = predictedCurrency;
 							if (currency == null || string.IsNullOrWhiteSpace(currency.Symbol))
 							{
-								currency = Currency.EUR;
+								currency = Currency.Create("EUR");
 							}
+							// Ensure currency is not null for Money constructor
+							var safeCurrency = currency;
 							var intervals = pastDividends.Zip(pastDividends.Skip(1), (a, b) => (a.Date - b.Date).Days).ToList();
 							int avgInterval = intervals.Count > 0 ? (int)intervals.Average() : 90;
 							int numPeriods = avgInterval > 0 ? (int)Math.Floor(365.0 / avgInterval) : 4;
@@ -114,7 +116,7 @@ namespace GhostfolioSidekick.Performance
 							{
 								var expectedDate = DateOnly.FromDateTime(lastDate.AddDays(i * avgInterval));
 								totalExpectedReturn += avgAmount;
-								var converted = await currencyExchange.ConvertMoney(new Money(currency, avgAmount), primaryCurrency, expectedDate);
+								var converted = await currencyExchange.ConvertMoney(new Money(safeCurrency, avgAmount), primaryCurrency, expectedDate);
 								totalExpectedReturnPrimary += converted.Amount;
 								timelineEntries.Add(new UpcomingDividendTimelineEntry
 								{
@@ -122,7 +124,7 @@ namespace GhostfolioSidekick.Performance
 									HoldingId = holding.Id,
 									ExpectedDate = expectedDate,
 									Amount = avgAmount,
-									Currency = currency,
+									Currency = Currency.Create(!string.IsNullOrWhiteSpace(currency?.Symbol) ? currency.Symbol : "EUR"),
 									AmountPrimaryCurrency = converted.Amount,
 									DividendType = DividendType.Cash, // Prediction always cash
 									DividendState = DividendState.Predicted
@@ -133,8 +135,16 @@ namespace GhostfolioSidekick.Performance
 
 					if (totalExpectedReturn > 0 && currency is not null)
 					{
-						// Remove entries without a valid Currency
-						timelineEntries = [.. timelineEntries.Where(e => e.Currency != null)];
+						// Remove entries without a valid Currency or Symbol, and fix any missing symbols
+						timelineEntries = [.. timelineEntries.Where(e => e.Currency != null && !string.IsNullOrWhiteSpace(e.Currency.Symbol))];
+						foreach (var entry in timelineEntries)
+						{
+							if (entry.Currency == null || string.IsNullOrWhiteSpace(entry.Currency.Symbol))
+							{
+								entry.Currency = Currency.Create("EUR");
+							}
+						}
+
 						if (timelineEntries.Count > 0)
 						{
 							dbContext.UpcomingDividendTimelineEntries.AddRange(timelineEntries);

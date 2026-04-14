@@ -13,10 +13,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(x => x.ExpectedDate).IsRequired();
 			builder.Property(x => x.Amount).HasPrecision(18, 8).IsRequired();
 			builder.Property(x => x.AmountPrimaryCurrency).HasPrecision(18, 8).IsRequired();
-            builder.OwnsOne(x => x.Currency, cb =>
-			{
-				cb.Property(c => c.Symbol).HasColumnName("CurrencySymbol").IsRequired();
-			});
+            builder.ComplexProperty(c => c.Currency).Property(p => p.Symbol).HasColumnName("CurrencySymbol");
 			builder.Property(x => x.DividendType).IsRequired();
 			builder.Property(x => x.DividendState).IsRequired();
 		}

@@ -41,6 +41,11 @@ namespace GhostfolioSidekick.Model
 			Symbol = symbol;
 		}
 
+		public static Currency Create(string symbol)
+		{
+			return new Currency(symbol);
+		}
+
 		public string Symbol { get; init; }
 
 		public bool IsFiat()
