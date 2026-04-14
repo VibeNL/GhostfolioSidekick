@@ -127,23 +127,28 @@ namespace GhostfolioSidekick.Performance
 							int numPeriods = avgInterval > 0 ? (int)Math.Floor(365.0 / avgInterval) : 4;
 							var lastDate = pastDividends.First().Date;
 							for (int i = 1; i <= numPeriods; i++)
+                       {
+							var expectedDate = DateOnly.FromDateTime(lastDate.AddDays(i * avgInterval));
+							if (expectedDate < today)
 							{
-								var expectedDate = DateOnly.FromDateTime(lastDate.AddDays(i * avgInterval));
-								totalExpectedReturn += avgAmount;
-								var converted = await currencyExchange.ConvertMoney(new Money(safeCurrency, avgAmount), primaryCurrency, expectedDate);
-								totalExpectedReturnPrimary += converted.Amount;
-								timelineEntries.Add(new UpcomingDividendTimelineEntry
-								{
-									Id = Guid.NewGuid(),
-									HoldingId = holding.Id,
-									ExpectedDate = expectedDate,
-									Amount = avgAmount,
-									Currency = Currency.GetCurrency(!string.IsNullOrWhiteSpace(currency?.Symbol) ? currency.Symbol : "EUR"),
-									AmountPrimaryCurrency = converted.Amount,
-									DividendType = DividendType.Cash, // Prediction always cash
-									DividendState = DividendState.Predicted
-								});
+								continue;
 							}
+
+							totalExpectedReturn += avgAmount;
+							var converted = await currencyExchange.ConvertMoney(new Money(safeCurrency, avgAmount), primaryCurrency, expectedDate);
+							totalExpectedReturnPrimary += converted.Amount;
+							timelineEntries.Add(new UpcomingDividendTimelineEntry
+							{
+								Id = Guid.NewGuid(),
+								HoldingId = holding.Id,
+								ExpectedDate = expectedDate,
+								Amount = avgAmount,
+								Currency = Currency.GetCurrency(!string.IsNullOrWhiteSpace(currency?.Symbol) ? currency.Symbol : "EUR"),
+								AmountPrimaryCurrency = converted.Amount,
+								DividendType = DividendType.Cash, // Prediction always cash
+								DividendState = DividendState.Predicted
+							});
+						}
 						}
 					}
 
