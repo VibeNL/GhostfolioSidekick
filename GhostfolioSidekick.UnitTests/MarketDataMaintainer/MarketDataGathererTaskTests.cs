@@ -4,26 +4,27 @@ using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 {
-	public class MarketDataGathererTaskTests
+	public class MarketDataGathererOwnedTaskTests
 	{
 		private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository1;
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository2;
 		private readonly IStockPriceRepository[] _stockPriceRepositories;
-		private readonly MarketDataGathererTask _marketDataGathererTask;
+		private readonly MarketDataGathererOwnedTask _marketDataGathererTask;
 
-		public MarketDataGathererTaskTests()
+		public MarketDataGathererOwnedTaskTests()
 		{
 			_mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
 			_mockStockPriceRepository1 = new Mock<IStockPriceRepository>();
 			_mockStockPriceRepository2 = new Mock<IStockPriceRepository>();
 			_stockPriceRepositories = [_mockStockPriceRepository1.Object, _mockStockPriceRepository2.Object];
-			_marketDataGathererTask = new MarketDataGathererTask(
+			_marketDataGathererTask = new MarketDataGathererOwnedTask(
 				_mockDbContextFactory.Object,
 				_stockPriceRepositories);
 		}
@@ -81,7 +82,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -125,7 +126,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -170,6 +171,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext1.Object)
@@ -178,7 +180,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("OTHER_SOURCE");
 			_mockStockPriceRepository2.Setup(r => r.DataSource).Returns("ANOTHER_SOURCE");
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -223,6 +225,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext1.Object)
@@ -232,7 +235,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -287,6 +290,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext1.Object)
@@ -296,7 +300,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -344,6 +348,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext1.Object)
@@ -353,7 +358,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -396,6 +401,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext1.Object)
@@ -406,7 +412,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new List<MarketData>());
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -470,8 +476,10 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 			mockDbContext3.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext3.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext3.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext1.Object)
@@ -482,7 +490,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -530,6 +538,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
 
 			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(mockDbContext1.Object)
@@ -539,7 +548,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new List<MarketData> { md2 }); // Only the zero value is returned as new data
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -549,6 +558,69 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			md2.Close.Should().BeApproximately(150, 0.0001m);
 			md2.IsGenerated.Should().BeTrue();
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldSkipNotOwnedSymbol()
+		{
+			// Arrange
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = []
+			};
+
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holding = new Holding
+			{
+				Id = 1,
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
+					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
+				]
+			};
+			var holdings = new List<Holding> { holding };
+
+			// CalculatedSnapshot with Quantity = 0 means not currently owned
+			var snapshot = new CalculatedSnapshot
+			{
+				HoldingId = 1,
+				Date = DateOnly.FromDateTime(DateTime.Today),
+				Quantity = 0
+			};
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert - should skip because owned task does not process not-owned symbols
+			_mockStockPriceRepository1.Verify(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), Times.Never);
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Debug,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Skipping market data for AAPL from TEST_SOURCE")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+				Times.Once);
 		}
 	}
 }

@@ -2,22 +2,26 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataGathererTask(
+	internal abstract class MarketDataGathererTaskBase(
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
-		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
+		public abstract TimeSpan ExecutionFrequency { get; }
 
 		public bool ExceptionsAreFatal => false;
 
-		public string Name => "Market Data Gatherer";
+		public abstract string Name { get; }
+
+		protected abstract bool ShouldProcess(bool isCurrentlyOwned);
 
 		public async Task DoWork(ILogger logger)
 		{
@@ -48,6 +52,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				if (!await activities.AnyAsync())
 				{
 					logger.LogDebug("No activities found for {Symbol} from {DataSource}", symbol.Symbol, symbol.DataSource);
+					continue;
+				}
+
+				var isCurrentlyOwned = await IsCurrentlyOwned(databaseContext, symbol);
+				if (!ShouldProcess(isCurrentlyOwned))
+				{
+					logger.LogDebug("Skipping market data for {Symbol} from {DataSource} (owned: {IsOwned})", symbol.Symbol, symbol.DataSource, isCurrentlyOwned);
 					continue;
 				}
 
@@ -151,7 +162,40 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				await databaseContext.SaveChangesAsync();
 				logger.LogDebug("Market data for {Symbol} from {DataSource} gathered", symbol.Symbol, symbol.DataSource);
 			}
+		}
 
+		internal static async Task<bool> IsCurrentlyOwned(DatabaseContext databaseContext, SymbolProfile symbol)
+		{
+			var holdingIds = await databaseContext.Holdings
+				.Where(h => h.SymbolProfiles.Contains(symbol))
+				.Select(h => h.Id)
+				.ToListAsync();
+
+			if (holdingIds.Count == 0)
+			{
+				return false;
+			}
+
+			var latestSnapshots = new List<CalculatedSnapshot>();
+			foreach (var holdingId in holdingIds)
+			{
+				var latestSnapshot = await databaseContext.CalculatedSnapshots
+					.Where(cs => cs.HoldingId == holdingId)
+					.OrderByDescending(cs => cs.Date)
+					.FirstOrDefaultAsync();
+				if (latestSnapshot != null)
+				{
+					latestSnapshots.Add(latestSnapshot);
+				}
+			}
+
+			// If no snapshots exist, default to owned (safe - performance hasn't been calculated yet)
+			if (latestSnapshots.Count == 0)
+			{
+				return true;
+			}
+
+			return latestSnapshots.Any(s => s.Quantity > 0);
 		}
 	}
 }
