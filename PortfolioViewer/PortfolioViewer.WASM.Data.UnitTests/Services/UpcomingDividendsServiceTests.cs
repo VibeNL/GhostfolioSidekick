@@ -37,7 +37,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockContext.Object);
 
-            var mockCurrencyExchange = new Mock<ICurrencyExchange>();
             var mockConfigService = new Mock<IServerConfigurationService>();
             mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
@@ -84,7 +83,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockContext.Object);
 
-            var mockCurrencyExchange = new Mock<ICurrencyExchange>();
             var mockConfigService = new Mock<IServerConfigurationService>();
             mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
