@@ -31,9 +31,10 @@ namespace GhostfolioSidekick.Performance
 			var oneYearFromNow = today.AddYears(1);
 			var primaryCurrency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 			var holdings = await dbContext.Holdings
-				.Include(h => h.SymbolProfiles)
-				.Include(h => h.Activities)
-				.ToListAsync();
+				   .Include(h => h.SymbolProfiles)
+				   .Include(h => h.Activities)
+				   .Include(h => h.CalculatedSnapshots)
+				   .ToListAsync();
 
 			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync();
 
@@ -54,16 +55,27 @@ namespace GhostfolioSidekick.Performance
 					{
 						var officialDividends = await dbContext.Dividends
 							.Where(d => d.SymbolProfileSymbol == symbolProfile.Symbol
+								&& d.SymbolProfileDataSource == symbolProfile.DataSource
 								&& d.PaymentDate >= today
 								&& d.PaymentDate <= oneYearFromNow
 								&& d.DividendState != DividendState.Paid)
 							.ToListAsync();
 
+						// Get latest quantity from CalculatedSnapshots
+						var latestSnapshot = holding.CalculatedSnapshots
+							.OrderByDescending(s => s.Date)
+							.FirstOrDefault();
+						var quantity = latestSnapshot?.Quantity ?? 0m;
+
 						foreach (var dividend in officialDividends)
 						{
-							totalExpectedReturn += dividend.Amount.Amount;
+							var totalAmount = dividend.Amount.Amount * quantity;
+							totalExpectedReturn += totalAmount;
 							currency ??= dividend.Amount.Currency;
-							var converted = await currencyExchange.ConvertMoney(dividend.Amount, primaryCurrency, dividend.PaymentDate);
+							var converted = await currencyExchange.ConvertMoney(
+								new Money(dividend.Amount.Currency, totalAmount),
+								primaryCurrency,
+								dividend.PaymentDate);
 							totalExpectedReturnPrimary += converted.Amount;
 							hasOfficial = true;
 							timelineEntries.Add(new UpcomingDividendTimelineEntry
@@ -71,7 +83,7 @@ namespace GhostfolioSidekick.Performance
 								Id = Guid.NewGuid(),
 								HoldingId = holding.Id,
 								ExpectedDate = dividend.PaymentDate,
-								Amount = dividend.Amount.Amount,
+								Amount = totalAmount,
 								Currency = Currency.GetCurrency(dividend.Amount.Currency.Symbol),
 								AmountPrimaryCurrency = converted.Amount,
 								DividendType = dividend.DividendType,
