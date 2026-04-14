@@ -66,29 +66,31 @@ namespace GhostfolioSidekick.Performance
 							.OrderByDescending(s => s.Date)
 							.FirstOrDefault();
 						var quantity = latestSnapshot?.Quantity ?? 0m;
-
-						foreach (var dividend in officialDividends)
+						if (quantity > 0m)
 						{
-							var totalAmount = dividend.Amount.Amount * quantity;
-							totalExpectedReturn += totalAmount;
-							currency ??= dividend.Amount.Currency;
-							var converted = await currencyExchange.ConvertMoney(
-								new Money(dividend.Amount.Currency, totalAmount),
-								primaryCurrency,
-								dividend.PaymentDate);
-							totalExpectedReturnPrimary += converted.Amount;
-							hasOfficial = true;
-							timelineEntries.Add(new UpcomingDividendTimelineEntry
+							foreach (var dividend in officialDividends)
 							{
-								Id = Guid.NewGuid(),
-								HoldingId = holding.Id,
-								ExpectedDate = dividend.PaymentDate,
-								Amount = totalAmount,
-								Currency = Currency.GetCurrency(dividend.Amount.Currency.Symbol),
-								AmountPrimaryCurrency = converted.Amount,
-								DividendType = dividend.DividendType,
-								DividendState = dividend.DividendState
-							});
+								var totalAmount = dividend.Amount.Amount * quantity;
+								totalExpectedReturn += totalAmount;
+								currency ??= dividend.Amount.Currency;
+								var converted = await currencyExchange.ConvertMoney(
+									new Money(dividend.Amount.Currency, totalAmount),
+									primaryCurrency,
+									dividend.PaymentDate);
+								totalExpectedReturnPrimary += converted.Amount;
+								hasOfficial = true;
+								timelineEntries.Add(new UpcomingDividendTimelineEntry
+								{
+									Id = Guid.NewGuid(),
+									HoldingId = holding.Id,
+									ExpectedDate = dividend.PaymentDate,
+									Amount = totalAmount,
+									Currency = Currency.GetCurrency(dividend.Amount.Currency.Symbol),
+									AmountPrimaryCurrency = converted.Amount,
+									DividendType = dividend.DividendType,
+									DividendState = dividend.DividendState
+								});
+							}
 						}
 					}
 
