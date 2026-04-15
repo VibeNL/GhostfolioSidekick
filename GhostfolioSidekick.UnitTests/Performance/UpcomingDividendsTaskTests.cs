@@ -82,7 +82,8 @@ namespace GhostfolioSidekick.UnitTests.Performance
             var holding = new Holding
             {
                 Id = 2,
-                SymbolProfiles = [new SymbolProfile { Symbol = "TEST2", Currency = Currency.EUR, DataSource = "YAHOO", Name = "Test2", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }]
+                SymbolProfiles = [new SymbolProfile { Symbol = "TEST2", Currency = Currency.EUR, DataSource = "YAHOO", Name = "Test2", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }],
+                CalculatedSnapshots = [new CalculatedSnapshot { Date = DateOnly.FromDateTime(DateTime.Today), Quantity = 10, Currency = Currency.EUR }]
             };
             dbContext.Holdings.Add(holding);
             await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
