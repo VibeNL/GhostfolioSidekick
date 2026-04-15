@@ -65,6 +65,10 @@
                                         <tr class="@(div.IsPredicted ? "table-secondary" : "")">
                                             <td>
                                                 <strong>@div.Symbol</strong>
+                                                @if (!string.IsNullOrWhiteSpace(div.CompanyName))
+                                                {
+                                                    <span class="text-muted">[@div.CompanyName]</span>
+                                                }
                                                 @if (div.IsPredicted)
                                                 {
                                                     <span class="badge bg-secondary ms-1" title="Estimated based on historical pattern">~</span>
