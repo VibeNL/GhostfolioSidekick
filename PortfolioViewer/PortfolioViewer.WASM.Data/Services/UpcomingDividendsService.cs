@@ -19,23 +19,47 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
             await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
-			var entries = await db.UpcomingDividendTimelineEntries.AsNoTracking().ToListAsync();
 
-			return [.. entries.Select(e => new UpcomingDividendModel
+            var query =
+				from entry in db.UpcomingDividendTimelineEntries.AsNoTracking()
+				join holding in db.Holdings.Include(h => h.SymbolProfiles).Include(h => h.CalculatedSnapshots).AsNoTracking()
+					on entry.HoldingId equals holding.Id into holdingJoin
+				from holding in holdingJoin.DefaultIfEmpty()
+				select new { entry, holding };
+
+			var data = query.AsEnumerable();
+			var result = new List<UpcomingDividendModel>();
+			foreach (var item in data)
 			{
-				Symbol = e.HoldingId.ToString(), // Optionally resolve symbol/profile here
-				CompanyName = string.Empty, // Not available directly
-				ExDate = DateTime.MinValue, // Not available
-				PaymentDate = new DateTime(e.ExpectedDate.Year, e.ExpectedDate.Month, e.ExpectedDate.Day, 0, 0, 0, DateTimeKind.Utc),
-				Amount = e.Amount,
-				Currency = e.Currency?.Symbol ?? string.Empty,
-				DividendPerShare = 0, // Not available
-				AmountPrimaryCurrency = e.AmountPrimaryCurrency,
-				PrimaryCurrency = primaryCurrency.Symbol,
-				DividendPerSharePrimaryCurrency = null,
-				Quantity = 0, // Not available
-				IsPredicted = e.DividendState == DividendState.Predicted
-			})];
+				var entry = item.entry;
+				var holding = item.holding;
+				var profile = (holding != null && holding.SymbolProfiles != null && holding.SymbolProfiles.Count > 0)
+					? holding.SymbolProfiles.FirstOrDefault()
+					: null;
+				decimal quantity = 0;
+				if (holding != null && holding.CalculatedSnapshots != null && holding.CalculatedSnapshots.Count > 0)
+				{
+					var latest = holding.CalculatedSnapshots.OrderByDescending(s => s.Date).FirstOrDefault();
+					if (latest != null)
+						quantity = latest.Quantity;
+				}
+				result.Add(new UpcomingDividendModel
+				{
+					Symbol = (profile != null && profile.Symbol != null) ? profile.Symbol : entry.HoldingId.ToString(),
+					CompanyName = (profile != null && profile.Name != null) ? profile.Name : string.Empty,
+					ExDate = DateTime.MinValue, // Not available in UpcomingDividendTimelineEntry
+					PaymentDate = new DateTime(entry.ExpectedDate.Year, entry.ExpectedDate.Month, entry.ExpectedDate.Day, 0, 0, 0, DateTimeKind.Utc),
+					Amount = entry.Amount,
+					Currency = (entry.Currency != null && entry.Currency.Symbol != null) ? entry.Currency.Symbol : string.Empty,
+					DividendPerShare = (quantity > 0) ? entry.Amount / quantity : 0,
+					AmountPrimaryCurrency = entry.AmountPrimaryCurrency,
+					PrimaryCurrency = primaryCurrency.Symbol,
+					DividendPerSharePrimaryCurrency = (quantity > 0 && entry.AmountPrimaryCurrency > 0) ? entry.AmountPrimaryCurrency / quantity : null,
+					Quantity = quantity,
+					IsPredicted = entry.DividendState == DividendState.Predicted
+				});
+			}
+			return result;
 		}
 	}
 }
