@@ -20,14 +20,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
             await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
 
-            var query =
-				from entry in db.UpcomingDividendTimelineEntries.AsNoTracking()
-				join holding in db.Holdings.Include(h => h.SymbolProfiles).Include(h => h.CalculatedSnapshots).AsNoTracking()
-					on entry.HoldingId equals holding.Id into holdingJoin
-				from holding in holdingJoin.DefaultIfEmpty()
-				select new { entry, holding };
+            var data = await db.UpcomingDividendTimelineEntries
+				.AsNoTracking()
+				.GroupJoin(
+					db.Holdings.Include(h => h.SymbolProfiles).Include(h => h.CalculatedSnapshots).AsNoTracking(),
+					entry => entry.HoldingId,
+					holding => holding.Id,
+					(entry, holdings) => new { entry, holding = holdings.FirstOrDefault() }
+				)
+				.ToListAsync();
 
-			var data = query.AsEnumerable();
 			var result = new List<UpcomingDividendModel>();
 			foreach (var item in data)
 			{
