@@ -17,10 +17,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// </summary>
 		public async Task<List<UpcomingDividendModel>> GetUpcomingDividendsAsync()
 		{
-            await using var db = await dbContextFactory.CreateDbContextAsync();
+			await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
 
-            var data = await db.UpcomingDividendTimelineEntries
+			var data = await db.UpcomingDividendTimelineEntries
 				.AsNoTracking()
 				.GroupJoin(
 					db.Holdings.Include(h => h.SymbolProfiles).Include(h => h.CalculatedSnapshots).AsNoTracking(),
@@ -49,8 +49,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				{
 					Symbol = (profile != null && profile.Symbol != null) ? profile.Symbol : entry.HoldingId.ToString(),
 					CompanyName = (profile != null && profile.Name != null) ? profile.Name : string.Empty,
-					ExDate = DateTime.MinValue, // Not available in UpcomingDividendTimelineEntry
-					PaymentDate = new DateTime(entry.ExpectedDate.Year, entry.ExpectedDate.Month, entry.ExpectedDate.Day, 0, 0, 0, DateTimeKind.Utc),
+					ExDate = entry.ExDate,
+					PaymentDate = entry.ExpectedDate,
 					Amount = entry.Amount,
 					Currency = (entry.Currency != null && entry.Currency.Symbol != null) ? entry.Currency.Symbol : string.Empty,
 					DividendPerShare = (quantity > 0) ? entry.Amount / quantity : 0,

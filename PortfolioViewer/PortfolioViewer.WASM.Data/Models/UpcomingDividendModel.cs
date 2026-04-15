@@ -4,8 +4,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
     {
         public string Symbol { get; set; } = string.Empty;
         public string CompanyName { get; set; } = string.Empty;
-        public DateTime ExDate { get; set; }
-        public DateTime PaymentDate { get; set; }
+        public DateOnly ExDate { get; set; }
+        public DateOnly PaymentDate { get; set; }
         
         // Native currency (original dividend currency)
         public decimal Amount { get; set; }

@@ -85,6 +85,7 @@ namespace GhostfolioSidekick.Performance
 									Id = Guid.NewGuid(),
 									HoldingId = holding.Id,
 									ExpectedDate = dividend.PaymentDate,
+                                    ExDate = dividend.ExDividendDate,
 									Amount = totalAmount,
 									Currency = Currency.GetCurrency(dividend.Amount.Currency.Symbol),
 									AmountPrimaryCurrency = converted.Amount,
