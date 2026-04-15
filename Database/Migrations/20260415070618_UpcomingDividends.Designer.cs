@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20260409113639_UpcomingDividends")]
+    [Migration("20260415070618_UpcomingDividends")]
     partial class UpcomingDividends
     {
         /// <inheritdoc />
@@ -812,11 +812,24 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<int>("DividendType")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateOnly>("ExDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateOnly>("ExpectedDate")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("HoldingId")
                         .HasColumnType("INTEGER");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Currency", "GhostfolioSidekick.Model.Performance.UpcomingDividendTimelineEntry.Currency#Currency", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("Symbol")
+                                .IsRequired()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("CurrencySymbol");
+                        });
 
                     b.HasKey("Id");
 
@@ -1361,30 +1374,6 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("Holding");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Performance.UpcomingDividendTimelineEntry", b =>
-                {
-                    b.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b1 =>
-                        {
-                            b1.Property<Guid>("UpcomingDividendTimelineEntryId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Symbol")
-                                .IsRequired()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("CurrencySymbol");
-
-                            b1.HasKey("UpcomingDividendTimelineEntryId");
-
-                            b1.ToTable("UpcomingDividendTimelineEntries");
-
-                            b1.WithOwner()
-                                .HasForeignKey("UpcomingDividendTimelineEntryId");
-                        });
-
-                    b.Navigation("Currency")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>

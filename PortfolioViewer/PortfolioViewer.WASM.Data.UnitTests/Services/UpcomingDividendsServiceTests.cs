@@ -52,7 +52,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             Assert.Equal("USD", div.Currency);
             Assert.Equal(100.0m, div.AmountPrimaryCurrency);
             Assert.Equal("USD", div.PrimaryCurrency);
-            Assert.True(div.PaymentDate > DateTime.Today);
+            Assert.True(div.PaymentDate > DateOnly.FromDateTime(DateTime.Today));
             Assert.Equal(0, div.DividendPerShare);
             Assert.Null(div.DividendPerSharePrimaryCurrency);
             Assert.Equal(0, div.Quantity);
@@ -98,7 +98,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             Assert.Equal("EUR", div.Currency);
             Assert.Equal(220.0m, div.AmountPrimaryCurrency);
             Assert.Equal("USD", div.PrimaryCurrency);
-            Assert.True(div.PaymentDate > DateTime.Today);
+            Assert.True(div.PaymentDate > DateOnly.FromDateTime(DateTime.Today));
             Assert.Equal(0, div.DividendPerShare);
             Assert.Null(div.DividendPerSharePrimaryCurrency);
             Assert.Equal(0, div.Quantity);
