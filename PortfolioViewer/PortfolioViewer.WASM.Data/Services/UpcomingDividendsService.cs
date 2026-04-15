@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// Retrieves upcoming dividends for all portfolio holdings.
 		/// </summary>
 		public async Task<List<UpcomingDividendModel>> GetUpcomingDividendsAsync()
-		{
+        {
 			await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
 
@@ -30,8 +30,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				)
 				.ToListAsync();
 
-			var result = new List<UpcomingDividendModel>();
-			foreach (var item in data)
+			var result = data.Select(item =>
 			{
 				var entry = item.entry;
 				var holding = item.holding;
@@ -45,7 +44,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					if (latest != null)
 						quantity = latest.Quantity;
 				}
-				result.Add(new UpcomingDividendModel
+				return new UpcomingDividendModel
 				{
 					Symbol = (profile != null && profile.Symbol != null) ? profile.Symbol : entry.HoldingId.ToString(),
 					CompanyName = (profile != null && profile.Name != null) ? profile.Name : string.Empty,
@@ -59,8 +58,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					DividendPerSharePrimaryCurrency = (quantity > 0 && entry.AmountPrimaryCurrency > 0) ? entry.AmountPrimaryCurrency / quantity : null,
 					Quantity = quantity,
 					IsPredicted = entry.DividendState == DividendState.Predicted
-				});
-			}
+				};
+			}).ToList();
+
 			return result;
 		}
 	}

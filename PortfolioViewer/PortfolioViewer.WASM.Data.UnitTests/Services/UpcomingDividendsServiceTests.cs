@@ -5,6 +5,7 @@ using Moq.EntityFrameworkCore;
 using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Market;
+using SymbolProfile = GhostfolioSidekick.Model.Symbols.SymbolProfile;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 
@@ -28,8 +29,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
                 DividendState = DividendState.Declared
             };
 
+          var holding = new Holding
+            {
+                Id = 42,
+                SymbolProfiles = new List<SymbolProfile>(),
+                CalculatedSnapshots = new List<CalculatedSnapshot>()
+            };
+
             var mockContext = new Mock<DatabaseContext>();
             mockContext.Setup(x => x.UpcomingDividendTimelineEntries).ReturnsDbSet(new List<UpcomingDividendTimelineEntry> { timelineEntry });
+            mockContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding> { holding });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
@@ -74,8 +83,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
                 DividendState = DividendState.Declared
             };
 
+          var holding = new Holding
+            {
+                Id = 99,
+                SymbolProfiles = new List<SymbolProfile>(),
+                CalculatedSnapshots = new List<CalculatedSnapshot>()
+            };
+
             var mockContext = new Mock<DatabaseContext>();
             mockContext.Setup(x => x.UpcomingDividendTimelineEntries).ReturnsDbSet(new List<UpcomingDividendTimelineEntry> { timelineEntry });
+            mockContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding> { holding });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
