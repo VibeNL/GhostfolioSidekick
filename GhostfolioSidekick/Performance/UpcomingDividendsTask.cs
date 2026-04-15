@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.Performance
 					if (!hasOfficial)
 					{
 						var pastDividends = holding.Activities
-							.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
+							.OfType<DividendActivity>()
 							.Where(a => a.Date < DateTime.Today)
 							.OrderByDescending(a => a.Date)
 							.Take(3)
