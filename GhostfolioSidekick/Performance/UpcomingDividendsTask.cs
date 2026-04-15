@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.Performance
 									Id = Guid.NewGuid(),
 									HoldingId = holding.Id,
 									ExpectedDate = dividend.PaymentDate,
-                                    ExDate = dividend.ExDividendDate,
+									ExDate = dividend.ExDividendDate,
 									Amount = totalAmount,
 									Currency = Currency.GetCurrency(dividend.Amount.Currency.Symbol),
 									AmountPrimaryCurrency = converted.Amount,
@@ -114,46 +114,55 @@ namespace GhostfolioSidekick.Performance
 							predictedCurrency = Currency.EUR;
 						}
 
-                if (pastDividends.Count > 0)
-			   {
-				   var avgAmount = pastDividends.Average(a => a.Amount.Amount);
-				   currency = predictedCurrency;
-				   if (currency == null || string.IsNullOrWhiteSpace(currency.Symbol))
-				   {
-					   currency = Currency.EUR;
-				   }
-				   // Ensure currency is not null for Money constructor
-				   var safeCurrency = currency;
-				   var intervals = pastDividends.Zip(pastDividends.Skip(1), (a, b) => (a.Date - b.Date).Days).ToList();
-				   int avgInterval = intervals.Count > 0 ? (int)intervals.Average() : 90;
-				   int numPeriods = avgInterval > 0 ? (int)Math.Floor(365.0 / avgInterval) : 4;
-				   var lastDate = pastDividends.First().Date;
-				   int predictedExDateOffset = 7; // Always use 7 days before expected payment date
-				   for (int i = 1; i <= numPeriods; i++)
-				   {
-					   var expectedDate = DateOnly.FromDateTime(lastDate.AddDays(i * avgInterval));
-					   if (expectedDate < today)
-					   {
-						   continue;
-					   }
-					   totalExpectedReturn += avgAmount;
-					   var converted = await currencyExchange.ConvertMoney(new Money(safeCurrency, avgAmount), primaryCurrency, expectedDate);
-					   totalExpectedReturnPrimary += converted.Amount;
-					   var predictedExDate = expectedDate.AddDays(-predictedExDateOffset);
-					   timelineEntries.Add(new UpcomingDividendTimelineEntry
-					   {
-						   Id = Guid.NewGuid(),
-						   HoldingId = holding.Id,
-						   ExpectedDate = expectedDate,
-						   ExDate = predictedExDate,
-						   Amount = avgAmount,
-						   Currency = Currency.GetCurrency(!string.IsNullOrWhiteSpace(currency?.Symbol) ? currency.Symbol : "EUR"),
-						   AmountPrimaryCurrency = converted.Amount,
-						   DividendType = DividendType.Cash, // Prediction always cash
-						   DividendState = DividendState.Predicted
-					   });
-				   }
-			   }
+						if (pastDividends.Count > 0)
+						{
+							var latestSnapshotForPrediction = holding.CalculatedSnapshots
+								.OrderByDescending(s => s.Date)
+								.FirstOrDefault();
+							var quantityForPrediction = latestSnapshotForPrediction?.Quantity ?? 0m;
+							if (quantityForPrediction <= 0m)
+							{
+								continue;
+							}
+
+							var avgAmount = pastDividends.Average(a => a.Amount.Amount);
+							currency = predictedCurrency;
+							if (currency == null || string.IsNullOrWhiteSpace(currency.Symbol))
+							{
+								currency = Currency.EUR;
+							}
+							// Ensure currency is not null for Money constructor
+							var safeCurrency = currency;
+							var intervals = pastDividends.Zip(pastDividends.Skip(1), (a, b) => (a.Date - b.Date).Days).ToList();
+							int avgInterval = intervals.Count > 0 ? (int)intervals.Average() : 90;
+							int numPeriods = avgInterval > 0 ? (int)Math.Floor(365.0 / avgInterval) : 4;
+							var lastDate = pastDividends.First().Date;
+							int predictedExDateOffset = 7; // Always use 7 days before expected payment date
+							for (int i = 1; i <= numPeriods; i++)
+							{
+								var expectedDate = DateOnly.FromDateTime(lastDate.AddDays(i * avgInterval));
+								if (expectedDate < today)
+								{
+									continue;
+								}
+								totalExpectedReturn += avgAmount;
+								var converted = await currencyExchange.ConvertMoney(new Money(safeCurrency, avgAmount), primaryCurrency, expectedDate);
+								totalExpectedReturnPrimary += converted.Amount;
+								var predictedExDate = expectedDate.AddDays(-predictedExDateOffset);
+								timelineEntries.Add(new UpcomingDividendTimelineEntry
+								{
+									Id = Guid.NewGuid(),
+									HoldingId = holding.Id,
+									ExpectedDate = expectedDate,
+									ExDate = predictedExDate,
+									Amount = avgAmount,
+									Currency = Currency.GetCurrency(!string.IsNullOrWhiteSpace(currency?.Symbol) ? currency.Symbol : "EUR"),
+									AmountPrimaryCurrency = converted.Amount,
+									DividendType = DividendType.Cash, // Prediction always cash
+									DividendState = DividendState.Predicted
+								});
+							}
+						}
 					}
 
 					if (totalExpectedReturn > 0 && currency is not null)
