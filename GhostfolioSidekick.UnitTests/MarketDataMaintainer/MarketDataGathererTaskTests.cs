@@ -563,12 +563,20 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldSkipNotOwnedSymbol()
 		{
 			// Arrange
+			// Market data covering from activity date up to today so the date logic
+			// sets date = maxDate = Today, triggering the "not currently owned" skip.
+			var activityDate = DateTime.Today.AddDays(-30);
+			var existingMarketData = new MarketData(
+				Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(activityDate));
+			var latestMarketData = new MarketData(
+				Currency.USD, 110, 105, 115, 100, 1100, DateOnly.FromDateTime(DateTime.Today));
+
 			var symbolProfile = new SymbolProfile
 			{
 				Symbol = "AAPL",
 				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
-				MarketData = []
+				MarketData = [existingMarketData, latestMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
@@ -578,7 +586,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
-					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = activityDate }
 				]
 			};
 			var holdings = new List<Holding> { holding };
@@ -610,13 +618,13 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
-			// Assert - should skip because owned task does not process not-owned symbols
+			// Assert - should skip because symbol is not currently owned and market data is up to date
 			_mockStockPriceRepository1.Verify(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), Times.Never);
 			loggerMock.Verify(
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Skipping market data for AAPL from TEST_SOURCE")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("is not currently owned and data till today is processed. Skipping till tomorrow")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
