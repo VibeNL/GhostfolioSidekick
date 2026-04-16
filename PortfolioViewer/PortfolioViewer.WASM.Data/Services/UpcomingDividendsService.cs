@@ -16,52 +16,56 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// Retrieves upcoming dividends for all portfolio holdings.
 		/// </summary>
 		public async Task<List<UpcomingDividendModel>> GetUpcomingDividendsAsync()
-        {
+		{
 			await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
 
-			var data = await db.UpcomingDividendTimelineEntries
+			var entries = await db.UpcomingDividendTimelineEntries
 				.AsNoTracking()
-				.GroupJoin(
-					db.Holdings.Include(h => h.SymbolProfiles).Include(h => h.CalculatedSnapshots).AsNoTracking(),
-					entry => entry.HoldingId,
-					holding => holding.Id,
-					(entry, holdings) => new { entry, holding = holdings.FirstOrDefault() }
-				)
 				.ToListAsync();
 
-			var result = data.Select(item =>
+			if (entries.Count == 0)
 			{
-				var entry = item.entry;
-				var holding = item.holding;
-				var profile = (holding != null && holding.SymbolProfiles != null && holding.SymbolProfiles.Count > 0)
-					? holding.SymbolProfiles.FirstOrDefault()
-					: null;
-				decimal quantity = 0;
-				if (holding != null && holding.CalculatedSnapshots != null && holding.CalculatedSnapshots.Count > 0)
+				return [];
+			}
+
+			var holdingIds = entries.Select(e => e.HoldingId).Distinct().ToList();
+
+			var holdingData = await db.Holdings
+				.AsNoTracking()
+				.Where(h => holdingIds.Contains(h.Id))
+				.Select(h => new
 				{
-					var latest = holding.CalculatedSnapshots.OrderByDescending(s => s.Date).FirstOrDefault();
-					if (latest != null)
-						quantity = latest.Quantity;
-				}
+					h.Id,
+					Symbol = h.SymbolProfiles.Select(p => p.Symbol).FirstOrDefault(),
+					Name = h.SymbolProfiles.Select(p => p.Name).FirstOrDefault(),
+					LatestQuantity = h.CalculatedSnapshots
+						.OrderByDescending(s => s.Date)
+						.Select(s => s.Quantity)
+						.FirstOrDefault()
+				})
+				.ToDictionaryAsync(h => h.Id);
+
+			return entries.Select(entry =>
+			{
+				holdingData.TryGetValue(entry.HoldingId, out var holding);
+				var quantity = holding?.LatestQuantity ?? 0m;
 				return new UpcomingDividendModel
 				{
-					Symbol = (profile != null && profile.Symbol != null) ? profile.Symbol : entry.HoldingId.ToString(),
-					CompanyName = (profile != null && profile.Name != null) ? profile.Name : string.Empty,
+					Symbol = holding?.Symbol ?? entry.HoldingId.ToString(),
+					CompanyName = holding?.Name ?? string.Empty,
 					ExDate = entry.ExDate,
 					PaymentDate = entry.ExpectedDate,
 					Amount = entry.Amount,
-					Currency = (entry.Currency != null && entry.Currency.Symbol != null) ? entry.Currency.Symbol : string.Empty,
-					DividendPerShare = (quantity > 0) ? entry.Amount / quantity : 0,
+					Currency = entry.Currency?.Symbol ?? string.Empty,
+					DividendPerShare = quantity > 0 ? entry.Amount / quantity : 0,
 					AmountPrimaryCurrency = entry.AmountPrimaryCurrency,
 					PrimaryCurrency = primaryCurrency.Symbol,
-					DividendPerSharePrimaryCurrency = (quantity > 0 && entry.AmountPrimaryCurrency > 0) ? entry.AmountPrimaryCurrency / quantity : null,
+					DividendPerSharePrimaryCurrency = quantity > 0 && entry.AmountPrimaryCurrency > 0 ? entry.AmountPrimaryCurrency / quantity : null,
 					Quantity = quantity,
 					IsPredicted = entry.DividendState == DividendState.Predicted
 				};
 			}).ToList();
-
-			return result;
 		}
 	}
 }
