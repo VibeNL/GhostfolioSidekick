@@ -8,18 +8,17 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal abstract class MarketDataGathererTaskBase(
+	internal class MarketDataGathererTask(
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
-		public abstract TimeSpan ExecutionFrequency { get; }
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public bool ExceptionsAreFatal => false;
 
-		public abstract string Name { get; }
-		public abstract TaskPriority Priority { get; }
+		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
-		protected abstract bool ShouldProcess(bool isCurrentlyOwned);
+		public string Name => "Market Data Gatherer";
 
 		public async Task DoWork(ILogger logger)
 		{
@@ -50,13 +49,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				if (!await activities.AnyAsync())
 				{
 					logger.LogDebug("No activities found for {Symbol} from {DataSource}", symbol.Symbol, symbol.DataSource);
-					continue;
-				}
-
-				var isCurrentlyOwned = await IsCurrentlyOwned(databaseContext, symbol);
-				if (!ShouldProcess(isCurrentlyOwned))
-				{
-					logger.LogDebug("Skipping market data for {Symbol} from {DataSource} (owned: {IsOwned})", symbol.Symbol, symbol.DataSource, isCurrentlyOwned);
 					continue;
 				}
 
@@ -95,6 +87,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							date = maxDate;
 						}
 					}
+				}
+
+				var isCurrentlyOwned = await IsCurrentlyOwned(databaseContext, symbol);
+				if (!isCurrentlyOwned && date >= DateOnly.FromDateTime(DateTime.Today))
+				{
+					logger.LogDebug("{Symbol} from {DataSource} is not currently owned and data till today is processed. Skipping till tomorrow", symbol.Symbol, symbol.DataSource);
+					continue;
 				}
 
 				// If the repository does not support data before a certain date, set it to that date

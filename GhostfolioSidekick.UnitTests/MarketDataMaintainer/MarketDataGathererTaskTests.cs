@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository1;
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository2;
 		private readonly IStockPriceRepository[] _stockPriceRepositories;
-		private readonly MarketDataGathererOwnedTask _marketDataGathererTask;
+		private readonly MarketDataGathererTask _marketDataGathererTask;
 
 		public MarketDataGathererOwnedTaskTests()
 		{
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1 = new Mock<IStockPriceRepository>();
 			_mockStockPriceRepository2 = new Mock<IStockPriceRepository>();
 			_stockPriceRepositories = [_mockStockPriceRepository1.Object, _mockStockPriceRepository2.Object];
-			_marketDataGathererTask = new MarketDataGathererOwnedTask(
+			_marketDataGathererTask = new MarketDataGathererTask(
 				_mockDbContextFactory.Object,
 				_stockPriceRepositories);
 		}
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -125,7 +125,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -179,7 +179,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("OTHER_SOURCE");
 			_mockStockPriceRepository2.Setup(r => r.DataSource).Returns("ANOTHER_SOURCE");
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -234,7 +234,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -299,7 +299,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -357,7 +357,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -411,7 +411,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new List<MarketData>());
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -489,7 +489,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -547,7 +547,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new List<MarketData> { md2 }); // Only the zero value is returned as new data
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -605,7 +605,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
