@@ -2,6 +2,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -17,12 +18,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private NavigationManager Navigation { get; set; } = default!;
 
+		[Inject]
+		private IPrivacyModeService PrivacyModeService { get; set; } = default!;
+
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
 		// View mode for the treemap
 		private string ViewMode = "treemap";
 		private List<HoldingDisplayModel> HoldingsList = [];
+		private int _chartKey;
 		private Config plotConfig = new();
 		private Plotly.Blazor.Layout plotLayout = new();
 		private IList<ITrace> plotData = [];
@@ -46,6 +51,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
+
+			PrivacyModeService.OnChange += OnPrivacyModeChanged;
 
 			return Task.CompletedTask;
 		}
@@ -82,6 +89,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return _previousFilterState.StartDate != FilterState.StartDate ||
 				   _previousFilterState.EndDate != FilterState.EndDate ||
 				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
+		}
+
+		private async void OnPrivacyModeChanged()
+		{
+			if (_disposed) return;
+			await Task.Run(PrepareTreemapData);
+			_chartKey++;
+			await InvokeAsync(StateHasChanged);
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
@@ -154,7 +169,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				Labels = HoldingsList.Select(h => $"{h.Name} (GainLossPercentage {h.GainLossPercentage})").ToArray(),
 				Values = [.. HoldingsList.Select(h => (object)h.CurrentValue.Amount)],
 				Parents = HoldingsList.Select(h => "").ToArray(),
-				Text = HoldingsList.Select(h => $"{h.Name}({h.Symbol})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
+				Text = HoldingsList.Select(h => PrivacyModeService.IsPrivacyMode
+					? $"{h.Name} ({h.Symbol})"
+					: $"{h.Name} ({h.Symbol})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
 				TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
 				BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,
 				PathBar = new Plotly.Blazor.Traces.TreeMapLib.PathBar
@@ -327,6 +344,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
 				}
+
+				PrivacyModeService.OnChange -= OnPrivacyModeChanged;
 
 				_disposed = true;
 			}

@@ -184,7 +184,7 @@
                                                 @if (transaction.TotalValue != null)
                                                 {
                                                     <strong class="@GetValueClass(transaction.TotalValue, transaction.Type)">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(transaction.TotalValue)
+                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(transaction.TotalValue)" />
                                                     </strong>
                                                 }
                                                 else
@@ -385,7 +385,7 @@
                                         <strong>Quantity:</strong> 
                                         @if (SelectedTransaction.Quantity.HasValue)
                                         {
-                                            @SelectedTransaction.Quantity.Value.ToString("N4")
+                                            <PrivacyValue Value="@SelectedTransaction.Quantity.Value.ToString("N4")" />
                                         }
                                         else
                                         {
@@ -414,7 +414,7 @@
                                                 <div class="h5 mb-0">
                                                     @if (SelectedTransaction.UnitPrice != null)
                                                     {
-                                                        @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.UnitPrice)
+                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.UnitPrice)" />
                                                     }
                                                     else
                                                     {
@@ -430,7 +430,7 @@
                                                     @if (SelectedTransaction.TotalValue != null)
                                                     {
                                                         <strong class="@GetValueClass(SelectedTransaction.TotalValue, SelectedTransaction.Type)">
-                                                            @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.TotalValue)
+                                                            <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.TotalValue)" />
                                                         </strong>
                                                     }
                                                     else
@@ -446,7 +446,7 @@
                                                 <div class="h5 mb-0">
                                                     @if (SelectedTransaction.Fee != null)
                                                     {
-                                                        <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Fee)</span>
+                                                        <span class="text-danger"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Fee)" /></span>
                                                     }
                                                     else
                                                     {
@@ -461,7 +461,7 @@
                                                 <div class="h5 mb-0">
                                                     @if (SelectedTransaction.Tax != null)
                                                     {
-                                                        <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Tax)</span>
+                                                        <span class="text-danger"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Tax)" /></span>
                                                     }
                                                     else
                                                     {
@@ -478,7 +478,7 @@
                                                 <div class="text-center p-3 border rounded bg-light">
                                                     <div class="text-muted small">Amount</div>
                                                     <div class="h4 mb-0">
-                                                        <strong>@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Amount)</strong>
+                                                        <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Amount)" /></strong>
                                                     </div>
                                                 </div>
                                             </div>

@@ -221,7 +221,9 @@
                             else if (AccountDetailsViewMode == "pie" && !TestContextService.IsTest)
                             {
                                 <div class="account-chart-container">
-                                    <PlotlyChart Data="accountPieData" Layout="accountPieLayout" Config="accountPieConfig" style="height: 100%; width: 100%;" />
+                                    <PrivacyChartOverlay>
+                                        <PlotlyChart @key="@ChartKey" Data="accountPieData" Layout="accountPieLayout" Config="accountPieConfig" style="height: 100%; width: 100%;" />
+                                    </PrivacyChartOverlay>
                                 </div>
                             }
                             else if (AccountDetailsViewMode == "pie" && TestContextService.IsTest)
@@ -237,7 +239,9 @@
                             else if (AccountDetailsViewMode == "treemap" && !TestContextService.IsTest)
                             {
                                 <div class="account-chart-container">
-                                    <PlotlyChart Data="accountTreemapData" Layout="accountTreemapLayout" Config="accountTreemapConfig" style="height: 100%; width: 100%;" />
+                                    <PrivacyChartOverlay>
+                                        <PlotlyChart @key="@ChartKey" Data="accountTreemapData" Layout="accountTreemapLayout" Config="accountTreemapConfig" style="height: 100%; width: 100%;" />
+                                    </PrivacyChartOverlay>
                                 </div>
                             }
                             else if (AccountDetailsViewMode == "treemap" && TestContextService.IsTest)
@@ -286,7 +290,9 @@
                     <div class="card-body">
                         @if (ViewMode == "chart")
                         {
-                            <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+                            <PrivacyChartOverlay>
+                                <PlotlyChart @key="@ChartKey" Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+                            </PrivacyChartOverlay>
                         }
                         else
                         {

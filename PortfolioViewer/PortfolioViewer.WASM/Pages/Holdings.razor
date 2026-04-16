@@ -87,10 +87,13 @@
                         @if (ViewMode == "treemap" && !TestContextService.IsTest)
                         {
                             <div class="treemap-container">
-                                <PlotlyChart Data="plotData"
-                                             Layout="plotLayout"
-                                             Config="plotConfig"
-                                             style="height: 100%; width: 100%;" />
+                                <PrivacyChartOverlay>
+                                    <PlotlyChart @key="@_chartKey"
+                                                 Data="plotData"
+                                                 Layout="plotLayout"
+                                                 Config="plotConfig"
+                                                 style="height: 100%; width: 100%;" />
+                                </PrivacyChartOverlay>
                             </div>
                         }
                         else if (ViewMode == "treemap" && TestContextService.IsTest)

@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -21,6 +22,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
+
+		[Inject]
+		private IPrivacyModeService PrivacyModeService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -61,6 +65,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected Plotly.Blazor.Layout accountTreemapLayout = new();
 		protected IList<ITrace> accountTreemapData = [];
 
+		protected int ChartKey { get; private set; }
+
 		// Summary data
 		protected Dictionary<string, int> AccountBreakdown { get; set; } = [];
 		protected List<AccountValueDisplayModel> LatestAccountValues { get; set; } = [];
@@ -100,6 +106,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
+
+			PrivacyModeService.OnChange += OnPrivacyModeChanged;
 		}
 
 		protected override async Task OnParametersSetAsync()
@@ -260,7 +268,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					Labels = LatestAccountValues.Select(a => a.AccountName).ToArray(),
 					Values = [.. LatestAccountValues.Select(a => (object)a.Value.Amount)],
-					TextInfo = Plotly.Blazor.Traces.PieLib.TextInfoFlag.Label | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Percent | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Value,
+					TextInfo = PrivacyModeService.IsPrivacyMode
+							? Plotly.Blazor.Traces.PieLib.TextInfoFlag.Label | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Percent
+							: Plotly.Blazor.Traces.PieLib.TextInfoFlag.Label | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Percent | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Value,
 					HoverTemplate = "<b>%{label}</b><br>" +
 									"Value: %{customdata[0]}<br>" +
 									"Gain/Loss: %{customdata[1]}<br>" +
@@ -304,8 +314,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Labels = LatestAccountValues.Select(a => a.AccountName).ToArray(),
 					Values = [.. LatestAccountValues.Select(a => (object)a.Value.Amount)],
 					Parents = LatestAccountValues.Select(a => "").ToArray(),
-					Text = LatestAccountValues.Select(a =>
-						$"{a.AccountName}<br>{CurrencyDisplay.DisplaySignAndAmount(a.Value)}<br>Gain/Loss: {CurrencyDisplay.DisplaySignAndAmount(a.GainLoss)} ({a.GainLossPercentage:P2})").ToArray(),
+					Text = LatestAccountValues.Select(a => PrivacyModeService.IsPrivacyMode
+							? a.AccountName
+							: $"{a.AccountName}<br>{CurrencyDisplay.DisplaySignAndAmount(a.Value)}<br>Gain/Loss: {CurrencyDisplay.DisplaySignAndAmount(a.GainLoss)} ({a.GainLossPercentage:P2})").ToArray(),
 					TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
 					BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,
 					PathBar = new Plotly.Blazor.Traces.TreeMapLib.PathBar
@@ -449,12 +460,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
+		private async void OnPrivacyModeChanged()
+		{
+			await PrepareAccountDetailsCharts();
+			ChartKey++;
+			await InvokeAsync(StateHasChanged);
+		}
+
 		public void Dispose()
 		{
 			if (FilterState != null)
 			{
 				FilterState.PropertyChanged -= OnFilterStateChanged;
 			}
+
+			PrivacyModeService.OnChange -= OnPrivacyModeChanged;
 		}
 	}
 }
