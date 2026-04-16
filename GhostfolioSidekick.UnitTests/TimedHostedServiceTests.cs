@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using xRetry.v3;
 
 namespace GhostfolioSidekick.UnitTests
@@ -189,6 +190,78 @@ namespace GhostfolioSidekick.UnitTests
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
+		}
+
+		[Fact]
+		public void Constructor_ShouldRemoveTaskTypes_ThatAreNoLongerRegistered()
+		{
+			// Arrange
+			var loggerMock = new Mock<ILogger<TimedHostedService>>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
+
+			var currentTaskMock = new Mock<IScheduledWork>();
+			currentTaskMock.Setup(x => x.Name).Returns("Current Task");
+			currentTaskMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
+			currentTaskMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
+			currentTaskMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
+
+			// First startup: initialises the schema and registers the current task
+			_ = new TimedHostedService(databaseContext, loggerMock.Object,
+				new List<IScheduledWork> { currentTaskMock.Object });
+
+			// Simulate a stale row left over from a previous app version (e.g. MarketDataGathererNotOwnedTask)
+			databaseContext.Tasks.Add(new Model.Tasks.TaskRun
+			{
+				Type = "MarketDataGathererNotOwnedTask",
+				Name = "Removed Task",
+				LastUpdate = DateTimeOffset.MinValue,
+				Scheduled = true,
+				InProgress = false
+			});
+			databaseContext.SaveChanges();
+			databaseContext.Tasks.Count().Should().Be(2);
+
+			// Act - second startup: removed task is absent from the registered work items
+			_ = new TimedHostedService(databaseContext, loggerMock.Object,
+				new List<IScheduledWork> { currentTaskMock.Object });
+
+			// Assert - the orphaned row must be deleted entirely
+			databaseContext.Tasks.Any(t => t.Type == "MarketDataGathererNotOwnedTask").Should().BeFalse();
+
+			// The still-registered task must remain
+			databaseContext.Tasks.Count().Should().Be(1);
+			databaseContext.Tasks.Single().Scheduled.Should().BeTrue();
+		}
+
+		[Fact]
+		public void Constructor_ShouldNotRemoveAnything_WhenAllTaskTypesAreStillRegistered()
+		{
+			// Arrange
+			var loggerMock = new Mock<ILogger<TimedHostedService>>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
+
+			var scheduledWorkMock = new Mock<IScheduledWork>();
+			scheduledWorkMock.Setup(x => x.Name).Returns("Current Task");
+			scheduledWorkMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
+			scheduledWorkMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
+			scheduledWorkMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
+
+			// Act
+			_ = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
+
+			// Assert - only one task row, and it is scheduled
+			databaseContext.Tasks.Count().Should().Be(1);
+			databaseContext.Tasks.Single().Scheduled.Should().BeTrue();
+
+			// No removal log emitted
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Information,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("no longer registered")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+				Times.Never);
 		}
 
 		[Fact]
