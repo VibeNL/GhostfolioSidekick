@@ -751,6 +751,79 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Verify(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), Times.Once);
 		}
 
+		[Fact]
+		public async Task DoWork_ShouldFetchAndPersistMarketData_ForNotOwnedSymbol_WhenDataIsStale()
+		{
+			// Arrange - symbol is not currently owned (Quantity = 0) but its latest market
+			// data is older than the last trading day, so a refresh must still happen and
+			// the returned rows must be persisted.
+			var activityDate = DateTime.Today.AddDays(-30);
+			var staleDate = MarketDataGathererTask.GetLastTradingDay().AddDays(-1);
+			var existingMarketData = new MarketData(
+				Currency.USD, 100, 95, 105, 90, 1000, staleDate);
+
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = [existingMarketData]
+			};
+
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holding = new Holding
+			{
+				Id = 1,
+				SymbolProfiles = [symbolProfile],
+				Activities = [new BuyActivity { Date = activityDate }]
+			};
+			var holdings = new List<Holding> { holding };
+
+			// Quantity = 0 → not currently owned
+			var snapshot = new CalculatedSnapshot
+			{
+				HoldingId = 1,
+				Date = staleDate,
+				Quantity = 0
+			};
+
+			var newMarketData = new MarketData(
+				Currency.USD, 110, 105, 115, 100, 1200, MarketDataGathererTask.GetLastTradingDay());
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+			_mockStockPriceRepository1.Setup(r => r.MinDate).Returns(DateOnly.FromDateTime(DateTime.Today.AddDays(-365)));
+			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
+				.ReturnsAsync(new List<MarketData> { newMarketData });
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert - fetch must have been called
+			_mockStockPriceRepository1.Verify(
+				r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()),
+				Times.Once);
+
+			// New market data row must have been added to the symbol
+			symbolProfile.MarketData.Should().Contain(d => d.Date == MarketDataGathererTask.GetLastTradingDay());
+
+			// Changes must have been persisted
+			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+		}
+
 		[Theory]
 		[InlineData(DayOfWeek.Monday)]
 		[InlineData(DayOfWeek.Tuesday)]
