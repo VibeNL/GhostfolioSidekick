@@ -9,7 +9,7 @@ using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 {
-	public class MarketDataGathererOwnedTaskTests
+	public class MarketDataGathererTaskTests
 	{
 		private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository1;
@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		private readonly IStockPriceRepository[] _stockPriceRepositories;
 		private readonly MarketDataGathererTask _marketDataGathererTask;
 
-		public MarketDataGathererOwnedTaskTests()
+		public MarketDataGathererTaskTests()
 		{
 			_mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
 			_mockStockPriceRepository1 = new Mock<IStockPriceRepository>();
