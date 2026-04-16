@@ -14,7 +14,9 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        <PlotlyChart Data="chartData" Layout="chartLayout" Config="chartConfig" style="height: 40vh; width: 100%;" />
+                        <PrivacyChartOverlay>
+                            <PlotlyChart Data="chartData" Layout="chartLayout" Config="chartConfig" style="height: 40vh; width: 100%;" />
+                        </PrivacyChartOverlay>
                     </div>
                 </div>
             </div>
@@ -62,6 +64,7 @@
                                 <tbody>
                                     @foreach (var div in dividends.OrderBy(d => d.PaymentDate))
                                     {
+                                        var divAmountText = div.Amount.ToString("F2") + " " + div.Currency;
                                         <tr class="@(div.IsPredicted ? "table-secondary" : "")">
                                             <td>
                                                 <strong>@div.Symbol</strong>
@@ -76,7 +79,7 @@
                                             </td>
                                             <td>@div.PaymentDate.ToString("yyyy-MM-dd")</td>
                                             <td class="text-end">
-                                                @div.Amount.ToString("F2") @div.Currency
+                                                <PrivacyValue Value="@divAmountText" />
                                             </td>
                                             <td>
                                                 @if (div.IsPredicted)
@@ -105,6 +108,10 @@
 
 @if (selectedDividend != null)
 {
+	var nativeAmountText = selectedDividend.Amount.ToString("F2") + " " + selectedDividend.Currency;
+	var primaryAmountText = selectedDividend.AmountPrimaryCurrency?.ToString("F2") + " " + selectedDividend.PrimaryCurrency;
+	var divPerShareText = selectedDividend.DividendPerShare.ToString("F4") + " " + selectedDividend.Currency;
+	var divPerSharePrimaryText = selectedDividend.DividendPerSharePrimaryCurrency?.ToString("F4") + " " + selectedDividend.PrimaryCurrency;
 	<div class="modal fade show" style="display:block; background:rgba(0,0,0,0.5);" tabindex="-1" role="dialog">
 		<div class="modal-dialog modal-dialog-centered" role="document">
 			<div class="modal-content">
@@ -121,12 +128,12 @@
 						<dt class="col-5">Payment Date</dt>
 						<dd class="col-7">@selectedDividend.PaymentDate.ToString("yyyy-MM-dd")</dd>
 						<dt class="col-5">Amount (Native)</dt>
-						<dd class="col-7">@selectedDividend.Amount.ToString("F2") @selectedDividend.Currency</dd>
+						<dd class="col-7"><PrivacyValue Value="@nativeAmountText" /></dd>
 						<dt class="col-5">Amount (Primary)</dt>
 						<dd class="col-7">
 							@if (selectedDividend.Currency != selectedDividend.PrimaryCurrency)
 							{
-								@selectedDividend.AmountPrimaryCurrency?.ToString("F2") @selectedDividend.PrimaryCurrency
+								<PrivacyValue Value="@primaryAmountText" />
 							}
 							else
 							{
@@ -134,13 +141,13 @@
 							}
 						</dd>
 						<dt class="col-5">Quantity</dt>
-						<dd class="col-7">@selectedDividend.Quantity.ToString("N2")</dd>
+						<dd class="col-7"><PrivacyValue Value="@selectedDividend.Quantity.ToString("N2")" /></dd>
 						<dt class="col-5">Dividend/Share</dt>
 						<dd class="col-7">
-							@selectedDividend.DividendPerShare.ToString("F4") @selectedDividend.Currency
+							<PrivacyValue Value="@divPerShareText" />
 							@if (selectedDividend.Currency != selectedDividend.PrimaryCurrency)
 							{
-								<br /><small class="text-muted">(@selectedDividend.DividendPerSharePrimaryCurrency?.ToString("F4") @selectedDividend.PrimaryCurrency)</small>
+								<br /><small class="text-muted">(<PrivacyValue Value="@divPerSharePrimaryText" />)</small>
 							}
 						</dd>
 						<dt class="col-5">Status</dt>

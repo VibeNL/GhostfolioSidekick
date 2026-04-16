@@ -51,6 +51,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			// Add the missing ITestContextService
 			this.Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
+			this.Services.AddSingleton<IPrivacyModeService, PrivacyModeService>();
 		}
 
 		[Fact]

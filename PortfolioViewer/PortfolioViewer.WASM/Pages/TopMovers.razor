@@ -58,12 +58,12 @@
                                         <small class="text-muted">@riser.Name</small>
                                         <br>
                                         <small class="text-muted">
-                                            @CurrencyDisplay.DisplaySignAndAmount(@riser.StartPrice) → @CurrencyDisplay.DisplaySignAndAmount(@riser.EndPrice)
+                                            <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@riser.StartPrice)" /> → <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@riser.EndPrice)" />
                                         </small>
                                     </div>
                                     <div class="text-end">
                                         <div class="h6 text-success mb-0">+@riser.PercentageChange.ToString("P2")</div>
-                                        <small class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@riser.AbsoluteChange)</small>
+                                        <small class="text-success"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@riser.AbsoluteChange)" /></small>
                                     </div>
                                 </div>
                                 @if (riser != TopRisers.Last())
@@ -102,12 +102,12 @@
                                         <small class="text-muted">@loser.Name</small>
                                         <br>
                                         <small class="text-muted">
-                                            @CurrencyDisplay.DisplaySignAndAmount(@loser.StartPrice) → @CurrencyDisplay.DisplaySignAndAmount(@loser.EndPrice)
+                                            <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@loser.StartPrice)" /> → <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@loser.EndPrice)" />
                                         </small>
                                     </div>
                                     <div class="text-end">
                                         <div class="h6 text-danger mb-0">@loser.PercentageChange.ToString("P2")</div>
-                                        <small class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(@loser.AbsoluteChange)</small>
+                                        <small class="text-danger"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@loser.AbsoluteChange)" /></small>
                                     </div>
                                 </div>
                                 @if (loser != TopLosers.Last())

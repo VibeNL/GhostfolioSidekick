@@ -1,0 +1,11 @@
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IPrivacyModeService PrivacyModeService
+@implements IDisposable
+
+@if (PrivacyModeService.IsPrivacyMode)
+{
+    <span class="privacy-masked">••••••</span>
+}
+else
+{
+    @Value
+}

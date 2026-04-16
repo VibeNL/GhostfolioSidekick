@@ -65,11 +65,13 @@
    </button>
        </div>
  </div>
-      <div class="card-body">
-  @if (ViewMode == "chart")
-             {
-         <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
-        }
+             <div class="card-body">
+      @if (ViewMode == "chart")
+                 {
+             <PrivacyChartOverlay>
+                 <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+             </PrivacyChartOverlay>
+            }
     else
      {
         <div class="table-responsive">
@@ -121,14 +123,14 @@
        <strong>@dataPoint.Date.ToString("yyyy-MM-dd")</strong>
     </td>
    <td class="text-end">
-    <strong>@CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalValue)</strong>
+    <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalValue)" /></strong>
                 </td>
              <td class="text-end">
-             @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalInvested)
+             <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalInvested)" />
          </td>
            <td class="text-end">
        <span class="@(dataPoint.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-       @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.GainLoss)
+       <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@dataPoint.GainLoss)" />
       </span>
          </td>
           <td class="text-end">
@@ -144,11 +146,11 @@
             <tfoot class="table-light">
    <tr>
           <th>Latest (@TimeSeriesDisplayData.Last().Date.ToString("yyyy-MM-dd"))</th>
-                <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalValue)</th>
-       <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalInvested)</th>
+                <th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalValue)" /></th>
+       <th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalInvested)" /></th>
        <th class="text-end">
 <span class="@(TimeSeriesDisplayData.Last().GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-       @CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().GainLoss)
+       <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().GainLoss)" />
          </span>
                  </th>
          <th class="text-end">

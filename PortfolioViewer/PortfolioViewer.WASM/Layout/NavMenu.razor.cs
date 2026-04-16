@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 		[Parameter] public bool ShowSearchFilter { get; set; } = false;
 		[Parameter] public List<string>? TransactionTypes { get; set; } = null;
 
+		[Inject] private Services.IPrivacyModeService PrivacyModeService { get; set; } = default!;
+
 		private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "collapse show";
 
 		private void ToggleNavMenu()
@@ -31,6 +33,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 		private void ToggleMobileFilters()
 		{
 			showMobileFilters = !showMobileFilters;
+		}
+
+		private void TogglePrivacyMode()
+		{
+			PrivacyModeService.Toggle();
 		}
 	}
 }
