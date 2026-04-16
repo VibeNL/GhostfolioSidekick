@@ -89,12 +89,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 				}
 
-				var containsToday = symbol.MarketData.Any(x => x.Date == DateOnly.FromDateTime(DateTime.Today));
-				if (containsToday && !await IsCurrentlyOwned(databaseContext, symbol))
-				{
-					logger.LogDebug("{Symbol} from {DataSource} is not currently owned and data till today is processed. Skipping till tomorrow", symbol.Symbol, symbol.DataSource);
-					continue;
-				}
+				var lastTradingDay = GetLastTradingDay();
+					var dataIsUpToDate = symbol.MarketData.Count != 0 && symbol.MarketData.Max(x => x.Date) >= lastTradingDay;
+					if (dataIsUpToDate && !await IsCurrentlyOwned(databaseContext, symbol))
+					{
+						logger.LogDebug("{Symbol} from {DataSource} is not currently owned and data is up to date (latest >= {LastTradingDay}). Skipping till next trading day", symbol.Symbol, symbol.DataSource, lastTradingDay);
+						continue;
+					}
 
 				// If the repository does not support data before a certain date, set it to that date
 				if (date < stockPriceRepository.MinDate)
@@ -159,6 +160,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				await databaseContext.SaveChangesAsync();
 				logger.LogDebug("Market data for {Symbol} from {DataSource} gathered", symbol.Symbol, symbol.DataSource);
 			}
+		}
+
+		internal static DateOnly GetLastTradingDay()
+		{
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			return today.DayOfWeek switch
+			{
+				DayOfWeek.Sunday => today.AddDays(-2),
+				DayOfWeek.Saturday => today.AddDays(-1),
+				_ => today
+			};
 		}
 
 		internal static async Task<bool> IsCurrentlyOwned(DatabaseContext databaseContext, SymbolProfile symbol)
