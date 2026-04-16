@@ -1,11 +1,11 @@
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-    public interface IPrivacyModeService
-    {
-        bool IsPrivacyMode { get; }
+	public interface IPrivacyModeService
+	{
+		bool IsPrivacyMode { get; }
 
-        void Toggle();
+		void Toggle();
 
-        event Action? OnChange;
-    }
+		event Action? OnChange;
+	}
 }
