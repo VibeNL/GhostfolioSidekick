@@ -89,11 +89,11 @@
                         <div class="row">
                             <div class="col-12 mb-3">
                                 <small class="text-muted">Quantity</small>
-                                <div class="h4">@HoldingInfo.Quantity.ToString("N2")</div>
+                                <div class="h4"><PrivacyValue Value="@HoldingInfo.Quantity.ToString("N2")" /></div>
                             </div>
                             <div class="col-6 mb-3">
                                 <small class="text-muted">Average Price</small>
-                                <div class="h5">@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.AveragePrice)</div>
+                                <div class="h5"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.AveragePrice)" /></div>
                             </div>
                             <div class="col-6 mb-3">
                                 <small class="text-muted">Current Price</small>
@@ -101,12 +101,12 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <small class="text-muted">Current Value</small>
-                                <div class="h3">@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.CurrentValue)</div>
+                                <div class="h3"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.CurrentValue)" /></div>
                             </div>
                             <div class="col-6 mb-3">
                                 <small class="text-muted">Gain/Loss</small>
                                 <div class="h5 @(HoldingInfo.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                    @CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.GainLoss)
+                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.GainLoss)" />
                                 </div>
                             </div>
                             <div class="col-6 mb-3">
@@ -203,7 +203,7 @@
                                         <tr>
                                             <td>@price.Date.ToString("yyyy-MM-dd")</td>
                                             <td class="text-end">
-                                            @CurrencyDisplay.DisplaySignAndAmount(new Money(currency, price.Price))
+                                            <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(new Money(currency, price.Price))" />
                                         </td>
                                         <td class="text-end">
                                             @if (previousPrice != null)

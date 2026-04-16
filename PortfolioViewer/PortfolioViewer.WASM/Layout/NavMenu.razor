@@ -110,7 +110,10 @@
             </ul>
 
             <!-- User Authentication -->
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav ms-auto d-flex flex-row align-items-center gap-2">
+                <button class="btn btn-outline-light btn-sm" title="@(PrivacyModeService.IsPrivacyMode ? "Show values" : "Hide values")" @onclick="TogglePrivacyMode">
+                    <i class="bi @(PrivacyModeService.IsPrivacyMode ? "bi-eye-slash-fill" : "bi-eye-fill")"></i>
+                </button>
                 <LoginDisplay />
             </div>
 

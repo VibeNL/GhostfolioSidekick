@@ -1,4 +1,4 @@
-﻿@page "/holdings"
+@page "/holdings"
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 @using GhostfolioSidekick.PortfolioViewer.WASM.Components
@@ -197,15 +197,15 @@
                                                     </div>
                                                 </td>
                                                 <td>@holding.Name</td>
-                                                <td>@holding.Quantity.ToString("N2")</td>
-                                                <td>@CurrencyDisplay.DisplaySignAndAmount(@holding.AveragePrice)</td>
+                                                <td><PrivacyValue Value="@holding.Quantity.ToString("N2")" /></td>
+                                                <td><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@holding.AveragePrice)" /></td>
                                                 <td>@CurrencyDisplay.DisplaySignAndAmount(@holding.CurrentPrice)</td>
                                                 <td class="text-end">
-                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@holding.CurrentValue)</strong>
+                                                    <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@holding.CurrentValue)" /></strong>
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(holding.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(@holding.GainLoss)
+                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@holding.GainLoss)" />
                                                     </span>
                                                 </td>
                                                 <td class="text-end">
@@ -226,10 +226,10 @@
                                     <tfoot class="table-light">
                                         <tr>
                                             <th colspan="5">Total Portfolio Value</th>
-                                            <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TotalValue)</th>
+                                            <th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalValue)" /></th>
                                             <th class="text-end">
                                                 <span class="@(TotalGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                    @CurrencyDisplay.DisplaySignAndAmount(@TotalGainLoss)
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalGainLoss)" />
                                                 </span>
                                             </th>
                                             <th class="text-end">
