@@ -25,11 +25,15 @@ namespace GhostfolioSidekick
 
 			GenerateDatabase().Wait();
 
+			var activeTypeNames = new HashSet<string>();
 			foreach (var todo in workItems.OrderBy(x => x.Priority))
 			{
 				workQueue.Enqueue(new Scheduled(todo, DateTimeOffset.MinValue), DateTimeOffset.MinValue.AddMinutes((int)todo.Priority));
 				InitializeTasks(todo);
+				activeTypeNames.Add(todo.GetType().Name);
 			}
+
+			UnscheduleRemovedTasks(activeTypeNames);
 		}
 
 		private async Task GenerateDatabase()
@@ -69,6 +73,26 @@ namespace GhostfolioSidekick
 			existingTask.Priority = (int)todo.Priority;
 			existingTask.NextSchedule = DateTimeOffset.MinValue.AddMinutes((int)todo.Priority);
 
+			databaseContext.SaveChanges();
+		}
+
+		private void UnscheduleRemovedTasks(HashSet<string> activeTypeNames)
+		{
+			var staleTasks = databaseContext.Tasks
+				.Where(t => t.Scheduled && !activeTypeNames.Contains(t.Type))
+				.ToList();
+
+			if (staleTasks.Count == 0)
+			{
+				return;
+			}
+
+			foreach (var stale in staleTasks)
+			{
+				logger.LogInformation("Task type '{Type}' is no longer registered; removing task run and logs.", stale.Type);
+			}
+
+			databaseContext.Tasks.RemoveRange(staleTasks);
 			databaseContext.SaveChanges();
 		}
 

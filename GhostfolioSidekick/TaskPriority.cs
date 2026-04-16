@@ -32,8 +32,6 @@ namespace GhostfolioSidekick
 
 		UpcomingDividendsCalculations,
 
-		MarketDataGathererNotOwned, // TODO
-
 		CleanupDatabase,
 
 		SyncAccountsWithGhostfolio,
