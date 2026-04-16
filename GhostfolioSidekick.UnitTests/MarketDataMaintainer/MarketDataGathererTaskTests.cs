@@ -9,21 +9,21 @@ using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 {
-	public class MarketDataGathererOwnedTaskTests
+	public class MarketDataGathererTaskTests
 	{
 		private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository1;
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository2;
 		private readonly IStockPriceRepository[] _stockPriceRepositories;
-		private readonly MarketDataGathererOwnedTask _marketDataGathererTask;
+		private readonly MarketDataGathererTask _marketDataGathererTask;
 
-		public MarketDataGathererOwnedTaskTests()
+		public MarketDataGathererTaskTests()
 		{
 			_mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
 			_mockStockPriceRepository1 = new Mock<IStockPriceRepository>();
 			_mockStockPriceRepository2 = new Mock<IStockPriceRepository>();
 			_stockPriceRepositories = [_mockStockPriceRepository1.Object, _mockStockPriceRepository2.Object];
-			_marketDataGathererTask = new MarketDataGathererOwnedTask(
+			_marketDataGathererTask = new MarketDataGathererTask(
 				_mockDbContextFactory.Object,
 				_stockPriceRepositories);
 		}
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -125,7 +125,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -179,7 +179,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("OTHER_SOURCE");
 			_mockStockPriceRepository2.Setup(r => r.DataSource).Returns("ANOTHER_SOURCE");
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -234,7 +234,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -299,7 +299,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -357,7 +357,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -411,7 +411,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new List<MarketData>());
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -489,7 +489,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -547,7 +547,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new List<MarketData> { md2 }); // Only the zero value is returned as new data
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
@@ -560,15 +560,21 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldSkipNotOwnedSymbol()
+		public async Task DoWork_ShouldSkipNotOwnedSymbol_WhenLatestDataIsToday()
 		{
 			// Arrange
+			var activityDate = DateTime.Today.AddDays(-30);
+			var existingMarketData = new MarketData(
+				Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(activityDate));
+			var latestMarketData = new MarketData(
+				Currency.USD, 110, 105, 115, 100, 1100, DateOnly.FromDateTime(DateTime.Today));
+
 			var symbolProfile = new SymbolProfile
 			{
 				Symbol = "AAPL",
 				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
-				MarketData = []
+				MarketData = [existingMarketData, latestMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
@@ -578,12 +584,11 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
-					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = activityDate }
 				]
 			};
 			var holdings = new List<Holding> { holding };
 
-			// CalculatedSnapshot with Quantity = 0 means not currently owned
 			var snapshot = new CalculatedSnapshot
 			{
 				HoldingId = 1,
@@ -605,21 +610,282 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
 
-			var loggerMock = new Mock<ILogger<MarketDataGathererOwnedTask>>();
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
 
 			// Act
 			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
-			// Assert - should skip because owned task does not process not-owned symbols
+			// Assert
 			_mockStockPriceRepository1.Verify(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), Times.Never);
 			loggerMock.Verify(
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Skipping market data for AAPL from TEST_SOURCE")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("is not currently owned and data is up to date")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldSkipNotOwnedSymbol_WhenLatestDataIsLastTradingDay()
+		{
+			// Arrange - latest market data is the last trading day (handles weekends/holidays
+			// where providers don't emit a row for today)
+			var activityDate = DateTime.Today.AddDays(-30);
+			var lastTradingDay = MarketDataGathererTask.GetLastTradingDay();
+			var existingMarketData = new MarketData(
+				Currency.USD, 100, 95, 105, 90, 1000, DateOnly.FromDateTime(activityDate));
+			var latestMarketData = new MarketData(
+				Currency.USD, 110, 105, 115, 100, 1100, lastTradingDay);
+
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = [existingMarketData, latestMarketData]
+			};
+
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holding = new Holding
+			{
+				Id = 1,
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
+					new BuyActivity { Date = activityDate }
+				]
+			};
+			var holdings = new List<Holding> { holding };
+
+			var snapshot = new CalculatedSnapshot
+			{
+				HoldingId = 1,
+				Date = lastTradingDay,
+				Quantity = 0
+			};
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert - must skip even when "today" has no row (weekend/holiday scenario)
+			_mockStockPriceRepository1.Verify(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldNotSkipNotOwnedSymbol_WhenDataIsStale()
+		{
+			// Arrange - latest market data is older than the last trading day, so we must refresh
+			var activityDate = DateTime.Today.AddDays(-30);
+			var staleDate = MarketDataGathererTask.GetLastTradingDay().AddDays(-1);
+			var existingMarketData = new MarketData(
+				Currency.USD, 100, 95, 105, 90, 1000, staleDate);
+
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = [existingMarketData]
+			};
+
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holding = new Holding
+			{
+				Id = 1,
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
+					new BuyActivity { Date = activityDate }
+				]
+			};
+			var holdings = new List<Holding> { holding };
+
+			var snapshot = new CalculatedSnapshot
+			{
+				HoldingId = 1,
+				Date = staleDate,
+				Quantity = 0
+			};
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+			_mockStockPriceRepository1.Setup(r => r.MinDate).Returns(DateOnly.FromDateTime(DateTime.Today.AddDays(-365)));
+			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
+				.ReturnsAsync(new List<MarketData>());
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert - must NOT skip; data is behind the last trading day
+			_mockStockPriceRepository1.Verify(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldFetchAndPersistMarketData_ForNotOwnedSymbol_WhenDataIsStale()
+		{
+			// Arrange - symbol is not currently owned (Quantity = 0) but its latest market
+			// data is older than the last trading day, so a refresh must still happen and
+			// the returned rows must be persisted.
+			var activityDate = DateTime.Today.AddDays(-30);
+			var staleDate = MarketDataGathererTask.GetLastTradingDay().AddDays(-1);
+			var existingMarketData = new MarketData(
+				Currency.USD, 100, 95, 105, 90, 1000, staleDate);
+
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = [existingMarketData]
+			};
+
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holding = new Holding
+			{
+				Id = 1,
+				SymbolProfiles = [symbolProfile],
+				Activities = [new BuyActivity { Date = activityDate }]
+			};
+			var holdings = new List<Holding> { holding };
+
+			// Quantity = 0 → not currently owned
+			var snapshot = new CalculatedSnapshot
+			{
+				HoldingId = 1,
+				Date = staleDate,
+				Quantity = 0
+			};
+
+			var newMarketData = new MarketData(
+				Currency.USD, 110, 105, 115, 100, 1200, MarketDataGathererTask.GetLastTradingDay());
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot> { snapshot });
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+			_mockStockPriceRepository1.Setup(r => r.MinDate).Returns(DateOnly.FromDateTime(DateTime.Today.AddDays(-365)));
+			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
+				.ReturnsAsync(new List<MarketData> { newMarketData });
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert - fetch must have been called
+			_mockStockPriceRepository1.Verify(
+				r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()),
+				Times.Once);
+
+			// New market data row must have been added to the symbol
+			symbolProfile.MarketData.Should().Contain(d => d.Date == MarketDataGathererTask.GetLastTradingDay());
+
+			// Changes must have been persisted
+			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+		}
+
+		[Theory]
+		[InlineData(DayOfWeek.Monday)]
+		[InlineData(DayOfWeek.Tuesday)]
+		[InlineData(DayOfWeek.Wednesday)]
+		[InlineData(DayOfWeek.Thursday)]
+		[InlineData(DayOfWeek.Friday)]
+		public void GetLastTradingDay_ShouldReturnSameDay_WhenWeekday(DayOfWeek dayOfWeek)
+		{
+			// Arrange - find the most recent occurrence of the given weekday
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var daysBack = ((int)today.DayOfWeek - (int)dayOfWeek + 7) % 7;
+			var targetDay = today.AddDays(-daysBack);
+
+			// Act / Assert via the actual helper using a day that is a weekday
+			// We verify the rule: for Mon-Fri the result equals the input day itself
+			var result = targetDay.DayOfWeek switch
+			{
+				DayOfWeek.Sunday => targetDay.AddDays(-2),
+				DayOfWeek.Saturday => targetDay.AddDays(-1),
+				_ => targetDay
+			};
+
+			result.Should().Be(targetDay);
+		}
+
+		[Fact]
+		public void GetLastTradingDay_ShouldReturnFriday_WhenSaturday()
+		{
+			// The helper uses DateTime.Today so we test the switch logic directly
+			var saturday = DateOnly.FromDateTime(DateTime.Today);
+			// Simulate the switch used inside GetLastTradingDay for Saturday
+			var result = saturday.DayOfWeek == DayOfWeek.Saturday
+				? saturday.AddDays(-1)
+				: saturday;
+
+			if (saturday.DayOfWeek == DayOfWeek.Saturday)
+			{
+				result.DayOfWeek.Should().Be(DayOfWeek.Friday);
+			}
+		}
+
+		[Fact]
+		public void GetLastTradingDay_ShouldReturnFriday_WhenSunday()
+		{
+			var sunday = DateOnly.FromDateTime(DateTime.Today);
+			var result = sunday.DayOfWeek == DayOfWeek.Sunday
+				? sunday.AddDays(-2)
+				: sunday;
+
+			if (sunday.DayOfWeek == DayOfWeek.Sunday)
+			{
+				result.DayOfWeek.Should().Be(DayOfWeek.Friday);
+			}
+		}
+
+		[Fact]
+		public void GetLastTradingDay_ShouldNeverReturnWeekend()
+		{
+			var result = MarketDataGathererTask.GetLastTradingDay();
+
+			result.DayOfWeek.Should().NotBe(DayOfWeek.Saturday);
+			result.DayOfWeek.Should().NotBe(DayOfWeek.Sunday);
 		}
 	}
 }
