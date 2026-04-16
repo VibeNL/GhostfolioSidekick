@@ -89,9 +89,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 				}
 
-				var isCurrentlyOwned = await IsCurrentlyOwned(databaseContext, symbol);
 				var containsToday = symbol.MarketData.Any(x => x.Date == DateOnly.FromDateTime(DateTime.Today));
-				if (!isCurrentlyOwned && containsToday)
+				if (containsToday && !await IsCurrentlyOwned(databaseContext, symbol))
 				{
 					logger.LogDebug("{Symbol} from {DataSource} is not currently owned and data till today is processed. Skipping till tomorrow", symbol.Symbol, symbol.DataSource);
 					continue;
