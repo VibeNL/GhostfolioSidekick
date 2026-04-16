@@ -2,7 +2,6 @@ using AutoFixture;
 using AutoFixture.Kernel;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Performance;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {

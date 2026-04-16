@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Activities.Comparer;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
 

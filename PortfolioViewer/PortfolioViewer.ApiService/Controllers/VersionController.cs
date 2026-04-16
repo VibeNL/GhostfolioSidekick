@@ -2,7 +2,6 @@ using GhostfolioSidekick.PortfolioViewer.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.PortfolioViewer.ApiService.Controllers;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {

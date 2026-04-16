@@ -3,7 +3,6 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Utilities;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
 	public class MigrationStatusViewModel

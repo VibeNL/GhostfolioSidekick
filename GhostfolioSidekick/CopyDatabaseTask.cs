@@ -1,6 +1,5 @@
 using GhostfolioSidekick.Configuration;
 using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.IO.Compression;
 
