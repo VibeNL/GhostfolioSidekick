@@ -70,19 +70,19 @@
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <div class="text-center p-3 rounded bg-light">
-                                    <div class="h2 text-primary mb-1">@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)</div>
+                                    <div class="h2 text-primary mb-1"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)" /></div>
                                     <div class="text-muted">Total Portfolio Value</div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="text-center p-3 rounded bg-light">
-                                    <div class="h4 text-info mb-1">@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)</div>
+                                    <div class="h4 text-info mb-1"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)" /></div>
                                     <div class="text-muted">Asset Holdings</div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="text-center p-3 rounded bg-light">
-                                    <div class="h4 text-success mb-1">@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)</div>
+                                    <div class="h4 text-success mb-1"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)" /></div>
                                     <div class="text-muted">Cash Available</div>
                                 </div>
                             </div>
@@ -168,17 +168,17 @@
                                                         </a>
                                                     </td>
                                                     <td class="text-end">
-                                                        <strong>@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)</strong>
+                                                        <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)" /></strong>
                                                     </td>
                                                     <td class="text-end">
-                                                        <span class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value.Subtract(@latest.Balance))</span>
+                                                        <span class="text-info"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.Value.Subtract(@latest.Balance))" /></span>
                                                     </td>
                                                     <td class="text-end">
-                                                        <span class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)</span>
+                                                        <span class="text-success"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)" /></span>
                                                     </td>
                                                     <td class="text-end">
                                                         <span class="@(latest.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                            @CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)
+                                                            <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)" />
                                                         </span>
                                                     </td>
                                                     <td class="text-end">
@@ -195,17 +195,17 @@
                                                     <strong class="text-dark">Total Portfolio</strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong class="text-primary">@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)</strong>
+                                                    <strong class="text-primary"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)" /></strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)</strong>
+                                                    <strong class="text-info"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)" /></strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)</strong>
+                                                    <strong class="text-success"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)" /></strong>
                                                 </td>
                                                 <td class="text-end">
                                                     <strong class="@(TotalGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(TotalGainLoss)
+                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(TotalGainLoss)" />
                                                     </strong>
                                                 </td>
                                                 <td class="text-end">
@@ -221,7 +221,9 @@
                             else if (AccountDetailsViewMode == "pie" && !TestContextService.IsTest)
                             {
                                 <div class="account-chart-container">
-                                    <PlotlyChart Data="accountPieData" Layout="accountPieLayout" Config="accountPieConfig" style="height: 100%; width: 100%;" />
+                                    <PrivacyChartOverlay>
+                                        <PlotlyChart @key="@ChartKey" Data="accountPieData" Layout="accountPieLayout" Config="accountPieConfig" style="height: 100%; width: 100%;" />
+                                    </PrivacyChartOverlay>
                                 </div>
                             }
                             else if (AccountDetailsViewMode == "pie" && TestContextService.IsTest)
@@ -237,7 +239,9 @@
                             else if (AccountDetailsViewMode == "treemap" && !TestContextService.IsTest)
                             {
                                 <div class="account-chart-container">
-                                    <PlotlyChart Data="accountTreemapData" Layout="accountTreemapLayout" Config="accountTreemapConfig" style="height: 100%; width: 100%;" />
+                                    <PrivacyChartOverlay>
+                                        <PlotlyChart @key="@ChartKey" Data="accountTreemapData" Layout="accountTreemapLayout" Config="accountTreemapConfig" style="height: 100%; width: 100%;" />
+                                    </PrivacyChartOverlay>
                                 </div>
                             }
                             else if (AccountDetailsViewMode == "treemap" && TestContextService.IsTest)
@@ -286,7 +290,9 @@
                     <div class="card-body">
                         @if (ViewMode == "chart")
                         {
-                            <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+                            <PrivacyChartOverlay>
+                                <PlotlyChart @key="@ChartKey" Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+                            </PrivacyChartOverlay>
                         }
                         else
                         {
@@ -358,17 +364,17 @@
                                                     </a>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@account.Value)</strong>
+                                                    <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@account.Value)" /></strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    @CurrencyDisplay.DisplaySignAndAmount(@account.Invested)
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@account.Invested)" />
                                                 </td>
                                                 <td class="text-end">
-                                                    @CurrencyDisplay.DisplaySignAndAmount(@account.Balance)
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@account.Balance)" />
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(account.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(@account.GainLoss)
+                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@account.GainLoss)" />
                                                     </span>
                                                 </td>
                                                 <td class="text-end">

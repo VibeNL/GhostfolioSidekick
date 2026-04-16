@@ -94,6 +94,7 @@ public class Program
 		builder.Services.AddScoped<IVersionService, VersionService>();
 
 		builder.Services.AddSingleton<ITestContextService, TestContextService>();
+		builder.Services.AddSingleton<IPrivacyModeService, PrivacyModeService>();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 

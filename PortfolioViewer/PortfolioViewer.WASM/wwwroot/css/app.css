@@ -2,6 +2,16 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* Privacy mode: hide only y-axis (value) tick labels and hover text, keep x-axis (date) labels visible */
+.privacy-chart-active .ytick text,
+.privacy-chart-active .ztick text,
+.privacy-chart-active .cbaxis text,
+.privacy-chart-active .g-ytitle text,
+.privacy-chart-active .g-ztitle text,
+.privacy-chart-active .hoverlayer {
+    visibility: hidden !important;
+}
+
 h1:focus {
     outline: none;
 }

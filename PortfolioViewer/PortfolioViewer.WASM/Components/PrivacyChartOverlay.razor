@@ -1,0 +1,6 @@
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IPrivacyModeService PrivacyModeService
+@implements IDisposable
+
+<div class="@(PrivacyModeService.IsPrivacyMode ? "privacy-chart-active" : "")">
+    @ChildContent
+</div>

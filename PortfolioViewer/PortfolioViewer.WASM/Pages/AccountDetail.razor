@@ -112,26 +112,26 @@
                         <div class="row g-4">
                             <div class="col-md-3">
                                 <div class="text-center p-3 rounded bg-light">
-                                    <div class="h2 text-primary mb-1">@CurrencyDisplay.DisplaySignAndAmount(@CurrentTotalValue)</div>
+                                    <div class="h2 text-primary mb-1"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@CurrentTotalValue)" /></div>
                                     <div class="text-muted">Current Total Value</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center p-3 rounded bg-light">
-                                    <div class="h4 text-info mb-1">@CurrencyDisplay.DisplaySignAndAmount(@CurrentAssetValue)</div>
+                                    <div class="h4 text-info mb-1"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@CurrentAssetValue)" /></div>
                                     <div class="text-muted">Asset Holdings</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center p-3 rounded bg-light">
-                                    <div class="h4 text-success mb-1">@CurrencyDisplay.DisplaySignAndAmount(@CurrentCashBalance)</div>
+                                    <div class="h4 text-success mb-1"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@CurrentCashBalance)" /></div>
                                     <div class="text-muted">Cash Available</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center p-3 rounded bg-light">
                                     <div class="h4 @(CurrentGainLoss.Amount >= 0 ? "text-success" : "text-danger") mb-1">
-                                        @CurrencyDisplay.DisplaySignAndAmount(@CurrentGainLoss)
+                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@CurrentGainLoss)" />
                                     </div>
                                     <div class="text-muted">
                                         Gain/Loss
@@ -172,7 +172,9 @@
                         @if (ValueViewMode == "chart" && !TestContextService.IsTest)
                         {
                             <div class="account-chart-container">
-                                <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 100%; width: 100%;" />
+                                <PrivacyChartOverlay>
+                                    <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 100%; width: 100%;" />
+                                </PrivacyChartOverlay>
                             </div>
                         }
                         else if (ValueViewMode == "chart" && TestContextService.IsTest)
@@ -250,20 +252,20 @@
                                                     <strong>@historyPoint.Date.ToString("yyyy-MM-dd")</strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Value)</strong>
+                                                    <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Value)" /></strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    <span class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.AssetValue)</span>
+                                                    <span class="text-info"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.AssetValue)" /></span>
                                                 </td>
                                                 <td class="text-end">
-                                                    <span class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Balance)</span>
+                                                    <span class="text-success"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Balance)" /></span>
                                                 </td>
                                                 <td class="text-end">
-                                                    @CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Invested)
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Invested)" />
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(historyPoint.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(@historyPoint.GainLoss)
+                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.GainLoss)" />
                                                     </span>
                                                 </td>
                                                 <td class="text-end">
@@ -350,20 +352,20 @@
                                                     <small>@holding.Name</small>
                                                 </td>
                                                 <td class="text-end">
-                                                    <small>@holding.Quantity.ToString("N4")</small>
+                                                    <small><PrivacyValue Value="@holding.Quantity.ToString("N4")" /></small>
                                                 </td>
                                                 <td class="text-end">
                                                     <small>@CurrencyDisplay.DisplaySignAndAmount(holding.CurrentPrice)</small>
                                                 </td>
                                                 <td class="text-end">
-                                                    <small>@CurrencyDisplay.DisplaySignAndAmount(holding.AveragePrice)</small>
+                                                    <small><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(holding.AveragePrice)" /></small>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(holding.CurrentValue)</strong>
+                                                    <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(holding.CurrentValue)" /></strong>
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(holding.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(holding.GainLoss)
+                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(holding.GainLoss)" />
                                                     </span>
                                                 </td>
                                                 <td class="text-end">
@@ -381,11 +383,11 @@
                                         <tr>
                                             <td colspan="5"><strong>Total</strong></td>
                                             <td class="text-end">
-                                                <strong>@CurrencyDisplay.DisplaySignAndAmount(CurrentAssetValue)</strong>
+                                                <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(CurrentAssetValue)" /></strong>
                                             </td>
                                             <td class="text-end">
                                                 <strong class="@(CurrentGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                    @CurrencyDisplay.DisplaySignAndAmount(CurrentGainLoss)
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(CurrentGainLoss)" />
                                                 </strong>
                                             </td>
                                             <td class="text-end">
@@ -534,7 +536,7 @@
                                                     @if (transaction.TotalValue != null)
                                                     {
                                                         <small class="@GetValueClass(transaction.TotalValue, transaction.Type)">
-                                                            @CurrencyDisplay.DisplaySignAndAmount(transaction.TotalValue)
+                                                            <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(transaction.TotalValue)" />
                                                         </small>
                                                     }
                                                     else
