@@ -8,18 +8,17 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal abstract class MarketDataGathererTaskBase(
+	internal class MarketDataGathererTask(
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
-		public abstract TimeSpan ExecutionFrequency { get; }
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public bool ExceptionsAreFatal => false;
 
-		public abstract string Name { get; }
-		public abstract TaskPriority Priority { get; }
+		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
-		protected abstract bool ShouldProcess(bool isCurrentlyOwned);
+		public string Name => "Market Data Gatherer";
 
 		public async Task DoWork(ILogger logger)
 		{
@@ -50,13 +49,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				if (!await activities.AnyAsync())
 				{
 					logger.LogDebug("No activities found for {Symbol} from {DataSource}", symbol.Symbol, symbol.DataSource);
-					continue;
-				}
-
-				var isCurrentlyOwned = await IsCurrentlyOwned(databaseContext, symbol);
-				if (!ShouldProcess(isCurrentlyOwned))
-				{
-					logger.LogDebug("Skipping market data for {Symbol} from {DataSource} (owned: {IsOwned})", symbol.Symbol, symbol.DataSource, isCurrentlyOwned);
 					continue;
 				}
 
@@ -96,6 +88,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						}
 					}
 				}
+
+				var lastTradingDay = GetLastTradingDay();
+					var dataIsUpToDate = symbol.MarketData.Count != 0 && symbol.MarketData.Max(x => x.Date) >= lastTradingDay;
+					if (dataIsUpToDate && !await IsCurrentlyOwned(databaseContext, symbol))
+					{
+						logger.LogDebug("{Symbol} from {DataSource} is not currently owned and data is up to date (latest >= {LastTradingDay}). Skipping till next trading day", symbol.Symbol, symbol.DataSource, lastTradingDay);
+						continue;
+					}
 
 				// If the repository does not support data before a certain date, set it to that date
 				if (date < stockPriceRepository.MinDate)
@@ -160,6 +160,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				await databaseContext.SaveChangesAsync();
 				logger.LogDebug("Market data for {Symbol} from {DataSource} gathered", symbol.Symbol, symbol.DataSource);
 			}
+		}
+
+		internal static DateOnly GetLastTradingDay()
+		{
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			return today.DayOfWeek switch
+			{
+				DayOfWeek.Sunday => today.AddDays(-2),
+				DayOfWeek.Saturday => today.AddDays(-1),
+				_ => today
+			};
 		}
 
 		internal static async Task<bool> IsCurrentlyOwned(DatabaseContext databaseContext, SymbolProfile symbol)
