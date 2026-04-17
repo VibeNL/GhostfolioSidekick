@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     new DateTime(2024, 05, 02, 15, 21, 43, 161, DateTimeKind.Utc),
                     1.00m,
                     new Money(Currency.EUR, 1.00m),
-                    "ec3ef519-39e2-4fe1-a810-2ee8425bf877_FEE")
+                    "ec3ef519-39e2-4fe1-a810-2ee8425bf877")
             ]);
         }
 
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     new DateTime(2024, 01, 10, 0, 55, 48, 147, DateTimeKind.Utc).AddMicroseconds(672),
                     0.02m,
                     new Money(Currency.EUR, 0.02m),
-                    "895b5983-4d52-4614-b521-a20eb7b7082c_TAX")
+                    "895b5983-4d52-4614-b521-a20eb7b7082c")
             ]);
         }
 
