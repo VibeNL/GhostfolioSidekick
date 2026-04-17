@@ -1,0 +1,121 @@
+@page "/tax-report"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.Model
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@attribute [Authorize]
+
+<PageTitle>Tax Report (NL Box 3)</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2><i class="bi bi-file-earmark-ruled me-2"></i>Tax Report – Netherlands Box 3</h2>
+            <p class="text-muted">Total asset value and cash balance per account on 1 January and 31 December of each year.</p>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Tax Report...</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!ReportData.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-file-earmark-ruled text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No Tax Data Found</h5>
+                        <p class="text-muted">No snapshot data is available yet. Please wait for the first sync to complete.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var year in Years)
+        {
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar3 me-2"></i>@year
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @foreach (var date in new[] { new DateOnly(year, 1, 1), new DateOnly(year, 12, 31) })
+                    {
+                        var rows = GetRowsForDate(year, date).ToList();
+                        var total = GetTotalForDate(year, date);
+
+                        @if (rows.Any())
+                        {
+                            <div class="px-3 pt-3">
+                                <h6 class="text-muted fw-semibold">
+                                    <i class="bi bi-calendar-event me-1"></i>@date.ToString("d MMMM yyyy")
+                                </h6>
+                            </div>
+                            <div class="table-responsive px-3 pb-3">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Account</th>
+                                            <th class="text-end">Asset Value</th>
+                                            <th class="text-end">Cash Balance</th>
+                                            <th class="text-end">Total Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var row in rows)
+                                        {
+                                            <tr>
+                                                <td>@row.AccountName</td>
+                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.AssetValue)" /></td>
+                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.CashBalance)" /></td>
+                                                <td class="text-end fw-semibold"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.TotalValue)" /></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    @if (total != null && rows.Count > 1)
+                                    {
+                                        <tfoot class="table-primary">
+                                            <tr class="fw-bold">
+                                                <td>Total</td>
+                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(total.AssetValue)" /></td>
+                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(total.CashBalance)" /></td>
+                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(total.TotalValue)" /></td>
+                                            </tr>
+                                        </tfoot>
+                                    }
+                                </table>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

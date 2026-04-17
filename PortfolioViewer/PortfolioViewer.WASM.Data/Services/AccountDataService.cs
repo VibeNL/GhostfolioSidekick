@@ -124,5 +124,114 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.Select(s => s.Symbol)
 				.ToListAsync(cancellationToken);
 		}
+
+		public async Task<List<TaxReportRow>> GetTaxReportAsync(CancellationToken cancellationToken = default)
+		{
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+			var accounts = await databaseContext.Accounts
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			var accountById = accounts.ToDictionary(a => a.Id, a => a.Name);
+
+			// Determine all years for which data exists
+			var snapshotYears = await databaseContext.CalculatedSnapshots
+				.Select(s => s.Date.Year)
+				.Distinct()
+				.ToListAsync(cancellationToken);
+
+			var balanceYears = await databaseContext.Balances
+				.Select(b => b.Date.Year)
+				.Distinct()
+				.ToListAsync(cancellationToken);
+
+			var years = snapshotYears.Union(balanceYears).Distinct().OrderBy(y => y).ToList();
+
+			var targetDates = years
+				.SelectMany(y => new[] { new DateOnly(y, 1, 1), new DateOnly(y, 12, 31) })
+				.ToList();
+
+			// For each target date, pick the closest available snapshot date on or before it
+			var snapshots = await databaseContext.CalculatedSnapshots
+				.Where(s => targetDates.Select(d => d.Year).Contains(s.Date.Year))
+				.Where(s => s.Holding != null && s.Holding.SymbolProfiles.Any())
+				.GroupBy(s => new { s.Date, s.AccountId })
+				.Select(g => new
+				{
+					g.Key.Date,
+					g.Key.AccountId,
+					TotalValue = g.Sum(x => x.TotalValue)
+				})
+				.ToListAsync(cancellationToken);
+
+			var balances = await databaseContext.Balances
+				.Where(b => targetDates.Select(d => d.Year).Contains(b.Date.Year))
+				.GroupBy(b => new { b.Date, b.AccountId })
+				.Select(g => new
+				{
+					g.Key.Date,
+					AccountId = g.Key.AccountId,
+					Amount = g.Min(x => x.Money.Amount)
+				})
+				.ToListAsync(cancellationToken);
+
+			var result = new List<TaxReportRow>();
+			var currency = serverConfigurationService.PrimaryCurrency;
+
+			foreach (var targetDate in targetDates)
+			{
+				// For snapshots: find the closest date on or before the target date within the same year
+				var snapshotDatesInYear = snapshots
+					.Where(s => s.Date.Year == targetDate.Year && s.Date <= targetDate)
+					.Select(s => s.Date)
+					.Distinct()
+					.OrderDescending()
+					.FirstOrDefault();
+
+				var balanceDatesInYear = balances
+					.Where(b => b.Date.Year == targetDate.Year && b.Date <= targetDate)
+					.Select(b => b.Date)
+					.Distinct()
+					.OrderDescending()
+					.FirstOrDefault();
+
+				var relevantSnapshots = snapshotDatesInYear != default
+					? snapshots.Where(s => s.Date == snapshotDatesInYear).ToList()
+					: [];
+
+				var relevantBalances = balanceDatesInYear != default
+					? balances.Where(b => b.Date == balanceDatesInYear).ToList()
+					: [];
+
+				var allAccountIds = relevantSnapshots.Select(s => s.AccountId)
+					.Union(relevantBalances.Select(b => b.AccountId))
+					.Distinct();
+
+				foreach (var accountId in allAccountIds)
+				{
+					var assetValue = relevantSnapshots
+						.Where(s => s.AccountId == accountId)
+						.Sum(s => s.TotalValue);
+
+					var cashBalance = relevantBalances
+						.Where(b => b.AccountId == accountId)
+						.Sum(b => b.Amount);
+
+					result.Add(new TaxReportRow
+					{
+						Year = targetDate.Year,
+						Date = targetDate,
+						AccountId = accountId,
+						AccountName = accountById.TryGetValue(accountId, out var name) ? name : $"Account {accountId}",
+						AssetValue = new Money(currency, assetValue),
+						CashBalance = new Money(currency, cashBalance),
+						TotalValue = new Money(currency, assetValue + cashBalance)
+					});
+				}
+			}
+
+			return [.. result.OrderBy(r => r.Year).ThenBy(r => r.Date).ThenBy(r => r.AccountName)];
+		}
 	}
 }
