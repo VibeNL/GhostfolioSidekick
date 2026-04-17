@@ -1,17 +1,16 @@
 # Node.js source (avoids apt-get for nodejs)
 # Must match BUILDPLATFORM so the node binary can run on the build machine during cross-compilation
-FROM --platform="$BUILDPLATFORM" node:18-slim AS node-source
+FROM --platform="$BUILDPLATFORM" node:22-bookworm-slim AS node-source
 
 # Python build-time source - provides Python (required by wasm-tools/Emscripten) during cross-compilation.
 # Must match BUILDPLATFORM so the compiler toolchain binaries can execute on the build machine.
-FROM --platform="$BUILDPLATFORM" python:3.12-slim AS python-source
+FROM --platform="$BUILDPLATFORM" python:3.12-bookworm-slim AS python-source
 
 # Build stage for the API and Sidekick
 # Pinned to bookworm-slim so the OS variant is explicit and consistent with the final image.
 FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS build
 
 ARG TARGETARCH
-ARG VERSION
 ARG SourceRevisionId
 
 WORKDIR /src
@@ -45,13 +44,10 @@ RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer.ApiService/PortfolioViewer.
 # Copy the entire source code
 COPY . .
 
-# Build all projects
-RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build && \
-    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build && \
-    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build
-
 # Publish each project
 FROM build AS publish-api
+ARG TARGETARCH
+ARG SourceRevisionId
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
 RUN dotnet publish -a "$TARGETARCH" \
     "PortfolioViewer.ApiService.csproj" \
@@ -60,6 +56,8 @@ RUN dotnet publish -a "$TARGETARCH" \
     /p:SourceRevisionId="$SourceRevisionId"
 
 FROM build AS publish-wasm
+ARG TARGETARCH
+ARG SourceRevisionId
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
 RUN dotnet publish -a "$TARGETARCH" \
     "PortfolioViewer.WASM.csproj" \
@@ -68,6 +66,8 @@ RUN dotnet publish -a "$TARGETARCH" \
     /p:SourceRevisionId="$SourceRevisionId"
 
 FROM build AS publish-sidekick
+ARG TARGETARCH
+ARG SourceRevisionId
 WORKDIR "/src/GhostfolioSidekick"
 RUN dotnet publish -a "$TARGETARCH" \
     "GhostfolioSidekick.csproj" \
