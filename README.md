@@ -146,7 +146,7 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Nexo (Broker) | Export of transaction history | |
 | NIBC (Bank) | Export CSV (Semicolom delimited) | |
 | Scalable Capital (Prime only) | The CSV files export via the transaction view | |
-| Trading Republic | Montly Statements and individual invoices |  [Documentation](./Documentation/Parsers/TradeRepublic.md) |
+| Trading Republic | CSV transaction export (recommended) or monthly statements and individual invoices (PDF, legacy) | [Documentation](./Documentation/Parsers/TradeRepublic.md) |
 | Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
 
 #### Generic import format
