@@ -5,7 +5,6 @@ FROM --platform="$BUILDPLATFORM" node:18-slim AS node-source
 # Python build-time source - provides Python (required by wasm-tools/Emscripten) during cross-compilation.
 # Must match BUILDPLATFORM so the compiler toolchain binaries can execute on the build machine.
 FROM --platform="$BUILDPLATFORM" python:3.12-slim AS python-source
-RUN pip install --no-cache-dir supervisor
 
 # Build stage for the API and Sidekick
 # Pinned to bookworm-slim so the OS variant is explicit and consistent with the final image.
