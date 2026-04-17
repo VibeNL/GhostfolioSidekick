@@ -306,5 +306,150 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
             activityManager.PartialActivities.Should().BeEmpty();
         }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleSellStock_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_sell_stock.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateSell(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 10, 14, 22, 10, 123, DateTimeKind.Utc),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "US2546871060", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Walt Disney", Currency.EUR),
+                    ],
+                    0.0603570000m,
+                    new Money(Currency.EUR, 84.500000m),
+                    new Money(Currency.EUR, 5.10m),
+                    "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleSellWithFee_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_sell_with_fee.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateSell(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 11, 10, 15, 05, 321, DateTimeKind.Utc),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "US2546871060", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Walt Disney", Currency.EUR),
+                    ],
+                    1.0000000000m,
+                    new Money(Currency.EUR, 85.000000m),
+                    new Money(Currency.EUR, 84.00m),
+                    "b2c3d4e5-f6a7-8901-bcde-f12345678901"),
+                PartialActivity.CreateFee(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 11, 10, 15, 05, 321, DateTimeKind.Utc),
+                    1.00m,
+                    new Money(Currency.EUR, 1.00m),
+                    "b2c3d4e5-f6a7-8901-bcde-f12345678901")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleFinalMaturity_Ignored()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_final_maturity.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleStockperk_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_stockperk.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2024, 06, 01, 09, 00, 00, 000, DateTimeKind.Utc),
+                    10.000000m,
+                    new Money(Currency.EUR, 10.000000m),
+                    "d4e5f6a7-b8c9-0123-defa-234567890123")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleInterestWithTax_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_interest_with_tax.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateInterest(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 01, 08, 30, 00, 500, DateTimeKind.Utc),
+                    50.000000m,
+                    "Interest payment Booking",
+                    new Money(Currency.EUR, 50.000000m),
+                    "e5f6a7b8-c9d0-1234-efab-345678901234"),
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 01, 08, 30, 00, 500, DateTimeKind.Utc),
+                    7.50m,
+                    new Money(Currency.EUR, 7.50m),
+                    "e5f6a7b8-c9d0-1234-efab-345678901234")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleDividendNoTax_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_dividend_no_tax.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateDividend(
+                    Currency.EUR,
+                    new DateTime(2024, 04, 15, 11, 00, 00, 000, DateTimeKind.Utc),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "US2546871060", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Walt Disney", Currency.EUR),
+                    ],
+                    0.120000m,
+                    new Money(Currency.EUR, 0.120000m),
+                    "f6a7b8c9-d0e1-2345-fabc-456789012345")
+            ]);
+        }
+
+        [Fact]
+        public void ParseRow_UnsupportedType_ThrowsNotSupportedException()
+        {
+            var ex = Assert.Throws<NotSupportedException>(() =>
+            {
+                var record = new TradeRepublicCsvRecord
+                {
+                    DateTime = DateTime.UtcNow,
+                    Date = DateOnly.FromDateTime(DateTime.Today),
+                    Category = "CASH",
+                    Type = "UNKNOWN_TYPE_XYZ",
+                    Currency = "EUR",
+                    TransactionId = "test-id",
+                };
+                // Use reflection to call ParseRow
+                var method = typeof(TradeRepublicCsvParser).GetMethod("ParseRow",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                try
+                {
+                    method!.Invoke(parser, [record, 1]);
+                }
+                catch (System.Reflection.TargetInvocationException tie)
+                {
+                    throw tie.InnerException!;
+                }
+            });
+
+            ex.Message.Should().Contain("UNKNOWN_TYPE_XYZ");
+        }
     }
 }

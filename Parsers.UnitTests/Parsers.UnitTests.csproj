@@ -403,6 +403,24 @@
 		<None Update="TestFiles\ScalableCapital\Prime\SellOrders\single_sell_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_dividend_no_tax.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_final_maturity.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_interest_with_tax.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_sell_stock.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_sell_with_fee.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_stockperk.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_buy_bond.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
