@@ -12,25 +12,6 @@ RUN pip install --no-cache-dir supervisor
 FROM --platform="$TARGETPLATFORM" python:3.12-slim AS python-runtime
 RUN pip install --no-cache-dir supervisor
 
-# Base runtime image for the API
-# No --platform override: follows TARGETPLATFORM so the image runs on the intended architecture.
-FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
-
-ARG TARGETPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-ARG BUILDPLATFORM
-ARG BUILDOS
-ARG BUILDARCH
-ARG BUILDVARIANT
-
-RUN echo "Building on $BUILDPLATFORM, targeting $TARGETPLATFORM"
-RUN echo "Building on ${BUILDOS} and ${BUILDARCH} with optional variant ${BUILDVARIANT}"
-RUN echo "Targeting ${TARGETOS} and ${TARGETARCH} with optional variant ${TARGETVARIANT}"
-
-WORKDIR /app
-
 # Build stage for the API and Sidekick
 FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
