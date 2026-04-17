@@ -1,5 +1,6 @@
 # Node.js source (avoids apt-get for nodejs)
-FROM node:18-slim AS node-source
+# Must match BUILDPLATFORM so the node binary can run on the build machine during cross-compilation
+FROM --platform="$BUILDPLATFORM" node:18-slim AS node-source
 
 # Supervisor source - install via pip to avoid apt-get
 FROM python:3.12-slim AS supervisor-source
