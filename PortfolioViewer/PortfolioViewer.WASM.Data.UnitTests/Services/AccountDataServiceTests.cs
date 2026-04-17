@@ -652,6 +652,345 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		#endregion
 
+		#region GetTaxReportAsync Tests
+
+		[Fact]
+		public async Task GetTaxReportAsync_WithEmptyDatabase_ShouldReturnEmptyList()
+		{
+			// Arrange
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account>());
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			result.Should().NotBeNull();
+			result.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_WithOnlySnapshots_ShouldReturnRowsForJan1AndDec31()
+		{
+			// Arrange
+			var account = CreateTestAccount("Broker A", 1);
+			var jan1 = new DateOnly(2023, 1, 1);
+			var dec31 = new DateOnly(2023, 12, 31);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
+				CreateCalculatedSnapshot(dec31, 1, 1500m, 1400m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			result.Should().NotBeNull();
+			result.Should().HaveCount(2);
+			result[0].Date.Should().Be(jan1);
+			result[0].TotalValue.Amount.Should().Be(1000m);
+			result[1].Date.Should().Be(dec31);
+			result[1].TotalValue.Amount.Should().Be(1500m);
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_WithCashBalance_ShouldAddBalanceToTotal()
+		{
+			// Arrange
+			var account = CreateTestAccount("Broker A", 1);
+			var jan1 = new DateOnly(2023, 1, 1);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m)
+			};
+			var balances = new List<Balance>
+			{
+				CreateBalance(jan1, 1, 250m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			result.Should().NotBeNull();
+			var jan1Row = result.First(r => r.Date == jan1);
+			jan1Row.AssetValue.Amount.Should().Be(1000m);
+			jan1Row.CashBalance.Amount.Should().Be(250m);
+			jan1Row.TotalValue.Amount.Should().Be(1250m);
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_WithBalanceFromPriorYear_ShouldUseItForJan1()
+		{
+			// Arrange - balance on Dec 31 2022 should be picked up for Jan 1 2023
+			var account = CreateTestAccount("Broker A", 1);
+			var dec31Prior = new DateOnly(2022, 12, 31);
+			var jan1 = new DateOnly(2023, 1, 1);
+			var dec31 = new DateOnly(2023, 12, 31);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
+				CreateCalculatedSnapshot(dec31, 1, 1500m, 1400m)
+			};
+			var balances = new List<Balance>
+			{
+				CreateBalance(dec31Prior, 1, 500m), // prior-year balance, no Jan 1 balance exists
+				CreateBalance(dec31, 1, 600m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			var jan1Row = result.First(r => r.Year == 2023 && r.Date == jan1);
+			jan1Row.CashBalance.Amount.Should().Be(500m); // picked up from Dec 31 prior year
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_ShouldPickClosestSnapshotOnOrBeforeTargetDate()
+		{
+			// Arrange - snapshot on Dec 29 should be used for Dec 31 (no Dec 31 snapshot)
+			var account = CreateTestAccount("Broker A", 1);
+			var jan1 = new DateOnly(2023, 1, 1);
+			var dec29 = new DateOnly(2023, 12, 29);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
+				CreateCalculatedSnapshot(dec29, 1, 1400m, 1300m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			var dec31Row = result.First(r => r.Year == 2023 && r.Date == new DateOnly(2023, 12, 31));
+			dec31Row.AssetValue.Amount.Should().Be(1400m); // from Dec 29 snapshot
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_WithMultipleAccounts_ShouldReturnRowsPerAccount()
+		{
+			// Arrange
+			var account1 = CreateTestAccount("Broker A", 1);
+			var account2 = CreateTestAccount("Broker B", 2);
+			var jan1 = new DateOnly(2023, 1, 1);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
+				CreateCalculatedSnapshot(jan1, 2, 2000m, 1800m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account1, account2 });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			var jan1Rows = result.Where(r => r.Date == jan1).OrderBy(r => r.AccountName).ToList();
+			jan1Rows.Should().HaveCount(2);
+			jan1Rows[0].AccountName.Should().Be("Broker A");
+			jan1Rows[0].AssetValue.Amount.Should().Be(1000m);
+			jan1Rows[1].AccountName.Should().Be("Broker B");
+			jan1Rows[1].AssetValue.Amount.Should().Be(2000m);
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_ShouldUseAccountNameFromAccountsTable()
+		{
+			// Arrange
+			var account = CreateTestAccount("My Named Account", 42);
+			var jan1 = new DateOnly(2023, 1, 1);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 42, 1000m, 900m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+				result.Should().HaveCount(2); // Jan 1 and Dec 31 both pick up the only available snapshot
+				result.Should().AllSatisfy(r => r.AccountName.Should().Be("My Named Account"));
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_WithUnknownAccountId_ShouldFallbackToAccountIdLabel()
+		{
+			// Arrange - snapshot references accountId 99 which has no Account record
+			var jan1 = new DateOnly(2023, 1, 1);
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 99, 1000m, 900m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account>());
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+				result.Should().HaveCount(2); // Jan 1 and Dec 31 both pick up the only available snapshot
+				result.Should().AllSatisfy(r => r.AccountName.Should().Be("Account 99"));
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_ShouldReturnRowsOrderedByYearThenDateThenAccountName()
+		{
+			// Arrange
+			var account1 = CreateTestAccount("Zulu", 1);
+			var account2 = CreateTestAccount("Alpha", 2);
+			var jan1 = new DateOnly(2023, 1, 1);
+			var dec31 = new DateOnly(2023, 12, 31);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(dec31, 1, 1000m, 900m),
+				CreateCalculatedSnapshot(dec31, 2, 500m, 450m),
+				CreateCalculatedSnapshot(jan1, 1, 800m, 700m),
+				CreateCalculatedSnapshot(jan1, 2, 400m, 350m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account1, account2 });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			result[0].Date.Should().Be(jan1);
+			result[0].AccountName.Should().Be("Alpha");
+			result[1].Date.Should().Be(jan1);
+			result[1].AccountName.Should().Be("Zulu");
+			result[2].Date.Should().Be(dec31);
+			result[2].AccountName.Should().Be("Alpha");
+			result[3].Date.Should().Be(dec31);
+			result[3].AccountName.Should().Be("Zulu");
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_CurrentYear_ShouldUseTodayAsEndDate()
+		{
+			// Arrange
+			var account = CreateTestAccount("Broker A", 1);
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var jan1 = new DateOnly(today.Year, 1, 1);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
+				CreateCalculatedSnapshot(today, 1, 1200m, 1100m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			var dates = result.Select(r => r.Date).Distinct().OrderBy(d => d).ToList();
+			dates.Should().Contain(jan1);
+			dates.Should().Contain(today);
+			dates.Should().NotContain(new DateOnly(today.Year, 12, 31));
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_WithBalanceOnlyAccount_ShouldIncludeItWithZeroAssets()
+		{
+			// Arrange - account has a balance but no snapshots
+			var account = CreateTestAccount("Cash Account", 1);
+			var jan1 = new DateOnly(2023, 1, 1);
+
+			var balances = new List<Balance>
+			{
+				CreateBalance(jan1, 1, 5000m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+				// The single Jan 1 balance is also the closest value for Dec 31, so both dates appear
+				result.Should().HaveCount(2);
+				result.Should().AllSatisfy(r =>
+				{
+					r.AssetValue.Amount.Should().Be(0m);
+					r.CashBalance.Amount.Should().Be(5000m);
+					r.TotalValue.Amount.Should().Be(5000m);
+				});
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_ShouldUsePrimaryCurrencyForAllRows()
+		{
+			// Arrange
+			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.EUR);
+			var account = CreateTestAccount("Broker A", 1);
+			var jan1 = new DateOnly(2023, 1, 1);
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+				// The single Jan 1 snapshot is also the closest value for Dec 31, so 2 rows appear
+				result.Should().HaveCount(2);
+				result.Should().AllSatisfy(r =>
+				{
+					r.TotalValue.Currency.Should().Be(Currency.EUR);
+					r.AssetValue.Currency.Should().Be(Currency.EUR);
+					r.CashBalance.Currency.Should().Be(Currency.EUR);
+				});
+		}
+
+		#endregion
+
 		#region Helper Methods
 
 		private static Platform CreateTestPlatform(string name, int id = 1)
