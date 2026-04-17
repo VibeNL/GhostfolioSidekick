@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-05-02T15:21:43.161Z","2024-05-02","DEFAULT","TRADING","BUY","FUND","Corp Bond USD (Dist)","IE0032895942","0.5372640000","93.064000","-50.00","-1.00","","EUR","","","","","ec3ef519-39e2-4fe1-a810-2ee8425bf877","","","",""

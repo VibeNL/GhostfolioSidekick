@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-02-14T23:19:02.613Z","2024-02-15","DEFAULT","CORPORATE_ACTION","REDEMPTION","BOND","Test Bond Feb. 2024","XS0000000001","-99.4700000000","1.000000","","","","EUR","","","","REDEMPTION XS0000000001","b942010b-8906-44f8-8889-1ff3da926bb0","","","",""
