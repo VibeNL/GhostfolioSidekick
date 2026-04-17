@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-08-10T10:38:47.492490Z","2024-08-10","DEFAULT","CASH","CARD_TRANSACTION_INTERNATIONAL","","","","","","-27.800000","","","EUR","","","","TR Card Transaction","a0f25981-6033-4e52-8826-7597b7d9aafe","","","",""

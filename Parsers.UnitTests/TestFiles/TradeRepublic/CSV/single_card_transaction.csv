@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-04-21T07:21:17.574610Z","2024-04-21","DEFAULT","CASH","CARD_TRANSACTION","","AMZN MKTP","","","","-27.270000","","","EUR","","","","TR Card Transaction","9e3705b8-65ea-410f-a92c-f39abb3706ac","","","","5999"

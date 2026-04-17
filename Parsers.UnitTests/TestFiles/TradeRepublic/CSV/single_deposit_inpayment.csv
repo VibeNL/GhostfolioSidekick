@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2023-10-06T11:32:20.493611Z","2023-10-06","DEFAULT","CASH","CUSTOMER_INPAYMENT","","","","","","250.000000","","","EUR","","","","Customer 00000000-0000-0000-0000-000000000000 inpayed net: 250.000000 fee: 0.000000","7d1109df-ed7b-40aa-b3f9-389e8d4c64cc","","","",""

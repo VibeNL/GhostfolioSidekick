@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-02-01T12:46:23.598279Z","2024-02-01","DEFAULT","CASH","INTEREST_PAYMENT","","","","","","30.730000","","0.00","EUR","","","","Interest payment Booking","86f5a92e-edf0-47d6-9e17-c6fdf3fc150f","","","",""

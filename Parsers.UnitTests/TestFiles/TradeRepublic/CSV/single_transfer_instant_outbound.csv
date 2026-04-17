@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-12-02T06:05:56.100359Z","2025-12-02","DEFAULT","CASH","TRANSFER_INSTANT_OUTBOUND","","","","","","-10000.000000","","","EUR","","","","Outgoing transfer for John Doe (NL00TEST0000000000)","019addaa-e604-709b-996c-dcfab3e22262","","","",""

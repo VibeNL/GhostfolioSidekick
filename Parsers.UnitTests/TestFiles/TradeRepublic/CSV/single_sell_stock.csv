@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-03-10T14:22:10.123Z","2024-03-10","DEFAULT","TRADING","SELL","STOCK","Walt Disney","US2546871060","-0.0603570000","84.500000","5.10","","","EUR","","","","","a1b2c3d4-e5f6-7890-abcd-ef1234567890","","","",""
