@@ -92,7 +92,7 @@
                     </h5>
                 </div>
                 <div class="card-body p-0">
-                    @foreach (var date in new[] { new DateOnly(year, 1, 1), new DateOnly(year, 12, 31) })
+                    @foreach (var date in GetDatesForYear(year))
                     {
                         var rows = GetRowsForDate(year, date).ToList();
                         var total = GetTotalForDate(year, date);

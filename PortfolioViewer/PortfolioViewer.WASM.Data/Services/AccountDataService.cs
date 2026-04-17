@@ -148,8 +148,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			var years = snapshotYears.Union(balanceYears).Distinct().OrderBy(y => y).ToList();
 
+			var today = DateOnly.FromDateTime(DateTime.Today);
 			var targetDates = years
-				.SelectMany(y => new[] { new DateOnly(y, 1, 1), new DateOnly(y, 12, 31) })
+				.SelectMany(y => new[]
+				{
+					new DateOnly(y, 1, 1),
+					y == today.Year ? today : new DateOnly(y, 12, 31)
+				})
 				.ToList();
 
 			var maxTargetDate = targetDates.Max();

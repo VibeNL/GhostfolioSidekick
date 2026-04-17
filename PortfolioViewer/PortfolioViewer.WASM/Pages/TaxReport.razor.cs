@@ -26,6 +26,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
         protected void SelectYear(int? year) => SelectedYear = year;
 
+        protected IEnumerable<DateOnly> GetDatesForYear(int year) =>
+            ReportData.Where(r => r.Year == year).Select(r => r.Date).Distinct().Order();
+
         protected IEnumerable<TaxReportRow> GetRowsForDate(int year, DateOnly date) =>
             ReportData.Where(r => r.Year == year && r.Date == date).OrderBy(r => r.AccountName);
 
