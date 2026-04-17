@@ -18,9 +18,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         protected string ErrorMessage { get; set; } = string.Empty;
         protected List<TaxReportRow> ReportData { get; set; } = [];
 
+        protected int? SelectedYear { get; set; }
+
         protected IEnumerable<int> Years => ReportData.Select(r => r.Year).Distinct().OrderBy(y => y);
 
-        protected IEnumerable<string> AccountNames => ReportData.Select(r => r.AccountName).Distinct().OrderBy(n => n);
+        protected IEnumerable<int> VisibleYears => SelectedYear.HasValue ? [SelectedYear.Value] : Years;
+
+        protected void SelectYear(int? year) => SelectedYear = year;
 
         protected IEnumerable<TaxReportRow> GetRowsForDate(int year, DateOnly date) =>
             ReportData.Where(r => r.Year == year && r.Date == date).OrderBy(r => r.AccountName);
@@ -50,6 +54,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             try
             {
                 ReportData = await AccountDataService.GetTaxReportAsync();
+                SelectedYear = Years.Any() ? Years.Max() : null;
             }
             catch (Exception ex)
             {

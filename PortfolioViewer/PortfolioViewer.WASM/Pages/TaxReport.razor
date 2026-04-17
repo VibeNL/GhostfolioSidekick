@@ -57,7 +57,33 @@
     }
     else
     {
-        @foreach (var year in Years)
+        <!-- Year Selector -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body py-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="text-muted me-1"><i class="bi bi-calendar3 me-1"></i>Year:</span>
+                            <button class="btn btn-sm @(SelectedYear == null ? "btn-primary" : "btn-outline-primary")"
+                                    @onclick="() => SelectYear(null)">
+                                All
+                            </button>
+                            @foreach (var y in Years)
+                            {
+                                var capturedYear = y;
+                                <button class="btn btn-sm @(SelectedYear == capturedYear ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="() => SelectYear(capturedYear)">
+                                    @capturedYear
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Year Cards -->
+        @foreach (var year in VisibleYears)
         {
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-primary text-white">
