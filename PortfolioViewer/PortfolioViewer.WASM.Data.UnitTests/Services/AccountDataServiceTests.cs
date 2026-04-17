@@ -6,6 +6,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -18,6 +19,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 	{
 		private readonly Mock<DatabaseContext> _mockDatabaseContext;
 		private readonly Mock<IServerConfigurationService> _mockServerConfigurationService;
+		private readonly Mock<ITaxReportCacheService> _mockTaxReportCacheService;
 		private readonly AccountDataService _accountDataService;
 
 		public AccountDataServiceTests()
@@ -26,9 +28,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockServerConfigurationService = new Mock<IServerConfigurationService>();
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.USD);
 
+			_mockTaxReportCacheService = new Mock<ITaxReportCacheService>();
+			_mockTaxReportCacheService.Setup(x => x.IsValid).Returns(false);
+
 			var dbContextFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
 			dbContextFactoryMock.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(_mockDatabaseContext.Object);
-			_accountDataService = new AccountDataService(dbContextFactoryMock.Object, _mockServerConfigurationService.Object);
+			_accountDataService = new AccountDataService(dbContextFactoryMock.Object, _mockServerConfigurationService.Object, _mockTaxReportCacheService.Object);
 		}
 
 		#region GetAccountInfo Tests
@@ -653,6 +658,64 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		#endregion
 
 		#region GetTaxReportAsync Tests
+
+		[Fact]
+		public async Task GetTaxReportAsync_WhenCacheIsValid_ShouldReturnCachedResultWithoutHittingDatabase()
+		{
+			// Arrange
+			var cached = new List<TaxReportRow>
+			{
+				new TaxReportRow
+				{
+					Year = 2023,
+					Date = new DateOnly(2023, 1, 1),
+					AccountId = 1,
+					AccountName = "Cached Account",
+					AssetValue = new Money(Currency.USD, 999m),
+					CashBalance = new Money(Currency.USD, 1m),
+					TotalValue = new Money(Currency.USD, 1000m)
+				}
+			};
+
+			_mockTaxReportCacheService.Setup(x => x.IsValid).Returns(true);
+			_mockTaxReportCacheService.Setup(x => x.CachedResult).Returns(cached);
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			result.Should().BeSameAs(cached);
+			_mockDatabaseContext.Verify(x => x.CalculatedSnapshots, Times.Never);
+			_mockDatabaseContext.Verify(x => x.Balances, Times.Never);
+		}
+
+		[Fact]
+		public async Task GetTaxReportAsync_WhenCacheIsInvalid_ShouldStoreResultInCache()
+		{
+			// Arrange
+			var account = CreateTestAccount("Broker A", 1);
+			var jan1 = new DateOnly(2023, 1, 1);
+
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m)
+			});
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
+
+			List<TaxReportRow>? storedResult = null;
+			_mockTaxReportCacheService
+				.Setup(x => x.Store(It.IsAny<List<TaxReportRow>>()))
+				.Callback<List<TaxReportRow>>(r => storedResult = r);
+
+			// Act
+			var result = await _accountDataService.GetTaxReportAsync(CancellationToken.None);
+
+			// Assert
+			_mockTaxReportCacheService.Verify(x => x.Store(It.IsAny<List<TaxReportRow>>()), Times.Once);
+			storedResult.Should().NotBeNull();
+			storedResult.Should().BeSameAs(result);
+		}
 
 		[Fact]
 		public async Task GetTaxReportAsync_WithEmptyDatabase_ShouldReturnEmptyList()

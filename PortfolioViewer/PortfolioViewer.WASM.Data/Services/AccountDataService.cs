@@ -8,7 +8,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class AccountDataService(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
-		IServerConfigurationService serverConfigurationService
+		IServerConfigurationService serverConfigurationService,
+		ITaxReportCacheService taxReportCacheService
 	) : IAccountDataService
 	{
 		public async Task<List<Account>> GetAccountInfo()
@@ -127,26 +128,29 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		public async Task<List<TaxReportRow>> GetTaxReportAsync(CancellationToken cancellationToken = default)
 		{
+			if (taxReportCacheService.IsValid)
+				return taxReportCacheService.CachedResult!;
+
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-			var accounts = await databaseContext.Accounts
-				.AsNoTracking()
-				.ToListAsync(cancellationToken);
-
-			var accountById = accounts.ToDictionary(a => a.Id, a => a.Name);
-
-			// Determine all years for which data exists
-			var snapshotYears = await databaseContext.CalculatedSnapshots
+			// Parallelise the two year-discovery queries — they are fully independent
+			var snapshotYearsTask = databaseContext.CalculatedSnapshots
 				.Select(s => s.Date.Year)
 				.Distinct()
 				.ToListAsync(cancellationToken);
 
-			var balanceYears = await databaseContext.Balances
+			var balanceYearsTask = databaseContext.Balances
 				.Select(b => b.Date.Year)
 				.Distinct()
 				.ToListAsync(cancellationToken);
 
-			var years = snapshotYears.Union(balanceYears).Distinct().OrderBy(y => y).ToList();
+			await Task.WhenAll(snapshotYearsTask, balanceYearsTask);
+
+			var years = snapshotYearsTask.Result
+				.Union(balanceYearsTask.Result)
+				.Distinct()
+				.OrderBy(y => y)
+				.ToList();
 
 			if (years.Count == 0)
 				return [];
@@ -158,69 +162,71 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					new DateOnly(y, 1, 1),
 					y == today.Year ? today : new DateOnly(y, 12, 31)
 				})
+				.Distinct()
+				.OrderBy(d => d)
 				.ToList();
 
-			var maxTargetDate = targetDates.Max();
+			var maxTargetDate = targetDates[^1];
 
-			// Load all snapshots up to the last target date (no year restriction —
-			// closest snapshot before Jan 1 might be in a prior year)
-			var snapshots = await databaseContext.CalculatedSnapshots
-				.Where(s => s.Date <= maxTargetDate)
-				.Where(s => s.Holding != null && s.Holding.SymbolProfiles.Any())
-				.GroupBy(s => new { s.Date, s.AccountId })
-				.Select(g => new
-				{
-					g.Key.Date,
-					g.Key.AccountId,
-					TotalValue = g.Sum(x => x.TotalValue)
-				})
+			// Parallelise the three data-load queries — they are fully independent
+			var accountsTask = databaseContext.Accounts
+				.AsNoTracking()
 				.ToListAsync(cancellationToken);
 
-			// Load all balances up to the last target date — no year restriction so that
-			// e.g. a Dec 31 balance is correctly picked up as the closest value for Jan 1
-			var balances = await databaseContext.Balances
+			// Group in SQL so only (Date, AccountId) → sum rows cross the wire, not raw holding rows
+			var snapshotsTask = databaseContext.CalculatedSnapshots
+				.Where(s => s.Date <= maxTargetDate && s.Holding != null && s.Holding.SymbolProfiles.Any())
+				.GroupBy(s => new { s.Date, s.AccountId })
+				.Select(g => new { g.Key.Date, g.Key.AccountId, TotalValue = g.Sum(x => x.TotalValue) })
+				.ToListAsync(cancellationToken);
+
+			var balancesTask = databaseContext.Balances
 				.Where(b => b.Date <= maxTargetDate)
 				.GroupBy(b => new { b.Date, b.AccountId })
-				.Select(g => new
-				{
-					g.Key.Date,
-					AccountId = g.Key.AccountId,
-					Amount = g.Min(x => x.Money.Amount)
-				})
+				.Select(g => new { g.Key.Date, AccountId = g.Key.AccountId, Amount = g.Min(x => x.Money.Amount) })
 				.ToListAsync(cancellationToken);
 
-			var result = new List<TaxReportRow>();
+			await Task.WhenAll(accountsTask, snapshotsTask, balancesTask);
+
+			var accountById = accountsTask.Result.ToDictionary(a => a.Id, a => a.Name);
+
+			// Pre-index: AccountId → list of (Date, Value) sorted descending by date.
+			// This means each per-target-date lookup is O(accounts) with a simple FirstOrDefault
+			// instead of re-scanning all rows for every target date.
+			var snapshotsByAccount = snapshotsTask.Result
+				.GroupBy(s => s.AccountId)
+				.ToDictionary(
+					g => g.Key,
+					g => g.OrderByDescending(s => s.Date).ToList());
+
+			var balancesByAccount = balancesTask.Result
+				.GroupBy(b => b.AccountId)
+				.ToDictionary(
+					g => g.Key,
+					g => g.OrderByDescending(b => b.Date).ToList());
+
+			var allAccountIds = snapshotsByAccount.Keys.Union(balancesByAccount.Keys).ToHashSet();
 			var currency = serverConfigurationService.PrimaryCurrency;
+			var result = new List<TaxReportRow>(targetDates.Count * allAccountIds.Count);
 
 			foreach (var targetDate in targetDates)
 			{
-				// For each account find the most recent snapshot on or before targetDate
-				var relevantSnapshots = snapshots
-					.Where(s => s.Date <= targetDate)
-					.GroupBy(s => s.AccountId)
-					.Select(g => g.OrderByDescending(s => s.Date).First())
-					.ToList();
-
-				// For each account find the most recent balance on or before targetDate
-				var relevantBalances = balances
-					.Where(b => b.Date <= targetDate)
-					.GroupBy(b => b.AccountId)
-					.Select(g => g.OrderByDescending(b => b.Date).First())
-					.ToList();
-
-				var allAccountIds = relevantSnapshots.Select(s => s.AccountId)
-					.Union(relevantBalances.Select(b => b.AccountId))
-					.Distinct();
-
 				foreach (var accountId in allAccountIds)
 				{
-					var assetValue = relevantSnapshots
-						.Where(s => s.AccountId == accountId)
-						.Sum(s => s.TotalValue);
+					// O(1) dictionary lookup + O(k) scan of one account's dates (k is usually small)
+					var snapshotEntry = snapshotsByAccount.TryGetValue(accountId, out var snaps)
+						? snaps.FirstOrDefault(s => s.Date <= targetDate)
+						: null;
 
-					var cashBalance = relevantBalances
-						.Where(b => b.AccountId == accountId)
-						.Sum(b => b.Amount);
+					var balanceEntry = balancesByAccount.TryGetValue(accountId, out var bals)
+						? bals.FirstOrDefault(b => b.Date <= targetDate)
+						: null;
+
+					if (snapshotEntry == null && balanceEntry == null)
+						continue;
+
+					var assetValue = snapshotEntry?.TotalValue ?? 0m;
+					var cashBalance = balanceEntry?.Amount ?? 0m;
 
 					result.Add(new TaxReportRow
 					{
@@ -235,7 +241,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				}
 			}
 
-			return [.. result.OrderBy(r => r.Year).ThenBy(r => r.Date).ThenBy(r => r.AccountName)];
+			var ordered = result.OrderBy(r => r.Year).ThenBy(r => r.Date).ThenBy(r => r.AccountName).ToList();
+			taxReportCacheService.Store(ordered);
+			return ordered;
 		}
 	}
 }
