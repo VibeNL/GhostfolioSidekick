@@ -1,0 +1,3 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-07-31T00:33:27.243Z","2025-07-31","DEFAULT","DELIVERY","MIGRATION","FUND","Test ETF","IE0000000001","-8.6932670000","94.344000","","","","EUR","","","","MIGRATION IE0000000001","0a708bf1-65f3-42e1-b38a-4e531fe4e233","","","",""
+"2025-07-31T00:33:27.256Z","2025-07-31","DEFAULT","DELIVERY","MIGRATION","FUND","Test ETF","IE0000000001","8.6932670000","94.344000","","","","EUR","","","","MIGRATION IE0000000001","dddc54db-ffed-497f-92aa-564a19b72001","","","",""

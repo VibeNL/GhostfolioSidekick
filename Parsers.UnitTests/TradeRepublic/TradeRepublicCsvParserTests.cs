@@ -242,5 +242,69 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     "a0f25981-6033-4e52-8826-7597b7d9aafe")
             ]);
         }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleTransferInstantInbound_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_transfer_instant_inbound.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2025, 07, 31, 04, 36, 25, 416, DateTimeKind.Utc).AddMicroseconds(954),
+                    5.000000m,
+                    new Money(Currency.EUR, 5.000000m),
+                    "b5960a9c-4a8d-4491-9586-b164479dcc4d")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleTransferInstantOutbound_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_transfer_instant_outbound.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2025, 12, 02, 06, 05, 56, 100, DateTimeKind.Utc).AddMicroseconds(359),
+                    10000.000000m,
+                    new Money(Currency.EUR, 10000.000000m),
+                    "019addaa-e604-709b-996c-dcfab3e22262")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleBonus_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_bonus.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2025, 10, 02, 10, 13, 50, 633, DateTimeKind.Utc).AddMicroseconds(670),
+                    0.500000m,
+                    new Money(Currency.EUR, 0.500000m),
+                    "84ef1ad6-e42e-4af9-ad76-57d20005b29e")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SinglePrivateMarketBuy_Ignored()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_private_market_buy.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleMigration_Ignored()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_migration.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEmpty();
+        }
     }
 }

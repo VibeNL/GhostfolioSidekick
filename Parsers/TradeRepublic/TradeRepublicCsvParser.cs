@@ -32,7 +32,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				case "CUSTOMER_OUTBOUND_REQUEST":
 				case "TRANSFER_INSTANT_OUTBOUND":
-				case "PRIVATE_MARKET_BUY":
 					lst.Add(PartialActivity.CreateCashWithdrawal(
 						currency,
 						date,
@@ -153,6 +152,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					break;
 				case "MIGRATION":
 					// Ignored: this is just a transfer of existing holdings to the new Trade Republic system, no cash or shares are changing hands.
+					break;
+				case "PRIVATE_MARKET_BUY":
+					// Ignored: this is a cash pre-payment reservation that gets settled by the actual TRADING/BUY entry, which handles the cash reduction.
 					break;
 
 				default:

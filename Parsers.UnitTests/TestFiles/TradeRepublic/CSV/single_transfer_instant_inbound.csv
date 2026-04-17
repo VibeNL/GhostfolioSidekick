@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-07-31T04:36:25.416954Z","2025-07-31","DEFAULT","CASH","TRANSFER_INSTANT_INBOUND","","","","","","5.000000","","","EUR","","","","Incoming transfer from John Doe","b5960a9c-4a8d-4491-9586-b164479dcc4d","","","",""
