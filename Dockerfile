@@ -1,3 +1,10 @@
+# Node.js source (avoids apt-get for nodejs)
+FROM node:18-slim AS node-source
+
+# Supervisor source - install via pip to avoid apt-get
+FROM python:3.12-slim AS supervisor-source
+RUN pip install --no-cache-dir supervisor
+
 # Base runtime image for the API
 FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:10.0 AS base
 
@@ -25,13 +32,14 @@ ARG SourceRevisionId
 
 WORKDIR /src
 
-# Install Python, wasm-tools workload, and supervisord in a single layer
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip supervisor && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    dotnet workload install wasm-tools && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy Node.js binaries from official image (no apt-get needed)
+COPY --from=node-source /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-source /usr/local/bin/npm /usr/local/bin/npm
+COPY --from=node-source /usr/local/bin/npx /usr/local/bin/npx
+COPY --from=node-source /usr/local/lib/node_modules /usr/local/lib/node_modules/
+
+# Install wasm-tools workload
+RUN dotnet workload install wasm-tools
 
 # Copy and restore projects
 COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer.ApiService/"]
@@ -81,10 +89,12 @@ FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 WORKDIR /app
 
-# Install supervisord
-RUN apt-get update && \
-    apt-get install -y supervisor && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy Python runtime and supervisor from pre-built stage (no apt-get needed)
+COPY --from=supervisor-source /usr/local/bin/python3.12 /usr/local/bin/python3.12
+COPY --from=supervisor-source /usr/local/lib/python3.12 /usr/local/lib/python3.12/
+COPY --from=supervisor-source /usr/local/bin/supervisord /usr/local/bin/supervisord
+COPY --from=supervisor-source /usr/local/bin/supervisorctl /usr/local/bin/supervisorctl
+RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
