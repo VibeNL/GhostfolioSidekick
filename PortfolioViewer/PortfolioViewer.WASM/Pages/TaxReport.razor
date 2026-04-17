@@ -85,6 +85,12 @@
         <!-- Year Cards -->
         @foreach (var year in VisibleYears)
         {
+            var dates = GetDatesForYear(year).ToList();
+            var startDate = dates.FirstOrDefault();
+            var endDate = dates.Count > 1 ? dates.Last() : (DateOnly?)null;
+            var compRows = GetComparisonRows(year).ToList();
+            var compTotal = GetComparisonTotal(year);
+
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">
@@ -92,54 +98,146 @@
                     </h5>
                 </div>
                 <div class="card-body p-0">
-                    @foreach (var date in GetDatesForYear(year))
-                    {
-                        var rows = GetRowsForDate(year, date).ToList();
-                        var total = GetTotalForDate(year, date);
-
-                        @if (rows.Any())
-                        {
-                            <div class="px-3 pt-3">
-                                <h6 class="text-muted fw-semibold">
-                                    <i class="bi bi-calendar-event me-1"></i>@date.ToString("d MMMM yyyy")
-                                </h6>
-                            </div>
-                            <div class="table-responsive px-3 pb-3">
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Account</th>
-                                            <th class="text-end">Asset Value</th>
-                                            <th class="text-end">Cash Balance</th>
-                                            <th class="text-end">Total Value</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var row in rows)
-                                        {
-                                            <tr>
-                                                <td>@row.AccountName</td>
-                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.AssetValue)" /></td>
-                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.CashBalance)" /></td>
-                                                <td class="text-end fw-semibold"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.TotalValue)" /></td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                    @if (total != null && rows.Count > 1)
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0 align-middle">
+                            <thead>
+                                <!-- Date group headers -->
+                                <tr class="table-light">
+                                    <th rowspan="2" class="align-middle">Account</th>
+                                    <th colspan="3" class="text-center border-start">
+                                        <i class="bi bi-calendar-check me-1"></i>@startDate.ToString("d MMMM yyyy")
+                                    </th>
+                                    @if (endDate.HasValue)
                                     {
-                                        <tfoot class="table-primary">
-                                            <tr class="fw-bold">
-                                                <td>Total</td>
-                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(total.AssetValue)" /></td>
-                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(total.CashBalance)" /></td>
-                                                <td class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(total.TotalValue)" /></td>
-                                            </tr>
-                                        </tfoot>
+                                        <th colspan="3" class="text-center border-start">
+                                            <i class="bi bi-calendar-check me-1"></i>@endDate.Value.ToString("d MMMM yyyy")
+                                        </th>
+                                        <th class="text-center border-start align-middle" rowspan="2">Change</th>
                                     }
-                                </table>
-                            </div>
-                        }
-                    }
+                                </tr>
+                                <!-- Column sub-headers -->
+                                <tr class="table-light">
+                                    <th class="text-end border-start">Assets</th>
+                                    <th class="text-end">Cash</th>
+                                    <th class="text-end fw-bold">Total</th>
+                                    @if (endDate.HasValue)
+                                    {
+                                        <th class="text-end border-start">Assets</th>
+                                        <th class="text-end">Cash</th>
+                                        <th class="text-end fw-bold">Total</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in compRows)
+                                {
+                                    var change = (row.End?.TotalValue.Amount ?? row.Start?.TotalValue.Amount ?? 0)
+                                               - (row.Start?.TotalValue.Amount ?? 0);
+                                    <tr>
+                                        <td>@row.AccountName</td>
+                                        <!-- Start date -->
+                                        <td class="text-end border-start">
+                                            @if (row.Start != null)
+                                            {
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.Start.AssetValue)" />
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (row.Start != null)
+                                            {
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.Start.CashBalance)" />
+                                            }
+                                        </td>
+                                        <td class="text-end fw-semibold">
+                                            @if (row.Start != null)
+                                            {
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.Start.TotalValue)" />
+                                            }
+                                        </td>
+                                        <!-- End date -->
+                                        @if (endDate.HasValue)
+                                        {
+                                            <td class="text-end border-start">
+                                                @if (row.End != null)
+                                                {
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.End.AssetValue)" />
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                @if (row.End != null)
+                                                {
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.End.CashBalance)" />
+                                                }
+                                            </td>
+                                            <td class="text-end fw-semibold">
+                                                @if (row.End != null)
+                                                {
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.End.TotalValue)" />
+                                                }
+                                            </td>
+                                            <td class="text-end border-start @ChangeClass(change)">
+                                                <i class="bi @ChangeIcon(change) me-1"></i>
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.End?.TotalValue.Currency != null ? new GhostfolioSidekick.Model.Money(row.End.TotalValue.Currency, change) : new GhostfolioSidekick.Model.Money(row.Start!.TotalValue.Currency, change))" />
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                            @if (compRows.Count > 1)
+                            {
+                                var totalChange = (compTotal.End?.TotalValue.Amount ?? compTotal.Start?.TotalValue.Amount ?? 0)
+                                               - (compTotal.Start?.TotalValue.Amount ?? 0);
+                                <tfoot class="table-primary fw-bold">
+                                    <tr>
+                                        <td>Total</td>
+                                        <td class="text-end border-start">
+                                            @if (compTotal.Start != null)
+                                            {
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.Start.AssetValue)" />
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (compTotal.Start != null)
+                                            {
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.Start.CashBalance)" />
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (compTotal.Start != null)
+                                            {
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.Start.TotalValue)" />
+                                            }
+                                        </td>
+                                        @if (endDate.HasValue)
+                                        {
+                                            <td class="text-end border-start">
+                                                @if (compTotal.End != null)
+                                                {
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.End.AssetValue)" />
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                @if (compTotal.End != null)
+                                                {
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.End.CashBalance)" />
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                @if (compTotal.End != null)
+                                                {
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.End.TotalValue)" />
+                                                }
+                                            </td>
+                                            <td class="text-end border-start @ChangeClass(totalChange)">
+                                                <i class="bi @ChangeIcon(totalChange) me-1"></i>
+                                                <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.End?.TotalValue.Currency != null ? new GhostfolioSidekick.Model.Money(compTotal.End.TotalValue.Currency, totalChange) : new GhostfolioSidekick.Model.Money(compTotal.Start!.TotalValue.Currency, totalChange))" />
+                                            </td>
+                                        }
+                                    </tr>
+                                </tfoot>
+                            }
+                        </table>
+                    </div>
                 </div>
             </div>
         }
