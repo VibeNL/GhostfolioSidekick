@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2023-10-16T11:24:57.175023Z","2023-10-16","DEFAULT","CASH","CUSTOMER_INBOUND","","John Doe","","","","1000.000000","","","EUR","","","","CITIDEFF","31ef2829-a92c-4fe0-a40b-768c112a6b5b","John Doe","NL00TEST0000000000","",""

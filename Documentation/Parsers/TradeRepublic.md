@@ -17,23 +17,47 @@ Trade Republic has experienced rapid growth and has attracted significant invest
 
 # How to get the files
 
-## Account statement
+## ✅ Recommended: CSV export (transaction export)
+
+Trade Republic now offers a native CSV export containing all transactions in a single file.
+
+ 1. Log into your Trade Republic account.
+ 1. Go to your **Profile** (top-right).
+ 1. Navigate to **Documents** → **Transaction Export**.
+ 1. Select the desired date range and click **Export**.
+ 1. Save the downloaded `.csv` file and import it into GhostfolioSidekick.
+
+The CSV export covers all transaction types:
+- Stock / ETF / Bond / Fund **buys and sells**
+- **Dividends** and **interest payments** (savings account & bond coupons)
+- **Cash deposits and withdrawals**
+- **Debit card transactions**
+- **Saveback** cashback rewards
+- **Bond redemptions** (corporate actions)
+
+## ⚠️ Legacy: PDF exports (deprecated)
+
+> **The PDF-based parsers are deprecated.** They will continue to work for existing files, but the CSV export is the recommended approach going forward. New transaction types will only be supported via CSV.
+
+### Account statement (PDF)
+
  1. Log into your Trade Republic account.
  1. Click on the "Statements" link.
  1. Navigate to the "Documents" section in the overview.
  1. Click on the "Account statement".
  1. Select the desired date range for the transactions.
- 1. Download the account statement in PDF format
+ 1. Download the account statement in PDF format.
 
 <img src="./Images/TradeRepublic_1.png" width="200"/>
 <img src="./Images/TradeRepublic_2.png" width="200"/>
 
-## Individual invoice
+### Individual invoice (PDF)
+
  1. Log into your Trade Republic account.
- 1. Find the desired Transaction.
+ 1. Find the desired transaction.
  1. Navigate to the "Documents" section.
- 1. Click on the "Billing Execution"
- 1. Download the account statement in PDF format
+ 1. Click on the "Billing Execution".
+ 1. Download the invoice in PDF format.
 
  <img src="./Images/TradeRepublic_3.png" width="200"/>
 
@@ -42,6 +66,5 @@ Trade Republic has experienced rapid growth and has attracted significant invest
 See test files in the repository.
 
 # Known limitations
-- Due to the limitations of the Trade Republic platform, the exported files contains language specific information. 
-The parser is currently only able to parse Dutch/English/Spanish and German files, may not be complete. 
-If you have a file in another language, please open an issue and provide an example file so that the parser can be updated accordingly.
+- The PDF parsers are language-specific and currently support Dutch, English, Spanish, and German files only. If you have a file in another language, please open an issue and provide an example file.
+- The CSV export is the recommended format and supports all transaction types regardless of language.

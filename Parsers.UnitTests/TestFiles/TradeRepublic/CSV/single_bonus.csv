@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-10-02T10:13:50.633670Z","2025-10-02","DEFAULT","CASH","BONUS","","","","","","0.500000","","","EUR","","","","Private Markets bonus for buy order: 00000000-0000-0000-0000-000000000000","84ef1ad6-e42e-4af9-ad76-57d20005b29e","","","",""

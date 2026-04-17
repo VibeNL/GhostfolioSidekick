@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2023-12-30T19:42:59.758754Z","2023-12-30","DEFAULT","CASH","CUSTOMER_OUTBOUND_REQUEST","","John Doe","","","","-1000.000000","","","EUR","","","","20231230-3864b85e-a869","7277cc7d-eb4f-4aaa-b6b6-5c45d316d52d","John Doe","NL00TEST0000000000","",""

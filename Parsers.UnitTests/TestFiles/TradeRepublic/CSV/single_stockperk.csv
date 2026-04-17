@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-06-01T09:00:00.000Z","2024-06-01","DEFAULT","CASH","STOCKPERK","","","","","","10.000000","","","EUR","","","","Stock perk reward","d4e5f6a7-b8c9-0123-defa-234567890123","","","",""

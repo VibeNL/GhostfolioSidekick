@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-05-02T14:12:34.276480Z","2024-05-02","DEFAULT","CASH","BENEFITS_SAVEBACK","FUND","Corp Bond USD (Dist)","IE0032895942","","","4.310000","","","EUR","","","","Your Saveback payment","d802544e-9505-4fa9-b95e-32d91d7d91c7","","","",""
