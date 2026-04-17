@@ -83,14 +83,21 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-bookworm-slim AS final
 
 WORKDIR /app
 
-# Install Python and supervisor via the distro package manager so that all OS-level
-# shared-library dependencies are resolved automatically and stay in sync with the base image.
-# The trailing sanity-check commands fail the build immediately if either binary is broken,
-# catching missing deps at build time rather than at runtime.
+# Install Python, supervisor, and libcap2-bin (for setcap) via the distro package manager so
+# that all OS-level shared-library dependencies are resolved automatically and stay in sync
+# with the base image. The trailing sanity-check commands fail the build immediately if either
+# binary is broken, catching missing deps at build time rather than at runtime.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 supervisor && \
+    apt-get install -y --no-install-recommends python3 supervisor libcap2-bin && \
     rm -rf /var/lib/apt/lists/* && \
     python3 --version && supervisord --version
+
+# Allow the .NET runtime to bind to privileged ports (80/443) without root.
+RUN setcap 'cap_net_bind_service=+ep' /usr/bin/dotnet
+
+# Create a non-root user and group for running the application.
+RUN groupadd --gid 1000 app && \
+    useradd --uid 1000 --gid app --shell /bin/false --no-create-home app
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
@@ -102,6 +109,12 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy SSL certificate and key (ensure these files are available in your build context)
 COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
+
+# Create supervisor runtime directories and set ownership so the non-root user can write to them.
+RUN mkdir -p /var/log/supervisor /var/run/supervisor && \
+    chown -R app:app /app /https /var/log/supervisor /var/run/supervisor
+
+USER app
 
 # Set environment and expose ports
 ENV ASPNETCORE_URLS="http://+:80;https://+:443"
