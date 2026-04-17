@@ -2,13 +2,19 @@
 # Must match BUILDPLATFORM so the node binary can run on the build machine during cross-compilation
 FROM --platform="$BUILDPLATFORM" node:18-slim AS node-source
 
-# Python source - provides Python (required by wasm-tools/Emscripten) and supervisor
-# Must match BUILDPLATFORM so binaries run on the build machine during cross-compilation
+# Python build-time source - provides Python (required by wasm-tools/Emscripten) during cross-compilation.
+# Must match BUILDPLATFORM so the compiler toolchain binaries can execute on the build machine.
 FROM --platform="$BUILDPLATFORM" python:3.12-slim AS python-source
 RUN pip install --no-cache-dir supervisor
 
+# Python runtime source - provides Python and supervisor for the final runtime image.
+# Must match TARGETPLATFORM so copied binaries run on the target architecture.
+FROM --platform="$TARGETPLATFORM" python:3.12-slim AS python-runtime
+RUN pip install --no-cache-dir supervisor
+
 # Base runtime image for the API
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:10.0 AS base
+# No --platform override: follows TARGETPLATFORM so the image runs on the intended architecture.
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
 
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -95,16 +101,17 @@ RUN dotnet publish -a "$TARGETARCH" \
 
 
 # Final runtime image
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+# No --platform override: follows TARGETPLATFORM so the image runs on the intended architecture.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 WORKDIR /app
 
-# Copy Python runtime and supervisor from pre-built stage (no apt-get needed)
-COPY --from=python-source /usr/local/bin/python3.12 /usr/local/bin/python3.12
-COPY --from=python-source /usr/local/lib/python3.12 /usr/local/lib/python3.12/
-COPY --from=python-source /usr/local/lib/libpython3.12.so.1.0 /usr/local/lib/libpython3.12.so.1.0
-COPY --from=python-source /usr/local/bin/supervisord /usr/local/bin/supervisord
-COPY --from=python-source /usr/local/bin/supervisorctl /usr/local/bin/supervisorctl
+# Copy Python runtime and supervisor from the TARGETPLATFORM-matched stage
+COPY --from=python-runtime /usr/local/bin/python3.12 /usr/local/bin/python3.12
+COPY --from=python-runtime /usr/local/lib/python3.12 /usr/local/lib/python3.12/
+COPY --from=python-runtime /usr/local/lib/libpython3.12.so.1.0 /usr/local/lib/libpython3.12.so.1.0
+COPY --from=python-runtime /usr/local/bin/supervisord /usr/local/bin/supervisord
+COPY --from=python-runtime /usr/local/bin/supervisorctl /usr/local/bin/supervisorctl
 RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3 && ldconfig
 
 # Copy published outputs
