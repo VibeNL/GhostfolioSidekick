@@ -8,7 +8,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class AccountDataService(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
-		IServerConfigurationService serverConfigurationService
+		IServerConfigurationService serverConfigurationService,
+		ITaxReportCacheService taxReportCacheService
 	) : IAccountDataService
 	{
 		public async Task<List<Account>> GetAccountInfo()
@@ -123,6 +124,126 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.OrderBy(s => s.Symbol)
 				.Select(s => s.Symbol)
 				.ToListAsync(cancellationToken);
+		}
+
+		public async Task<List<TaxReportRow>> GetTaxReportAsync(CancellationToken cancellationToken = default)
+		{
+			if (taxReportCacheService.IsValid)
+				return taxReportCacheService.CachedResult!;
+
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+			// Parallelise the two year-discovery queries — they are fully independent
+			var snapshotYearsTask = databaseContext.CalculatedSnapshots
+				.Select(s => s.Date.Year)
+				.Distinct()
+				.ToListAsync(cancellationToken);
+
+			var balanceYearsTask = databaseContext.Balances
+				.Select(b => b.Date.Year)
+				.Distinct()
+				.ToListAsync(cancellationToken);
+
+			await Task.WhenAll(snapshotYearsTask, balanceYearsTask);
+
+			var years = snapshotYearsTask.Result
+				.Union(balanceYearsTask.Result)
+				.Distinct()
+				.OrderBy(y => y)
+				.ToList();
+
+			if (years.Count == 0)
+				return [];
+
+			var today = DateOnly.FromDateTime(DateTime.Today);
+			var targetDates = years
+				.SelectMany(y => new[]
+				{
+					new DateOnly(y, 1, 1),
+					y == today.Year ? today : new DateOnly(y, 12, 31)
+				})
+				.Distinct()
+				.OrderBy(d => d)
+				.ToList();
+
+			var maxTargetDate = targetDates[^1];
+
+			// Parallelise the three data-load queries — they are fully independent
+			var accountsTask = databaseContext.Accounts
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			// Group in SQL so only (Date, AccountId) → sum rows cross the wire, not raw holding rows
+			var snapshotsTask = databaseContext.CalculatedSnapshots
+				.Where(s => s.Date <= maxTargetDate && s.Holding != null && s.Holding.SymbolProfiles.Any())
+				.GroupBy(s => new { s.Date, s.AccountId })
+				.Select(g => new { g.Key.Date, g.Key.AccountId, TotalValue = g.Sum(x => x.TotalValue) })
+				.ToListAsync(cancellationToken);
+
+			var balancesTask = databaseContext.Balances
+				.Where(b => b.Date <= maxTargetDate)
+				.GroupBy(b => new { b.Date, b.AccountId })
+				.Select(g => new { g.Key.Date, AccountId = g.Key.AccountId, Amount = g.Min(x => x.Money.Amount) })
+				.ToListAsync(cancellationToken);
+
+			await Task.WhenAll(accountsTask, snapshotsTask, balancesTask);
+
+			var accountById = accountsTask.Result.ToDictionary(a => a.Id, a => a.Name);
+
+			// Pre-index: AccountId → list of (Date, Value) sorted descending by date.
+			// This means each per-target-date lookup is O(accounts) with a simple FirstOrDefault
+			// instead of re-scanning all rows for every target date.
+			var snapshotsByAccount = snapshotsTask.Result
+				.GroupBy(s => s.AccountId)
+				.ToDictionary(
+					g => g.Key,
+					g => g.OrderByDescending(s => s.Date).ToList());
+
+			var balancesByAccount = balancesTask.Result
+				.GroupBy(b => b.AccountId)
+				.ToDictionary(
+					g => g.Key,
+					g => g.OrderByDescending(b => b.Date).ToList());
+
+			var allAccountIds = snapshotsByAccount.Keys.Union(balancesByAccount.Keys).ToHashSet();
+			var currency = serverConfigurationService.PrimaryCurrency;
+			var result = new List<TaxReportRow>(targetDates.Count * allAccountIds.Count);
+
+			foreach (var targetDate in targetDates)
+			{
+				foreach (var accountId in allAccountIds)
+				{
+					// O(1) dictionary lookup + O(k) scan of one account's dates (k is usually small)
+					var snapshotEntry = snapshotsByAccount.TryGetValue(accountId, out var snaps)
+						? snaps.FirstOrDefault(s => s.Date <= targetDate)
+						: null;
+
+					var balanceEntry = balancesByAccount.TryGetValue(accountId, out var bals)
+						? bals.FirstOrDefault(b => b.Date <= targetDate)
+						: null;
+
+					if (snapshotEntry == null && balanceEntry == null)
+						continue;
+
+					var assetValue = snapshotEntry?.TotalValue ?? 0m;
+					var cashBalance = balanceEntry?.Amount ?? 0m;
+
+					result.Add(new TaxReportRow
+					{
+						Year = targetDate.Year,
+						Date = targetDate,
+						AccountId = accountId,
+						AccountName = accountById.TryGetValue(accountId, out var name) ? name : $"Account {accountId}",
+						AssetValue = new Money(currency, assetValue),
+						CashBalance = new Money(currency, cashBalance),
+						TotalValue = new Money(currency, assetValue + cashBalance)
+					});
+				}
+			}
+
+			var ordered = result.OrderBy(r => r.Year).ThenBy(r => r.Date).ThenBy(r => r.AccountName).ToList();
+			taxReportCacheService.Store(ordered);
+			return ordered;
 		}
 	}
 }
