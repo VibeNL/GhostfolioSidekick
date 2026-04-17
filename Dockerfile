@@ -2,8 +2,9 @@
 # Must match BUILDPLATFORM so the node binary can run on the build machine during cross-compilation
 FROM --platform="$BUILDPLATFORM" node:18-slim AS node-source
 
-# Supervisor source - install via pip to avoid apt-get
-FROM python:3.12-slim AS supervisor-source
+# Python source - provides Python (required by wasm-tools/Emscripten) and supervisor
+# Must match BUILDPLATFORM so binaries run on the build machine during cross-compilation
+FROM --platform="$BUILDPLATFORM" python:3.12-slim AS python-source
 RUN pip install --no-cache-dir supervisor
 
 # Base runtime image for the API
@@ -38,6 +39,14 @@ COPY --from=node-source /usr/local/bin/node /usr/local/bin/node
 COPY --from=node-source /usr/local/bin/npm /usr/local/bin/npm
 COPY --from=node-source /usr/local/bin/npx /usr/local/bin/npx
 COPY --from=node-source /usr/local/lib/node_modules /usr/local/lib/node_modules/
+
+# Copy Python from official image (required by wasm-tools Emscripten toolchain)
+COPY --from=python-source /usr/local/bin/python3.12 /usr/local/bin/python3.12
+COPY --from=python-source /usr/local/lib/python3.12 /usr/local/lib/python3.12/
+COPY --from=python-source /usr/local/lib/libpython3.12.so.1.0 /usr/local/lib/libpython3.12.so.1.0
+RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3 && \
+    ln -sf /usr/local/bin/python3 /usr/local/bin/python && \
+    ldconfig
 
 # Install wasm-tools workload
 RUN dotnet workload install wasm-tools
@@ -91,11 +100,12 @@ FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 # Copy Python runtime and supervisor from pre-built stage (no apt-get needed)
-COPY --from=supervisor-source /usr/local/bin/python3.12 /usr/local/bin/python3.12
-COPY --from=supervisor-source /usr/local/lib/python3.12 /usr/local/lib/python3.12/
-COPY --from=supervisor-source /usr/local/bin/supervisord /usr/local/bin/supervisord
-COPY --from=supervisor-source /usr/local/bin/supervisorctl /usr/local/bin/supervisorctl
-RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3
+COPY --from=python-source /usr/local/bin/python3.12 /usr/local/bin/python3.12
+COPY --from=python-source /usr/local/lib/python3.12 /usr/local/lib/python3.12/
+COPY --from=python-source /usr/local/lib/libpython3.12.so.1.0 /usr/local/lib/libpython3.12.so.1.0
+COPY --from=python-source /usr/local/bin/supervisord /usr/local/bin/supervisord
+COPY --from=python-source /usr/local/bin/supervisorctl /usr/local/bin/supervisorctl
+RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3 && ldconfig
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
