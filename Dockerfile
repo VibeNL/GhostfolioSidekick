@@ -7,13 +7,9 @@ FROM --platform="$BUILDPLATFORM" node:18-slim AS node-source
 FROM --platform="$BUILDPLATFORM" python:3.12-slim AS python-source
 RUN pip install --no-cache-dir supervisor
 
-# Python runtime source - provides Python and supervisor for the final runtime image.
-# Must match TARGETPLATFORM so copied binaries run on the target architecture.
-FROM --platform="$TARGETPLATFORM" python:3.12-slim AS python-runtime
-RUN pip install --no-cache-dir supervisor
-
 # Build stage for the API and Sidekick
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Pinned to bookworm-slim so the OS variant is explicit and consistent with the final image.
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS build
 
 ARG TARGETARCH
 ARG VERSION
@@ -82,25 +78,20 @@ RUN dotnet publish -a "$TARGETARCH" \
 
 
 # Final runtime image
-# No --platform override: follows TARGETPLATFORM so the image runs on the intended architecture.
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+# Pinned to bookworm-slim so the OS variant is explicit and consistent with the build image,
+# ensuring shared-library ABIs (libexpat, libssl, libffi, etc.) are compatible.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-bookworm-slim AS final
 
 WORKDIR /app
 
-# Copy Python runtime and supervisor from the TARGETPLATFORM-matched stage
-COPY --from=python-runtime /usr/local/bin/python3.12 /usr/local/bin/python3.12
-COPY --from=python-runtime /usr/local/lib/python3.12 /usr/local/lib/python3.12/
-COPY --from=python-runtime /usr/local/lib/libpython3.12.so.1.0 /usr/local/lib/libpython3.12.so.1.0
-COPY --from=python-runtime /usr/local/bin/supervisord /usr/local/bin/supervisord
-COPY --from=python-runtime /usr/local/bin/supervisorctl /usr/local/bin/supervisorctl
-# Create both python3 and python symlinks so that pip-installed entry-points
-# whose shebangs reference /usr/local/bin/python (without a suffix) work correctly.
-# Then rewrite the supervisor shebangs explicitly to python3.12 as a belt-and-braces
-# guard against any environment where the generic "python" name is absent.
-RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3 && \
-    ln -sf /usr/local/bin/python3.12 /usr/local/bin/python && \
-    sed -i 's|^#!.*python.*|#!/usr/local/bin/python3.12|' /usr/local/bin/supervisord /usr/local/bin/supervisorctl && \
-    ldconfig
+# Install Python and supervisor via the distro package manager so that all OS-level
+# shared-library dependencies are resolved automatically and stay in sync with the base image.
+# The trailing sanity-check commands fail the build immediately if either binary is broken,
+# catching missing deps at build time rather than at runtime.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 supervisor && \
+    rm -rf /var/lib/apt/lists/* && \
+    python3 --version && supervisord --version
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
