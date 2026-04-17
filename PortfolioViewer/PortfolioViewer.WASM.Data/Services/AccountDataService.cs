@@ -152,9 +152,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.SelectMany(y => new[] { new DateOnly(y, 1, 1), new DateOnly(y, 12, 31) })
 				.ToList();
 
-			// For each target date, pick the closest available snapshot date on or before it
+			var maxTargetDate = targetDates.Max();
+
+			// Load all snapshots up to the last target date (no year restriction —
+			// closest snapshot before Jan 1 might be in a prior year)
 			var snapshots = await databaseContext.CalculatedSnapshots
-				.Where(s => targetDates.Select(d => d.Year).Contains(s.Date.Year))
+				.Where(s => s.Date <= maxTargetDate)
 				.Where(s => s.Holding != null && s.Holding.SymbolProfiles.Any())
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
@@ -165,8 +168,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				})
 				.ToListAsync(cancellationToken);
 
+			// Load all balances up to the last target date — no year restriction so that
+			// e.g. a Dec 31 balance is correctly picked up as the closest value for Jan 1
 			var balances = await databaseContext.Balances
-				.Where(b => targetDates.Select(d => d.Year).Contains(b.Date.Year))
+				.Where(b => b.Date <= maxTargetDate)
 				.GroupBy(b => new { b.Date, b.AccountId })
 				.Select(g => new
 				{
@@ -181,28 +186,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			foreach (var targetDate in targetDates)
 			{
-				// For snapshots: find the closest date on or before the target date within the same year
-				var snapshotDatesInYear = snapshots
-					.Where(s => s.Date.Year == targetDate.Year && s.Date <= targetDate)
-					.Select(s => s.Date)
-					.Distinct()
-					.OrderDescending()
-					.FirstOrDefault();
+				// For each account find the most recent snapshot on or before targetDate
+				var relevantSnapshots = snapshots
+					.Where(s => s.Date <= targetDate)
+					.GroupBy(s => s.AccountId)
+					.Select(g => g.OrderByDescending(s => s.Date).First())
+					.ToList();
 
-				var balanceDatesInYear = balances
-					.Where(b => b.Date.Year == targetDate.Year && b.Date <= targetDate)
-					.Select(b => b.Date)
-					.Distinct()
-					.OrderDescending()
-					.FirstOrDefault();
-
-				var relevantSnapshots = snapshotDatesInYear != default
-					? snapshots.Where(s => s.Date == snapshotDatesInYear).ToList()
-					: [];
-
-				var relevantBalances = balanceDatesInYear != default
-					? balances.Where(b => b.Date == balanceDatesInYear).ToList()
-					: [];
+				// For each account find the most recent balance on or before targetDate
+				var relevantBalances = balances
+					.Where(b => b.Date <= targetDate)
+					.GroupBy(b => b.AccountId)
+					.Select(g => g.OrderByDescending(b => b.Date).First())
+					.ToList();
 
 				var allAccountIds = relevantSnapshots.Select(s => s.AccountId)
 					.Union(relevantBalances.Select(b => b.AccountId))
