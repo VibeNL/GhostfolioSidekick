@@ -112,7 +112,14 @@ COPY --from=python-runtime /usr/local/lib/python3.12 /usr/local/lib/python3.12/
 COPY --from=python-runtime /usr/local/lib/libpython3.12.so.1.0 /usr/local/lib/libpython3.12.so.1.0
 COPY --from=python-runtime /usr/local/bin/supervisord /usr/local/bin/supervisord
 COPY --from=python-runtime /usr/local/bin/supervisorctl /usr/local/bin/supervisorctl
-RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3 && ldconfig
+# Create both python3 and python symlinks so that pip-installed entry-points
+# whose shebangs reference /usr/local/bin/python (without a suffix) work correctly.
+# Then rewrite the supervisor shebangs explicitly to python3.12 as a belt-and-braces
+# guard against any environment where the generic "python" name is absent.
+RUN ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3 && \
+    ln -sf /usr/local/bin/python3.12 /usr/local/bin/python && \
+    sed -i 's|^#!.*python.*|#!/usr/local/bin/python3.12|' /usr/local/bin/supervisord /usr/local/bin/supervisorctl && \
+    ldconfig
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
