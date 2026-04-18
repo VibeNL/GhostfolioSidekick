@@ -242,35 +242,38 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
 
-			// Assert
+			// Assert – forward-fill produces one point per day for the whole range (31 days)
 			result.Should().NotBeNull();
-			result.Should().HaveCount(2);
+			result.Should().HaveCount(31);
 
-			var firstPoint = result[0];
-			firstPoint.Date.Should().Be(startDate);
-			firstPoint.AccountId.Should().Be(accountId);
-			firstPoint.TotalAssetValue.Amount.Should().Be(1000m);
-			firstPoint.TotalInvested.Amount.Should().Be(800m);
-			firstPoint.CashBalance.Amount.Should().Be(200m);
-			firstPoint.TotalValue.Amount.Should().Be(1200m); // 1000 + 200
+			var jan1 = result.Single(p => p.Date == startDate);
+			jan1.AccountId.Should().Be(accountId);
+			jan1.TotalAssetValue.Amount.Should().Be(1000m);
+			jan1.TotalInvested.Amount.Should().Be(800m);
+			jan1.CashBalance.Amount.Should().Be(200m);
+			jan1.TotalValue.Amount.Should().Be(1200m); // 1000 + 200
 
-			var secondPoint = result[1];
-			secondPoint.Date.Should().Be(startDate.AddDays(1));
-			secondPoint.TotalAssetValue.Amount.Should().Be(1100m);
-			secondPoint.TotalInvested.Amount.Should().Be(850m);
-			secondPoint.CashBalance.Amount.Should().Be(250m);
-			secondPoint.TotalValue.Amount.Should().Be(1350m); // 1100 + 250
+			var jan2 = result.Single(p => p.Date == startDate.AddDays(1));
+			jan2.TotalAssetValue.Amount.Should().Be(1100m);
+			jan2.TotalInvested.Amount.Should().Be(850m);
+			jan2.CashBalance.Amount.Should().Be(250m);
+			jan2.TotalValue.Amount.Should().Be(1350m); // 1100 + 250
+
+			// Remaining days forward-fill Jan 2 values
+			var jan31 = result.Single(p => p.Date == endDate);
+			jan31.TotalAssetValue.Amount.Should().Be(1100m);
+			jan31.CashBalance.Amount.Should().Be(250m);
 		}
 
 		[Fact]
-		public async Task GetAccountValueHistoryAsync_WithMissingSnapshots_ShouldHandleLeftJoin()
+		public async Task GetAccountValueHistoryAsync_WithMissingSnapshots_ShouldForwardFillBalanceAcrossRange()
 		{
 			// Arrange
 			var startDate = new DateOnly(2023, 1, 1);
 			var endDate = new DateOnly(2023, 1, 31);
 			var accountId = 1;
 
-			var snapshots = new List<CalculatedSnapshot>(); // Empty snapshots
+			var snapshots = new List<CalculatedSnapshot>(); // No snapshot data
 
 			var balances = new List<Balance>
 			{
@@ -283,17 +286,17 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
 
-			// Assert
+			// Assert – the single balance on Jan 1 is forward-filled for every day through Jan 31
 			result.Should().NotBeNull();
-			result.Should().HaveCount(1);
-
-			var point = result[0];
-			point.Date.Should().Be(startDate);
-			point.AccountId.Should().Be(accountId);
-			point.TotalAssetValue.Amount.Should().Be(0m); // No snapshot data
-			point.TotalInvested.Amount.Should().Be(0m); // No snapshot data
-			point.CashBalance.Amount.Should().Be(200m);
-			point.TotalValue.Amount.Should().Be(200m); // 0 + 200
+			result.Should().HaveCount(31);
+			result.Should().AllSatisfy(p =>
+			{
+				p.AccountId.Should().Be(accountId);
+				p.TotalAssetValue.Amount.Should().Be(0m);
+				p.TotalInvested.Amount.Should().Be(0m);
+				p.CashBalance.Amount.Should().Be(200m);
+				p.TotalValue.Amount.Should().Be(200m);
+			});
 		}
 
 		[Fact]
@@ -321,9 +324,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
 
-			// Assert
+			// Assert – 31 days × 2 accounts = 62 points
 			result.Should().NotBeNull();
-			result.Should().HaveCount(2);
+			result.Should().HaveCount(62);
 			result.Should().Contain(p => p.AccountId == 1);
 			result.Should().Contain(p => p.AccountId == 2);
 		}
@@ -357,11 +360,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
 
-			// Assert
+			// Assert – 3 days × 2 accounts = 6 points, ordered by date then account ID
 			result.Should().NotBeNull();
-			result.Should().HaveCount(4);
+			result.Should().HaveCount(6);
 
-			// Should be ordered by date first, then by account ID
 			result[0].Date.Should().Be(startDate);
 			result[0].AccountId.Should().Be(1);
 			result[1].Date.Should().Be(startDate);
@@ -370,6 +372,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result[2].AccountId.Should().Be(1);
 			result[3].Date.Should().Be(startDate.AddDays(1));
 			result[3].AccountId.Should().Be(2);
+			// Jan 3 is forward-filled from Jan 2 for both accounts
+			result[4].Date.Should().Be(startDate.AddDays(2));
+			result[4].AccountId.Should().Be(1);
+			result[5].Date.Should().Be(startDate.AddDays(2));
+			result[5].AccountId.Should().Be(2);
 		}
 
 		[Fact]
@@ -435,15 +442,182 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Act
 			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
 
-			// Assert
+			// Assert – 31 forward-filled points, all using the primary currency
 			result.Should().NotBeNull();
-			result.Should().HaveCount(1);
+			result.Should().HaveCount(31);
+			result.Should().AllSatisfy(p =>
+			{
+				p.TotalAssetValue.Currency.Should().Be(expectedCurrency);
+				p.TotalInvested.Currency.Should().Be(expectedCurrency);
+				p.CashBalance.Currency.Should().Be(expectedCurrency);
+				p.TotalValue.Currency.Should().Be(expectedCurrency);
+			});
+		}
 
-			var point = result[0];
-			point.TotalAssetValue.Currency.Should().Be(expectedCurrency);
-			point.TotalInvested.Currency.Should().Be(expectedCurrency);
-			point.CashBalance.Currency.Should().Be(expectedCurrency);
-			point.TotalValue.Currency.Should().Be(expectedCurrency);
+		[Fact]
+		public async Task GetAccountValueHistoryAsync_WhenAccountDataStartsAfterRangeStart_ShouldBeginFromFirstDataDate()
+		{
+			// Arrange – simulates "Nexo" whose first transaction is Feb 21 while the
+			// selected range starts Jan 1.  No data should be fabricated before Feb 21.
+			var rangeStart = new DateOnly(2023, 1, 1);
+			var rangeEnd = new DateOnly(2023, 3, 31);
+			var firstDataDate = new DateOnly(2023, 2, 21);
+			var accountId = 1;
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(firstDataDate, accountId, 500m, 400m)
+			};
+			var balances = new List<Balance>
+			{
+				CreateBalance(firstDataDate, accountId, 100m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _accountDataService.GetAccountValueHistoryAsync(rangeStart, rangeEnd, CancellationToken.None);
+
+			// Assert – points only from Feb 21 to Mar 31 (39 days); nothing before Feb 21
+			var expectedDays = rangeEnd.DayNumber - firstDataDate.DayNumber + 1;
+			result.Should().NotBeNull();
+			result.Should().HaveCount(expectedDays);
+			result.Min(p => p.Date).Should().Be(firstDataDate);
+			result.Max(p => p.Date).Should().Be(rangeEnd);
+		}
+
+		[Fact]
+		public async Task GetAccountValueHistoryAsync_WhenAccountDataEndsBeforeRangeEnd_ShouldForwardFillToRangeEnd()
+		{
+			// Arrange – simulates "Nexo" whose last transaction is Feb 27 while the
+			// selected range ends today.  The last known value must be carried forward.
+			var rangeStart = new DateOnly(2023, 2, 21);
+			var rangeEnd = new DateOnly(2023, 3, 31);
+			var lastDataDate = new DateOnly(2023, 2, 27);
+			var accountId = 1;
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(rangeStart, accountId, 400m, 350m),
+				CreateCalculatedSnapshot(lastDataDate, accountId, 600m, 500m)
+			};
+			var balances = new List<Balance>
+			{
+				CreateBalance(rangeStart, accountId, 50m),
+				CreateBalance(lastDataDate, accountId, 80m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _accountDataService.GetAccountValueHistoryAsync(rangeStart, rangeEnd, CancellationToken.None);
+
+			// Assert – every day in the range is present
+			var expectedDays = rangeEnd.DayNumber - rangeStart.DayNumber + 1;
+			result.Should().HaveCount(expectedDays);
+
+			// Days after the last data point carry the Feb 27 values forward
+			var march1 = new DateOnly(2023, 3, 1);
+			var march1Point = result.Single(p => p.Date == march1);
+			march1Point.TotalAssetValue.Amount.Should().Be(600m);
+			march1Point.CashBalance.Amount.Should().Be(80m);
+
+			var lastPoint = result.Single(p => p.Date == rangeEnd);
+			lastPoint.TotalAssetValue.Amount.Should().Be(600m);
+			lastPoint.CashBalance.Amount.Should().Be(80m);
+		}
+
+		[Fact]
+		public async Task GetAccountValueHistoryAsync_WhenLastKnownDataIsBeforeRangeStart_ShouldForwardFillFromRangeStart()
+		{
+			// Arrange – account had its last transaction in Dec 2022; the filter starts
+			// Jan 1 2023.  The Dec value must seed the forward-fill from Jan 1.
+			var lastActivityDate = new DateOnly(2022, 12, 15);
+			var rangeStart = new DateOnly(2023, 1, 1);
+			var rangeEnd = new DateOnly(2023, 1, 5);
+			var accountId = 1;
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(lastActivityDate, accountId, 750m, 600m)
+			};
+			var balances = new List<Balance>
+			{
+				CreateBalance(lastActivityDate, accountId, 120m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _accountDataService.GetAccountValueHistoryAsync(rangeStart, rangeEnd, CancellationToken.None);
+
+			// Assert – 5 days in range, all carrying forward the Dec 15 values
+			result.Should().HaveCount(5);
+			result.Min(p => p.Date).Should().Be(rangeStart);
+			result.Should().AllSatisfy(p =>
+			{
+				p.TotalAssetValue.Amount.Should().Be(750m);
+				p.TotalInvested.Amount.Should().Be(600m);
+				p.CashBalance.Amount.Should().Be(120m);
+				p.TotalValue.Amount.Should().Be(870m); // 750 + 120
+			});
+		}
+
+		[Fact]
+		public async Task GetAccountValueHistoryAsync_WithSparseTransactionDates_ShouldForwardFillBetweenDataPoints()
+		{
+			// Arrange – account has transactions on Jan 1 and Jan 5 only.
+			// Jan 2, 3, 4 must forward-fill the Jan 1 values; Jan 5+ use the new value.
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 7);
+			var accountId = 1;
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateCalculatedSnapshot(startDate, accountId, 1000m, 900m),
+				CreateCalculatedSnapshot(startDate.AddDays(4), accountId, 1200m, 1100m)
+			};
+			var balances = new List<Balance>
+			{
+				CreateBalance(startDate, accountId, 100m),
+				CreateBalance(startDate.AddDays(4), accountId, 150m)
+			};
+
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _accountDataService.GetAccountValueHistoryAsync(startDate, endDate, CancellationToken.None);
+
+			// Assert
+			result.Should().HaveCount(7);
+
+			// Jan 1 – actual data
+			result.Single(p => p.Date == startDate).TotalAssetValue.Amount.Should().Be(1000m);
+			result.Single(p => p.Date == startDate).CashBalance.Amount.Should().Be(100m);
+
+			// Jan 2-4 – forward-filled from Jan 1
+			foreach (var day in new[] { 1, 2, 3 })
+			{
+				var point = result.Single(p => p.Date == startDate.AddDays(day));
+				point.TotalAssetValue.Amount.Should().Be(1000m);
+				point.CashBalance.Amount.Should().Be(100m);
+			}
+
+			// Jan 5 – new transaction values
+			result.Single(p => p.Date == startDate.AddDays(4)).TotalAssetValue.Amount.Should().Be(1200m);
+			result.Single(p => p.Date == startDate.AddDays(4)).CashBalance.Amount.Should().Be(150m);
+
+			// Jan 6-7 – forward-filled from Jan 5
+			foreach (var day in new[] { 5, 6 })
+			{
+				var point = result.Single(p => p.Date == startDate.AddDays(day));
+				point.TotalAssetValue.Amount.Should().Be(1200m);
+				point.CashBalance.Amount.Should().Be(150m);
+			}
 		}
 
 		#endregion

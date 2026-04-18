@@ -44,8 +44,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			CancellationToken cancellationToken = default)
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+			// Fetch all records up to endDate (not filtered by startDate) so we can
+			// forward-fill accounts whose last transaction predates startDate.
 			var snapShots = await databaseContext.CalculatedSnapshots
-				.Where(s => s.Date >= startDate && s.Date <= endDate)
+				.Where(s => s.Date <= endDate)
 				.Where(s => s.Holding != null && s.Holding.SymbolProfiles.Any())
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
@@ -54,12 +57,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Value = g.Sum(x => (double)x.TotalValue),
 					Invested = g.Sum(x => (double)x.TotalInvested),
 					g.Key.AccountId,
-					Currency = serverConfigurationService.PrimaryCurrency.Symbol
 				})
 				.ToListAsync(cancellationToken);
 
-			var balanceByAccount = await databaseContext.Balances
-				.Where(s => s.Date >= startDate && s.Date <= endDate)
+			var allBalances = await databaseContext.Balances
+				.Where(s => s.Date <= endDate)
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
 				{
@@ -69,31 +71,108 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				})
 				.ToListAsync(cancellationToken);
 
+			// Group sparse records by account for efficient forward-fill lookups.
+			var balancesByAccount = allBalances
+				.GroupBy(b => b.AccountId)
+				.ToDictionary(g => g.Key, g => g.OrderBy(b => b.Date).ToList());
+
+			var snapshotsByAccount = snapShots
+				.GroupBy(s => s.AccountId)
+				.ToDictionary(g => g.Key, g => g.OrderBy(s => s.Date).ToList());
+
+			var allAccountIds = balancesByAccount.Keys.Union(snapshotsByAccount.Keys).Distinct();
+
 			var result = new List<AccountValueHistoryPoint>();
+			var currency = serverConfigurationService.PrimaryCurrency;
 
-			var join = from b in balanceByAccount
-					   join s in snapShots on new { b.Date, b.AccountId } equals new { s.Date, s.AccountId } into bs
-					   from s in bs.DefaultIfEmpty()
-					   select new
-					   {
-						   b.Date,
-						   Value = (decimal)(s?.Value ?? 0),
-						   Invested = (decimal)(s?.Invested ?? 0),
-						   b.AccountId,
-						   Balance = (decimal)b.Value
-					   };
-
-			foreach (var item in join)
+			foreach (var accountId in allAccountIds)
 			{
-				result.Add(new AccountValueHistoryPoint
+				balancesByAccount.TryGetValue(accountId, out var accountBalances);
+				snapshotsByAccount.TryGetValue(accountId, out var accountSnapshots);
+
+				// Determine the first date this account has any data.
+				var firstBalanceDate = accountBalances?.FirstOrDefault()?.Date;
+				var firstSnapshotDate = accountSnapshots?.FirstOrDefault()?.Date;
+
+				DateOnly? firstDate;
+				if (firstBalanceDate.HasValue && firstSnapshotDate.HasValue)
 				{
-					Date = item.Date,
-					AccountId = item.AccountId,
-					TotalAssetValue = new Money(serverConfigurationService.PrimaryCurrency, item.Value),
-					TotalInvested = new Money(serverConfigurationService.PrimaryCurrency, item.Invested),
-					CashBalance = new Money(serverConfigurationService.PrimaryCurrency, item.Balance),
-					TotalValue = new Money(serverConfigurationService.PrimaryCurrency, item.Value + item.Balance)
-				});
+					firstDate = firstBalanceDate.Value < firstSnapshotDate.Value
+						? firstBalanceDate.Value
+						: firstSnapshotDate.Value;
+				}
+				else
+				{
+					firstDate = firstBalanceDate ?? firstSnapshotDate;
+				}
+
+				if (firstDate == null)
+				{
+					continue;
+				}
+
+				// Only emit points from startDate onwards; forward-fill uses history before startDate.
+				var rangeStart = firstDate.Value > startDate ? firstDate.Value : startDate;
+
+				int balanceIdx = 0;
+				int snapshotIdx = 0;
+				double lastBalance = 0;
+				double lastValue = 0;
+				double lastInvested = 0;
+
+				// Advance index pointers to the last record strictly before rangeStart so we
+				// start with a correctly forward-filled value on rangeStart itself.
+				if (accountBalances != null)
+				{
+					while (balanceIdx < accountBalances.Count && accountBalances[balanceIdx].Date < rangeStart)
+					{
+						lastBalance = accountBalances[balanceIdx].Value;
+						balanceIdx++;
+					}
+				}
+
+				if (accountSnapshots != null)
+				{
+					while (snapshotIdx < accountSnapshots.Count && accountSnapshots[snapshotIdx].Date < rangeStart)
+					{
+						lastValue = accountSnapshots[snapshotIdx].Value;
+						lastInvested = accountSnapshots[snapshotIdx].Invested;
+						snapshotIdx++;
+					}
+				}
+
+				for (var date = rangeStart; date <= endDate; date = date.AddDays(1))
+				{
+					// Apply any records that fall on this exact date.
+					if (accountBalances != null)
+					{
+						while (balanceIdx < accountBalances.Count && accountBalances[balanceIdx].Date == date)
+						{
+							lastBalance = accountBalances[balanceIdx].Value;
+							balanceIdx++;
+						}
+					}
+
+					if (accountSnapshots != null)
+					{
+						while (snapshotIdx < accountSnapshots.Count && accountSnapshots[snapshotIdx].Date == date)
+						{
+							lastValue = accountSnapshots[snapshotIdx].Value;
+							lastInvested = accountSnapshots[snapshotIdx].Invested;
+							snapshotIdx++;
+						}
+					}
+
+					result.Add(new AccountValueHistoryPoint
+					{
+						Date = date,
+						AccountId = accountId,
+						TotalAssetValue = new Money(currency, (decimal)lastValue),
+						TotalInvested = new Money(currency, (decimal)lastInvested),
+						CashBalance = new Money(currency, (decimal)lastBalance),
+						TotalValue = new Money(currency, (decimal)(lastValue + lastBalance))
+					});
+				}
 			}
 
 			return [.. result.OrderBy(x => x.Date).ThenBy(x => x.AccountId)];
