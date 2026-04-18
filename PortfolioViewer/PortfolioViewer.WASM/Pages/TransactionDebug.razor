@@ -20,6 +20,8 @@
         </select>
     </div>
 
+
+
     @if (IsLoading)
     {
         <div class="text-center my-5">
@@ -45,19 +47,50 @@
                     <tr>
                         <th>Date</th>
                         <th>Type</th>
-                        <th>Symbol</th>
+                        <th>
+                            Symbol<br />
+                            <select class="form-select form-select-sm mt-1" style="min-width: 100px;" @bind="SelectedSymbol">
+                                <option value="">(All)</option>
+                                @foreach (var symbol in SymbolOptions)
+                                {
+                                    <option value="@symbol">@symbol</option>
+                                }
+                            </select>
+                        </th>
+                        <th>
+                            Asset Class<br />
+                            <select class="form-select form-select-sm mt-1" style="min-width: 100px;" @bind="SelectedAssetClass">
+                                <option value="">(All)</option>
+                                @foreach (var ac in AssetClassOptions)
+                                {
+                                    <option value="@ac">@ac</option>
+                                }
+                            </select>
+                        </th>
+                        <th>
+                            Asset SubClass<br />
+                            <select class="form-select form-select-sm mt-1" style="min-width: 100px;" @bind="SelectedAssetSubClass">
+                                <option value="">(All)</option>
+                                @foreach (var asc in AssetSubClassOptions)
+                                {
+                                    <option value="@asc">@asc</option>
+                                }
+                            </select>
+                        </th>
                         <th>Cash Balance</th>
                         <th>Assets State</th>
                         <th>Transaction ID</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var row in TransactionDebugRows)
+                    @foreach (var row in FilteredRows)
                     {
                         <tr>
                             <td>@row.Date.ToString("yyyy-MM-dd HH:mm")</td>
                             <td>@row.Type</td>
                             <td>@row.Symbol</td>
+                            <td>@row.AssetClass</td>
+                            <td>@row.AssetSubClass</td>
                             <td>@row.CashBalanceDisplay</td>
                             <td>
                                 <ul class="mb-0">

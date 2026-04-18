@@ -12,6 +12,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private List<AccountInfo> Accounts = [];
 		private int? SelectedAccountId;
 
+	// Filtering fields for symbol type
+	protected string SelectedAssetClass = string.Empty;
+	protected string SelectedAssetSubClass = string.Empty;
+	protected List<string> AssetClassOptions = new() { "", "Liquidity", "Commodity", "Equity", "FixedIncome", "RealEstate" };
+	protected List<string> AssetSubClassOptions = new() { "", "CryptoCurrency", "Etf", "Stock", "MutualFund", "Bond", "Commodity", "PreciousMetal", "PrivateEquity" };
+protected string SelectedSymbol = string.Empty;
+protected List<string> SymbolOptions => TransactionDebugRows
+	.Select(r => r.Symbol)
+	.Where(s => !string.IsNullOrWhiteSpace(s))
+	.Distinct()
+	.OrderBy(s => s)
+	.ToList();
+protected IEnumerable<TransactionDebugRow> FilteredRows =>
+	TransactionDebugRows.Where(row =>
+		(string.IsNullOrEmpty(SelectedAssetClass) || row.AssetClass == SelectedAssetClass)
+		&& (string.IsNullOrEmpty(SelectedAssetSubClass) || row.AssetSubClass == SelectedAssetSubClass)
+		&& (string.IsNullOrEmpty(SelectedSymbol) || row.Symbol == SelectedSymbol)
+	);
+
 		[Inject]
 		private ITransactionService TransactionService { get; set; } = null!;
 
@@ -158,16 +177,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return debugRows;
 		}
 
-		public class TransactionDebugRow
-		{
-			public DateTime Date { get; set; }
-			public string Type { get; set; } = string.Empty;
-			public string Symbol { get; set; } = string.Empty;
-			public string AccountName { get; set; } = string.Empty;
-			public string CashBalanceDisplay { get; set; } = string.Empty;
-			public Dictionary<string, string> AssetStates { get; set; } = [];
-			public string TransactionId { get; set; } = string.Empty;
-		}
+       public class TransactionDebugRow
+	   {
+		   public DateTime Date { get; set; }
+		   public string Type { get; set; } = string.Empty;
+		   public string Symbol { get; set; } = string.Empty;
+		   public string AccountName { get; set; } = string.Empty;
+		   public string CashBalanceDisplay { get; set; } = string.Empty;
+		   public Dictionary<string, string> AssetStates { get; set; } = [];
+		   public string TransactionId { get; set; } = string.Empty;
+		   public string? AssetClass { get; set; }
+		   public string? AssetSubClass { get; set; }
+	   }
 
 		public class AccountInfo
 		{
