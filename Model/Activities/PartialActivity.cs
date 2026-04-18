@@ -103,17 +103,11 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 			}
+			return new PartialActivity(PartialActivityType.GiftFiat, date, currency, totalTransactionAmount, transactionId)
 			{
-				if (amount < 0)
-				{
-					throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
-				}
-				return new PartialActivity(PartialActivityType.GiftFiat, date, currency, totalTransactionAmount, transactionId)
-				{
-					Amount = amount,
-					Description = "Gift"
-				};
-			}
+				Amount = amount,
+				Description = "Gift"
+			};
 		}
 
 		public static PartialActivity CreateGift(
