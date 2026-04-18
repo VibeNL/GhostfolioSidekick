@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						currency,
 						date,
 						symbolIds,
-						record.Quantity * -1,
+						Math.Abs(record.Quantity),
 						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value).Times(-1),
 						id);
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						currency,
 						date,
 						symbolIds,
-						record.Quantity,
+						Math.Abs(record.Quantity),
 						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
