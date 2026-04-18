@@ -153,11 +153,7 @@ namespace GhostfolioSidekick.Model.Activities
 			DateTime date,
 			decimal amount,
 			int? rownumber = 0)
-		{
-			if (amount < 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
-			}
+       {
 			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), $"KNOWNBALANCE_{date:yyyyMMdd}")
 			{
 				Amount = amount,
