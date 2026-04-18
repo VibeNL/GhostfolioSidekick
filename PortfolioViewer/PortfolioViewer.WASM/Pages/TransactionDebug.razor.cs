@@ -15,8 +15,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	// Filtering fields for symbol type
 	protected string SelectedAssetClass = string.Empty;
 	protected string SelectedAssetSubClass = string.Empty;
-	protected List<string> AssetClassOptions = new() { "", "Liquidity", "Commodity", "Equity", "FixedIncome", "RealEstate" };
-	protected List<string> AssetSubClassOptions = new() { "", "CryptoCurrency", "Etf", "Stock", "MutualFund", "Bond", "Commodity", "PreciousMetal", "PrivateEquity" };
+	protected List<string> AssetClassOptions = new() { "Liquidity", "Commodity", "Equity", "FixedIncome", "RealEstate" };
+	protected List<string> AssetSubClassOptions = new() { "CryptoCurrency", "Etf", "Stock", "MutualFund", "Bond", "Commodity", "PreciousMetal", "PrivateEquity" };
 protected string SelectedSymbol = string.Empty;
 protected List<string> SymbolOptions => TransactionDebugRows
 	.Select(r => r.Symbol)
