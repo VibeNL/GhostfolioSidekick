@@ -51,7 +51,7 @@
                             Symbol<br />
                             <select class="form-select form-select-sm mt-1" style="min-width: 100px;" @bind="SelectedSymbol">
                                 <option value="">(All)</option>
-                                @foreach (var symbol in SymbolOptions)
+                                @foreach (var symbol in GetSymbolOptions())
                                 {
                                     <option value="@symbol">@symbol</option>
                                 }
