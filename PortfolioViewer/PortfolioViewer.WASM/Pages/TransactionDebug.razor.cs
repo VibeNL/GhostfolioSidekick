@@ -152,7 +152,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			   {
 				   if (!assets.ContainsKey(t.Symbol))
 					   assets[t.Symbol] = 0m;
-				   var prevAssetValue = assets[t.Symbol];
 				   if (t.Type == "Buy" && t.Quantity.HasValue)
 				   {
 					   assets[t.Symbol] += t.Quantity.Value;
