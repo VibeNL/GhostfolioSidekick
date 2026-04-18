@@ -93,9 +93,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				// Determine the first date this account has any data.
 				var firstBalanceDate = accountBalances?.FirstOrDefault()?.Date;
 				var firstSnapshotDate = accountSnapshots?.FirstOrDefault()?.Date;
-				var firstDate = firstBalanceDate.HasValue && firstSnapshotDate.HasValue
-					? (firstBalanceDate.Value < firstSnapshotDate.Value ? firstBalanceDate.Value : firstSnapshotDate.Value)
-					: firstBalanceDate ?? firstSnapshotDate;
+
+				DateOnly? firstDate;
+				if (firstBalanceDate.HasValue && firstSnapshotDate.HasValue)
+				{
+					firstDate = firstBalanceDate.Value < firstSnapshotDate.Value
+						? firstBalanceDate.Value
+						: firstSnapshotDate.Value;
+				}
+				else
+				{
+					firstDate = firstBalanceDate ?? firstSnapshotDate;
+				}
 
 				if (firstDate == null)
 				{
