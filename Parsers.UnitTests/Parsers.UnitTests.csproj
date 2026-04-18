@@ -85,6 +85,9 @@
 		<None Update="TestFiles\Bitvavo\Specials\single_affiliate.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Bitvavo\Specials\single_fixedstakingreward.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Bitvavo\Specials\single_stakingreward.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
