@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						currency,
 						date,
 						symbolIds,
-						record.Quantity * -1,
+						Math.Abs(record.Quantity),
 						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value).Times(-1),
 						id);
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						currency,
 						date,
 						symbolIds,
-						record.Quantity,
+						Math.Abs(record.Quantity),
 						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateReceive(date, symbolIds, record.Quantity, id);
 					break;
 				case "Send":
-					yield return PartialActivity.CreateSend(date, symbolIds, record.Quantity, id);
+					yield return PartialActivity.CreateSend(date, symbolIds, Math.Abs(record.Quantity), id);
 					break;
 				case "Convert":
 					var result = ParseNote(record.Notes);
