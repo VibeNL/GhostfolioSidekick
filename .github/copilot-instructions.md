@@ -28,6 +28,7 @@
 
 Standard build - Builds all 45 projects in the solution:
 
+
 ```bash
 dotnet build
 ```
@@ -40,16 +41,20 @@ dotnet build
 
 **Run all tests**:
 
+
 ```bash
 dotnet test
 ```
 
+
 **Run tests with coverage** (as done in CI):
+
 
 ```bash
 dotnet tool install --global dotnet-coverage
 dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
 ```
+
 
 **Install Playwright browsers** (required before running UI tests):
 
@@ -71,16 +76,21 @@ Get-ChildItem -Recurse -Include "playwright.ps1" | ForEach-Object { pwsh $_.Full
 
 **Development (Aspire AppHost)**:
 
+
 ```bash
 dotnet run --project PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj
 ```
+
+
 This launches the Aspire dashboard and runs both the API service and Blazor WASM client.
 
 **GhostfolioSidekick Console App**:
 
+
 ```bash
 dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 ```
+
 
 **Docker Build** (see `Dockerfile`):
 - Uses multi-stage build
@@ -127,8 +137,6 @@ dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 ├── Cryptocurrency/                      # Crypto-specific logic
 ├── Utilities/                           # Common utilities
 └── Tools/                               # Utility tools (AnonymisePDF, ScraperUtilities)
-```
-
 ### Key Architectural Patterns
 
 1. **Blazor WebAssembly with .NET Aspire**: PortfolioViewer uses Aspire for service orchestration (`PortfolioViewer.AppHost`). The WASM client communicates with `PortfolioViewer.ApiService` backend.
@@ -199,6 +207,7 @@ The main workflow runs on:
 - **Naming**: PascalCase for types/methods, interfaces start with `I`
 - **Nullability**: Enabled (`<Nullable>enable</Nullable>`)
 - **Implicit Usings**: Enabled (`<ImplicitUsings>enable</ImplicitUsings>`)
+- **Curly Brackets**: Always use curly brackets for single-line if statements, even if not required by C# syntax.
 
 ### Project Naming
 
