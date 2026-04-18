@@ -17,13 +17,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected string SelectedAssetSubClass = string.Empty;
 		protected List<string> AssetClassOptions = new() { "", "Liquidity", "Commodity", "Equity", "FixedIncome", "RealEstate" };
 		protected List<string> AssetSubClassOptions = new() { "", "CryptoCurrency", "Etf", "Stock", "MutualFund", "Bond", "Commodity", "PreciousMetal", "PrivateEquity" };
-		protected string SelectedSymbol = string.Empty;
-		protected List<string> SymbolOptions => TransactionDebugRows
-			.Select(r => r.Symbol)
-			.Where(s => !string.IsNullOrWhiteSpace(s))
-			.Distinct()
-			.OrderBy(s => s)
-			.ToList();
+     protected string SelectedSymbol = string.Empty;
+		protected IEnumerable<string> GetSymbolOptions()
+		{
+			return TransactionDebugRows
+				.Select(r => r.Symbol)
+				.Where(s => !string.IsNullOrWhiteSpace(s))
+				.Distinct()
+				.OrderBy(s => s);
+		}
 		protected bool HasAssetClassData => TransactionDebugRows.Any(row => !string.IsNullOrWhiteSpace(row.AssetClass));
 		protected bool HasAssetSubClassData => TransactionDebugRows.Any(row => !string.IsNullOrWhiteSpace(row.AssetSubClass));
 		protected IEnumerable<TransactionDebugRow> FilteredRows =>
