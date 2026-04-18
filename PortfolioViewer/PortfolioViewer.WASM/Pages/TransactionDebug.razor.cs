@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private List<TransactionDebugRow> TransactionDebugRows = [];
 		private List<AccountInfo> Accounts = [];
 		private int? SelectedAccountId;
-
+		
 	// Filtering fields for symbol type
 	protected string SelectedAssetClass = string.Empty;
 	protected string SelectedAssetSubClass = string.Empty;
@@ -120,9 +120,9 @@ protected IEnumerable<TransactionDebugRow> FilteredRows =>
 			var cashBalances = accounts.ToDictionary(a => a.Id, a => 0m);
 			var assetStates = accounts.ToDictionary(a => a.Id, a => new Dictionary<string, decimal>());
 
-			var debugRows = new List<TransactionDebugRow>();
-			foreach (var t in transactions)
-			{
+           var debugRows = new List<TransactionDebugRow>();
+		   foreach (var t in transactions)
+		   {
 				var account = accounts.FirstOrDefault(a => a.Name == t.AccountName);
 				if (account == null) continue;
 				var accId = account.Id;
@@ -146,15 +146,21 @@ protected IEnumerable<TransactionDebugRow> FilteredRows =>
 				cashBalances[accId] += cashDelta;
 
 				var assets = assetStates[accId];
-				if (!string.IsNullOrEmpty(t.Symbol))
-				{
-					if (!assets.ContainsKey(t.Symbol))
-						assets[t.Symbol] = 0m;
-					if (t.Type == "Buy" && t.Quantity.HasValue)
-						assets[t.Symbol] += t.Quantity.Value;
-					else if (t.Type == "Sell" && t.Quantity.HasValue)
-						assets[t.Symbol] -= t.Quantity.Value;
-				}
+               if (!string.IsNullOrEmpty(t.Symbol))
+			   {
+				   if (!assets.ContainsKey(t.Symbol))
+					   assets[t.Symbol] = 0m;
+				   var prevAssetValue = assets[t.Symbol];
+				   if (t.Type == "Buy" && t.Quantity.HasValue)
+				   {
+					   assets[t.Symbol] += t.Quantity.Value;
+				   }
+                   else if (t.Type == "Sell" && t.Quantity.HasValue)
+				   {
+					   var normalizedQty = Math.Abs(t.Quantity.Value);
+					   assets[t.Symbol] -= normalizedQty;
+				   }
+			   }
 
 				var assetStateDisplay = assets
 					.Where(kvp => kvp.Value != 0m)
