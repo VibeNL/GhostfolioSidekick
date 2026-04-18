@@ -193,6 +193,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleFixedStakeReward_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_fixedstakingreward.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2023, 12, 11, 10, 32, 26, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "AXS", null)],
+						0.00000272M,
+						"15895215-8c11-4497-8151-eb5e5701180e")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleAffiliate_Converted()
 		{
 			// Arrange

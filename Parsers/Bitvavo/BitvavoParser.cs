@@ -55,6 +55,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						new Money(record.TotalTransactionCurrency, Math.Abs(record.TotalTransactionAmount!.Value)),
 						record.Transaction);
 				case "staking":
+				case "fixed_staking":
 					return PartialActivity.CreateStakingReward(
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, record.Currency!, null)], // No currency for staking rewards, as they are paid in the asset
