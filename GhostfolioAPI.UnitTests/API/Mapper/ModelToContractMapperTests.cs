@@ -231,5 +231,106 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			// Assert
 			result.Should().BeNull();
 		}
+
+		[Fact]
+		public async Task ConvertToGhostfolioActivity_ShouldMapSendActivityCorrectly()
+		{
+			// Arrange
+         var sendActivity = _fixture.Build<SendActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
+			var symbolProfile = _fixture.Create<SymbolProfile>();
+			var account = _fixture.Create<Account>();
+
+			// Explicitly add 3 fees to match test expectation
+			for (int i = 0; i < 3; i++)
+			{
+				sendActivity.Fees.Add(new SendActivityFee(new Money(Currency.USD, 100m)));
+			}
+
+			_exchangeRateServiceMock
+				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
+				.ReturnsAsync(new Money(Currency.GetCurrency(symbolProfile.Currency), 100m));
+
+			// Act
+			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, symbolProfile, sendActivity, account);
+
+			// Assert
+			result.Should().NotBeNull();
+			result!.SymbolProfile.Should().Be(symbolProfile);
+			result.Comment.Should().NotBeNull();
+			result.Date.Should().Be(sendActivity.Date);
+           result.Fee.Should().Be(300m);
+			result.FeeCurrency.Should().Be(symbolProfile.Currency);
+			result.Quantity.Should().Be(Math.Abs(sendActivity.AdjustedQuantity));
+			result.Type.Should().Be(ActivityType.SELL);
+			result.UnitPrice.Should().Be(100m);
+			result.ReferenceCode.Should().Be(sendActivity.TransactionId);
+			result.AccountId.Should().Be(account.Id);
+		}
+
+		[Fact]
+		public async Task ConvertToGhostfolioActivity_ShouldMapCorrectionActivityCorrectly()
+		{
+			// Arrange
+			var correctionActivity = _fixture.Build<CorrectionActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
+			var account = _fixture.Create<Account>();
+
+			// Act
+			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, correctionActivity, account);
+
+			// Assert
+			result.Should().NotBeNull();
+			result!.SymbolProfile.Currency.Should().Be(correctionActivity.Amount.Currency.Symbol);
+			result.SymbolProfile.Name.Should().Be(correctionActivity.Description);
+			result.Comment.Should().NotBeNull();
+			result.Date.Should().Be(correctionActivity.Date);
+			result.Quantity.Should().Be(1);
+			result.Type.Should().Be(ActivityType.FEE);
+			result.UnitPrice.Should().Be(correctionActivity.Amount.Amount);
+			result.ReferenceCode.Should().Be(correctionActivity.TransactionId);
+			result.AccountId.Should().Be(account.Id);
+		}
+
+        [Fact]
+		public async Task ConvertToGhostfolioActivity_ShouldReturnNullForOtherUnsupportedActivities()
+		{
+			var modelAccount = new GhostfolioSidekick.Model.Accounts.Account("test");
+			var holding = (Holding?)null;
+			var date = DateTime.UtcNow;
+			var money = new Money(Currency.USD, 1m);
+			var transactionId = "txn";
+			int? sortingPriority = null;
+			string? description = null;
+
+			var cashDeposit = new GhostfolioSidekick.Model.Activities.Types.CashDepositActivity(modelAccount, holding, date, money, transactionId, sortingPriority, description);
+			var cashWithdrawal = new GhostfolioSidekick.Model.Activities.Types.CashWithdrawalActivity(modelAccount, holding, date, money, transactionId, sortingPriority, description);
+            var partialSymbol = new GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier(
+				GhostfolioSidekick.Model.Activities.IdentifierType.ISIN, "ABC", null, new List<GhostfolioSidekick.Model.Activities.AssetClass>(), new List<GhostfolioSidekick.Model.Activities.AssetSubClass>());
+			var stakingReward = new GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity(modelAccount, holding, new List<GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier> { partialSymbol }, date, 1m, transactionId, sortingPriority, description);
+
+			var result1 = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, cashDeposit, null);
+			var result2 = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, cashWithdrawal, null);
+			var result3 = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, stakingReward, null);
+
+			result1.Should().BeNull();
+			result2.Should().BeNull();
+			result3.Should().BeNull();
+		}
+
+      private record UnknownActivity : GhostfolioSidekick.Model.Activities.Activity
+		{
+			public UnknownActivity() : base(new GhostfolioSidekick.Model.Accounts.Account("unknown"), null, DateTime.UtcNow, "unknown", null, null) { }
+		}
+
+		[Fact]
+		public async Task ConvertToGhostfolioActivity_ShouldThrowForUnknownActivityType()
+		{
+			// Arrange
+			var unknownActivity = new UnknownActivity();
+			var account = _fixture.Create<Account>();
+
+			// Act & Assert
+			await Assert.ThrowsAsync<NotSupportedException>(() =>
+				ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, unknownActivity, account));
+		}
 	}
 }
