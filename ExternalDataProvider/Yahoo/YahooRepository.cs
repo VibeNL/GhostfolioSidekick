@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
-       {
+		{
 			return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
 		}
 
@@ -278,7 +278,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				}
 			}
 
-            // Always update today's price with the latest
+			// Always update today's price with the latest
 			var today = DateOnly.FromDateTime(DateTime.Now);
 			var symbolFields = await YahooFinanceApi.Yahoo.Symbols(symbol)
 				.Fields(

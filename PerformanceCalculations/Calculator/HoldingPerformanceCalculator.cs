@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			var minDate = DateOnly.FromDateTime(quantityActivities.Min(x => x.Date));
-			var maxDate = DateOnly.FromDateTime(DateTime.Today);
+			var maxDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
 
 			var dayCount = maxDate.DayNumber - minDate.DayNumber + 1;
 			var snapshots = new List<CalculatedSnapshot>(dayCount);
@@ -195,7 +195,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				{
 					foreach (var kvp in symbolMarketData)
 					{
-						marketData.TryAdd(kvp.Key, kvp.Value);
+						if (kvp.Value != 0)
+						{
+							marketData.TryAdd(kvp.Key, kvp.Value);
+						}
 					}
 				}
 			}
@@ -206,7 +209,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			.Select(x => x.Value)
 			.FirstOrDefault();
 
-			for (var date = minDate; date <= maxDate; date = date.AddDays(1))
+			for (var date = minDate; date < maxDate; date = date.AddDays(1))
 			{
 				var snapshot = new CalculatedSnapshot(previousSnapshot)
 				{
