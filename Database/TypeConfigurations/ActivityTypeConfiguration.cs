@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
@@ -18,6 +18,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<CashWithdrawalActivity>,
 		IEntityTypeConfiguration<DividendActivity>,
 		IEntityTypeConfiguration<FeeActivity>,
+		IEntityTypeConfiguration<CorrectionActivity>,
 		IEntityTypeConfiguration<GiftFiatActivity>,
 		IEntityTypeConfiguration<GiftAssetActivity>,
 		IEntityTypeConfiguration<InterestActivity>,
@@ -53,6 +54,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasValue<CashWithdrawalActivity>("CashWithdrawal")
 				.HasValue<DividendActivity>("Dividend")
 				.HasValue<FeeActivity>("Fee")
+				.HasValue<CorrectionActivity>("Correction")
 				.HasValue<GiftFiatActivity>("GiftFiat")
 				.HasValue<GiftAssetActivity>("GiftAsset")
 				.HasValue<InterestActivity>("Interest")
@@ -142,6 +144,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
 		{
 			MapMoney(builder, x => x.Amount, nameof(FeeActivity.Amount));
+		}
+
+		public void Configure(EntityTypeBuilder<CorrectionActivity> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(CorrectionActivity.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<GiftAssetActivity> builder)

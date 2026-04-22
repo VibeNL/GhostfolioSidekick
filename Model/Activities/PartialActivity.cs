@@ -175,6 +175,24 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
+		public static PartialActivity CreateCorrection(
+			Currency currency,
+			DateTime date,
+			decimal amount,
+			Money totalTransactionAmount,
+			string transactionId,
+			string description)
+		{
+			GuardNonNegative(amount, nameof(amount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
+		
+			return new PartialActivity(PartialActivityType.Correction, date, currency, totalTransactionAmount, transactionId)
+			{
+				Amount = amount,
+				Description = description,
+			};
+		}
+
 		public static PartialActivity CreateBuy(
 			Currency currency,
 			DateTime date,

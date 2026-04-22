@@ -529,6 +529,37 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
             Assert.Equal(1000, activity.UnitPrice!.Amount);
         }
 
+        // ── CreateCorrection ──────────────────────────────────────────────────
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(-100)]
+        public void CreateCorrection_ShouldThrow_OnNegativeAmount(decimal amount)
+        {
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+                PartialActivity.CreateCorrection(Currency.USD, TestDate, amount, new Money(Currency.USD, 1), "tx", "desc"));
+            Assert.Contains("Amount cannot be negative", ex.Message);
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(-100)]
+        public void CreateCorrection_ShouldThrow_OnNegativeTotalTransactionAmount(decimal total)
+        {
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+                PartialActivity.CreateCorrection(Currency.USD, TestDate, 1, new Money(Currency.USD, total), "tx", "desc"));
+            Assert.Contains("TotalTransactionAmount cannot be negative", ex.Message);
+        }
+
+        [Fact]
+        public void CreateCorrection_ShouldSucceed()
+        {
+            var activity = PartialActivity.CreateCorrection(Currency.USD, TestDate, 5, new Money(Currency.USD, 5), "tx", "Correction of a previously recorded dividend");
+            Assert.Equal(5, activity.Amount);
+            Assert.Equal(PartialActivityType.Correction, activity.ActivityType);
+            Assert.Equal("Correction of a previously recorded dividend", activity.Description);
+        }
+
         // ── CreateIgnore ──────────────────────────────────────────────────────
 
         [Fact]

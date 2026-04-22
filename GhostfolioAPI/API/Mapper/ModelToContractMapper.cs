@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 
@@ -142,6 +142,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Quantity = 1,
 						Type = Contract.ActivityType.FEE,
 						UnitPrice = feeActivity.Amount.Amount,
+						ReferenceCode = activity.TransactionId,
+						AccountId = account?.Id
+					};
+				case CorrectionActivity correctionActivity:
+					return new Contract.Activity
+					{
+						SymbolProfile = Contract.SymbolProfile.Empty(correctionActivity.Amount.Currency, correctionActivity.Description),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = 1,
+						Type = Contract.ActivityType.FEE,
+						UnitPrice = correctionActivity.Amount.Amount,
 						ReferenceCode = activity.TransactionId,
 						AccountId = account?.Id
 					};

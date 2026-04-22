@@ -40,6 +40,8 @@ namespace GhostfolioSidekick.Model.Activities
 
 		BondRepay,
 
+		Correction,
+
 		Ignore
 	}
 }
