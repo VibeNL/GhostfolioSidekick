@@ -86,13 +86,14 @@ namespace GhostfolioSidekick.Parsers.Generic
 					}
 					else
 					{
-						// Correction of a previously recorded dividend, which is now negative. We will record it as a fee, to avoid negative dividends in the tax report.
-						lst.Add(PartialActivity.CreateFee(
+						// Correction of a previously recorded dividend, which is now negative. We will record it as a correction, to avoid negative dividends in the tax report.
+						lst.Add(PartialActivity.CreateCorrection(
 							currency,
 							record.Date,
 							-record.Quantity * record.UnitPrice,
 							new Money(currency, -record.Quantity * record.UnitPrice),
-							record.Id));
+							record.Id,
+							"Correction of a previously recorded dividend"));
 					}
 					break;
 				case PartialActivityType.Interest:

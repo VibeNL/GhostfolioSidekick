@@ -57,6 +57,7 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
 			}
+
 			if (totalTransactionAmount.Amount < 0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -79,6 +80,7 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
 			}
+
 			if (totalTransactionAmount.Amount < 0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -101,6 +103,7 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
 			}
+
 			if (totalTransactionAmount.Amount < 0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -142,6 +145,7 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
 			}
+
 			if (totalTransactionAmount.Amount < 0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -159,7 +163,7 @@ namespace GhostfolioSidekick.Model.Activities
 			DateTime date,
 			decimal amount,
 			int? rownumber = 0)
-       {
+		{
 			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), $"KNOWNBALANCE_{date:yyyyMMdd}")
 			{
 				Amount = amount,
@@ -178,6 +182,7 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
 			}
+
 			if (totalTransactionAmount.Amount < 0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -201,6 +206,7 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
 			}
+
 			if (totalTransactionAmount.Amount < 0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -210,6 +216,31 @@ namespace GhostfolioSidekick.Model.Activities
 			{
 				Amount = amount,
 				Description = "Fee",
+			};
+		}
+
+		public static PartialActivity CreateCorrection(
+			Currency currency,
+			DateTime date,
+			decimal amount,
+			Money totalTransactionAmount,
+			string transactionId,
+			string description)
+		{
+			if (amount < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
+			}
+
+			if (totalTransactionAmount.Amount < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
+			}
+
+			return new PartialActivity(PartialActivityType.Correction, date, currency, totalTransactionAmount, transactionId)
+			{
+				Amount = amount,
+				Description = description,
 			};
 		}
 

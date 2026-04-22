@@ -134,6 +134,7 @@ namespace GhostfolioSidekick.Activities
 				},
 				PartialActivityType.Interest => new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.Fee => new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.Correction => new CorrectionActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.CashDeposit => new CashDepositActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.CashWithdrawal => new CashWithdrawalActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.KnownBalance => new KnownBalanceActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description),
