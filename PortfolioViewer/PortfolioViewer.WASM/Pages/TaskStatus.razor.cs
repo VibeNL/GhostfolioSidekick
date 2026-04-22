@@ -234,10 +234,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			using var dbContext = await DbContextFactory.CreateDbContextAsync();
 			_taskLogs = await dbContext.Set<TaskRunLog>()
-				.AsNoTracking()
-				.Where(l => l.TaskRunType == task.Type)
-				.OrderByDescending(l => l.Timestamp)
-				.ToListAsync();
+					.AsNoTracking()
+					.Where(l => l.TaskRun == task)
+					.ToListAsync();
+			_taskLogs = [.. _taskLogs.OrderBy(l => l.Timestamp)];
 
 			StateHasChanged();
 		}
