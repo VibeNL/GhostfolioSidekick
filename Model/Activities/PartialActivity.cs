@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.CashDeposit, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.CashWithdrawal, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.GiftFiat, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Interest, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Tax, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Fee, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -185,8 +185,8 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(unitPrice, nameof(unitPrice));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(unitPrice, nameof(unitPrice), "UnitPrice cannot be negative.");
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Buy, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -206,8 +206,8 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(unitPrice, nameof(unitPrice));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(unitPrice, nameof(unitPrice), "UnitPrice cannot be negative.");
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Sell, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -226,7 +226,7 @@ namespace GhostfolioSidekick.Model.Activities
 			string transactionId)
 		{
 			GuardNonNegative(amount, nameof(amount));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Dividend, date, currency, totalTransactionAmount, transactionId)
 			{
@@ -244,9 +244,9 @@ namespace GhostfolioSidekick.Model.Activities
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			GuardNonNegativeMoney(source, nameof(source));
-			GuardNonNegativeMoney(target, nameof(target));
-			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount));
+			GuardNonNegativeMoney(source, nameof(source), "Source amount cannot be negative.");
+			GuardNonNegativeMoney(target, nameof(target), "Target amount cannot be negative.");
+			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			yield return new PartialActivity(PartialActivityType.CashWithdrawal, date, source.Currency, totalTransactionAmount, transactionId + "[CurrencyConvertSource]")
 			{
@@ -378,19 +378,19 @@ namespace GhostfolioSidekick.Model.Activities
 			return new PartialActivity(PartialActivityType.Ignore, DateTime.UtcNow, Currency.USD, new Money(Currency.USD, 0), "IGNORE");
 		}
 
-		private static void GuardNonNegative(decimal value, string paramName)
+		private static void GuardNonNegative(decimal value, string paramName, string message = "Amount cannot be negative.")
 		{
 			if (value < 0)
 			{
-				throw new ArgumentOutOfRangeException(paramName, $"{paramName} cannot be negative.");
+				throw new ArgumentOutOfRangeException(paramName, message);
 			}
 		}
 
-		private static void GuardNonNegativeMoney(Money money, string paramName)
+		private static void GuardNonNegativeMoney(Money money, string paramName, string message = "Amount cannot be negative.")
 		{
 			if (money.Amount < 0)
 			{
-				throw new ArgumentOutOfRangeException(paramName, $"{paramName} cannot be negative.");
+				throw new ArgumentOutOfRangeException(paramName, message);
 			}
 		}
 
