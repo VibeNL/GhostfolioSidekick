@@ -249,6 +249,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[InlineData(PartialActivityType.GiftAsset, typeof(GiftAssetActivity))]
 		[InlineData(PartialActivityType.StakingReward, typeof(StakingRewardActivity))]
 		[InlineData(PartialActivityType.BondRepay, typeof(RepayBondActivity))]
+		[InlineData(PartialActivityType.Correction, typeof(CorrectionActivity))]
 		public async Task GenerateActivities_ShouldCreateCorrectActivityType(PartialActivityType activityType, Type expectedType)
 		{
 			// Arrange
@@ -599,6 +600,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				PartialActivityType.GiftAsset => PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, transactionId),
 				PartialActivityType.StakingReward => PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 5, transactionId),
 				PartialActivityType.BondRepay => PartialActivity.CreateBondRepay(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "BOND1", null)], new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), transactionId),
+				PartialActivityType.Correction => PartialActivity.CreateCorrection(Currency.USD, date, 50, new Money(Currency.USD, 50), transactionId, "ABC"),
 				_ => throw new NotSupportedException($"Activity type {activityType} not supported in test helper")
 			};
 		}
