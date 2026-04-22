@@ -901,6 +901,19 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				description);
 		}
 
+		// Helper method for creating CorrectionActivity
+		private static CorrectionActivity CreateCorrectionActivity(Account account, DateTime date, decimal amount, string transactionId = "COR-001", string description = "Correction transaction")
+		{
+			return new CorrectionActivity(
+				account,
+				null,
+				date,
+				new Money(Currency.USD, amount),
+				transactionId,
+				null,
+				description);
+		}
+
 		// Helper method for creating FeeActivity
 		private static FeeActivity CreateFeeActivity(Account account, DateTime date, decimal amount, string transactionId = "FEE-001", string description = "Fee transaction")
 		{
@@ -979,37 +992,90 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		private static Activity? CreateTestActivityInstance(Type type, Account account, Holding holding)
 		{
 			if (type == typeof(BuyActivity))
+			{
 				return CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100);
+			}
+
 			if (type == typeof(SellActivity))
+			{
 				return CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110);
+			}
+
 			if (type == typeof(DividendActivity))
+			{
 				return CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50);
+			}
+
 			if (type == typeof(CashDepositActivity))
+			{
 				return CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000);
+			}
+
 			if (type == typeof(InterestActivity))
+			{
 				return CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25);
+			}
+
 			if (type == typeof(FeeActivity))
+			{
 				return CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10);
+			}
+
 			if (type == typeof(KnownBalanceActivity))
+			{
 				return CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-7), 500);
+			}
+
 			if (type == typeof(CashWithdrawalActivity))
+			{
 				return CreateCashWithdrawalActivity(account, DateTime.Now.AddDays(-8), 250);
+			}
+
 			if (type == typeof(GiftFiatActivity))
+			{
 				return CreateGiftFiatActivity(account, DateTime.Now.AddDays(-9), 100);
+			}
+
 			if (type == typeof(GiftAssetActivity))
+			{
 				return CreateGiftAssetActivity(account, holding, DateTime.Now.AddDays(-10), 5);
+			}
+
 			if (type == typeof(LiabilityActivity))
+			{
 				return CreateLiabilityActivity(account, DateTime.Now.AddDays(-11), 200);
+			}
+
 			if (type == typeof(RepayBondActivity))
+			{
 				return CreateRepayBondActivity(account, DateTime.Now.AddDays(-12), 300);
+			}
+
 			if (type == typeof(ReceiveActivity))
+			{
 				return CreateReceiveActivity(account, holding, DateTime.Now.AddDays(-13), 7);
+			}
+
 			if (type == typeof(SendActivity))
+			{
 				return CreateSendActivity(account, holding, DateTime.Now.AddDays(-14), 8);
+			}
+
 			if (type == typeof(StakingRewardActivity))
+			{
 				return CreateStakingRewardActivity(account, holding, DateTime.Now.AddDays(-15), 9);
+			}
+
 			if (type == typeof(ValuableActivity))
+			{
 				return CreateValuableActivity(account, DateTime.Now.AddDays(-16), 400);
+			}
+
+			if (type == typeof(CorrectionActivity))
+			{
+				return CreateCorrectionActivity(account, DateTime.Now.AddDays(-17), 50);
+			}
+
 			// Add explicit handling for any additional concrete types here
 			throw new NotImplementedException($"No test instance creation defined for activity type {type.Name}.");
 		}

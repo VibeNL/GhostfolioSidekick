@@ -166,6 +166,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			var repayBondCount = await baseQuery.OfType<RepayBondActivity>().CountAsync(cancellationToken);
 			if (repayBondCount > 0) breakdowns["Repay Bond"] = repayBondCount;
 
+			var correctionCount = await baseQuery.OfType<CorrectionActivity>().CountAsync(cancellationToken);
+			if (correctionCount > 0) breakdowns["Correction"] = correctionCount;
+
 			return breakdowns;
 		}
 
@@ -226,6 +229,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 						case "Liability": typePredicates.Add(a => a is LiabilityActivity); break;
 						case "Repay Bond": case "RepayBond": typePredicates.Add(a => a is RepayBondActivity); break;
 						case "KnownBalance": case "Known Balance": typePredicates.Add(a => a is KnownBalanceActivity); break;
+						case "Correction": typePredicates.Add(a => a is CorrectionActivity); break;
 						default: break;
 					}
 				}
