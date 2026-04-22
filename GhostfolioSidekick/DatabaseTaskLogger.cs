@@ -35,7 +35,8 @@ namespace GhostfolioSidekick
 				TaskRunType = work.GetType().Name,
 				Timestamp = DateTimeOffset.UtcNow,
 				Message = message,
-				TaskRun = taskRun
+				TaskRun = taskRun,
+				Severity = (int)logLevel
 			};
 
 			dbContext.Set<TaskRunLog>().Add(logEntry);

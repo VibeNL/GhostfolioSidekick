@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
@@ -39,5 +39,10 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		public decimal? Fee { get; set; }
 
 		public required string Notes { get; set; }
+
+		// Derived fields that are only positive
+		public decimal PositiveQuantity => Math.Abs(Quantity);
+
+		public decimal? PositiveTotalTransactionAmount => Math.Abs(TotalTransactionAmount ?? 0);
 	}
 }

@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					currencyMapper.Map(record.TaxUKCurrency!),
 					record.Time,
 					record.TaxUK.Value,
-					new Money(currencyMapper.Map(record.TaxUKCurrency!), 0),
+					new Money(currencyMapper.Map(record.TaxUKCurrency!), record.TaxUK.Value),
 					record.Id!);
 			}
 
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					currencyMapper.Map(record.TaxFranceCurrency!),
 					record.Time,
 					record.TaxFrance.Value,
-					new Money(currencyMapper.Map(record.TaxFranceCurrency!), 0),
+					new Money(currencyMapper.Map(record.TaxFranceCurrency!), record.TaxFrance.Value),
 					record.Id!);
 			}
 
@@ -186,7 +186,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					currencyMapper.Map(record.FeeFinraCurrency!),
 					record.Time,
 					record.FeeFinra.Value,
-					new Money(currencyMapper.Map(record.FeeFinraCurrency!), 0),
+					new Money(currencyMapper.Map(record.FeeFinraCurrency!), record.FeeFinra.Value),
 					record.Id!);
 			}
 
@@ -195,8 +195,8 @@ namespace GhostfolioSidekick.Parsers.Trading212
 				yield return PartialActivity.CreateFee(
 					currencyMapper.Map(record.ConversionFeeCurrency!),
 					record.Time,
-					record.ConversionFee.Value,
-					new Money(currencyMapper.Map(record.ConversionFeeCurrency!), 0),
+					Math.Abs(record.ConversionFee.Value),
+					new Money(currencyMapper.Map(record.ConversionFeeCurrency!), Math.Abs(record.ConversionFee.Value)),
 					record.Id!);
 			}
 		}

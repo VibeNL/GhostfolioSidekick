@@ -120,7 +120,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			var balance = row.GetColumnValue("Balance")?.Trim();
 
 			var dateParsed = ParseDate(date);
-			var amountParsed = ParseDecimal(amount);
+			var amountParsed = Math.Abs(ParseDecimal(amount));
 			var balanceParsed = ParseDecimal(balance);
 			var transactionId = $"GoldRepublic_{dateParsed:yyyyMMdd}_{transactionType}_{row.Page}_{row.Row}";
 
@@ -157,8 +157,8 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				yield return PartialActivity.CreateFee(
 					Currency.EUR,
 					dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-					amountParsed * -1,
-					new Money(Currency.EUR, amountParsed * -1),
+					amountParsed,
+					new Money(Currency.EUR, amountParsed),
 					transactionId
 					);
 			}

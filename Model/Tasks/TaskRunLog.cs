@@ -13,5 +13,10 @@ namespace GhostfolioSidekick.Model.Tasks
 		public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
 		[Required]
 		public string Message { get; set; } = string.Empty;
+
+		/// <summary>
+		/// Maps to <see cref="Microsoft.Extensions.Logging.LogLevel"/> values.
+		/// </summary>
+		public int Severity { get; set; }
 	}
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -16,9 +16,13 @@
 
 	<ItemGroup>
     <PackageReference Include="CompareNETObjects" Version="4.84.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.6">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

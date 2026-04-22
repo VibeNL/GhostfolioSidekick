@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Tasks;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -16,6 +17,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string _sortColumn = nameof(TaskRun.InProgress);
 		private string _sortDirection = "desc"; // Start with InProgress tasks at top
 		private TaskRun? _selectedTaskError;
+
+		// Logs modal
+		private TaskRun? _selectedTaskLogs;
+		private List<TaskRunLog>? _taskLogs;
+		private LogLevel _logSeverityFilter = LogLevel.Trace;
 
 		// Refresh state
 		private bool _isRefreshing;
@@ -218,6 +224,58 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			_selectedTaskError = null;
 			StateHasChanged();
+		}
+
+		private async Task ShowLogs(TaskRun task)
+		{
+			_selectedTaskLogs = task;
+			_taskLogs = null;
+			StateHasChanged();
+
+			using var dbContext = await DbContextFactory.CreateDbContextAsync();
+			_taskLogs = await dbContext.Set<TaskRunLog>()
+					.AsNoTracking()
+					.Where(l => l.TaskRun == task)
+					.ToListAsync();
+			_taskLogs = [.. _taskLogs.OrderBy(l => l.Timestamp)];
+
+			StateHasChanged();
+		}
+
+		private void CloseLogs()
+		{
+			_selectedTaskLogs = null;
+			_taskLogs = null;
+			StateHasChanged();
+		}
+
+		private IEnumerable<TaskRunLog> GetFilteredLogs()
+		{
+			if (_taskLogs == null)
+			{
+				return [];
+			}
+
+			return _taskLogs.Where(l => (LogLevel)l.Severity >= _logSeverityFilter);
+		}
+
+		private static string GetSeverityBadgeClass(int severity)
+		{
+			return (LogLevel)severity switch
+			{
+				LogLevel.Trace => "bg-secondary",
+				LogLevel.Debug => "bg-info text-dark",
+				LogLevel.Information => "bg-primary",
+				LogLevel.Warning => "bg-warning text-dark",
+				LogLevel.Error => "bg-danger",
+				LogLevel.Critical => "bg-dark",
+				_ => "bg-secondary"
+			};
+		}
+
+		private static string GetSeverityLabel(int severity)
+		{
+			return ((LogLevel)severity).ToString();
 		}
 	}
 }

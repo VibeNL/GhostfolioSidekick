@@ -1,5 +1,6 @@
 @page "/task-status"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Logging
 @using GhostfolioSidekick.Model.Tasks
 @attribute [Authorize]
 
@@ -166,6 +167,7 @@
                                 </th>
                                 <th>Last Updated</th>
                                 <th>Error Details</th>
+                                <th>Logs</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -254,6 +256,14 @@
                                             </span>
                                         }
                                     </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                @onclick="() => ShowLogs(task)"
+                                                title="View task logs">
+                                            <i class="bi bi-journal-text me-1"></i>
+                                            View Logs
+                                        </button>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -301,6 +311,92 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CloseErrorDetails">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Logs Modal -->
+@if (_selectedTaskLogs != null)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-journal-text me-2"></i>
+                        Logs — @_selectedTaskLogs.Name
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseLogs"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 d-flex align-items-center gap-2">
+                        <label class="form-label mb-0 fw-semibold">Minimum severity:</label>
+                        <select class="form-select form-select-sm w-auto"
+                                @bind="_logSeverityFilter">
+                            <option value="@LogLevel.Trace">Trace</option>
+                            <option value="@LogLevel.Debug">Debug</option>
+                            <option value="@LogLevel.Information">Information</option>
+                            <option value="@LogLevel.Warning">Warning</option>
+                            <option value="@LogLevel.Error">Error</option>
+                            <option value="@LogLevel.Critical">Critical</option>
+                        </select>
+                        <span class="text-muted ms-2">
+                            @GetFilteredLogs().Count() entries shown
+                        </span>
+                    </div>
+
+                    @if (_taskLogs == null)
+                    {
+                        <div class="d-flex justify-content-center py-4">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading logs...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (!GetFilteredLogs().Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No log entries match the selected severity filter.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead class="table-dark sticky-top">
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Severity</th>
+                                        <th>Message</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in GetFilteredLogs())
+                                    {
+                                        <tr>
+                                            <td class="text-nowrap">
+                                                <small>@log.Timestamp.ToString("dd/MM/yyyy HH:mm:ss")</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetSeverityBadgeClass(log.Severity)">
+                                                    @GetSeverityLabel(log.Severity)
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small style="white-space: pre-wrap; word-break: break-word;">@log.Message</small>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseLogs">Close</button>
                 </div>
             </div>
         </div>
