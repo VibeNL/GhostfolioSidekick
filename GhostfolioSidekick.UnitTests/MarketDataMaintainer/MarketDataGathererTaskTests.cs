@@ -824,6 +824,77 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 		}
 
+		[Fact]
+		public async Task DoWork_ShouldFillMissingMarketDataGapsWithInterpolatedGeneratedRows()
+		{
+			// Arrange: Activity on day -5, market data only for -5 and -1 (missing -4, -3, -2)
+			var dateStart = DateOnly.FromDateTime(DateTime.Today.AddDays(-5));
+			var dateEnd = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
+			var mdStart = new MarketData(Currency.USD, 100, 100, 100, 100, 1000, dateStart);
+			var mdEnd = new MarketData(Currency.USD, 200, 200, 200, 200, 1000, dateEnd);
+
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = [mdStart, mdEnd]
+			};
+
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holding = new Holding
+			{
+				SymbolProfiles = [symbolProfile],
+				Activities = [new BuyActivity { Date = dateStart.ToDateTime(TimeOnly.MinValue) }]
+			};
+			var holdings = new List<Holding> { holding };
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+			_mockStockPriceRepository1.Setup(r => r.MinDate).Returns(dateStart);
+			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
+				.ReturnsAsync(new List<MarketData>()); // No new data, only gap filling
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert: All dates from dateStart to dateEnd should be present
+			var allDates = Enumerable.Range(0, (dateEnd.DayNumber - dateStart.DayNumber) + 1)
+				.Select(offset => dateStart.AddDays(offset)).ToList();
+			symbolProfile.MarketData.Select(md => md.Date).Should().BeEquivalentTo(allDates);
+
+			// The interpolated dates should be marked as generated and have interpolated close values
+			foreach (var d in allDates)
+			{
+				var md = symbolProfile.MarketData.Single(x => x.Date == d);
+				if (d != dateStart && d != dateEnd)
+				{
+					md.IsGenerated.Should().BeTrue();
+					// Value should be linearly interpolated between 100 and 200
+					var expected = 100 + ((d.DayNumber - dateStart.DayNumber) * (200 - 100) / (dateEnd.DayNumber - dateStart.DayNumber));
+					md.Close.Should().BeApproximately(expected, 0.0001m);
+				}
+				else
+				{
+					md.IsGenerated.Should().BeFalse();
+				}
+			}
+			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+		}
+
 		[Theory]
 		[InlineData(DayOfWeek.Monday)]
 		[InlineData(DayOfWeek.Tuesday)]

@@ -90,12 +90,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				var lastTradingDay = GetLastTradingDay();
-					var dataIsUpToDate = symbol.MarketData.Count != 0 && symbol.MarketData.Max(x => x.Date) >= lastTradingDay;
-					if (dataIsUpToDate && !await IsCurrentlyOwned(databaseContext, symbol))
-					{
-						logger.LogDebug("{Symbol} from {DataSource} is not currently owned and data is up to date (latest >= {LastTradingDay}). Skipping till next trading day", symbol.Symbol, symbol.DataSource, lastTradingDay);
-						continue;
-					}
+				var dataIsUpToDate = symbol.MarketData.Count != 0 && symbol.MarketData.Max(x => x.Date) >= lastTradingDay;
+				if (dataIsUpToDate && !await IsCurrentlyOwned(databaseContext, symbol))
+				{
+					logger.LogDebug("{Symbol} from {DataSource} is not currently owned and data is up to date (latest >= {LastTradingDay}). Skipping till next trading day", symbol.Symbol, symbol.DataSource, lastTradingDay);
+					continue;
+				}
 
 				// If the repository does not support data before a certain date, set it to that date
 				if (date < stockPriceRepository.MinDate)
@@ -154,6 +154,47 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					else
 					{
 						symbol.MarketData.Add(marketData);
+					}
+				}
+
+				// Fill all missing dates between first activity and last trading day
+				var allDates = symbol.MarketData.Select(x => x.Date).ToHashSet();
+				var gapFillMinDate = symbol.MarketData.Min(x => x.Date);
+				var gapFillMaxDate = GetLastTradingDay();
+				for (var d = gapFillMinDate.AddDays(1); d <= gapFillMaxDate; d = d.AddDays(1))
+				{
+					if (!allDates.Contains(d))
+					{
+						// Find previous and next available data
+						var previous = symbol.MarketData
+							.Where(x => x.Date < d && x.Close != 0)
+							.OrderByDescending(x => x.Date)
+							.FirstOrDefault();
+						var next = symbol.MarketData
+							.Where(x => x.Date > d && x.Close != 0)
+							.OrderBy(x => x.Date)
+							.FirstOrDefault();
+						if (previous != null && next != null)
+						{
+							var a = previous.Date.ToDateTime(TimeOnly.MinValue);
+							var b = d.ToDateTime(TimeOnly.MinValue);
+							var c = next.Date.ToDateTime(TimeOnly.MinValue);
+							var total = (c - a).TotalDays;
+							var prevWeight = (c - b).TotalDays / total;
+							var nextWeight = (b - a).TotalDays / total;
+							var weighted = previous.Close * (decimal)prevWeight + next.Close * (decimal)nextWeight;
+							symbol.MarketData.Add(new GhostfolioSidekick.Model.Market.MarketData
+							{
+								Currency = previous.Currency,
+								Close = weighted,
+								Open = weighted,
+								High = weighted,
+								Low = weighted,
+								TradingVolume = 0,
+								Date = d,
+								IsGenerated = true
+							});
+						}
 					}
 				}
 
