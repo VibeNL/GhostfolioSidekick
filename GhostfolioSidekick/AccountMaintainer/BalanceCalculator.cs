@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
@@ -57,6 +57,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 						break;
 					case GiftFiatActivity giftFiatActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(giftFiatActivity.Date, giftFiatActivity.Amount));
+						break;
+					case CorrectionActivity correctionActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(correctionActivity.Date, correctionActivity.Amount.Times(-1)));
 						break;
 					case GiftAssetActivity:
 					case LiabilityActivity:
