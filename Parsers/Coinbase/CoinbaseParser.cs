@@ -82,10 +82,10 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						id);
 					break;
 				case "Receive":
-					yield return PartialActivity.CreateReceive(date, symbolIds, record.Quantity, id);
+					yield return PartialActivity.CreateReceive(date, symbolIds, record.PositiveQuantity, id);
 					break;
 				case "Send":
-					yield return PartialActivity.CreateSend(date, symbolIds, record.Quantity, id);
+					yield return PartialActivity.CreateSend(date, symbolIds, record.PositiveQuantity, id);
 					break;
 				case "Convert":
 					var result = ParseNote(record.Notes);
