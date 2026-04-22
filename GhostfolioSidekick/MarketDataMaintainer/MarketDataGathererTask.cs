@@ -53,33 +53,23 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				var minActivityDate = await activities.MinAsync(x => x.Date);
-
 				var date = DateOnly.FromDateTime(minActivityDate);
 				var stockPriceRepository = stockPriceRepositories.SingleOrDefault(x => x.DataSource == symbol.DataSource);
-
 				if (stockPriceRepository == null)
 				{
 					continue;
 				}
 
-				// Determine the earliest date we should get the data for
 				if (symbol.MarketData.Count != 0)
 				{
 					var minDate = symbol.MarketData.Min(x => x.Date);
 					var maxDate = symbol.MarketData.Max(x => x.Date);
-
-					// If any data corruption is detected, we will re-fetch all data if possible
-					// For manual data sources, we always re-fetch all data
-					var hasDataCorruption = symbol.MarketData.Any(x =>
-						x.Close == 0 // Close price is not set
-						|| x.IsGenerated
-						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close).LastOrDefault() != 0;
+					var hasDataCorruption = symbol.MarketData.Any(x => x.Close == 0 || x.IsGenerated)
+						&& symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close).LastOrDefault() != 0;
 					if (hasDataCorruption)
 					{
 						logger.LogDebug("Data corruption detected / Manual datasource found for {Symbol} from {DataSource}. Re-fetching all data.", symbol.Symbol, symbol.DataSource);
 					}
-					// Only get new data since our earliest date is inside the database
-					// Or we cannot get data ealier than we already have
 					else
 					{
 						if (date >= minDate)
@@ -97,13 +87,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
-				// If the repository does not support data before a certain date, set it to that date
 				if (date < stockPriceRepository.MinDate)
 				{
 					date = stockPriceRepository.MinDate;
 				}
 
-				// Ensure the date is at least 7 days in the past
 				var sevenDaysAgo = DateOnly.FromDateTime(DateTime.Today.AddDays(-7));
 				if (date > sevenDaysAgo)
 				{
@@ -111,23 +99,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				var list = await stockPriceRepository.GetStockMarketData(symbol, date);
-
 				foreach (var marketData in list)
 				{
 					var existingRecord = symbol.MarketData.SingleOrDefault(x => x.Date == marketData.Date);
 					decimal closeAmount = marketData.Close;
-
-					// Interpolate missing close prices
 					if (closeAmount == 0)
 					{
-						var previous = symbol.MarketData
-							.Where(x => x.Date < marketData.Date && x.Close != 0)
-							.OrderByDescending(x => x.Date)
-							.FirstOrDefault();
-						var next = symbol.MarketData
-							.Where(x => x.Date > marketData.Date && x.Close != 0)
-							.OrderBy(x => x.Date)
-							.FirstOrDefault();
+						var previous = symbol.MarketData.Where(x => x.Date < marketData.Date && x.Close != 0).OrderByDescending(x => x.Date).FirstOrDefault();
+						var next = symbol.MarketData.Where(x => x.Date > marketData.Date && x.Close != 0).OrderBy(x => x.Date).FirstOrDefault();
 						if (previous != null && next != null)
 						{
 							var a = previous.Date.ToDateTime(TimeOnly.MinValue);
@@ -141,12 +120,10 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							marketData.IsGenerated = true;
 						}
 					}
-
 					if (existingRecord != null && Math.Abs(existingRecord.Close - marketData.Close) < 0.00001m)
 					{
 						continue;
 					}
-
 					if (existingRecord != null)
 					{
 						existingRecord.CopyFrom(marketData);
@@ -158,38 +135,75 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				// Fill all missing dates between first activity and last trading day
-				var allDates = symbol.MarketData.Select(x => x.Date).ToHashSet();
-				var gapFillMinDate = symbol.MarketData.Min(x => x.Date);
-				var gapFillMaxDate = GetLastTradingDay();
-				for (var d = gapFillMinDate.AddDays(1); d <= gapFillMaxDate; d = d.AddDays(1))
+				var mainHolding = databaseContext.Holdings.Include(h => h.Activities).FirstOrDefault(h => h.SymbolProfiles.Contains(symbol));
+				if (mainHolding == null || !mainHolding.Activities.Any())
 				{
-					if (!allDates.Contains(d))
+					continue;
+				}
+				var mainBuy = mainHolding.Activities.OfType<GhostfolioSidekick.Model.Activities.Types.BuyActivity>().OrderBy(a => a.Date).FirstOrDefault();
+				var mainSell = mainHolding.Activities.OfType<GhostfolioSidekick.Model.Activities.Types.SellActivity>().OrderBy(a => a.Date).FirstOrDefault();
+				if (mainBuy == null)
+				{
+					continue;
+				}
+				var gapFillMinDate = DateOnly.FromDateTime(mainBuy.Date);
+				var gapFillMaxDate = mainSell != null ? DateOnly.FromDateTime(mainSell.Date) : GetLastTradingDay();
+				for (var d = gapFillMinDate; d <= gapFillMaxDate; d = d.AddDays(1))
+				{
+					foreach (var md in symbol.MarketData.Where(md => md.Date == d).ToList())
 					{
-						// Find previous and next available data
-						var previous = symbol.MarketData
-							.Where(x => x.Date < d && x.Close != 0)
-							.OrderByDescending(x => x.Date)
-							.FirstOrDefault();
-						var next = symbol.MarketData
-							.Where(x => x.Date > d && x.Close != 0)
-							.OrderBy(x => x.Date)
-							.FirstOrDefault();
-						if (previous != null && next != null)
+						symbol.MarketData.Remove(md);
+					}
+					var previous = symbol.MarketData.Where(x => x.Date < d && x.Close != 0).OrderByDescending(x => x.Date).FirstOrDefault();
+					var next = symbol.MarketData.Where(x => x.Date > d && x.Close != 0).OrderBy(x => x.Date).FirstOrDefault();
+					if (previous != null && next != null)
+					{
+						var a = previous.Date.ToDateTime(TimeOnly.MinValue);
+						var b = d.ToDateTime(TimeOnly.MinValue);
+						var c = next.Date.ToDateTime(TimeOnly.MinValue);
+						var total = (c - a).TotalDays;
+						var prevWeight = (c - b).TotalDays / total;
+						var nextWeight = (b - a).TotalDays / total;
+						var weighted = previous.Close * (decimal)prevWeight + next.Close * (decimal)nextWeight;
+						symbol.MarketData.Add(new GhostfolioSidekick.Model.Market.MarketData
 						{
-							var a = previous.Date.ToDateTime(TimeOnly.MinValue);
-							var b = d.ToDateTime(TimeOnly.MinValue);
-							var c = next.Date.ToDateTime(TimeOnly.MinValue);
-							var total = (c - a).TotalDays;
-							var prevWeight = (c - b).TotalDays / total;
-							var nextWeight = (b - a).TotalDays / total;
-							var weighted = previous.Close * (decimal)prevWeight + next.Close * (decimal)nextWeight;
+							Currency = previous.Currency,
+							Close = weighted,
+							Open = weighted,
+							High = weighted,
+							Low = weighted,
+							TradingVolume = 0,
+							Date = d,
+							IsGenerated = true
+						});
+					}
+					else
+					{
+						var gapFillBuy = mainHolding.Activities.OfType<GhostfolioSidekick.Model.Activities.Types.BuyActivity>().OrderBy(a => a.Date).FirstOrDefault();
+						var gapFillSell = mainHolding.Activities.OfType<GhostfolioSidekick.Model.Activities.Types.SellActivity>().OrderBy(a => a.Date).FirstOrDefault();
+						if (gapFillBuy != null && (gapFillSell == null || d < DateOnly.FromDateTime(gapFillSell.Date)))
+						{
 							symbol.MarketData.Add(new GhostfolioSidekick.Model.Market.MarketData
 							{
-								Currency = previous.Currency,
-								Close = weighted,
-								Open = weighted,
-								High = weighted,
-								Low = weighted,
+								Currency = gapFillBuy.UnitPrice.Currency,
+								Close = gapFillBuy.UnitPrice.Amount,
+								Open = gapFillBuy.UnitPrice.Amount,
+								High = gapFillBuy.UnitPrice.Amount,
+								Low = gapFillBuy.UnitPrice.Amount,
+								TradingVolume = 0,
+								Date = d,
+								IsGenerated = true
+							});
+						}
+						else if (gapFillSell != null && d >= DateOnly.FromDateTime(gapFillSell.Date))
+						{
+							symbol.MarketData.Add(new GhostfolioSidekick.Model.Market.MarketData
+							{
+								Currency = gapFillSell.UnitPrice.Currency,
+								Close = gapFillSell.UnitPrice.Amount,
+								Open = gapFillSell.UnitPrice.Amount,
+								High = gapFillSell.UnitPrice.Amount,
+								Low = gapFillSell.UnitPrice.Amount,
 								TradingVolume = 0,
 								Date = d,
 								IsGenerated = true
@@ -197,7 +211,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						}
 					}
 				}
-
 				await databaseContext.SaveChangesAsync();
 				logger.LogDebug("Market data for {Symbol} from {DataSource} gathered", symbol.Symbol, symbol.DataSource);
 			}

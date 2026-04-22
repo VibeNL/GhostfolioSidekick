@@ -895,6 +895,84 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 		}
 
+		[Fact]
+		public async Task DoWork_ShouldFillGapWithBuyOrSellPrice_WhenNoMarketDataBeforeAndAfter()
+		{
+			// Arrange: Buy on -5, Sell on -2, gaps at -5, -4, -3, -2 (no MarketData before or after, only buy/sell activities)
+			var dateBuy = DateOnly.FromDateTime(DateTime.Today.AddDays(-5));
+			var dateSell = DateOnly.FromDateTime(DateTime.Today.AddDays(-2));
+			var buyPrice = 123.45m;
+			var sellPrice = 130.00m;
+
+			var buyActivity = new BuyActivity
+			{
+				Date = dateBuy.ToDateTime(TimeOnly.MinValue),
+				UnitPrice = new Money(Currency.USD, buyPrice)
+			};
+			var sellActivity = new SellActivity
+			{
+				Date = dateSell.ToDateTime(TimeOnly.MinValue),
+				UnitPrice = new Money(Currency.USD, sellPrice)
+			};
+
+			// No MarketData at all
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = []
+			};
+
+			var holding = new Holding
+			{
+				SymbolProfiles = [symbolProfile],
+				Activities = [buyActivity, sellActivity]
+			};
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holdings = new List<Holding> { holding };
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			mockDbContext2.Setup(db => db.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+			_mockStockPriceRepository1.Setup(r => r.MinDate).Returns(dateBuy);
+			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
+				.ReturnsAsync(new List<MarketData>()); // No new data, only gap filling
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert: MarketData for all relevant gap dates
+			var expectedDates = new[] { dateBuy, dateBuy.AddDays(1), dateBuy.AddDays(2), dateSell };
+			foreach (var d in expectedDates)
+			{
+				var filled = symbolProfile.MarketData.SingleOrDefault(x => x.Date == d);
+				filled.Should().NotBeNull();
+				filled!.IsGenerated.Should().BeTrue();
+				if (d < dateSell)
+				{
+					filled.Close.Should().Be(buyPrice);
+				}
+				else
+				{
+					filled.Close.Should().Be(sellPrice);
+				}
+			}
+			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+		}
+
 		[Theory]
 		[InlineData(DayOfWeek.Monday)]
 		[InlineData(DayOfWeek.Tuesday)]
