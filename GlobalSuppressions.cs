@@ -18,6 +18,7 @@ using System.Diagnostics.CodeAnalysis;
 
 // Major Code Smell suppressions
 [assembly: SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly")]
+[assembly: SuppressMessage("Major Code Smell", "S3172:Split this method into two, one handling parameters check and the other handling the iterator", Justification = "Parameter validation and iterator logic are intentionally combined for clarity.")]
 [assembly: SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "TODO")]
 [assembly: SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly")]
 [assembly: SuppressMessage("Major Code Smell", "S2234:Arguments should be passed in the same order as the method parameters", Justification = "False positive")]
