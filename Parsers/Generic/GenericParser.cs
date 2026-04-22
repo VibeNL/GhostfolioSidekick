@@ -74,13 +74,26 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Id));
 					break;
 				case PartialActivityType.Dividend:
-					lst.Add(PartialActivity.CreateDividend(
-						currency,
-						record.Date,
-						symbolIdentifier,
-						record.Quantity * record.UnitPrice,
-						new Money(currency, record.Quantity * record.UnitPrice),
-						record.Id));
+					if (record.UnitPrice > 0)
+					{
+						lst.Add(PartialActivity.CreateDividend(
+							currency,
+							record.Date,
+							symbolIdentifier,
+							record.Quantity * record.UnitPrice,
+							new Money(currency, record.Quantity * record.UnitPrice),
+							record.Id));
+					}
+					else
+					{
+						// Correction of a previously recorded dividend, which is now negative. We will record it as a fee, to avoid negative dividends in the tax report.
+						lst.Add(PartialActivity.CreateFee(
+							currency,
+							record.Date,
+							-record.Quantity * record.UnitPrice,
+							new Money(currency, -record.Quantity * record.UnitPrice),
+							record.Id));
+					}
 					break;
 				case PartialActivityType.Interest:
 					lst.Add(PartialActivity.CreateInterest(

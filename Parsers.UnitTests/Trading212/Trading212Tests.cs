@@ -209,13 +209,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 										Currency.EUR,
 										new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
 										0.02M,
-										new Money(Currency.EUR, 0),
+										new Money(Currency.EUR, 0.02M),
 										"EOF3219953148"),
 								]);
-						}
+		}
 
-						[Fact]
-						public async Task ConvertActivitiesForAccount_SingleLimitBuyUSD_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleLimitBuyUSD_Converted()
 		{
 			// Arrange
 
@@ -241,13 +241,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 										(Currency.EUR,
 										new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
 										0.02M,
-										new Money(Currency.EUR, 0),
+										new Money(Currency.EUR, 0.02M),
 										"EOF3219953148"),
 								]);
-						}
+		}
 
-						[Fact]
-						public async Task ConvertActivitiesForAccount_SingleOrderEuroUkTaxes_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleOrderEuroUkTaxes_Converted()
 		{
 			// Arrange
 
@@ -273,13 +273,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 						Currency.EUR,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
 						0.02M,
-						new Money(Currency.EUR, 0),
+						new Money(Currency.EUR, 0.02M),
 						"EOF3224031549"),
 					PartialActivity.CreateTax(
 						Currency.EUR,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
 						0.05M,
-						new Money(Currency.EUR, 0),
+						new Money(Currency.EUR, 0.05M),
 						"EOF3224031549"),
 				]);
 		}
@@ -407,7 +407,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 						Currency.GBP,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
 						0.05M,
-						new Money(Currency.GBP, 0),
+						new Money(Currency.GBP, 0.05M),
 						"EOF3224031549"),
 				]);
 		}
@@ -465,13 +465,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 										Currency.EUR,
 										new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc),
 										0.61M,
-										new Money(Currency.EUR, 0),
+										new Money(Currency.EUR, 0.61M),
 										"EOF4500547227")
 								]);
-						}
+		}
 
-						[Fact]
-						public async Task ConvertActivitiesForAccount_SingleBuyEuroFinraFee_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyEuroFinraFee_Converted()
 		{
 			// Arrange
 
@@ -497,13 +497,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 										Currency.EUR,
 										new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc),
 										0.61M,
-										new Money(Currency.EUR, 0),
+										new Money(Currency.EUR, 0.61M),
 										"EOF4500547227")
 								]);
-						}
+		}
 
-						[Fact]
-						public async Task ConvertActivitiesForAccount_SingleSellEuro_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleSellEuro_Converted()
 		{
 			// Arrange
 
@@ -529,13 +529,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 										Currency.EUR,
 										new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
 										0.02M,
-										new Money(Currency.EUR, 0),
+										new Money(Currency.EUR, 0.02M),
 										"EOF4500546889"),
 								]);
-						}
+		}
 
-						[Fact]
-						public async Task ConvertActivitiesForAccount_SingleLimitSellEuro_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleLimitSellEuro_Converted()
 		{
 			// Arrange
 
@@ -561,13 +561,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 										Currency.EUR,
 										new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
 										0.02M,
-										new Money(Currency.EUR, 0),
+										new Money(Currency.EUR, 0.02M),
 										"EOF4500546889"),
 								]);
-						}
+		}
 
-						[Fact]
-						public async Task ConvertActivitiesForAccount_SingleStopSellEuro_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStopSellEuro_Converted()
 		{
 			// Arrange
 
@@ -593,13 +593,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 										Currency.EUR,
 										new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
 										0.02M,
-										new Money(Currency.EUR, 0),
+										new Money(Currency.EUR, 0.02M),
 										"EOF4500546889"),
 								]);
-						}
+		}
 
-						[Fact]
-						public async Task ConvertActivitiesForAccount_SingleStockDividend_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStockDividend_Converted()
 		{
 			// Arrange
 
