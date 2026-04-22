@@ -137,6 +137,7 @@ dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 ├── Cryptocurrency/                      # Crypto-specific logic
 ├── Utilities/                           # Common utilities
 └── Tools/                               # Utility tools (AnonymisePDF, ScraperUtilities)
+
 ### Key Architectural Patterns
 
 1. **Blazor WebAssembly with .NET Aspire**: PortfolioViewer uses Aspire for service orchestration (`PortfolioViewer.AppHost`). The WASM client communicates with `PortfolioViewer.ApiService` backend.
