@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Tasks
+namespace GhostfolioSidekick.Model.Tasks
 {
 	public class TaskRun
 	{
@@ -15,6 +15,10 @@
 		public DateTimeOffset NextSchedule { get; set; } = DateTimeOffset.MaxValue;
 
 		public bool InProgress { get; set; }
+
+		public DateTimeOffset? StartTime { get; set; }
+
+		public DateTimeOffset? EndTime { get; set; }
 
 		public string? LastException { get; set; }
 

@@ -277,5 +277,31 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			return ((LogLevel)severity).ToString();
 		}
+
+		private static string FormatDuration(TaskRun task)
+		{
+			DateTimeOffset? start = task.StartTime;
+			DateTimeOffset? end = task.InProgress ? DateTimeOffset.Now : task.EndTime;
+
+			if (start == null || end == null)
+			{
+				return string.Empty;
+			}
+
+			var duration = end.Value - start.Value;
+			if (duration.TotalSeconds < 1)
+			{
+				return $"{(int)duration.TotalMilliseconds} ms";
+			}
+			if (duration.TotalMinutes < 1)
+			{
+				return $"{(int)duration.TotalSeconds} s";
+			}
+			if (duration.TotalHours < 1)
+			{
+				return $"{(int)duration.TotalMinutes} min {duration.Seconds} s";
+			}
+			return $"{(int)duration.TotalHours} hr {duration.Minutes} min";
+		}
 	}
 }

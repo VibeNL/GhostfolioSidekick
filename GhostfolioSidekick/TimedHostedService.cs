@@ -154,9 +154,16 @@ namespace GhostfolioSidekick
 				dbTask.LastUpdate = DateTimeOffset.Now;
 				dbTask.InProgress = inProgress;
 				dbTask.NextSchedule = nextSchedule;
+				
 				if (inProgress)
 				{
+					dbTask.StartTime = DateTimeOffset.Now;
+					dbTask.EndTime = null;
 					dbTask.LastException = null;
+				}
+				else
+				{
+					dbTask.EndTime = DateTimeOffset.Now;
 				}
 
 				await databaseContext.SaveChangesAsync();
