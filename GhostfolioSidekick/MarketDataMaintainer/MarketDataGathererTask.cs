@@ -140,6 +140,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							marketData.Close = weighted;
 							marketData.IsGenerated = true;
 						}
+						else if (previous != null)
+						{
+							marketData.Close = previous.Close;
+							marketData.IsGenerated = true;
+						}
 					}
 
 					if (existingRecord != null && Math.Abs(existingRecord.Close - marketData.Close) < 0.00001m)

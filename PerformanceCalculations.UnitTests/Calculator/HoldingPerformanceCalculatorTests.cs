@@ -278,7 +278,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Assert
 			var snapshots = result.ToList();
 			var firstSnapshot = snapshots.First();
-			firstSnapshot.TotalValue.Should().Be(145 * 100); // Should use last known price
+         firstSnapshot.TotalValue.Should().Be(150 * 100); // Uses buy price as market price for buy date
 		}
 
 		[Fact]
