@@ -166,6 +166,7 @@
                                     }
                                 </th>
                                 <th>Last Updated</th>
+                                <th>Duration</th>
                                 <th>Error Details</th>
                                 <th>Logs</th>
                             </tr>
@@ -236,6 +237,19 @@
                                         else
                                         {
                                             <span class="text-muted">Never</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var duration = FormatDuration(task);
+                                        }
+                                        @if (!string.IsNullOrEmpty(duration))
+                                        {
+                                            <span>@duration</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
                                         }
                                     </td>
                                     <td>
