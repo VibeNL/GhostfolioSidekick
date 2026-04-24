@@ -1,4 +1,6 @@
 using AwesomeAssertions;
+using Docker.DotNet;
+using Docker.DotNet.Models;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
@@ -29,6 +31,7 @@ namespace GhostfolioSidekick.IntegrationTests
 		private const int GhostfolioPort = 3333;
 
 		private PostgreSqlContainer postgresContainer = default!;
+		private INetwork network = default!;
 		private RedisContainer redisContainer = default!;
 		private IContainer ghostfolioContainer = default!;
 		private HttpClient httpClient = default!;
@@ -50,11 +53,15 @@ namespace GhostfolioSidekick.IntegrationTests
 			await InitializeSidekick(authToken, url);
 		}
 
+		private const string NetworkName = "ghostfolio-network";
+
 		public async ValueTask InitializeAsync()
 		{
-			INetwork network = new NetworkBuilder()
+			await DeleteNetworkIfExistsAsync(NetworkName).ConfigureAwait(false);
+
+			network = new NetworkBuilder()
 				.WithCleanUp(true)
-				.WithName("ghostfolio-network")
+				.WithName(NetworkName)
 				.Build();
 
 			await InitializePostgresContainer(network).ConfigureAwait(false);
@@ -94,6 +101,9 @@ namespace GhostfolioSidekick.IntegrationTests
 			// Stop and dispose the Redis container.
 			await redisContainer.StopAsync().ConfigureAwait(false);
 			await redisContainer.DisposeAsync().ConfigureAwait(false);
+
+			// Dispose the network.
+			await network.DisposeAsync().ConfigureAwait(false);
 		}
 
 		private async Task InitializeSidekick(AuthData authToken, string url)
@@ -220,6 +230,17 @@ namespace GhostfolioSidekick.IntegrationTests
 			}
 
 			await TestcontainersSettings.ExposeHostPortsAsync(ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).ConfigureAwait(false);
+		}
+
+		private static async Task DeleteNetworkIfExistsAsync(string networkName)
+		{
+			using var dockerClient = new DockerClientConfiguration().CreateClient();
+			var networks = await dockerClient.Networks.ListNetworksAsync(new NetworksListParameters()).ConfigureAwait(false);
+			var existing = networks.FirstOrDefault(n => n.Name == networkName);
+			if (existing != null)
+			{
+				await dockerClient.Networks.DeleteNetworkAsync(existing.ID).ConfigureAwait(false);
+			}
 		}
 
 		private void EnsureContainersAreRunning()
