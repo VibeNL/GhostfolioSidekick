@@ -113,6 +113,7 @@
                                             <i class="bi bi-calendar-check me-1"></i>@endDate.Value.ToString("d MMMM yyyy")
                                         </th>
                                         <th class="text-center border-start align-middle" rowspan="2">Change</th>
+                                        <th class="text-center border-start align-middle" rowspan="2">Split Change<br />(Asset/Cash)</th>
                                     }
                                 </tr>
                                 <!-- Column sub-headers -->
@@ -133,6 +134,10 @@
                                 {
                                     var change = (row.End?.TotalValue.Amount ?? row.Start?.TotalValue.Amount ?? 0)
                                                - (row.Start?.TotalValue.Amount ?? 0);
+                                    var assetChange = (row.End?.AssetValue.Amount ?? row.Start?.AssetValue.Amount ?? 0)
+                                                    - (row.Start?.AssetValue.Amount ?? 0);
+                                    var cashChange = (row.End?.CashBalance.Amount ?? row.Start?.CashBalance.Amount ?? 0)
+                                                    - (row.Start?.CashBalance.Amount ?? 0);
                                     <tr>
                                         <td>@row.AccountName</td>
                                         <!-- Start date -->
@@ -179,6 +184,15 @@
                                                 <i class="bi @ChangeIcon(change) me-1"></i>
                                                 <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.End?.TotalValue.Currency != null ? new GhostfolioSidekick.Model.Money(row.End.TotalValue.Currency, change) : new GhostfolioSidekick.Model.Money(row.Start!.TotalValue.Currency, change))" />
                                             </td>
+                                            <td class="text-end border-start">
+                                                <span class="@ChangeClass(assetChange)">
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.End?.AssetValue.Currency != null ? new GhostfolioSidekick.Model.Money(row.End.AssetValue.Currency, assetChange) : new GhostfolioSidekick.Model.Money(row.Start!.AssetValue.Currency, assetChange))" />
+                                                </span>
+                                                /
+                                                <span class="@ChangeClass(cashChange)">
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(row.End?.CashBalance.Currency != null ? new GhostfolioSidekick.Model.Money(row.End.CashBalance.Currency, cashChange) : new GhostfolioSidekick.Model.Money(row.Start!.CashBalance.Currency, cashChange))" />
+                                                </span>
+                                            </td>
                                         }
                                     </tr>
                                 }
@@ -187,6 +201,10 @@
                             {
                                 var totalChange = (compTotal.End?.TotalValue.Amount ?? compTotal.Start?.TotalValue.Amount ?? 0)
                                                - (compTotal.Start?.TotalValue.Amount ?? 0);
+                                var totalAssetChange = (compTotal.End?.AssetValue.Amount ?? compTotal.Start?.AssetValue.Amount ?? 0)
+                                                    - (compTotal.Start?.AssetValue.Amount ?? 0);
+                                var totalCashChange = (compTotal.End?.CashBalance.Amount ?? compTotal.Start?.CashBalance.Amount ?? 0)
+                                                    - (compTotal.Start?.CashBalance.Amount ?? 0);
                                 <tfoot class="table-primary fw-bold">
                                     <tr>
                                         <td>Total</td>
@@ -231,6 +249,15 @@
                                             <td class="text-end border-start @ChangeClass(totalChange)">
                                                 <i class="bi @ChangeIcon(totalChange) me-1"></i>
                                                 <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.End?.TotalValue.Currency != null ? new GhostfolioSidekick.Model.Money(compTotal.End.TotalValue.Currency, totalChange) : new GhostfolioSidekick.Model.Money(compTotal.Start!.TotalValue.Currency, totalChange))" />
+                                            </td>
+                                            <td class="text-end border-start">
+                                                <span class="@ChangeClass(totalAssetChange)">
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.End?.AssetValue.Currency != null ? new GhostfolioSidekick.Model.Money(compTotal.End.AssetValue.Currency, totalAssetChange) : new GhostfolioSidekick.Model.Money(compTotal.Start!.AssetValue.Currency, totalAssetChange))" />
+                                                </span>
+                                                /
+                                                <span class="@ChangeClass(totalCashChange)">
+                                                    <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(compTotal.End?.CashBalance.Currency != null ? new GhostfolioSidekick.Model.Money(compTotal.End.CashBalance.Currency, totalCashChange) : new GhostfolioSidekick.Model.Money(compTotal.Start!.CashBalance.Currency, totalCashChange))" />
+                                                </span>
                                             </td>
                                         }
                                     </tr>
