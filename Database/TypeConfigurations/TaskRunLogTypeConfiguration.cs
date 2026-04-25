@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private static readonly ValueConverter<DateTimeOffset, string> DateTimeOffsetConverter =
 			new(
 				v => v.ToString("O", CultureInfo.InvariantCulture),
-				v => DateTimeOffset.Parse(v, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
+				v => DateTimeOffset.Parse(v, CultureInfo.InvariantCulture, DateTimeStyles.None));
 
 		public void Configure(EntityTypeBuilder<TaskRunLog> builder)
 		{
