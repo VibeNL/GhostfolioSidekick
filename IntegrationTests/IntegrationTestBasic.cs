@@ -157,6 +157,24 @@ namespace GhostfolioSidekick.IntegrationTests
 				var activities = await apiWrapper.GetActivitiesByAccount(account!);
 				activities.Should().HaveCount(item.Value);
 			}
+
+			await VerifyFeesAreProcessed(apiWrapper);
+		}
+
+		private async Task VerifyFeesAreProcessed(IApiWrapper apiWrapper)
+		{
+			var account = await apiWrapper.GetAccountByName("TestAccount1");
+			account.Should().NotBeNull();
+
+			var activities = await apiWrapper.GetActivitiesByAccount(account!);
+			var buyActivities = activities.OfType<Model.Activities.Types.BuyActivity>().ToList();
+
+			buyActivities.Should().NotBeEmpty("TestAccount1 should have Buy activities with fees");
+			buyActivities.Should().AllSatisfy(a =>
+			{
+				a.Fees.Should().HaveCount(1, $"buy activity {a.TransactionId} should have exactly one fee");
+				a.Fees.First().Money.Amount.Should().Be(0.02m, $"buy activity {a.TransactionId} should have a fee of 0.02");
+			});
 		}
 
 		private async Task InitializePostgresContainer(INetwork network)
