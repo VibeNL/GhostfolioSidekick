@@ -74,9 +74,10 @@
                 : (dividendTxs.FirstOrDefault()?.Amount?.Currency ?? new Money("EUR", 0).Currency);
 
             Dividends = dividendTxs
-                .GroupBy(t => t.Symbol ?? t.Name ?? "Unknown")
+                .GroupBy(t => new { t.Symbol, t.Name })
                 .Select(g => new DividendRow {
-                    Asset = g.Key,
+                    Symbol = g.Key.Symbol ?? string.Empty,
+                    Name = g.Key.Name ?? g.Key.Symbol ?? string.Empty,
                     Amount = new Money(currency, g.Sum(x => x.Amount?.Amount ?? 0))
                 })
                 .OrderByDescending(d => d.Amount.Amount)
@@ -108,9 +109,13 @@
     }
     public class DividendRow
     {
-        public string Asset { get; set; } = string.Empty;
+        public string Symbol { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public Money Amount { get; set; } = default!;
     }
+
+    private string GetChangeClass(decimal amount)
+        => amount > 0 ? "text-success" : amount < 0 ? "text-danger" : "text-muted";
 }
 
 <div class="container-fluid">
@@ -141,7 +146,7 @@
                                 <td>@row.Asset</td>
                                 <td>@row.StartValue.Amount @row.StartValue.Currency</td>
                                 <td>@row.EndValue.Amount @row.EndValue.Currency</td>
-                                <td>@row.Change.Amount @row.Change.Currency</td>
+                                <td class="@GetChangeClass(row.Change.Amount)">@row.Change.Amount @row.Change.Currency</td>
                             </tr>
                         }
                     </tbody>
@@ -159,7 +164,7 @@
                             <tr>
                                 <td>@row.StartValue.Amount @row.StartValue.Currency</td>
                                 <td>@row.EndValue.Amount @row.EndValue.Currency</td>
-                                <td>@row.Change.Amount @row.Change.Currency</td>
+                                <td class="@GetChangeClass(row.Change.Amount)">@row.Change.Amount @row.Change.Currency</td>
                             </tr>
                         }
                     </tbody>
@@ -170,13 +175,23 @@
             <div class="col-12">
                 <h4>Dividends Per Asset</h4>
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Asset</th><th>Dividend Amount</th></tr></thead>
+                    <thead><tr><th>Symbol</th><th>Name</th><th>Dividend Amount</th></tr></thead>
                     <tbody>
                         @foreach (var row in Dividends)
                         {
                             <tr>
-                                <td>@row.Asset</td>
-                                <td>@row.Amount.Amount @row.Amount.Currency</td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(row.Symbol))
+                                    {
+                                        <a href="@($"/holding/{row.Symbol}")" class="text-decoration-underline">@row.Symbol</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">(n/a)</span>
+                                    }
+                                </td>
+                                <td>@(row.Name ?? "Unknown")</td>
+                                <td class="@GetChangeClass(row.Amount.Amount)">@row.Amount.Amount @row.Amount.Currency</td>
                             </tr>
                         }
                     </tbody>
