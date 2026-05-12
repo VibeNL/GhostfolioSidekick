@@ -53,8 +53,8 @@ namespace GhostfolioSidekick.Activities
 				sourceTransaction.Amount,
 				sourceTransaction.UnitPrice ?? Money.One(Currency.EUR),
 				sourceTransaction.TransactionId,
-				fees.Select(x => new Money(x.UnitPrice?.Currency ?? Currency.EUR, x.Amount * x.UnitPrice?.Amount ?? 0)),
-				taxes.Select(x => new Money(x.UnitPrice?.Currency ?? Currency.EUR, x.Amount * x.UnitPrice?.Amount ?? 0)),
+				fees.Select(x => x.TotalTransactionAmount),
+				taxes.Select(x => x.TotalTransactionAmount),
 				sourceTransaction.TotalTransactionAmount,
 				sourceTransaction.SortingPriority,
 				sourceTransaction.Description);
