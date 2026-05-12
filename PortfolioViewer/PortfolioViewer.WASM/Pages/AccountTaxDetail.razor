@@ -1,0 +1,98 @@
+@page "/tax-report/account/{AccountId:int}/{Year:int?}"
+@using GhostfolioSidekick.Model
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Data.Services.IAccountDataService AccountDataService
+@inject NavigationManager Navigation
+
+<PageTitle>Account Tax Detail</PageTitle>
+
+@code {
+    [Parameter]
+    public int AccountId { get; set; }
+    [Parameter]
+    public int? Year { get; set; }
+
+    private string AccountName = string.Empty;
+    private List<TransactionRow> Transactions = new();
+    private bool IsLoading = true;
+    private bool HasError = false;
+    private string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var account = await AccountDataService.GetAccountByIdAsync(AccountId);
+            if (account == null)
+            {
+                HasError = true;
+                ErrorMessage = "Account not found.";
+                return;
+            }
+            AccountName = account.Name;
+            Transactions = (await AccountDataService.GetTransactionsForAccountAsync(AccountId, Year)).ToList();
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>Account Tax Detail: @AccountName</h2>
+            @if (Year.HasValue)
+            {
+                <p class="text-muted">Year: @Year</p>
+            }
+        </div>
+    </div>
+    @if (IsLoading)
+    {
+        <div class="row"><div class="col-12">Loading...</div></div>
+    }
+    else if (HasError)
+    {
+        <div class="row"><div class="col-12 text-danger">@ErrorMessage</div></div>
+    }
+    else if (!Transactions.Any())
+    {
+        <div class="row"><div class="col-12 text-muted">No transactions found.</div></div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tx in Transactions)
+                        {
+                            <tr>
+                                <td>@tx.Date.ToShortDateString()</td>
+                                <td>@tx.Description</td>
+                                <td>@tx.Type</td>
+                                <td class="text-end">@tx.Amount.Amount.ToString("N2") @tx.Amount.Currency</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

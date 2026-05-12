@@ -324,5 +324,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			taxReportCacheService.Store(ordered);
 			return ordered;
 		}
+
+		public async Task<Account?> GetAccountByIdAsync(int accountId)
+		{
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			return await databaseContext.Accounts
+				.Include(a => a.Platform)
+				.FirstOrDefaultAsync(a => a.Id == accountId);
+		}
+
+		public async Task<IEnumerable<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionRow>> GetTransactionsForAccountAsync(int accountId, int? year)
+		{
+			// TODO: Replace with real transaction fetching logic
+			await Task.CompletedTask;
+			return new List<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionRow>();
+		}
 	}
 }

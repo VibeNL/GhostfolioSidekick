@@ -5,13 +5,13 @@
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 @attribute [Authorize]
 
-<PageTitle>Tax Report (NL Box 3)</PageTitle>
+<PageTitle>Tax Report</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
-            <h2><i class="bi bi-file-earmark-ruled me-2"></i>Tax Report – Netherlands Box 3</h2>
-            <p class="text-muted">Total asset value and cash balance per account on 1 January and 31 December of each year.</p>
+            <h2><i class="bi bi-file-earmark-ruled me-2"></i>Tax Report</h2>
+            <p class="text-muted">Total asset value and cash balance per account on the first and last snapshot of each year.</p>
         </div>
     </div>
 
@@ -138,7 +138,16 @@
                                     var cashChange = (row.End?.CashBalance.Amount ?? row.Start?.CashBalance.Amount ?? 0)
                                                     - (row.Start?.CashBalance.Amount ?? 0);
                                     <tr>
-                                        <td>@row.AccountName</td>
+                                        <td>
+                                            @if (row.Start != null)
+                                            {
+                                                <a href="@($"/tax-report/account/{row.Start.AccountId}/{year}")" class="text-decoration-underline">@row.AccountName</a>
+                                            }
+                                            else
+                                            {
+                                                @row.AccountName
+                                            }
+                                        </td>
                                         <!-- Start date -->
                                         <td class="text-end border-start">
                                             @if (row.Start != null)
