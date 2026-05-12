@@ -190,11 +190,11 @@
                                     <tbody>
                                         @foreach (var holding in HoldingsList)
                                         {
-                                            <tr class="holding-row" @onclick="@(() => NavigateToHoldingDetail(holding.Symbol))" style="cursor: pointer;" title="Click to view details">
+                                            <tr class="holding-row" @onclick="@(() => NavigateToHoldingDetail(holding.Symbols.FirstOrDefault() ?? string.Empty))" style="cursor: pointer;" title="Click to view details">
                                                 <td>
-                                                    <strong>@holding.Symbol</strong>
+                                                    <strong>@(holding.Symbols.FirstOrDefault() ?? string.Empty)</strong>
                                                     <div class="small text-muted">
-                                                        <a href="/holding-identifier-mappings/@holding.Symbol" class="text-decoration-none me-2" title="View identifier mappings" @onclick:stopPropagation="true">
+                                                        <a href="/holding-identifier-mappings/@(holding.Symbols.FirstOrDefault() ?? string.Empty)" class="text-decoration-none me-2" title="View identifier mappings" @onclick:stopPropagation="true">
                                                             <i class="bi bi-diagram-3"></i> Mappings
                                                         </a>
                                                     </div>

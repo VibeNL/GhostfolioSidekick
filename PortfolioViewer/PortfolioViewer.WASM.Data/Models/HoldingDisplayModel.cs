@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 
 	public class HoldingDisplayModel
 	{
-		public string Symbol { get; set; } = string.Empty;
+		public List<string> Symbols { get; set; } = new();
 		public string Name { get; set; } = string.Empty;
 		public required Money CurrentValue { get; set; }
 		public decimal Quantity { get; set; }
@@ -20,7 +20,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 
 		public override string ToString()
 		{
-			return $"{Name} ({Symbol}) - Current Value: {CurrentValue}, Quantity: {Quantity}, Average Price: {AveragePrice}, Current Price: {CurrentPrice}, Gain/Loss: {GainLoss}, Gain/Loss Percentage: {GainLossPercentage}%, Weight: {Weight}%, Sector: {Sector}, Asset Class: {AssetClass}, Currency: {Currency}";
+			var symbolDisplay = Symbols?.FirstOrDefault() ?? string.Empty;
+			return $"{Name} ({symbolDisplay}) - Current Value: {CurrentValue}, Quantity: {Quantity}, Average Price: {AveragePrice}, Current Price: {CurrentPrice}, Gain/Loss: {GainLoss}, Gain/Loss Percentage: {GainLossPercentage}%, Weight: {Weight}%, Sector: {Sector}, Asset Class: {AssetClass}, Currency: {Currency}";
 		}
 	}
 }

@@ -170,8 +170,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				Values = [.. HoldingsList.Select(h => (object)h.CurrentValue.Amount)],
 				Parents = HoldingsList.Select(h => "").ToArray(),
 				Text = HoldingsList.Select(h => PrivacyModeService.IsPrivacyMode
-					? $"{h.Name} ({h.Symbol})"
-					: $"{h.Name} ({h.Symbol})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
+                   ? $"{h.Name} ({h.Symbols.FirstOrDefault() ?? string.Empty})"
+                   : $"{h.Name} ({h.Symbols.FirstOrDefault() ?? string.Empty})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
 				TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
 				BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,
 				PathBar = new Plotly.Blazor.Traces.TreeMapLib.PathBar
@@ -281,7 +281,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			switch (sortColumn)
 			{
 				case "Symbol":
-					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Symbol)] : [.. HoldingsList.OrderByDescending(h => h.Symbol)];
+                   HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Symbols.FirstOrDefault() ?? string.Empty)] : [.. HoldingsList.OrderByDescending(h => h.Symbols.FirstOrDefault() ?? string.Empty)];
 					break;
 				case "Name":
 					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Name)] : [.. HoldingsList.OrderByDescending(h => h.Name)];

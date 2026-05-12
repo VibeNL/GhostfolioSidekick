@@ -27,8 +27,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		public async Task<HoldingDisplayModel?> GetHoldingAsync(string symbol, CancellationToken cancellationToken = default)
 		{
 			// Get all holdings due to weight and gain/loss calculation
-			var holdings = await GetHoldingsInternallyAsync(null, cancellationToken);
-			return holdings.FirstOrDefault(x => x.Symbol == symbol);
+               var holdings = await GetHoldingsInternallyAsync(null, cancellationToken);
+               return holdings.FirstOrDefault(x => x.Symbols != null && x.Symbols.Contains(symbol));
 		}
 
 
@@ -118,44 +118,45 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 				var symbolProfile = x.Holding.SymbolProfiles.OrderBy(x => Datasource.GetPriority(x.DataSource)).First();
 
-				result.Add(new HoldingDisplayModel
-				{
-					AssetClass = symbolProfile.AssetClass.ToString(),
-					AveragePrice = ConvertToMoney(SafeDivide(x.Snapshots.Sum(y => y.AverageCostPrice * y.Quantity), x.Snapshots.Sum(x => x.Quantity))),
-					Currency = serverConfigurationService.PrimaryCurrency.Symbol,
-					CurrentPrice = ConvertToMoney(x.Snapshots.Min(y => y.CurrentUnitPrice)),
-					CurrentValue = ConvertToMoney(x.Snapshots.Sum(y => y.TotalValue)),
-					Name = symbolProfile.Name ?? symbolProfile.Symbol,
-					Quantity = x.Snapshots.Sum(y => y.Quantity),
-					Sector = symbolProfile.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
-					Symbol = symbolProfile.Symbol,
-					GainLoss = Money.Zero(serverConfigurationService.PrimaryCurrency),
-					GainLossPercentage = 0,
-				});
+               result.Add(new HoldingDisplayModel
+			   {
+				   AssetClass = symbolProfile.AssetClass.ToString(),
+				   AveragePrice = ConvertToMoney(SafeDivide(x.Snapshots.Sum(y => y.AverageCostPrice * y.Quantity), x.Snapshots.Sum(x => x.Quantity))),
+				   Currency = serverConfigurationService.PrimaryCurrency.Symbol,
+				   CurrentPrice = ConvertToMoney(x.Snapshots.Min(y => y.CurrentUnitPrice)),
+				   CurrentValue = ConvertToMoney(x.Snapshots.Sum(y => y.TotalValue)),
+				   Name = symbolProfile.Name ?? symbolProfile.Symbol,
+				   Quantity = x.Snapshots.Sum(y => y.Quantity),
+				   Sector = symbolProfile.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
+				   Symbols = x.Holding.SymbolProfiles.Select(sp => sp.Symbol).Distinct().ToList(),
+				   GainLoss = Money.Zero(serverConfigurationService.PrimaryCurrency),
+				   GainLossPercentage = 0,
+			   });
 			}
 
 			// Calculate weights and gain/loss
-			var totalValue = result.Sum(x => x.CurrentValue.Amount);
-			if (totalValue > 0)
-			{
-				foreach (var x in result)
-				{
-					x.Weight = x.CurrentValue.Amount / totalValue;
-					var gainloss = x.CurrentValue.Amount - (x.AveragePrice.Amount * x.Quantity);
-					x.GainLoss = new Money(serverConfigurationService.PrimaryCurrency, gainloss);
+           var totalValue = result.Sum(x => x.CurrentValue.Amount);
+		   if (totalValue > 0)
+		   {
+			   foreach (var x in result)
+			   {
+				   x.Weight = x.CurrentValue.Amount / totalValue;
+				   var gainloss = x.CurrentValue.Amount - (x.AveragePrice.Amount * x.Quantity);
+				   x.GainLoss = new Money(serverConfigurationService.PrimaryCurrency, gainloss);
 
-					if (x.AveragePrice.Amount * x.Quantity == 0)
-					{
-						x.GainLossPercentage = 0;
-					}
-					else
-					{
-						x.GainLossPercentage = gainloss / (x.AveragePrice.Amount * x.Quantity);
-				}
-			}
-		}
+				   if (x.AveragePrice.Amount * x.Quantity == 0)
+				   {
+					   x.GainLossPercentage = 0;
+				   }
+				   else
+				   {
+					   x.GainLossPercentage = gainloss / (x.AveragePrice.Amount * x.Quantity);
+				   }
+			   }
+		   }
 
-		return [.. result.OrderBy(x => x.Symbol)];
+		   // Order by first symbol for consistency
+		   return [.. result.OrderBy(x => x.Symbols.FirstOrDefault())];
 	}
 
 		private Money ConvertToMoney(decimal? amount)

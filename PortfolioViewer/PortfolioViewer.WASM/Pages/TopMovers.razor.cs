@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				try
 				{
 					var priceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-						holding.Symbol,
+                       holding.Symbols.FirstOrDefault() ?? string.Empty,
 						StartDate,
 						EndDate
 					);
@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 							var absoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price);
 							timeRangePerformances.Add(new HoldingTimeRangePerformance
 							{
-								Symbol = holding.Symbol,
+                               Symbol = holding.Symbols.FirstOrDefault() ?? string.Empty,
 								Name = holding.Name,
 								StartPrice = startPrice,
 								EndPrice = endPrice,
@@ -145,7 +145,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 				catch (Exception ex)
 				{
-					System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbol}: {ex.Message}");
+                   System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbols.FirstOrDefault() ?? string.Empty}: {ex.Message}");
 				}
 			}
 			TopRisers = [.. timeRangePerformances
