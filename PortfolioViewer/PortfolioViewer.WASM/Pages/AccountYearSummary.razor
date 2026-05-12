@@ -63,7 +63,8 @@
             }
 
             // Fetch all dividend transactions for this account/year
-            var txParams = new GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionQueryParameters {
+            var txParams = new GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionQueryParameters
+            {
                 AccountId = AccountId,
                 StartDate = startDate,
                 EndDate = endDate,
@@ -77,7 +78,8 @@
 
             Dividends = dividendTxs
                 .GroupBy(t => t.Name ?? "Unknown")
-                .Select(g => new DividendRow {
+                .Select(g => new DividendRow
+                {
                     Name = g.Key,
                     Symbols = g.Select(x => x.Symbol).Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s!).Distinct().ToList(),
                     Amount = new Money(currency, g.Sum(x => x.Amount?.Amount ?? 0))
@@ -125,8 +127,20 @@
         public Money Amount { get; set; } = default!;
     }
 
-    private string GetChangeClass(decimal amount)
-        => amount > 0 ? "text-success" : amount < 0 ? "text-danger" : "text-muted";
+    private static string GetChangeClass(decimal amount)
+    {
+        if (amount > 0)
+        {
+            return "text-success";
+        }
+
+        if (amount < 0)
+        {
+            return "text-danger";
+        }
+
+        return "text-muted";
+    }
 }
 
 <div class="container-fluid">
