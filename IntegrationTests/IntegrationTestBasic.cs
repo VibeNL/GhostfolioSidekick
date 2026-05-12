@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await VerifyFeesAreProcessed(apiWrapper);
 		}
 
-		private async Task VerifyFeesAreProcessed(IApiWrapper apiWrapper)
+		private static async Task VerifyFeesAreProcessed(IApiWrapper apiWrapper)
 		{
 			var account = await apiWrapper.GetAccountByName("TestAccount1");
 			account.Should().NotBeNull();
