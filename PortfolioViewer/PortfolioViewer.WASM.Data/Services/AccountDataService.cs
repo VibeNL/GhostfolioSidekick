@@ -332,12 +332,5 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.Include(a => a.Platform)
 				.FirstOrDefaultAsync(a => a.Id == accountId);
 		}
-
-		public async Task<IEnumerable<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionRow>> GetTransactionsForAccountAsync(int accountId, int? year)
-		{
-			// TODO: Replace with real transaction fetching logic
-			await Task.CompletedTask;
-			return new List<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionRow>();
-		}
 	}
 }

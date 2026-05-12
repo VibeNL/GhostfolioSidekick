@@ -102,6 +102,43 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		#endregion
 
+		#region GetAccountByIdAsync Tests
+
+		[Fact]
+		public async Task GetAccountByIdAsync_WithExistingAccount_ShouldReturnAccount()
+		{
+			// Arrange
+			var platform = CreateTestPlatform("Test Platform");
+			var account = CreateTestAccount("Test Account", 42, platform);
+			var accounts = new List<Account> { account };
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
+
+			// Act
+			var result = await _accountDataService.GetAccountByIdAsync(42);
+
+			// Assert
+			result.Should().NotBeNull();
+			result!.Id.Should().Be(42);
+			result.Name.Should().Be("Test Account");
+			result.Platform.Should().NotBeNull();
+			result.Platform!.Name.Should().Be("Test Platform");
+		}
+
+		[Fact]
+		public async Task GetAccountByIdAsync_WithNonExistingAccount_ShouldReturnNull()
+		{
+			// Arrange
+			_mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account>());
+
+			// Act
+			var result = await _accountDataService.GetAccountByIdAsync(999);
+
+			// Assert
+			result.Should().BeNull();
+		}
+
+		#endregion
+
 		#region GetAccountsAsync Tests
 
 		[Fact]
