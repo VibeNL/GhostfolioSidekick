@@ -5,6 +5,7 @@
 @inject IAccountDataService AccountDataService
 @inject ITransactionService TransactionService
 @inject NavigationManager Navigation
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IHoldingIdentifierMappingService HoldingIdentifierMappingService
 
 <PageTitle>Account Year Summary</PageTitle>
 
@@ -18,6 +19,7 @@
     private List<AssetChangeRow> AssetChanges = new();
     private List<CashChangeRow> CashChanges = new();
     private List<DividendRow> Dividends = new();
+    private Dictionary<string, string> CanonicalSymbolByName = new();
     private bool IsLoading = true;
     private bool HasError = false;
     private string ErrorMessage = string.Empty;
@@ -74,14 +76,23 @@
                 : (dividendTxs.FirstOrDefault()?.Amount?.Currency ?? new Money("EUR", 0).Currency);
 
             Dividends = dividendTxs
-                .GroupBy(t => new { t.Symbol, t.Name })
+                .GroupBy(t => t.Name ?? "Unknown")
                 .Select(g => new DividendRow {
-                    Symbol = g.Key.Symbol ?? string.Empty,
-                    Name = g.Key.Name ?? g.Key.Symbol ?? string.Empty,
+                    Name = g.Key,
+                    Symbols = g.Select(x => x.Symbol).Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s!).Distinct().ToList(),
                     Amount = new Money(currency, g.Sum(x => x.Amount?.Amount ?? 0))
                 })
                 .OrderByDescending(d => d.Amount.Amount)
                 .ToList();
+
+            // Map canonical symbol for each asset name (using first symbol found)
+            var allMappings = await HoldingIdentifierMappingService.GetAllHoldingIdentifierMappingsAsync();
+            CanonicalSymbolByName = allMappings
+                .GroupBy(m => m.Name)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.FirstOrDefault()?.Symbol ?? g.Key
+                );
         }
         catch (Exception ex)
         {
@@ -109,7 +120,7 @@
     }
     public class DividendRow
     {
-        public string Symbol { get; set; } = string.Empty;
+        public List<string> Symbols { get; set; } = new();
         public string Name { get; set; } = string.Empty;
         public Money Amount { get; set; } = default!;
     }
@@ -175,15 +186,27 @@
             <div class="col-12">
                 <h4>Dividends Per Asset</h4>
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Symbol</th><th>Name</th><th>Dividend Amount</th></tr></thead>
+                    <thead><tr><th>Symbols</th><th>Name</th><th>Dividend Amount</th></tr></thead>
                     <tbody>
                         @foreach (var row in Dividends)
                         {
                             <tr>
                                 <td>
-                                    @if (!string.IsNullOrWhiteSpace(row.Symbol))
+                                    @if (CanonicalSymbolByName.TryGetValue(row.Name ?? string.Empty, out var canonicalSymbol) && !string.IsNullOrWhiteSpace(canonicalSymbol))
                                     {
-                                        <a href="@($"/holding/{row.Symbol}")" class="text-decoration-underline">@row.Symbol</a>
+                                        <a href="@($"/holding/{canonicalSymbol}")" class="text-decoration-underline">@canonicalSymbol</a>
+                                        @if (row.Symbols.Count > 1)
+                                        {
+                                            <span class="text-muted"> (@string.Join(", ", row.Symbols.Where(s => s != canonicalSymbol)))</span>
+                                        }
+                                    }
+                                    else if (row.Symbols.Count > 0)
+                                    {
+                                        <span>@row.Symbols[0]</span>
+                                        @if (row.Symbols.Count > 1)
+                                        {
+                                            <span class="text-muted"> (@string.Join(", ", row.Symbols.Skip(1)))</span>
+                                        }
                                     }
                                     else
                                     {

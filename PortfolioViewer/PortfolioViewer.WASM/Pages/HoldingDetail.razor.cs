@@ -21,6 +21,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private ITestContextService? TestContextService { get; set; }
 
+		[Inject]
+		private IHoldingIdentifierMappingService? _holdingIdentifierMappingService { get; set; }
+
+		[Inject]
+		private NavigationManager? _navigationManager { get; set; }
+
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
@@ -40,7 +46,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private Plotly.Blazor.Layout plotLayout = new();
 		private IList<ITrace> plotData = [];
 
-		protected override async Task OnParametersSetAsync()
+        protected override async Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed
 			// Subscribe to new filter state
@@ -51,6 +57,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			if (!string.IsNullOrEmpty(Symbol))
 			{
+				// Canonicalize symbol using mapping service
+				if (_holdingIdentifierMappingService != null)
+				{
+					var mapping = await _holdingIdentifierMappingService.GetHoldingIdentifierMappingAsync(Symbol);
+					if (mapping != null && !string.Equals(mapping.Symbol, Symbol, StringComparison.OrdinalIgnoreCase))
+					{
+						// Redirect to canonical symbol if different
+						_navigationManager?.NavigateTo($"/holding/{mapping.Symbol}", true);
+						return;
+					}
+				}
 				await LoadHoldingDataAsync();
 			}
 		}

@@ -57,7 +57,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(1);
-			result[0].Symbol.Should().Be("AAPL");
+           result[0].Symbols.FirstOrDefault().Should().Be("AAPL");
 			result[0].Name.Should().Be("Apple Inc");
 			result[0].Currency.Should().Be(Currency.USD.Symbol);
 		}
@@ -195,9 +195,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(3);
-			result[0].Symbol.Should().Be("AAPL");
-			result[1].Symbol.Should().Be("MSFT");
-			result[2].Symbol.Should().Be("ZULU");
+           result[0].Symbols.FirstOrDefault().Should().Be("AAPL");
+           result[1].Symbols.FirstOrDefault().Should().Be("MSFT");
+           result[2].Symbols.FirstOrDefault().Should().Be("ZULU");
 		}
 
 		[Fact]
@@ -239,7 +239,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(1);
-			result[0].Symbol.Should().Be("AAPL");
+           result[0].Symbols.FirstOrDefault().Should().Be("AAPL");
 		}
 
 		[Fact]
@@ -316,7 +316,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("AAPL");
+           result!.Symbols.FirstOrDefault().Should().Be("AAPL");
 			result.Name.Should().Be("Apple Inc");
 		}
 

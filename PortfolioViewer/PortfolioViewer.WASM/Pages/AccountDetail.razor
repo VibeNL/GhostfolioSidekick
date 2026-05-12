@@ -344,9 +344,9 @@
                                             .Where(h => !HideZeroQuantityHoldings || h.Quantity != 0)
                                             .OrderByDescending(h => h.CurrentValue.Amount))
                                         {
-                                            <tr class="account-row" style="cursor: pointer;" @onclick="@(() => NavigateToHoldingDetail(holding.Symbol))">
+                                            <tr class="account-row" style="cursor: pointer;" @onclick="@(() => NavigateToHoldingDetail(holding.Symbols.FirstOrDefault() ?? string.Empty))">
                                                 <td>
-                                                    <strong class="text-primary">@holding.Symbol</strong>
+                                                    <strong class="text-primary">@(holding.Symbols.FirstOrDefault() ?? string.Empty)</strong>
                                                 </td>
                                                 <td>
                                                     <small>@holding.Name</small>
