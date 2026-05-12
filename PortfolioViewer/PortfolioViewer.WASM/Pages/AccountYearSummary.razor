@@ -1,0 +1,192 @@
+@page "/tax-report/account/{AccountId:int}/{Year:int}"
+@using GhostfolioSidekick.Model
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
+@inject IAccountDataService AccountDataService
+@inject ITransactionService TransactionService
+@inject NavigationManager Navigation
+
+<PageTitle>Account Year Summary</PageTitle>
+
+@code {
+    [Parameter]
+    public int AccountId { get; set; }
+    [Parameter]
+    public int Year { get; set; }
+
+    private string AccountName = string.Empty;
+    private List<AssetChangeRow> AssetChanges = new();
+    private List<CashChangeRow> CashChanges = new();
+    private List<DividendRow> Dividends = new();
+    private bool IsLoading = true;
+    private bool HasError = false;
+    private string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch account name
+            var account = await AccountDataService.GetAccountByIdAsync(AccountId);
+            AccountName = account?.Name ?? $"Account {AccountId}";
+
+            // Get start and end dates for the year
+            var startDate = new DateOnly(Year, 1, 1);
+            var endDate = new DateOnly(Year, 12, 31);
+
+            // Fetch value history for the account
+            var history = await AccountDataService.GetAccountValueHistoryAsync(startDate, endDate);
+            var accountHistory = history?.Where(h => h.AccountId == AccountId).OrderBy(h => h.Date).ToList() ?? new();
+
+            // Asset and cash changes (start/end of year)
+            if (accountHistory.Count > 0)
+            {
+                var first = accountHistory.First();
+                var last = accountHistory.Last();
+                CashChanges = new List<CashChangeRow> {
+                    new CashChangeRow {
+                        StartValue = first.CashBalance,
+                        EndValue = last.CashBalance,
+                        Change = new Money(first.CashBalance.Currency, last.CashBalance.Amount - first.CashBalance.Amount)
+                    }
+                };
+                AssetChanges = new List<AssetChangeRow> {
+                    new AssetChangeRow {
+                        Asset = "Total Assets",
+                        StartValue = first.TotalAssetValue,
+                        EndValue = last.TotalAssetValue,
+                        Change = new Money(first.TotalAssetValue.Currency, last.TotalAssetValue.Amount - first.TotalAssetValue.Amount)
+                    }
+                };
+            }
+
+            // Fetch all dividend transactions for this account/year
+            var txParams = new GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionQueryParameters {
+                AccountId = AccountId,
+                StartDate = startDate,
+                EndDate = endDate,
+                TransactionTypes = new List<string> { "Dividend" }
+            };
+            var dividendResult = await TransactionService.GetTransactionsPaginatedAsync(txParams);
+            var dividendTxs = dividendResult.Transactions;
+            var currency = accountHistory.Count > 0
+                ? accountHistory.First().TotalAssetValue.Currency
+                : (dividendTxs.FirstOrDefault()?.Amount?.Currency ?? new Money("EUR", 0).Currency);
+
+            Dividends = dividendTxs
+                .GroupBy(t => t.Symbol ?? t.Name ?? "Unknown")
+                .Select(g => new DividendRow {
+                    Asset = g.Key,
+                    Amount = new Money(currency, g.Sum(x => x.Amount?.Amount ?? 0))
+                })
+                .OrderByDescending(d => d.Amount.Amount)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    public class AssetChangeRow
+    {
+        public string Asset { get; set; } = string.Empty;
+        public Money StartValue { get; set; } = default!;
+        public Money EndValue { get; set; } = default!;
+        public Money Change { get; set; } = default!;
+    }
+    public class CashChangeRow
+    {
+        public Money StartValue { get; set; } = default!;
+        public Money EndValue { get; set; } = default!;
+        public Money Change { get; set; } = default!;
+    }
+    public class DividendRow
+    {
+        public string Asset { get; set; } = string.Empty;
+        public Money Amount { get; set; } = default!;
+    }
+}
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>Account Year Summary: @AccountName (@Year)</h2>
+        </div>
+    </div>
+    @if (IsLoading)
+    {
+        <div class="row"><div class="col-12">Loading...</div></div>
+    }
+    else if (HasError)
+    {
+        <div class="row"><div class="col-12 text-danger">@ErrorMessage</div></div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4>Asset Changes</h4>
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Asset</th><th>Start</th><th>End</th><th>Change</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in AssetChanges)
+                        {
+                            <tr>
+                                <td>@row.Asset</td>
+                                <td>@row.StartValue.Amount @row.StartValue.Currency</td>
+                                <td>@row.EndValue.Amount @row.EndValue.Currency</td>
+                                <td>@row.Change.Amount @row.Change.Currency</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4>Cash Changes</h4>
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Start</th><th>End</th><th>Change</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in CashChanges)
+                        {
+                            <tr>
+                                <td>@row.StartValue.Amount @row.StartValue.Currency</td>
+                                <td>@row.EndValue.Amount @row.EndValue.Currency</td>
+                                <td>@row.Change.Amount @row.Change.Currency</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4>Dividends Per Asset</h4>
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Asset</th><th>Dividend Amount</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in Dividends)
+                        {
+                            <tr>
+                                <td>@row.Asset</td>
+                                <td>@row.Amount.Amount @row.Amount.Currency</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <a class="btn btn-outline-primary" href="@($"/transactions?accountId={AccountId}&year={Year}")">View All Transactions</a>
+            </div>
+        </div>
+    }
+</div>

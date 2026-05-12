@@ -141,7 +141,7 @@
                                         <td>
                                             @if (row.Start != null)
                                             {
-                                                <a href="@($"/transactions?accountId={row.Start.AccountId}&year={year}")" class="text-decoration-underline">@row.AccountName</a>
+                                                <a href="@($"/tax-report/account/{row.Start.AccountId}/{year}")" class="text-decoration-underline">@row.AccountName</a>
                                             }
                                             else
                                             {
