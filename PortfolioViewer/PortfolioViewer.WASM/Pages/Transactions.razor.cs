@@ -102,6 +102,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					FilterState.SelectedAccountId = accountId;
 				}
 
+
+				// Check for year parameter
+				var yearParam = queryParams["year"];
+				if (!string.IsNullOrEmpty(yearParam) && int.TryParse(yearParam, out var year) && year > 1900 && year < 3000)
+				{
+					FilterState.StartDate = new DateOnly(year, 1, 1);
+					FilterState.EndDate = new DateOnly(year, 12, 31);
+				}
+
 				// Check for symbol parameter
 				var symbolParam = queryParams["symbol"];
 				if (!string.IsNullOrEmpty(symbolParam))
