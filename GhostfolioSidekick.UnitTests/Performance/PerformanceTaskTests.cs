@@ -528,6 +528,67 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			await dbContext.DisposeAsync();
 			await verifyContext.DisposeAsync();
 		}
+
+		[Fact]
+		public async Task DoWork_ProcessesHoldingsInBatches()
+		{
+			const int totalHoldings = 25;
+			const int batchSize = 20; // Should match the batch size in PerformanceTask
+			using var connection = new SqliteConnection("Filename=:memory:");
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
+			var options = CreateOptions(connection);
+			var dbContext = new DatabaseContext(options);
+			await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+
+			for (int i = 1; i <= totalHoldings; i++)
+			{
+				dbContext.Holdings.Add(new Holding
+				{
+					Id = i,
+					SymbolProfiles =
+					[
+						new SymbolProfile { Symbol = $"SYM{i}", Name = $"Holding {i}", Currency = Currency.USD, DataSource = "YAHOO", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }
+					]
+				});
+			}
+			await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+			var dbContextCreateCount = 0;
+			var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+			dbFactoryMock.Setup(x => x.CreateDbContextAsync(default)).ReturnsAsync(() => { dbContextCreateCount++; return new DatabaseContext(options); });
+
+			var calculatorMock = new Mock<IPerformanceCalculator>();
+			calculatorMock.Setup(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD))
+				.ReturnsAsync((Holding h, Currency c) => new List<CalculatedSnapshot>
+				{
+					new() { AccountId = 1, Date = new DateOnly(2024, 1, 1), Quantity = h.Id, Currency = Currency.USD, AverageCostPrice = 100, CurrentUnitPrice = 110, TotalInvested = 500, TotalValue = 550 }
+				});
+
+			var loggerMock = new Mock<ILogger>();
+			var appSettingsMock = new Mock<IApplicationSettings>();
+			var settings = new Settings { PrimaryCurrency = "USD", DataProviderPreference = "YAHOO;COINGECKO" };
+			var configInstance = new ConfigurationInstance { Settings = settings };
+			appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
+
+			// Act
+			await task.DoWork(loggerMock.Object);
+
+			// Assert
+			var verifyContext = new DatabaseContext(options);
+			Assert.Equal(totalHoldings, await verifyContext.CalculatedSnapshots.CountAsync(TestContext.Current.CancellationToken));
+			// Each holding should have a snapshot with Quantity == holding Id
+			for (int i = 1; i <= totalHoldings; i++)
+			{
+				Assert.Single(verifyContext.CalculatedSnapshots.Where(s => s.HoldingId == i));
+				Assert.Equal(i, verifyContext.CalculatedSnapshots.First(s => s.HoldingId == i).Quantity);
+			}
+			// DbContext should be created for each batch (2 batches for 25 holdings with batch size 20)
+			var expectedDbContextCreations = 1 /* for holdingIds fetch */ + (int)Math.Ceiling(totalHoldings / (double)batchSize);
+			Assert.True(dbContextCreateCount >= expectedDbContextCreations, $"DbContext created {dbContextCreateCount} times, expected at least {expectedDbContextCreations}");
+			await dbContext.DisposeAsync();
+			await verifyContext.DisposeAsync();
+		}
 	}
 }
 
