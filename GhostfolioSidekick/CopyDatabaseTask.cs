@@ -54,6 +54,8 @@ namespace GhostfolioSidekick
 				logger.LogError(ex, "Failed to copy database.");
 				throw;
 			}
+
+			logger.LogInformation("Database copy task completed.");
 		}
 
 		private static async Task BackupDatabaseUsingSqliteApi(string sourceFile, string destinationFile)
