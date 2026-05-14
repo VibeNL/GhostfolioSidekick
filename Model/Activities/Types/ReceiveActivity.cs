@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
+using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -22,6 +21,6 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 		}
 
-		public virtual ICollection<ReceiveActivityFee> Fees { get; set; } = [];
+       public List<Money> Fees { get; set; } = new();
 	}
 }

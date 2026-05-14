@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
+using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -24,10 +23,10 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
 		}
 
-		public virtual ICollection<DividendActivityFee> Fees { get; set; } = [];
+       public List<Money> Fees { get; set; } = new();
 
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
-		public virtual ICollection<DividendActivityTax> Taxes { get; set; } = [];
+       public List<Money> Taxes { get; set; } = new();
 	}
 }

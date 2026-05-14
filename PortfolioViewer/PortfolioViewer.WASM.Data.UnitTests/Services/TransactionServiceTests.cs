@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
@@ -376,8 +375,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding = CreateTestHolding(symbolProfile);
 
 			var buyActivity = CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100);
-			buyActivity.Fees.Add(new BuyActivityFee(new Money(Currency.USD, 5)));
-			buyActivity.Taxes.Add(new BuyActivityTax(new Money(Currency.USD, 10)));
+           buyActivity.Fees.Add(new Money(Currency.USD, 5));
+		   buyActivity.Taxes.Add(new Money(Currency.USD, 10));
 
 			var activities = new List<Activity> { buyActivity };
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
@@ -503,11 +502,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding = CreateTestHolding(symbolProfile);
 
 			var sellActivity = CreateSellActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100);
-			sellActivity.Fees.Add(new SellActivityFee(new Money(Currency.USD, 3)));
-			sellActivity.Fees.Add(new SellActivityFee(new Money(Currency.USD, 2)));
+           sellActivity.Fees.Add(new Money(Currency.USD, 3));
+		   sellActivity.Fees.Add(new Money(Currency.USD, 2));
 
 			var dividendActivity = CreateDividendActivity(account, holding, DateTime.Now.AddDays(-2), 50);
-			dividendActivity.Fees.Add(new DividendActivityFee(new Money(Currency.USD, 1)));
+           dividendActivity.Fees.Add(new Money(Currency.USD, 1));
 
 			var activities = new List<Activity> { sellActivity, dividendActivity };
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);

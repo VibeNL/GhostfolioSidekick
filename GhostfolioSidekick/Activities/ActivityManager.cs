@@ -2,7 +2,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Parsers;
 
 namespace GhostfolioSidekick.Activities
@@ -109,28 +108,28 @@ namespace GhostfolioSidekick.Activities
 			{
 				PartialActivityType.Buy => new BuyActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 				{
-					Taxes = [.. taxes.Select(x => new BuyActivityTax(x))],
-					Fees = [.. fees.Select(x => new BuyActivityFee(x))],
+                   Taxes = [..taxes],
+				   Fees = [..fees],
 					TotalTransactionAmount = totalTransactionAmount,
 				},
 				PartialActivityType.Sell => new SellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 				{
-					Taxes = [.. taxes.Select(x => new SellActivityTax(x))],
-					Fees = [.. fees.Select(x => new SellActivityFee(x))],
+                   Taxes = [..taxes],
+				   Fees = [..fees],
 					TotalTransactionAmount = totalTransactionAmount,
 				},
 				PartialActivityType.Receive => new ReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 				{
-					Fees = [.. fees.Select(x => new ReceiveActivityFee(x))],
+                   Fees = [..fees],
 				},
 				PartialActivityType.Send => new SendActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 				{
-					Fees = [.. fees.Select(x => new SendActivityFee(x))],
+                   Fees = [..fees],
 				},
 				PartialActivityType.Dividend => new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
 				{
-					Taxes = [.. taxes.Select(x => new DividendActivityTax(x))],
-					Fees = [.. fees.Select(x => new DividendActivityFee(x))],
+                   Taxes = [..taxes],
+				   Fees = [..fees],
 				},
 				PartialActivityType.Interest => new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.Fee => new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),

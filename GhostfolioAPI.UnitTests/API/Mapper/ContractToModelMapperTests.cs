@@ -147,8 +147,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			var buyActivity = (BuyActivity)result;
 			buyActivity.Fees.Should().HaveCount(1);
-			buyActivity.Fees.First().Money.Amount.Should().Be(10.50m);
-			buyActivity.Fees.First().Money.Currency.Symbol.Should().Be("USD");
+           buyActivity.Fees.First().Amount.Should().Be(10.50m);
+           buyActivity.Fees.First().Currency.Symbol.Should().Be("USD");
 		}
 
 		[Fact]
@@ -193,7 +193,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			var sellActivity = (SellActivity)result;
 			sellActivity.Fees.Should().HaveCount(1);
-			sellActivity.Fees.First().Money.Amount.Should().Be(5.25m);
+           sellActivity.Fees.First().Amount.Should().Be(5.25m);
 		}
 
 		[Fact]
@@ -238,7 +238,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			var dividendActivity = (DividendActivity)result;
 			dividendActivity.Fees.Should().HaveCount(1);
-			dividendActivity.Fees.First().Money.Amount.Should().Be(0.25m);
+           dividendActivity.Fees.First().Amount.Should().Be(0.25m);
 		}
 
 		[Fact]
@@ -423,7 +423,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			var buyActivity = (BuyActivity)result;
 			buyActivity.Fees.Should().HaveCount(1);
-			buyActivity.Fees.First().Money.Currency.Symbol.Should().Be("EUR");
+           buyActivity.Fees.First().Currency.Symbol.Should().Be("EUR");
 		}
 
 		[Fact]
@@ -464,7 +464,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			var sellActivity = (SellActivity)result;
 			sellActivity.Fees.Should().HaveCount(1);
-			sellActivity.Fees.First().Money.Currency.Symbol.Should().Be("USD");
+           sellActivity.Fees.First().Currency.Symbol.Should().Be("USD");
 		}
 
 		[Theory]

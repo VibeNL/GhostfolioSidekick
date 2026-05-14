@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					rawActivity.Comment)
 				{
 					TotalTransactionAmount = new Money(currency, rawActivity.Quantity * rawActivity.UnitPrice),
-					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.BuyActivityFee(feeAmount)] : []
+                   Fees = feeAmount != null ? [feeAmount] : []
 				},
 
 				Contract.ActivityType.SELL => new SellActivity(
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					rawActivity.Comment)
 				{
 					TotalTransactionAmount = new Money(currency, rawActivity.Quantity * rawActivity.UnitPrice),
-					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.SellActivityFee(feeAmount)] : []
+                   Fees = feeAmount != null ? [feeAmount] : []
 				},
 
 				Contract.ActivityType.DIVIDEND => new DividendActivity(
@@ -125,7 +125,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					null, // sortingPriority
 					rawActivity.Comment)
 				{
-					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.DividendActivityFee(feeAmount)] : []
+                   Fees = feeAmount != null ? [feeAmount] : []
 				},
 
 				Contract.ActivityType.INTEREST => new InterestActivity(
