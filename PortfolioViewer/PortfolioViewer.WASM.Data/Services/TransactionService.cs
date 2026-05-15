@@ -308,31 +308,40 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return query;
 		}
 
-		private static object GetTotalValueAmount(Activity activity)
+        private static decimal GetTotalValueAmount(Activity activity)
 		{
 			if (activity is ActivityWithQuantityAndUnitPrice quantityActivity)
 			{
-				return quantityActivity.UnitPrice.Times(quantityActivity.Quantity);
+				var money = quantityActivity.UnitPrice.Times(quantityActivity.Quantity);
+				return money?.Amount ?? 0m;
 			}
-
-			return activity is ActivityWithAmount amountActivity ? amountActivity.Amount.Amount : (object)0;
+			if (activity is ActivityWithAmount amountActivity)
+			{
+				return amountActivity.Amount?.Amount ?? 0m;
+			}
+			return 0m;
 		}
 
-		private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
+     private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
 		{
-			Expression<Func<Activity, object>> sortExpression = sortColumn switch
+			if (sortColumn == "TotalValue")
+			{
+				Expression<Func<Activity, decimal>> sortExpression = a => GetTotalValueAmount(a);
+				return sortAscending ? query.OrderBy(sortExpression) : query.OrderByDescending(sortExpression);
+			}
+
+			Expression<Func<Activity, object>> sortObjExpression = sortColumn switch
 			{
 				"Date" => a => a.Date,
 				"Type" => a => a.GetType().Name,
 				"Symbol" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Symbol : "",
 				"Name" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Name ?? "" : "",
 				"AccountName" => a => a.Account.Name,
-				"TotalValue" => a => GetTotalValueAmount(a),
 				"Description" => a => a.Description ?? "",
 				_ => a => a.Date // Default sort
 			};
 
-			return sortAscending ? query.OrderBy(sortExpression) : query.OrderByDescending(sortExpression);
+			return sortAscending ? query.OrderBy(sortObjExpression) : query.OrderByDescending(sortObjExpression);
 		}
 
 		public async Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default)
