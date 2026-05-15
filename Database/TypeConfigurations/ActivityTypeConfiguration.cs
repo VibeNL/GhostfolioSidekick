@@ -3,7 +3,9 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
@@ -28,8 +30,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<ReceiveActivity>,
 		IEntityTypeConfiguration<StakingRewardActivity>,
 		IEntityTypeConfiguration<ValuableActivity>,
-
-
 		IEntityTypeConfiguration<CalculatedPriceTrace>
 	{
 		public void Configure(EntityTypeBuilder<Activity> builder)
@@ -81,32 +81,20 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			MapMoney(builder, x => x.Amount, nameof(ActivityWithAmount.Amount));
 		}
+		
+		public void Configure(EntityTypeBuilder<BuyActivity> builder)
+		{
+			MapMoney(builder, x => x.UnitPrice, nameof(BuyActivity.UnitPrice));
+			MapMoneyList(builder, x => x.Fees, nameof(BuyActivity.Fees));
+			MapMoneyList(builder, x => x.Taxes, nameof(BuyActivity.Taxes));
+		}
 
-               public void Configure(EntityTypeBuilder<BuyActivity> builder)
-			   {
-					   MapMoney(builder, x => x.UnitPrice, nameof(BuyActivity.UnitPrice));
-					   builder.OwnsMany(x => x.Fees, b =>
-					   {
-							   b.ToJson();
-					   });
-					   builder.OwnsMany(x => x.Taxes, b =>
-					   {
-							   b.ToJson();
-					   });
-			   }
-
-               public void Configure(EntityTypeBuilder<SellActivity> builder)
-			   {
-					   MapMoney(builder, x => x.UnitPrice, nameof(SellActivity.UnitPrice));
-					   builder.OwnsMany(x => x.Fees, b =>
-					   {
-							   b.ToJson();
-					   });
-					   builder.OwnsMany(x => x.Taxes, b =>
-					   {
-							   b.ToJson();
-					   });
-			   }
+		public void Configure(EntityTypeBuilder<SellActivity> builder)
+		{
+			MapMoney(builder, x => x.UnitPrice, nameof(SellActivity.UnitPrice));
+			MapMoneyList(builder, x => x.Fees, nameof(SellActivity.Fees));
+			MapMoneyList(builder, x => x.Taxes, nameof(SellActivity.Taxes));
+		}
 
 		public void Configure(EntityTypeBuilder<CashDepositActivity> builder)
 		{
@@ -118,19 +106,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.Amount, nameof(CashWithdrawalActivity.Amount));
 		}
 
-               public void Configure(EntityTypeBuilder<DividendActivity> builder)
-			   {
-					   MapMoney(builder, x => x.Amount, nameof(DividendActivity.Amount));
-					   MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
-					   builder.OwnsMany(x => x.Fees, b =>
-					   {
-							   b.ToJson();
-					   });
-					   builder.OwnsMany(x => x.Taxes, b =>
-					   {
-							   b.ToJson();
-					   });
-			   }
+		public void Configure(EntityTypeBuilder<DividendActivity> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(DividendActivity.Amount));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
+			MapMoneyList(builder, x => x.Fees, nameof(DividendActivity.Fees));
+			MapMoneyList(builder, x => x.Taxes, nameof(DividendActivity.Taxes));
+		}
 
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
 		{
@@ -173,21 +155,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 		}
 
-               public void Configure(EntityTypeBuilder<SendActivity> builder)
-			   {
-					   builder.OwnsMany(x => x.Fees, b =>
-					   {
-							   b.ToJson();
-					   });
-			   }
+		public void Configure(EntityTypeBuilder<SendActivity> builder)
+		{
+			MapMoneyList(builder, x => x.Fees, nameof(SendActivity.Fees));
+		}
 
-               public void Configure(EntityTypeBuilder<ReceiveActivity> builder)
-			   {
-					   builder.OwnsMany(x => x.Fees, b =>
-					   {
-							   b.ToJson();
-					   });
-			   }
+		public void Configure(EntityTypeBuilder<ReceiveActivity> builder)
+		{
+			MapMoneyList(builder, x => x.Fees, nameof(ReceiveActivity.Fees));
+		}
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
 		{
@@ -226,6 +202,16 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			builder.ComplexProperty(navigationExpression).IsRequired().Property(x => x.Amount).HasColumnName(name);
 			builder.ComplexProperty(navigationExpression).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
+		}
+
+		private static void MapMoneyList<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, List<Money>>> propertyExpression, string columnName) where TEntity : class
+		{
+			var converter = new ValueConverter<List<Money>, string>(
+				v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+				v => JsonSerializer.Deserialize<List<Money>>(v, (JsonSerializerOptions?)null) ?? new List<Money>());
+			builder.Property(propertyExpression)
+				.HasColumnName(columnName)
+				.HasConversion(converter);
 		}
 	}
 
