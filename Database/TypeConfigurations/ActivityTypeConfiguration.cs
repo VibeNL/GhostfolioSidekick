@@ -86,6 +86,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.UnitPrice, nameof(BuyActivity.UnitPrice));
 			MapMoneyList(builder, x => x.Fees, nameof(BuyActivity.Fees));
 			MapMoneyList(builder, x => x.Taxes, nameof(BuyActivity.Taxes));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<SellActivity> builder)
@@ -93,6 +94,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.UnitPrice, nameof(SellActivity.UnitPrice));
 			MapMoneyList(builder, x => x.Fees, nameof(SellActivity.Fees));
 			MapMoneyList(builder, x => x.Taxes, nameof(SellActivity.Taxes));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<CashDepositActivity> builder)
@@ -111,6 +113,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 			MapMoneyList(builder, x => x.Fees, nameof(DividendActivity.Fees));
 			MapMoneyList(builder, x => x.Taxes, nameof(DividendActivity.Taxes));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
@@ -157,11 +160,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<SendActivity> builder)
 		{
 			MapMoneyList(builder, x => x.Fees, nameof(SendActivity.Fees));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<ReceiveActivity> builder)
 		{
 			MapMoneyList(builder, x => x.Fees, nameof(ReceiveActivity.Fees));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
