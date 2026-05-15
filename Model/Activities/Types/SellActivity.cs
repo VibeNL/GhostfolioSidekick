@@ -2,7 +2,7 @@ using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class SellActivity : ActivityWithQuantityAndUnitPrice
+	public record class SellActivity : ActivityWithQuantityAndUnitPrice, IActivityWithCosts
 	{
 		public SellActivity()
 		{
@@ -22,8 +22,10 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 		}
 
-       public List<Money> Fees { get; set; } = new();
+		public List<Money> Fees { get; set; } = [];
 
-	   public List<Money> Taxes { get; set; } = new();
+		public List<Money> Taxes { get; set; } = [];
+
+		public IReadOnlyList<Money> Costs => [.. Fees, .. Taxes];
 	}
 }

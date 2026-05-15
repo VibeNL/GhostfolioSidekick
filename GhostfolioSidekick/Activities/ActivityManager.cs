@@ -20,12 +20,12 @@ namespace GhostfolioSidekick.Activities
 
 		public Task<IEnumerable<Activity>> GenerateActivities()
 		{
-			var activities = new List<Activity>();
-			foreach (var partialActivityPerAccount in unusedPartialActivities)
+			List<Activity> activities = [];
+			foreach (KeyValuePair<string, List<PartialActivity>> partialActivityPerAccount in unusedPartialActivities)
 			{
 				var accountName = partialActivityPerAccount.Key;
-				var account = accounts.FirstOrDefault(x => x.Name == accountName) ?? new Account(accountName);
-				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
+				Account account = accounts.FirstOrDefault(x => x.Name == accountName) ?? new Account(accountName);
+				foreach (IGrouping<string, PartialActivity> transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
 					DetermineActivity(activities, account, [.. transaction]);
 				}
@@ -37,14 +37,14 @@ namespace GhostfolioSidekick.Activities
 
 		private static void DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)
 		{
-			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Count != 0) ?? transactions[0];
+			PartialActivity sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Count != 0) ?? transactions[0];
 
-			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
-			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
+			List<PartialActivity> fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
+			List<PartialActivity> taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
 
-			var otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
+			IEnumerable<PartialActivity> otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
 
-			var activity = GenerateActivity(
+			Activity? activity = GenerateActivity(
 				account,
 				sourceTransaction.ActivityType,
 				[.. sourceTransaction.SymbolIdentifiers.Where(x => x != null).OfType<PartialSymbolIdentifier>()],
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			int counter = 2;
-			foreach (var transaction in otherTransactions)
+			foreach (PartialActivity? transaction in otherTransactions)
 			{
 				activity = GenerateActivity(
 					account,
@@ -108,28 +108,26 @@ namespace GhostfolioSidekick.Activities
 			{
 				PartialActivityType.Buy => new BuyActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 				{
-                   Taxes = [..taxes],
-				   Fees = [..fees],
-					TotalTransactionAmount = totalTransactionAmount,
+					Taxes = [.. taxes],
+					Fees = [.. fees]
 				},
 				PartialActivityType.Sell => new SellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 				{
-                   Taxes = [..taxes],
-				   Fees = [..fees],
-					TotalTransactionAmount = totalTransactionAmount,
+					Taxes = [.. taxes],
+					Fees = [.. fees]
 				},
 				PartialActivityType.Receive => new ReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 				{
-                   Fees = [..fees],
+					Fees = [.. fees],
 				},
 				PartialActivityType.Send => new SendActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 				{
-                   Fees = [..fees],
+					Fees = [.. fees],
 				},
 				PartialActivityType.Dividend => new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
 				{
-                   Taxes = [..taxes],
-				   Fees = [..fees],
+					Taxes = [.. taxes],
+					Fees = [.. fees],
 				},
 				PartialActivityType.Interest => new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.Fee => new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),

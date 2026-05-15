@@ -2,7 +2,7 @@ using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class DividendActivity : ActivityWithAmount, IActivityWithPartialIdentifier
+	public record class DividendActivity : ActivityWithAmount, IActivityWithPartialIdentifier, IActivityWithCosts
 	{
 		public DividendActivity()
 		{
@@ -23,10 +23,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
 		}
 
-       public List<Money> Fees { get; set; } = new();
+		public List<Money> Fees { get; set; } = [];
 
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
-       public List<Money> Taxes { get; set; } = new();
+		public List<Money> Taxes { get; set; } = [];
+
+		public IReadOnlyList<Money> Costs => [.. Fees, .. Taxes];
 	}
 }

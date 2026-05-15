@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void MapPlatform_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawPlatform = new Platform
+			Platform rawPlatform = new()
 			{
 				Name = "Test Platform",
 				Url = "http://testplatform.com",
@@ -23,15 +23,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = ContractToModelMapper.MapPlatform(rawPlatform);
 
 			// Assert
-			result.Name.Should().Be("Test Platform");
-			result.Url.Should().Be("http://testplatform.com");
+			_ = result.Name.Should().Be("Test Platform");
+			_ = result.Url.Should().Be("http://testplatform.com");
 		}
 
 		[Fact]
 		public void MapAccount_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawAccount = new Account
+			Account rawAccount = new()
 			{
 				Name = "Test Account",
 				Comment = "Test Comment",
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 				Balance = 1000m,
 				Id = Guid.NewGuid().ToString()
 			};
-			var rawPlatform = new Platform
+			Platform rawPlatform = new()
 			{
 				Name = "Test Platform",
 				Url = "http://testplatform.com",
@@ -50,19 +50,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = ContractToModelMapper.MapAccount(rawAccount, rawPlatform);
 
 			// Assert
-			result.Name.Should().Be("Test Account");
-			result.Comment.Should().Be("Test Comment");
-			result.Platform.Should().NotBeNull();
-			result.Platform!.Name.Should().Be("Test Platform");
-			result.Balance.Should().HaveCount(1);
-			result.Balance.First().Money.Amount.Should().Be(1000m);
+			_ = result.Name.Should().Be("Test Account");
+			_ = result.Comment.Should().Be("Test Comment");
+			_ = result.Platform.Should().NotBeNull();
+			_ = result.Platform!.Name.Should().Be("Test Platform");
+			_ = result.Balance.Should().HaveCount(1);
+			_ = result.Balance.First().Money.Amount.Should().Be(1000m);
 		}
 
 		[Fact]
 		public void MapSymbolProfile_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawSymbolProfile = new SymbolProfile
+			SymbolProfile rawSymbolProfile = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -86,16 +86,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = ContractToModelMapper.MapSymbolProfile(rawSymbolProfile);
 
 			// Assert
-			result.Symbol.Should().Be("AAPL");
-			result.Name.Should().Be("Apple Inc.");
-			result.Currency.Symbol.Should().Be("USD");
-			result.DataSource.Should().Be("GHOSTFOLIO_Yahoo");
-			result.AssetClass.Should().Be(AssetClass.Equity);
-			result.AssetSubClass.Should().Be(AssetSubClass.Stock);
-			result.ISIN.Should().Be("US0378331005");
-			result.Comment.Should().Be("Test Comment");
-			result.CountryWeight.Should().HaveCount(1);
-			result.SectorWeights.Should().HaveCount(1);
+			_ = result.Symbol.Should().Be("AAPL");
+			_ = result.Name.Should().Be("Apple Inc.");
+			_ = result.Currency.Symbol.Should().Be("USD");
+			_ = result.DataSource.Should().Be("GHOSTFOLIO_Yahoo");
+			_ = result.AssetClass.Should().Be(AssetClass.Equity);
+			_ = result.AssetSubClass.Should().Be(AssetSubClass.Stock);
+			_ = result.ISIN.Should().Be("US0378331005");
+			_ = result.Comment.Should().Be("Test Comment");
+			_ = result.CountryWeight.Should().HaveCount(1);
+			_ = result.SectorWeights.Should().HaveCount(1);
 		}
 
 		#region MapActivity Tests
@@ -107,26 +107,26 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<BuyActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<BuyActivity>();
 
-			var buyActivity = (BuyActivity)result;
-			buyActivity.Account.Should().Be(account);
-			buyActivity.Date.Should().Be(contractActivity.Date);
-			buyActivity.Quantity.Should().Be(contractActivity.Quantity);
-			buyActivity.UnitPrice.Amount.Should().Be(contractActivity.UnitPrice);
-			buyActivity.UnitPrice.Currency.Symbol.Should().Be(symbolProfile.Currency);
-			buyActivity.TransactionId.Should().Be(contractActivity.ReferenceCode);
-			buyActivity.Description.Should().Be(contractActivity.Comment);
-			buyActivity.TotalTransactionAmount.Amount.Should().Be(contractActivity.Quantity * contractActivity.UnitPrice);
-			buyActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
-			buyActivity.PartialSymbolIdentifiers.First().Identifier.Should().Be(symbolProfile.Symbol);
+			BuyActivity buyActivity = (BuyActivity)result;
+			_ = buyActivity.Account.Should().Be(account);
+			_ = buyActivity.Date.Should().Be(contractActivity.Date);
+			_ = buyActivity.Quantity.Should().Be(contractActivity.Quantity);
+			_ = buyActivity.UnitPrice.Amount.Should().Be(contractActivity.UnitPrice);
+			_ = buyActivity.UnitPrice.Currency.Symbol.Should().Be(symbolProfile.Currency);
+			_ = buyActivity.TransactionId.Should().Be(contractActivity.ReferenceCode);
+			_ = buyActivity.Description.Should().Be(contractActivity.Comment);
+			_ = buyActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
+			_ = buyActivity.PartialSymbolIdentifiers.First().Identifier.Should().Be(symbolProfile.Symbol);
 		}
 
 		[Fact]
@@ -136,19 +136,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile, fee: 10.50m, feeCurrency: "USD");
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<BuyActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<BuyActivity>();
 
-			var buyActivity = (BuyActivity)result;
-			buyActivity.Fees.Should().HaveCount(1);
-           buyActivity.Fees.First().Amount.Should().Be(10.50m);
-           buyActivity.Fees.First().Currency.Symbol.Should().Be("USD");
+			BuyActivity buyActivity = (BuyActivity)result;
+			_ = buyActivity.Fees.Should().HaveCount(1);
+			_ = buyActivity.Fees.First().Amount.Should().Be(10.50m);
+			_ = buyActivity.Fees.First().Currency.Symbol.Should().Be("USD");
 		}
 
 		[Fact]
@@ -158,21 +159,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.SELL, symbolProfile, quantity: 50, unitPrice: 110.25m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<SellActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<SellActivity>();
 
-			var sellActivity = (SellActivity)result;
-			sellActivity.Account.Should().Be(account);
-			sellActivity.Date.Should().Be(contractActivity.Date);
-			sellActivity.Quantity.Should().Be(50);
-			sellActivity.UnitPrice.Amount.Should().Be(110.25m);
-			sellActivity.TotalTransactionAmount.Amount.Should().Be(50 * 110.25m);
+			SellActivity sellActivity = (SellActivity)result;
+			_ = sellActivity.Account.Should().Be(account);
+			_ = sellActivity.Date.Should().Be(contractActivity.Date);
+			_ = sellActivity.Quantity.Should().Be(50);
+			_ = sellActivity.UnitPrice.Amount.Should().Be(110.25m);
 		}
 
 		[Fact]
@@ -182,18 +183,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.SELL, symbolProfile, fee: 5.25m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<SellActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<SellActivity>();
 
-			var sellActivity = (SellActivity)result;
-			sellActivity.Fees.Should().HaveCount(1);
-           sellActivity.Fees.First().Amount.Should().Be(5.25m);
+			SellActivity sellActivity = (SellActivity)result;
+			_ = sellActivity.Fees.Should().HaveCount(1);
+			_ = sellActivity.Fees.First().Amount.Should().Be(5.25m);
 		}
 
 		[Fact]
@@ -203,21 +205,22 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.DIVIDEND, symbolProfile, unitPrice: 2.50m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<DividendActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<DividendActivity>();
 
-			var dividendActivity = (DividendActivity)result;
-			dividendActivity.Account.Should().Be(account);
-			dividendActivity.Date.Should().Be(contractActivity.Date);
-			dividendActivity.Amount.Amount.Should().Be(2.50m);
-			dividendActivity.Amount.Currency.Symbol.Should().Be(symbolProfile.Currency);
-			dividendActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
+			DividendActivity dividendActivity = (DividendActivity)result;
+			_ = dividendActivity.Account.Should().Be(account);
+			_ = dividendActivity.Date.Should().Be(contractActivity.Date);
+			_ = dividendActivity.Amount.Amount.Should().Be(2.50m);
+			_ = dividendActivity.Amount.Currency.Symbol.Should().Be(symbolProfile.Currency);
+			_ = dividendActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
 		}
 
 		[Fact]
@@ -227,18 +230,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.DIVIDEND, symbolProfile, fee: 0.25m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<DividendActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<DividendActivity>();
 
-			var dividendActivity = (DividendActivity)result;
-			dividendActivity.Fees.Should().HaveCount(1);
-           dividendActivity.Fees.First().Amount.Should().Be(0.25m);
+			DividendActivity dividendActivity = (DividendActivity)result;
+			_ = dividendActivity.Fees.Should().HaveCount(1);
+			_ = dividendActivity.Fees.First().Amount.Should().Be(0.25m);
 		}
 
 		[Fact]
@@ -248,19 +252,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.INTEREST, symbolProfile, unitPrice: 15.75m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<InterestActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<InterestActivity>();
 
-			var interestActivity = (InterestActivity)result;
-			interestActivity.Account.Should().Be(account);
-			interestActivity.Date.Should().Be(contractActivity.Date);
-			interestActivity.Amount.Amount.Should().Be(15.75m);
+			InterestActivity interestActivity = (InterestActivity)result;
+			_ = interestActivity.Account.Should().Be(account);
+			_ = interestActivity.Date.Should().Be(contractActivity.Date);
+			_ = interestActivity.Amount.Amount.Should().Be(15.75m);
 		}
 
 		[Fact]
@@ -270,19 +275,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.FEE, symbolProfile, unitPrice: 5.00m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<FeeActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<FeeActivity>();
 
-			var feeActivity = (FeeActivity)result;
-			feeActivity.Account.Should().Be(account);
-			feeActivity.Date.Should().Be(contractActivity.Date);
-			feeActivity.Amount.Amount.Should().Be(5.00m);
+			FeeActivity feeActivity = (FeeActivity)result;
+			_ = feeActivity.Account.Should().Be(account);
+			_ = feeActivity.Date.Should().Be(contractActivity.Date);
+			_ = feeActivity.Amount.Amount.Should().Be(5.00m);
 		}
 
 		[Fact]
@@ -292,20 +298,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.ITEM, symbolProfile, unitPrice: 1000.00m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<ValuableActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<ValuableActivity>();
 
-			var valuableActivity = (ValuableActivity)result;
-			valuableActivity.Account.Should().Be(account);
-			valuableActivity.Date.Should().Be(contractActivity.Date);
-			valuableActivity.Amount.Amount.Should().Be(1000.00m);
-			valuableActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
+			ValuableActivity valuableActivity = (ValuableActivity)result;
+			_ = valuableActivity.Account.Should().Be(account);
+			_ = valuableActivity.Date.Should().Be(contractActivity.Date);
+			_ = valuableActivity.Amount.Amount.Should().Be(1000.00m);
+			_ = valuableActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
 		}
 
 		[Fact]
@@ -315,20 +322,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.LIABILITY, symbolProfile, unitPrice: 500.00m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<LiabilityActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<LiabilityActivity>();
 
-			var liabilityActivity = (LiabilityActivity)result;
-			liabilityActivity.Account.Should().Be(account);
-			liabilityActivity.Date.Should().Be(contractActivity.Date);
-			liabilityActivity.Amount.Amount.Should().Be(500.00m);
-			liabilityActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
+			LiabilityActivity liabilityActivity = (LiabilityActivity)result;
+			_ = liabilityActivity.Account.Should().Be(account);
+			_ = liabilityActivity.Date.Should().Be(contractActivity.Date);
+			_ = liabilityActivity.Amount.Amount.Should().Be(500.00m);
+			_ = liabilityActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
 		}
 
 		[Fact]
@@ -338,14 +346,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity((ActivityType)999, symbolProfile); // Invalid activity type
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act & Assert
 			var exception = Assert.Throws<NotSupportedException>(() =>
 				ContractToModelMapper.MapActivity(account, symbols, contractActivity));
 
-			exception.Message.Should().Contain("Activity type");
-			exception.Message.Should().Contain("is not supported");
+			_ = exception.Message.Should().Contain("Activity type");
+			_ = exception.Message.Should().Contain("is not supported");
 		}
 
 		[Fact]
@@ -355,14 +364,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
-			var symbols = new List<SymbolProfile>(); // Empty symbol list
+			List<SymbolProfile> symbols = new(); // Empty symbol list
 
 			// Act & Assert
 			var exception = Assert.Throws<ArgumentException>(() =>
 				ContractToModelMapper.MapActivity(account, symbols, contractActivity));
 
-			exception.Message.Should().Contain("Symbol");
-			exception.Message.Should().Contain("not found");
+			_ = exception.Message.Should().Contain("Symbol");
+			_ = exception.Message.Should().Contain("not found");
 		}
 
 		[Fact]
@@ -374,14 +383,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
 			contractActivity.ReferenceCode = null;
 			contractActivity.Id = "TEST-ID-123";
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.TransactionId.Should().Be("TEST-ID-123");
+			_ = result.Should().NotBeNull();
+			_ = result.TransactionId.Should().Be("TEST-ID-123");
 		}
 
 		[Fact]
@@ -393,16 +403,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
 			contractActivity.ReferenceCode = null;
 			contractActivity.Id = null;
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.TransactionId.Should().NotBeNullOrEmpty();
+			_ = result.Should().NotBeNull();
+			_ = result.TransactionId.Should().NotBeNullOrEmpty();
 			// Should be a valid GUID format
-			Guid.TryParse(result.TransactionId, out _).Should().BeTrue();
+			_ = Guid.TryParse(result.TransactionId, out _).Should().BeTrue();
 		}
 
 		[Fact]
@@ -412,18 +423,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "USD");
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile, fee: 15.00m, feeCurrency: "EUR");
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<BuyActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<BuyActivity>();
 
-			var buyActivity = (BuyActivity)result;
-			buyActivity.Fees.Should().HaveCount(1);
-           buyActivity.Fees.First().Currency.Symbol.Should().Be("EUR");
+			BuyActivity buyActivity = (BuyActivity)result;
+			_ = buyActivity.Fees.Should().HaveCount(1);
+			_ = buyActivity.Fees.First().Currency.Symbol.Should().Be("EUR");
 		}
 
 		[Fact]
@@ -433,17 +445,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile, fee: 0.00m);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<BuyActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<BuyActivity>();
 
-			var buyActivity = (BuyActivity)result;
-			buyActivity.Fees.Should().BeEmpty();
+			BuyActivity buyActivity = (BuyActivity)result;
+			_ = buyActivity.Fees.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -453,18 +466,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "USD");
 			var contractActivity = CreateTestContractActivity(ActivityType.SELL, symbolProfile, fee: 5.00m, feeCurrency: null);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType<SellActivity>();
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType<SellActivity>();
 
-			var sellActivity = (SellActivity)result;
-			sellActivity.Fees.Should().HaveCount(1);
-           sellActivity.Fees.First().Currency.Symbol.Should().Be("USD");
+			SellActivity sellActivity = (SellActivity)result;
+			_ = sellActivity.Fees.Should().HaveCount(1);
+			_ = sellActivity.Fees.First().Currency.Symbol.Should().Be("USD");
 		}
 
 		[Theory]
@@ -481,14 +495,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(activityType, symbolProfile);
-			var symbols = new List<SymbolProfile> { symbolProfile };
+			List<SymbolProfile> symbols = new()
+			{ symbolProfile };
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().BeOfType(expectedType);
+			_ = result.Should().NotBeNull();
+			_ = result.Should().BeOfType(expectedType);
 		}
 
 		#endregion

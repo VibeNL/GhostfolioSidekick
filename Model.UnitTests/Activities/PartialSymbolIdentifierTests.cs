@@ -38,8 +38,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				IdentifierType.Default,
 				"TEST",
 				Currency.EUR,
-				new List<AssetClass> { AssetClass.Equity },
-				new List<AssetSubClass> { AssetSubClass.Stock, AssetSubClass.Etf }
+				[AssetClass.Equity],
+				[AssetSubClass.Stock, AssetSubClass.Etf]
 			);
 
 			// Act & Assert
@@ -63,8 +63,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnTrue_WhenBothHaveNullCollections()
 		{
 			// Arrange
-			var identifier1 = new PartialSymbolIdentifier(IdentifierType.Default, "TEST", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
-			var identifier2 = new PartialSymbolIdentifier(IdentifierType.Default, "TEST", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
+			var identifier1 = new PartialSymbolIdentifier(IdentifierType.Default, "TEST", Currency.EUR, [], []);
+			var identifier2 = new PartialSymbolIdentifier(IdentifierType.Default, "TEST", Currency.EUR, [], []);
 
 			// Act & Assert
 			identifier1.Equals(identifier2).Should().BeTrue();
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 		public void Equals_ShouldReturnFalse_WhenOneHasNullAndOtherHasValues()
 		{
 			// Arrange
-			var identifier1 = new PartialSymbolIdentifier(IdentifierType.Default, "TEST", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
+			var identifier1 = new PartialSymbolIdentifier(IdentifierType.Default, "TEST", Currency.EUR, [], []);
 			var identifier2 = PartialSymbolIdentifier.CreateCrypto(IdentifierType.Default, "TEST", Currency.EUR)!;
 
 			// Act & Assert
@@ -92,8 +92,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				IdentifierType.Default,
 				"TEST",
 				Currency.EUR,
-				new List<AssetClass> { AssetClass.Equity },
-				new List<AssetSubClass> { AssetSubClass.Stock, AssetSubClass.Etf }
+				[AssetClass.Equity],
+				[AssetSubClass.Stock, AssetSubClass.Etf]
 			);
 
 			// Act & Assert
@@ -144,8 +144,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				IdentifierType.Default,
 				"TEST",
 				Currency.EUR,
-				new List<AssetClass> { AssetClass.Equity },
-				new List<AssetSubClass> { AssetSubClass.Etf, AssetSubClass.Stock }
+				[AssetClass.Equity],
+				[AssetSubClass.Etf, AssetSubClass.Stock]
 			);
 
 			// Act
@@ -166,8 +166,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				IdentifierType.Default,
 				"TEST",
 				Currency.EUR,
-				new List<AssetClass> { AssetClass.Equity },
-				new List<AssetSubClass> { AssetSubClass.Etf, AssetSubClass.Stock }
+				[AssetClass.Equity],
+				[AssetSubClass.Etf, AssetSubClass.Stock]
 			);
 
 			// Act

@@ -185,8 +185,8 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		private static IEnumerable<PartialSymbolIdentifier> GetSymbolIdentifiers(GenericRecord record, Currency currency)
        {
-			var assetClass = record.AssetClass?.Where(x => x != AssetClass.Undefined).ToList() ?? new List<AssetClass>();
-			var assetSubClass = record.AssetSubClass?.Where(x => x != AssetSubClass.Undefined).ToList() ?? new List<AssetSubClass>();
+			var assetClass = record.AssetClass?.Where(x => x != AssetClass.Undefined).ToList() ?? [];
+			var assetSubClass = record.AssetSubClass?.Where(x => x != AssetSubClass.Undefined).ToList() ?? [];
 
 			if (!string.IsNullOrWhiteSpace(record.Symbol))
 			{

@@ -32,8 +32,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
           var holding = new Holding
             {
                 Id = 42,
-                SymbolProfiles = new List<SymbolProfile>(),
-                CalculatedSnapshots = new List<CalculatedSnapshot>()
+                SymbolProfiles = [],
+                CalculatedSnapshots = []
             };
 
             var mockContext = new Mock<DatabaseContext>();
@@ -86,8 +86,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
           var holding = new Holding
             {
                 Id = 99,
-                SymbolProfiles = new List<SymbolProfile>(),
-                CalculatedSnapshots = new List<CalculatedSnapshot>()
+                SymbolProfiles = [],
+                CalculatedSnapshots = []
             };
 
             var mockContext = new Mock<DatabaseContext>();

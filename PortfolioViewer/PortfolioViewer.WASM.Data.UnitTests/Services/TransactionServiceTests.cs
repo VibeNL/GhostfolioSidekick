@@ -830,7 +830,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				null,
 				description)
 			{
-				TotalTransactionAmount = new Money(Currency.USD, quantity * price)
 			};
 		}
 
@@ -847,7 +846,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				null,
 				description)
 			{
-				TotalTransactionAmount = new Money(Currency.USD, quantity * price)
 			};
 		}
 

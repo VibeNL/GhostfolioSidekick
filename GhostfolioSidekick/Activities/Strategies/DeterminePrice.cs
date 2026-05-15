@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Activities.Strategies
 				return Task.CompletedTask;
 			}
 
-			var activities = holding.Activities
+			List<Activity> activities = holding.Activities
 				.OrderBy(x => x.Date).ToList();
 
 			if (activities.Count == 0)
@@ -50,14 +50,13 @@ namespace GhostfolioSidekick.Activities.Strategies
 									.MarketData
 									.OrderBy(x => x.Date)
 									.FirstOrDefault(x => x.Date >= DateOnly.FromDateTime(activity.Date));
-			if (marketData != null)
-			{
-				var currency = symbolProfile.Currency;
-				activity.AdjustedUnitPrice = new Money(currency, marketData.Close);
-				activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace("Determine price", activity.AdjustedQuantity, activity.AdjustedUnitPrice));
-				activity.TotalTransactionAmount = activity.AdjustedUnitPrice.Times(activity.AdjustedQuantity);
-				return;
-			}
+				if (marketData != null)
+				{
+					var currency = symbolProfile.Currency;
+					activity.AdjustedUnitPrice = new Money(currency, marketData.Close);
+					activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace("Determine price", activity.AdjustedQuantity, activity.AdjustedUnitPrice));
+					return;
+				}
 			}
 		}
 	}

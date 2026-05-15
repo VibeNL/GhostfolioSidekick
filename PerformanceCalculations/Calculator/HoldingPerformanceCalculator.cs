@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 	{
 		public async Task<IEnumerable<CalculatedSnapshot>> GetCalculatedSnapshots(Holding holding, Currency currency)
 		{
-			using var databaseContext = await dbFactory.CreateDbContextAsync();
+			using DatabaseContext databaseContext = await dbFactory.CreateDbContextAsync();
 			// Step 1: Get Holdings with SymbolProfiles (optimized projection)
 			var holdingData = await databaseContext
 				.Holdings
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				return [];
 			}
 
-			var holdingIds = holdingData.Select(x => x.HoldingId).ToList();
+			List<int> holdingIds = holdingData.Select(x => x.HoldingId).ToList();
 
 			// Step 2: Get Activities separately to avoid Cartesian product
 			var activitiesData = await databaseContext
@@ -67,13 +67,13 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				.Distinct()
 				.ToList();
 
-			var allMarketData = new Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>>();
+			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>> allMarketData = [];
 
 			if (symbolProfileKeys.Count != 0)
 			{
 				// Extract the symbol/datasource pairs to local variables to avoid closure in LINQ
-				var symbols = symbolProfileKeys.Select(x => x.Symbol).ToList();
-				var dataSources = symbolProfileKeys.Select(x => x.DataSource).ToList();
+				List<string> symbols = symbolProfileKeys.Select(x => x.Symbol).ToList();
+				List<string> dataSources = symbolProfileKeys.Select(x => x.DataSource).ToList();
 
 				var marketDataQuery = await databaseContext
 					.MarketDatas
@@ -99,10 +99,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				// Group market data by symbol profile
 				foreach (var group in filteredMarketData.GroupBy(x => new { x.Symbol, x.DataSource }))
 				{
-					var marketDataDict = new Dictionary<DateOnly, decimal>();
+					Dictionary<DateOnly, decimal> marketDataDict = [];
 					foreach (var x in group)
 					{
-						var converted = await currencyExchange.ConvertMoney(new Money(x.Currency, x.Close), currency, x.Date);
+						Money converted = await currencyExchange.ConvertMoney(new Money(x.Currency, x.Close), currency, x.Date);
 						marketDataDict[x.Date] = converted.Amount;
 					}
 
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			// Step 4: Build result - return flat list of all snapshots
-			var allSnapshots = new List<CalculatedSnapshot>();
+			List<CalculatedSnapshot> allSnapshots = [];
 
 			foreach (var data in holdingData)
 			{
@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				var activities = activitiesByHolding.GetValueOrDefault(data.HoldingId, []);
 
 				// Create proper SymbolProfile objects for the calculation method
-				var symbolProfiles = data.SymbolProfiles.Select(sp => new SymbolProfile
+				List<SymbolProfile> symbolProfiles = data.SymbolProfiles.Select(sp => new SymbolProfile
 				{
 					Symbol = sp.Symbol,
 					Name = sp.Name,
@@ -143,14 +143,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					Currency = sp.Currency
 				}).ToList();
 
-				var accountIds = activities.Select(x => x.AccountId)
+				List<int> accountIds = activities.Select(x => x.AccountId)
 					.Distinct()
 					.ToList();
 
-				foreach (var accountId in accountIds)
+				foreach (int accountId in accountIds)
 				{
 					ICollection<Activity> activitiesForAccount = [.. activities.Where(x => x.AccountId == accountId).Select(x => x.Activity)];
-					var snapshots = await CalculateSnapShots(
+					ICollection<CalculatedSnapshot> snapshots = await CalculateSnapShots(
 						currency,
 						accountId,
 						symbolProfiles,
@@ -170,49 +170,49 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			ICollection<Activity> activities,
 			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>> preLoadedMarketData)
 		{
-			var quantityActivities = activities.OfType<ActivityWithQuantityAndUnitPrice>().ToList();
+			List<ActivityWithQuantityAndUnitPrice> quantityActivities = activities.OfType<ActivityWithQuantityAndUnitPrice>().ToList();
 			if (quantityActivities.Count == 0)
 			{
 				return [];
 			}
 
-			var minDate = DateOnly.FromDateTime(quantityActivities.Min(x => x.Date));
-			var maxDate = DateOnly.FromDateTime(DateTime.Today);
+			DateOnly minDate = DateOnly.FromDateTime(quantityActivities.Min(x => x.Date));
+			DateOnly maxDate = DateOnly.FromDateTime(DateTime.Today);
 
-			var dayCount = maxDate.DayNumber - minDate.DayNumber + 1;
-			var snapshots = new List<CalculatedSnapshot>(dayCount);
+			int dayCount = maxDate.DayNumber - minDate.DayNumber + 1;
+			List<CalculatedSnapshot> snapshots = new(dayCount);
 
-			var activitiesByDate = quantityActivities
+			Dictionary<DateOnly, List<ActivityWithQuantityAndUnitPrice>> activitiesByDate = quantityActivities
 			.GroupBy(x => DateOnly.FromDateTime(x.Date))
 			.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 
-			var previousSnapshot = new CalculatedSnapshot(Guid.NewGuid(), accountId, minDate.AddDays(-1), 0, targetCurrency, 0, 0, 0, 0);
+			CalculatedSnapshot previousSnapshot = new(Guid.NewGuid(), accountId, minDate.AddDays(-1), 0, targetCurrency, 0, 0, 0, 0);
 
 			// Use pre-loaded market data instead of querying database
 			Dictionary<DateOnly, decimal> marketData = new(dayCount);
 			foreach (SymbolProfile symbolProfile in symbolProfiles)
 			{
-				if (preLoadedMarketData.TryGetValue((symbolProfile.Symbol, symbolProfile.DataSource), out var symbolMarketData))
+				if (preLoadedMarketData.TryGetValue((symbolProfile.Symbol, symbolProfile.DataSource), out Dictionary<DateOnly, decimal>? symbolMarketData))
 				{
-					foreach (var kvp in symbolMarketData)
+					foreach (KeyValuePair<DateOnly, decimal> kvp in symbolMarketData)
 					{
-						marketData.TryAdd(kvp.Key, kvp.Value);
+						_ = marketData.TryAdd(kvp.Key, kvp.Value);
 					}
 				}
 			}
 
 			await AddActivitiesAsMarketDataIfNeeded(marketData, activitiesByDate, minDate, maxDate, targetCurrency).ConfigureAwait(false);
 
-			var lastKnownMarketPrice = marketData
+			decimal lastKnownMarketPrice = marketData
 				.Where(x => x.Key <= minDate)
 				.Where(x => x.Value != 0)
 				.OrderByDescending(x => x.Key)
 				.Select(x => x.Value)
 				.FirstOrDefault();
 
-			for (var date = minDate; date <= maxDate; date = date.AddDays(1))
+			for (DateOnly date = minDate; date <= maxDate; date = date.AddDays(1))
 			{
-				var snapshot = new CalculatedSnapshot(previousSnapshot)
+				CalculatedSnapshot snapshot = new(previousSnapshot)
 				{
 					Date = date,
 				};
@@ -225,10 +225,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					currencyExchange
 				).ConfigureAwait(false);
 
-				var marketPrice = marketData.TryGetValue(date, out var closePrice) ? closePrice : lastKnownMarketPrice;
+				decimal marketPrice = marketData.TryGetValue(date, out decimal closePrice) ? closePrice : lastKnownMarketPrice;
 				lastKnownMarketPrice = marketPrice;
-				var marketPriceMoney = new Money(targetCurrency, marketPrice);
-				var marketPriceConverted = await currencyExchange.ConvertMoney(
+				Money marketPriceMoney = new(targetCurrency, marketPrice);
+				Money marketPriceConverted = await currencyExchange.ConvertMoney(
 					marketPriceMoney,
 						targetCurrency,
 					date).ConfigureAwait(false);
@@ -240,7 +240,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			// Round the values to avoid floating point issues
-			foreach (var snapshot in snapshots)
+			foreach (CalculatedSnapshot snapshot in snapshots)
 			{
 				snapshot.AverageCostPrice = Math.Round(snapshot.AverageCostPrice, Constants.NumberOfDecimals);
 				snapshot.CurrentUnitPrice = Math.Round(snapshot.CurrentUnitPrice, Constants.NumberOfDecimals);
@@ -253,29 +253,29 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 		}
 
 		private async Task AddActivitiesAsMarketDataIfNeeded(
-			Dictionary<DateOnly, decimal> marketData, 
-			Dictionary<DateOnly, List<ActivityWithQuantityAndUnitPrice>> activitiesByDate, 
-			DateOnly minDate, 
+			Dictionary<DateOnly, decimal> marketData,
+			Dictionary<DateOnly, List<ActivityWithQuantityAndUnitPrice>> activitiesByDate,
+			DateOnly minDate,
 			DateOnly maxDate,
 			Currency targetCurrency)
-		{	
-			var lastKnownPrice = 0m;
+		{
+			decimal lastKnownPrice = 0m;
 
-			for (var date = minDate; date <= maxDate; date = date.AddDays(1))
+			for (DateOnly date = minDate; date <= maxDate; date = date.AddDays(1))
 			{
-				if (!marketData.TryGetValue(date, out var value) || value == 0)
+				if (!marketData.TryGetValue(date, out decimal value) || value == 0)
 				{
 					marketData[date] = lastKnownPrice;
-					
+
 					if (lastKnownPrice == 0 && activitiesByDate.TryGetValue(date, out List<ActivityWithQuantityAndUnitPrice>? activities))
 					{
-						foreach (var activity in activities.OrderBy(x => x.UnitPrice.Amount))
+						foreach (ActivityWithQuantityAndUnitPrice? activity in activities.OrderBy(x => x.UnitPrice.Amount))
 						{
-							var converted = await currencyExchange.ConvertMoney(
+							Money converted = await currencyExchange.ConvertMoney(
 													activity.UnitPrice,
 													targetCurrency,
 													date).ConfigureAwait(false);
-							var convertedAmount = converted.Amount;
+							decimal convertedAmount = converted.Amount;
 							if (convertedAmount != 0)
 							{
 								marketData[date] = convertedAmount;
@@ -286,7 +286,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					}
 				}
 
-				if (marketData.TryGetValue(date, out var price) && price != 0)
+				if (marketData.TryGetValue(date, out decimal price) && price != 0)
 				{
 					lastKnownPrice = price;
 				}
@@ -300,14 +300,20 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 		Currency targetCurrency,
 		ICurrencyExchange currencyExchange)
 		{
-			if (!activitiesByDate.TryGetValue(date, out var dayActivities))
+			if (!activitiesByDate.TryGetValue(date, out List<ActivityWithQuantityAndUnitPrice>? dayActivities))
 			{
 				return;
 			}
 
-			foreach (var activity in dayActivities)
+			foreach (ActivityWithQuantityAndUnitPrice activity in dayActivities)
 			{
-				var sign = activity switch
+				IEnumerable<Money> feesAndTaxes = (activity as SellActivity)?.Fees?.Cast<Money>().Concat((activity as SellActivity)?.Taxes ?? []) ??
+								  (activity as BuyActivity)?.Fees?.Cast<Money>().Concat((activity as BuyActivity)?.Taxes ?? []) ??
+								  (activity as ReceiveActivity)?.Fees?.Cast<Money>() ??
+								  [];
+
+
+				int sign = activity switch
 				{
 					BuyActivity or ReceiveActivity or GiftAssetActivity or StakingRewardActivity => 1,
 					SellActivity or SendActivity => -1,
@@ -316,11 +322,12 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 				if (sign == 1)
 				{
-					var convertedTotal = await currencyExchange.ConvertMoney(
-						activity.TotalTransactionAmount,
+					Money convertedTotal = await currencyExchange.ConvertMoney(
+						activity.UnitPrice.Times(activity.Quantity),
 						targetCurrency,
-						date)
-					.ConfigureAwait(false);
+						date).ConfigureAwait(false);
+
+
 
 					// For buy/receive/gift/staking, add the invested amount and update average cost price
 					snapshot.TotalInvested += convertedTotal.Amount;
@@ -330,7 +337,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				else
 				{
 					// For sell/send, first calculate cost basis reduction using current average cost price
-					var costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
+					decimal costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
 					snapshot.TotalInvested -= costBasisReduction;
 					snapshot.Quantity -= activity.AdjustedQuantity;
 
@@ -347,12 +354,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 		private static decimal CalculateAverageCostPrice(CalculatedSnapshot snapshot)
 		{
-			if (snapshot.Quantity == 0)
-			{
-				return 0;
-			}
-
-			return snapshot.TotalInvested / snapshot.Quantity;
+			return snapshot.Quantity == 0 ? 0 : snapshot.TotalInvested / snapshot.Quantity;
 		}
 
 	}

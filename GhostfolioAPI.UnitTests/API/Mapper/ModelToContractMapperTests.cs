@@ -294,8 +294,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var cashDeposit = new GhostfolioSidekick.Model.Activities.Types.CashDepositActivity(modelAccount, holding, date, money, transactionId, sortingPriority, description);
 			var cashWithdrawal = new GhostfolioSidekick.Model.Activities.Types.CashWithdrawalActivity(modelAccount, holding, date, money, transactionId, sortingPriority, description);
             var partialSymbol = new GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier(
-				GhostfolioSidekick.Model.Activities.IdentifierType.ISIN, "ABC", null, new List<GhostfolioSidekick.Model.Activities.AssetClass>(), new List<GhostfolioSidekick.Model.Activities.AssetSubClass>());
-			var stakingReward = new GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity(modelAccount, holding, new List<GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier> { partialSymbol }, date, 1m, transactionId, sortingPriority, description);
+				GhostfolioSidekick.Model.Activities.IdentifierType.ISIN, "ABC", null, [], []);
+			var stakingReward = new GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity(modelAccount, holding, [partialSymbol], date, 1m, transactionId, sortingPriority, description);
 
 			var result1 = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, cashDeposit, null);
 			var result2 = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, cashWithdrawal, null);

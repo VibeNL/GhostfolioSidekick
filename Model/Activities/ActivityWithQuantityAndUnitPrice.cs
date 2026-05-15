@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.Model.Activities
 {
@@ -38,8 +38,6 @@ namespace GhostfolioSidekick.Model.Activities
 		public decimal AdjustedQuantity { get; set; }
 
 		public Money AdjustedUnitPrice { get; set; }
-
-		public Money TotalTransactionAmount { get; set; } = new Money();
 
 		public virtual List<CalculatedPriceTrace> AdjustedUnitPriceSource { get; set; } = [];
 	}

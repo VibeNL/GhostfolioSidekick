@@ -34,11 +34,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 	{
 		public void Configure(EntityTypeBuilder<Activity> builder)
 		{
-			builder.ToTable("Activities");
-			builder.UseTphMappingStrategy();
+			_ = builder.ToTable("Activities");
+			_ = builder.UseTphMappingStrategy();
 
 			// Configure custom discriminator values
-			builder.HasDiscriminator<string>("Discriminator")
+			_ = builder.HasDiscriminator<string>("Discriminator")
 				.HasValue<BuyActivity>("Buy")
 				.HasValue<SellActivity>("Sell")
 				.HasValue<CashDepositActivity>("CashDeposit")
@@ -57,21 +57,20 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasValue<StakingRewardActivity>("StakingReward")
 				.HasValue<ValuableActivity>("Valuable");
 
-			builder.HasKey(a => a.Id);
+			_ = builder.HasKey(a => a.Id);
 
 			// Indexes
-			builder.HasIndex(a => a.Date);
-			builder.HasIndex("AccountId");
+			_ = builder.HasIndex(a => a.Date);
+			_ = builder.HasIndex("AccountId");
 		}
 
 		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(ActivityWithQuantityAndUnitPrice.UnitPrice));
 			MapMoney(builder, x => x.AdjustedUnitPrice, nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice));
-			MapMoney(builder, x => x.TotalTransactionAmount, nameof(ActivityWithQuantityAndUnitPrice.TotalTransactionAmount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 
-			builder.HasMany(x => x.AdjustedUnitPriceSource)
+			_ = builder.HasMany(x => x.AdjustedUnitPriceSource)
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
@@ -81,7 +80,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			MapMoney(builder, x => x.Amount, nameof(ActivityWithAmount.Amount));
 		}
-		
+
 		public void Configure(EntityTypeBuilder<BuyActivity> builder)
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(BuyActivity.UnitPrice));
@@ -178,19 +177,19 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<CalculatedPriceTrace> builder)
 		{
-			builder.ToTable("CalculatedPriceTrace");
-			builder.Property<long>("ID")
+			_ = builder.ToTable("CalculatedPriceTrace");
+			_ = builder.Property<long>("ID")
 				.HasColumnType("integer")
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
-			builder.HasKey("ID");
+			_ = builder.HasKey("ID");
 
 			MapMoney(builder, x => x.NewPrice, nameof(CalculatedPriceTrace.NewPrice));
 		}
 
 		private static void MapPartialSymbolIdentifiers<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, IEnumerable<PartialSymbolIdentifier>?>>? navigationExpression) where TEntity : class
 		{
-			builder.HasMany(navigationExpression)
+			_ = builder.HasMany(navigationExpression)
 		   .WithMany()
 		   .UsingEntity<PartialSymbolIdentifierActivity>(
 			   l => l.HasOne<PartialSymbolIdentifier>().WithMany().HasForeignKey("PartialSymbolIdentifierId").OnDelete(DeleteBehavior.Cascade),
@@ -200,16 +199,16 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money?>> navigationExpression, string name) where TEntity : class
 		{
-			builder.ComplexProperty(navigationExpression).IsRequired().Property(x => x.Amount).HasColumnName(name);
-			builder.ComplexProperty(navigationExpression).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
+			_ = builder.ComplexProperty(navigationExpression).IsRequired().Property(x => x.Amount).HasColumnName(name);
+			_ = builder.ComplexProperty(navigationExpression).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
 		}
 
 		private static void MapMoneyList<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, List<Money>>> propertyExpression, string columnName) where TEntity : class
 		{
-			var converter = new ValueConverter<List<Money>, string>(
+			ValueConverter<List<Money>, string> converter = new(
 				v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
 				v => JsonSerializer.Deserialize<List<Money>>(v, (JsonSerializerOptions?)null) ?? new List<Money>());
-			builder.Property(propertyExpression)
+			_ = builder.Property(propertyExpression)
 				.HasColumnName(columnName)
 				.HasConversion(converter);
 		}

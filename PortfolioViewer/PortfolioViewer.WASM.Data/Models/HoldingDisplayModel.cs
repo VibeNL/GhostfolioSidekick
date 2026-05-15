@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 
 	public class HoldingDisplayModel
 	{
-		public List<string> Symbols { get; set; } = new();
+		public List<string> Symbols { get; set; } = [];
 		public string Name { get; set; } = string.Empty;
 		public required Money CurrentValue { get; set; }
 		public decimal Quantity { get; set; }
