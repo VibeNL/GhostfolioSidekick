@@ -28,8 +28,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 				Date = DateTime.UtcNow,
 				Amount = new Money(baseCurrency, 100)
 			};
-			List<Activity> activities = new()
-			{ knownBalanceActivity };
+			List<Activity> activities = [knownBalanceActivity];
 
 			// Act
 			List<Balance> result = await balanceCalculator.Calculate(baseCurrency, activities);
@@ -48,15 +47,17 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			BuyActivity buySellActivity = new()
 			{
 				Date = DateTime.UtcNow,
-				Quantity = 1
+				Quantity = 1,
+				UnitPrice = new Money(baseCurrency, 50),
+				Fees = { new Money(baseCurrency, 5) },
+				Taxes = { new Money(baseCurrency, 2) }
 			};
 			CashDepositActivity cashDepositActivity = new()
 			{
 				Date = DateTime.UtcNow.AddDays(-1),
 				Amount = new Money(baseCurrency, 100)
 			};
-			List<Activity> activities = new()
-			{ buySellActivity, cashDepositActivity };
+			List<Activity> activities = [buySellActivity, cashDepositActivity];
 
 			_ = mockExchangeRateService
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
@@ -68,7 +69,8 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			// Assert
 			_ = result.Should().HaveCount(2);
 			_ = result[0].Money.Amount.Should().Be(100);
-			_ = result[1].Money.Amount.Should().Be(50);
+			// Buy: 1*50 + 5 + 2 = 57
+			_ = result[1].Money.Amount.Should().Be(43); // 100 - 57
 		}
 
 		[Fact]
@@ -80,8 +82,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			{
 				Date = DateTime.UtcNow
 			};
-			List<Activity> activities = new()
-			{ unknownActivity };
+			List<Activity> activities = [unknownActivity];
 
 			// Act
 			Func<Task> act = async () => await balanceCalculator.Calculate(baseCurrency, activities);
@@ -104,19 +105,19 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			Currency baseCurrency = Currency.USD;
 			DateTime date = DateTime.UtcNow.Date;
-			List<Activity> activities = new()
-			{
-				new BuyActivity { Date = date, UnitPrice = new Money(baseCurrency, 10), Quantity = 1 },
-				new SellActivity { Date = date.AddDays(1), UnitPrice = new Money(baseCurrency, 20), Quantity = 1 },
-				new CashDepositActivity { Date = date.AddDays(2), Amount = new Money(baseCurrency, 30) },
-				new CashWithdrawalActivity { Date = date.AddDays(3), Amount = new Money(baseCurrency, 5) },
-				new DividendActivity { Date = date.AddDays(4), Amount = new Money(baseCurrency, 7) },
-				new FeeActivity { Date = date.AddDays(5), Amount = new Money(baseCurrency, 2) },
-				new InterestActivity { Date = date.AddDays(6), Amount = new Money(baseCurrency, 3) },
-				new RepayBondActivity { Date = date.AddDays(7), Amount = new Money(baseCurrency, 4) },
-				new GiftFiatActivity { Date = date.AddDays(8), Amount = new Money(baseCurrency, 6) },
-				new CorrectionActivity { Date = date.AddDays(9), Amount = new Money(baseCurrency, 1) },
-			};
+			List<Activity> activities =
+			[
+				new BuyActivity { Date = date, UnitPrice = new Money(baseCurrency, 10), Quantity = 1, Fees = { new Money(baseCurrency, 1) }, Taxes = { new Money(baseCurrency, 2) } },
+			   new SellActivity { Date = date.AddDays(1), UnitPrice = new Money(baseCurrency, 20), Quantity = 1, Fees = { new Money(baseCurrency, 2) }, Taxes = { new Money(baseCurrency, 3) } },
+			   new CashDepositActivity { Date = date.AddDays(2), Amount = new Money(baseCurrency, 30) },
+			   new CashWithdrawalActivity { Date = date.AddDays(3), Amount = new Money(baseCurrency, 5) },
+			   new DividendActivity { Date = date.AddDays(4), Amount = new Money(baseCurrency, 7), Fees = { new Money(baseCurrency, 1) }, Taxes = { new Money(baseCurrency, 1) } },
+			   new FeeActivity { Date = date.AddDays(5), Amount = new Money(baseCurrency, 2) },
+			   new InterestActivity { Date = date.AddDays(6), Amount = new Money(baseCurrency, 3) },
+			   new RepayBondActivity { Date = date.AddDays(7), Amount = new Money(baseCurrency, 4) },
+			   new GiftFiatActivity { Date = date.AddDays(8), Amount = new Money(baseCurrency, 6) },
+			   new CorrectionActivity { Date = date.AddDays(9), Amount = new Money(baseCurrency, 1) },
+		   ];
 
 			_ = mockExchangeRateService
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
@@ -135,16 +136,16 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			Currency baseCurrency = Currency.USD;
 			DateTime date = DateTime.UtcNow.Date;
-			List<Activity> activities = new()
-			{
-				new BuyActivity { Date = date, UnitPrice = new Money(baseCurrency, 10), Quantity = 1 },
-				new GhostfolioSidekick.Model.Activities.Types.GiftAssetActivity { Date = date.AddDays(1) },
-				new GhostfolioSidekick.Model.Activities.Types.LiabilityActivity { Date = date.AddDays(2) },
-				new GhostfolioSidekick.Model.Activities.Types.ReceiveActivity { Date = date.AddDays(3) },
-				new GhostfolioSidekick.Model.Activities.Types.SendActivity { Date = date.AddDays(4) },
-				new GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity { Date = date.AddDays(5) },
-				new GhostfolioSidekick.Model.Activities.Types.ValuableActivity { Date = date.AddDays(6) },
-			};
+			List<Activity> activities =
+			[
+				new BuyActivity { Date = date, UnitPrice = new Money(baseCurrency, 10), Quantity = 1, Fees = { new Money(baseCurrency, 1) }, Taxes = { new Money(baseCurrency, 2) } },
+			   new GhostfolioSidekick.Model.Activities.Types.GiftAssetActivity { Date = date.AddDays(1) },
+			   new GhostfolioSidekick.Model.Activities.Types.LiabilityActivity { Date = date.AddDays(2) },
+			   new GhostfolioSidekick.Model.Activities.Types.ReceiveActivity { Date = date.AddDays(3) },
+			   new GhostfolioSidekick.Model.Activities.Types.SendActivity { Date = date.AddDays(4) },
+			   new GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity { Date = date.AddDays(5) },
+			   new GhostfolioSidekick.Model.Activities.Types.ValuableActivity { Date = date.AddDays(6) },
+		   ];
 
 			_ = mockExchangeRateService
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
@@ -153,8 +154,8 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			List<Balance> result = await balanceCalculator.Calculate(baseCurrency, activities);
 
 			_ = result.Should().NotBeNull();
-			_ = result.Count.Should().Be(1);
-			_ = result[0].Money.Amount.Should().Be(-10);
+			_ = result.Count.Should().Be(3);
+			_ = result[0].Money.Amount.Should().Be(-13); // 0 - (10 + 1 + 2)
 		}
 
 		[Fact]
@@ -162,12 +163,12 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			Currency baseCurrency = Currency.USD;
 			DateTime date = DateTime.UtcNow.Date;
-			List<Activity> activities = new()
-			{
-				new BuyActivity { Date = date, UnitPrice = new Money(baseCurrency, 10), Quantity = 1 },
-				new CashDepositActivity { Date = date, Amount = new Money(baseCurrency, 20) },
-				new FeeActivity { Date = date, Amount = new Money(baseCurrency, 2) },
-			};
+			List<Activity> activities =
+			[
+				new BuyActivity { Date = date, UnitPrice = new Money(baseCurrency, 10), Quantity = 1, Fees = { new Money(baseCurrency, 1) }, Taxes = { new Money(baseCurrency, 2) } },
+			   new CashDepositActivity { Date = date, Amount = new Money(baseCurrency, 20) },
+			   new FeeActivity { Date = date, Amount = new Money(baseCurrency, 2) },
+		   ];
 
 			_ = mockExchangeRateService
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
@@ -177,7 +178,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			_ = result.Should().NotBeNull();
 			_ = result.Count.Should().Be(1);
-			_ = result[0].Money.Amount.Should().Be(8); // 20 - 10 - 2
+			_ = result[0].Money.Amount.Should().Be(5); // 20 - (10 + 1 + 2) - 2
 		}
 
 		[Fact]
@@ -185,11 +186,11 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			Currency baseCurrency = Currency.EUR;
 			DateTime date = DateTime.UtcNow.Date;
-			List<Activity> activities = new()
-			{
-				new BuyActivity { Date = date, UnitPrice = new Money(Currency.USD, 10), Quantity = 1 },
-				new CashDepositActivity { Date = date, Amount = new Money(Currency.USD, 20) },
-			};
+			List<Activity> activities =
+			[
+				new BuyActivity { Date = date, UnitPrice = new Money(Currency.USD, 10), Quantity = 1, Fees = { new Money(Currency.USD, 1) }, Taxes = { new Money(Currency.USD, 2) } },
+			   new CashDepositActivity { Date = date, Amount = new Money(Currency.USD, 20) },
+		   ];
 
 			_ = mockExchangeRateService
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
@@ -200,7 +201,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			_ = result.Should().NotBeNull();
 			_ = result.Count.Should().Be(1);
 			_ = result[0].Money.Currency.Should().Be(baseCurrency);
-			_ = result[0].Money.Amount.Should().Be(20); // (20 - 10) * 2
+			_ = result[0].Money.Amount.Should().Be(14); // (20 - (10 + 1 + 2)) * 2
 		}
 
 		[Fact]
@@ -208,11 +209,11 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			Currency baseCurrency = Currency.USD;
 			DateTime date = DateTime.UtcNow.Date;
-			List<Activity> activities = new()
-			{
-				new DividendActivity { Date = date, Amount = new Money(baseCurrency, -5) },
-				new FeeActivity { Date = date, Amount = new Money(baseCurrency, 0) },
-			};
+			List<Activity> activities =
+			[
+				new DividendActivity { Date = date, Amount = new Money(baseCurrency, -5), Fees = { new Money(baseCurrency, 1) }, Taxes = { new Money(baseCurrency, 1) } },
+			   new FeeActivity { Date = date, Amount = new Money(baseCurrency, 0) },
+		   ];
 
 			_ = mockExchangeRateService
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
@@ -222,7 +223,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			_ = result.Should().NotBeNull();
 			_ = result.Count.Should().Be(1);
-			_ = result[0].Money.Amount.Should().Be(-5);
+			_ = result[0].Money.Amount.Should().Be(-7); // -5 - 1 - 1
 		}
 	}
 }
