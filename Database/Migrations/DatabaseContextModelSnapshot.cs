@@ -759,6 +759,25 @@ namespace GhostfolioSidekick.Database.Migrations
                                 });
                         });
 
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "TransactionAmount", "GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice.TransactionAmount#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("TransactionAmount");
+
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Currency", "GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice.TransactionAmount#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyTransactionAmount");
+                                });
+                        });
+
                     b.ComplexProperty(typeof(Dictionary<string, object>), "UnitPrice", "GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice.UnitPrice#Money", b1 =>
                         {
                             b1.IsRequired();

@@ -5,7 +5,7 @@
 namespace GhostfolioSidekick.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class InlineFeesAndTaxes : Migration
+    public partial class OptimizeMoneyList : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,6 +34,16 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.DropTable(
                 name: "SendActivityFees");
 
+            migrationBuilder.RenameColumn(
+                name: "TotalTransactionAmount",
+                table: "Activities",
+                newName: "TransactionAmount");
+
+            migrationBuilder.RenameColumn(
+                name: "CurrencyTotalTransactionAmount",
+                table: "Activities",
+                newName: "CurrencyTransactionAmount");
+
             migrationBuilder.AddColumn<string>(
                 name: "Fees",
                 table: "Activities",
@@ -57,6 +67,16 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.DropColumn(
                 name: "Taxes",
                 table: "Activities");
+
+            migrationBuilder.RenameColumn(
+                name: "TransactionAmount",
+                table: "Activities",
+                newName: "TotalTransactionAmount");
+
+            migrationBuilder.RenameColumn(
+                name: "CurrencyTransactionAmount",
+                table: "Activities",
+                newName: "CurrencyTotalTransactionAmount");
 
             migrationBuilder.CreateTable(
                 name: "BuyActivityFees",

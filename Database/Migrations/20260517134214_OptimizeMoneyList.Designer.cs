@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20260515075815_InlineFeesAndTaxes")]
-    partial class InlineFeesAndTaxes
+    [Migration("20260517134214_OptimizeMoneyList")]
+    partial class OptimizeMoneyList
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -762,22 +762,22 @@ namespace GhostfolioSidekick.Database.Migrations
                                 });
                         });
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "TotalTransactionAmount", "GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice.TotalTransactionAmount#Money", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "TransactionAmount", "GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice.TransactionAmount#Money", b1 =>
                         {
                             b1.IsRequired();
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("TEXT")
-                                .HasColumnName("TotalTransactionAmount");
+                                .HasColumnName("TransactionAmount");
 
-                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Currency", "GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice.TotalTransactionAmount#Money.Currency#Currency", b2 =>
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Currency", "GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice.TransactionAmount#Money.Currency#Currency", b2 =>
                                 {
                                     b2.IsRequired();
 
                                     b2.Property<string>("Symbol")
                                         .IsRequired()
                                         .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyTotalTransactionAmount");
+                                        .HasColumnName("CurrencyTransactionAmount");
                                 });
                         });
 
