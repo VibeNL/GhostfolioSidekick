@@ -68,6 +68,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(ActivityWithQuantityAndUnitPrice.UnitPrice));
 			MapMoney(builder, x => x.AdjustedUnitPrice, nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice));
+			MapMoney(builder, x => x.TransactionAmount, nameof(ActivityWithQuantityAndUnitPrice.TransactionAmount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 
 			_ = builder.HasMany(x => x.AdjustedUnitPriceSource)
