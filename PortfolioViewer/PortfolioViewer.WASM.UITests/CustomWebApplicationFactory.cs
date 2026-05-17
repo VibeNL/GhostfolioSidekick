@@ -61,7 +61,7 @@ namespace PortfolioViewer.WASM.UITests
 															.ConfigureServices(services =>
 															{
 																// Replace IApplicationSettings with a mock that provides the test token
-																var mockSettings = new Mock<IApplicationSettings>();
+																Mock<IApplicationSettings> mockSettings = new();
 																_ = mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
 
 																// Remove existing registration and add our mock
@@ -73,7 +73,7 @@ namespace PortfolioViewer.WASM.UITests
 																_ = services.AddSingleton(mockSettings.Object);
 
 																// Remove existing DbContext registrations and replace with in-memory SQLite
-																var dbContextDescriptors = services.Where(d =>
+																List<ServiceDescriptor> dbContextDescriptors = services.Where(d =>
 																	d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
 																	d.ServiceType == typeof(DatabaseContext) ||
 																	d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
@@ -176,7 +176,7 @@ namespace PortfolioViewer.WASM.UITests
 			_ = Directory.CreateDirectory(apiDebugWwwroot);
 
 			// Publish WASM project directly into temp folder
-			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
+			ProcessStartInfo psi = new("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
 			{
 				WorkingDirectory = solutionDir,
 				RedirectStandardOutput = true,
@@ -231,12 +231,12 @@ namespace PortfolioViewer.WASM.UITests
 
 				// Seed test data
 				// Create test account
-				var testAccount = new Account("Test Account");
+				Account testAccount = new("Test Account");
 				_ = dbContext.Accounts.Add(testAccount);
 				_ = dbContext.SaveChanges();
 
 				// Create test symbol profile
-				var testSymbolProfile = new SymbolProfile(
+				SymbolProfile testSymbolProfile = new(
 					"AAPL",
 					"Apple Inc.",
 					[],
@@ -248,15 +248,15 @@ namespace PortfolioViewer.WASM.UITests
 					[]);
 
 				// Create test holding
-				var testHolding = new Holding();
+				Holding testHolding = new();
 				testHolding.SymbolProfiles.Add(testSymbolProfile);
 				_ = dbContext.Holdings.Add(testHolding);
 
 				// Create some test activities
 				// Use fixed dates for deterministic test behavior
-				var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-				var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
-		{
+				DateTime baseDate = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+				List<GhostfolioSidekick.Model.Activities.Activity> activities = new()
+				{
 			new CashDepositActivity(
 				testAccount,
 				null,
@@ -272,6 +272,7 @@ namespace PortfolioViewer.WASM.UITests
 				baseDate.AddDays(-9),
 				10m,
 				new Money(Currency.USD, 150m),
+				new Money(Currency.USD, 150m).Times(10),
 				"BUY-001",
 				null,
 				"Buy Apple shares")
@@ -284,6 +285,7 @@ namespace PortfolioViewer.WASM.UITests
 				baseDate.AddDays(-5),
 				5m,
 				new Money(Currency.USD, 155m),
+				new Money(Currency.USD, 155m).Times(5),
 				"BUY-002",
 				null,
 				"Buy more Apple shares")

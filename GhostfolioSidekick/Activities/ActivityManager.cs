@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Activities
 			List<Activity> activities = [];
 			foreach (KeyValuePair<string, List<PartialActivity>> partialActivityPerAccount in unusedPartialActivities)
 			{
-				var accountName = partialActivityPerAccount.Key;
+				string accountName = partialActivityPerAccount.Key;
 				Account account = accounts.FirstOrDefault(x => x.Name == accountName) ?? new Account(accountName);
 				foreach (IGrouping<string, PartialActivity> transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
@@ -106,12 +106,12 @@ namespace GhostfolioSidekick.Activities
 
 			return activityType switch
 			{
-				PartialActivityType.Buy => new BuyActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
+				PartialActivityType.Buy => new BuyActivity(account, null, partialSymbolIdentifiers, date, amount, money, totalTransactionAmount, transactionId, sortingPriority, description)
 				{
 					Taxes = [.. taxes],
 					Fees = [.. fees]
 				},
-				PartialActivityType.Sell => new SellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
+				PartialActivityType.Sell => new SellActivity(account, null, partialSymbolIdentifiers, date, amount, money, totalTransactionAmount, transactionId, sortingPriority, description)
 				{
 					Taxes = [.. taxes],
 					Fees = [.. fees]
