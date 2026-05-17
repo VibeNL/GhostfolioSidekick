@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		private static List<SymbolIdentifier> MapIdentifiers(Contract.SymbolProfile symbolProfile)
 		{
-			List<SymbolIdentifier> result = new();
+			List<SymbolIdentifier> result = [];
 			if (!string.IsNullOrWhiteSpace(symbolProfile.ISIN))
 			{
 				result.Add(new SymbolIdentifier { Identifier = symbolProfile.ISIN, IdentifierType = IdentifierType.ISIN });
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		internal static Model.Activities.Activity MapActivity(Account account, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)
 		{
-			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
+			Contract.SymbolProfile symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
 
 			// Create partial symbol identifiers based on the symbol profile
 			List<PartialSymbolIdentifier> partialSymbolIdentifiers = new Model.Activities.PartialSymbolIdentifier?[]
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			// Create money objects for amounts
 			Currency currency = Currency.GetCurrency(symbol.Currency);
 			Money unitPrice = new(currency, rawActivity.UnitPrice);
-			var feeAmount = rawActivity.Fee > 0 ? new Money(Currency.GetCurrency(rawActivity.FeeCurrency ?? symbol.Currency), rawActivity.Fee) : null;
+			Money? feeAmount = rawActivity.Fee > 0 ? new Money(Currency.GetCurrency(rawActivity.FeeCurrency ?? symbol.Currency), rawActivity.Fee) : null;
 
 			return rawActivity.Type switch
 			{
@@ -98,6 +98,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					rawActivity.Date,
 					rawActivity.Quantity,
 					unitPrice,
+					unitPrice.Times(rawActivity.Quantity), // total cost
 					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
 					null, // sortingPriority
 					rawActivity.Comment)
@@ -112,6 +113,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					rawActivity.Date,
 					rawActivity.Quantity,
 					unitPrice,
+					unitPrice.Times(rawActivity.Quantity), // total cost
 					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
 					null, // sortingPriority
 					rawActivity.Comment)

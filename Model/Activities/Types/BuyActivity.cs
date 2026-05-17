@@ -16,9 +16,10 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			DateTime dateTime,
 			decimal quantity,
 			Money unitPrice,
+			Money transactionAmount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, quantity, unitPrice, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, quantity, unitPrice, transactionAmount, transactionId, sortingPriority, description)
 		{
 		}
 

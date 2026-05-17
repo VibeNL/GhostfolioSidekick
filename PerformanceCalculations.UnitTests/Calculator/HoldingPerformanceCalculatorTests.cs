@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
-			var snapshots = result.ToList();
+			List<CalculatedSnapshot> snapshots = result.ToList();
 			_ = snapshots.Should().NotBeEmpty();
 			var expectedSnapshotCount = DateOnly.FromDateTime(DateTime.Today).DayNumber - DateOnly.FromDateTime(DateTime.Today.AddDays(-10)).DayNumber + 1;
 			_ = snapshots.Should().HaveCount(expectedSnapshotCount);
@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			Holding holding = CreateHolding([symbolProfile], activities);
 
 			// Add market data
-			var marketData = new MarketData(
+			MarketData marketData = new(
 				Currency.USD,
 				155,
 				150,
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
-			var snapshots = result.ToList();
+			List<CalculatedSnapshot> snapshots = result.ToList();
 			var expectedSnapshotCount = DateOnly.FromDateTime(DateTime.Today).DayNumber - DateOnly.FromDateTime(buyDate).DayNumber + 1;
 			_ = snapshots.Should().HaveCount(expectedSnapshotCount);
 
@@ -202,7 +202,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
-			var snapshots = result.ToList();
+			List<CalculatedSnapshot> snapshots = result.ToList();
 			var expectedSnapshotCount = DateOnly.FromDateTime(DateTime.Today).DayNumber - DateOnly.FromDateTime(firstBuyDate).DayNumber + 1;
 			_ = snapshots.Should().HaveCount(expectedSnapshotCount);
 
@@ -223,7 +223,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			DateTime buyDate = DateTime.Today.AddDays(-10);
 			DateTime sellDate = DateTime.Today.AddDays(-5);
 
-			var activities = new Activity[]
+			Activity[] activities = new Activity[]
 			{
 				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
 				CreateSellActivity(account, sellDate, 30, new Money(Currency.USD, 160), "T2") // Sell 30 shares
@@ -243,7 +243,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
-			var snapshots = result.ToList();
+			List<CalculatedSnapshot> snapshots = result.ToList();
 			CalculatedSnapshot finalSnapshot = snapshots.Last();
 			_ = finalSnapshot.Quantity.Should().Be(70); // 100 - 30
 														// TotalInvested: buy 100*150 = 15000, sell reduces by cost basis of 30*150 = 4500, total = 10500
@@ -277,7 +277,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
 
 			// Assert
-			var snapshots = result.ToList();
+			List<CalculatedSnapshot> snapshots = result.ToList();
 			CalculatedSnapshot firstSnapshot = snapshots.First();
 			_ = firstSnapshot.TotalValue.Should().Be(150 * 100); // Uses buy price as market price for buy date
 		}
@@ -310,7 +310,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.EUR);
 
 			// Assert
-			var snapshots = result.ToList();
+			List<CalculatedSnapshot> snapshots = result.ToList();
 			_ = snapshots.Should().NotBeEmpty();
 			_mockCurrencyExchange.Verify(
 				x => x.ConvertMoney(It.IsAny<Money>(), Currency.EUR, It.IsAny<DateOnly>()),
@@ -319,7 +319,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 		private DatabaseContext CreateDatabaseContext()
 		{
-			var context = new DatabaseContext(_dbContextOptions);
+			DatabaseContext context = new(_dbContextOptions);
 			_ = context.Database.EnsureCreated();
 			context.ChangeTracker.Clear();
 			return context;
@@ -327,7 +327,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 		private PerformanceCalculator CreateCalculator(DatabaseContext context)
 		{
-			var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+			Mock<IDbContextFactory<DatabaseContext>> dbFactoryMock = new();
 			_ = dbFactoryMock
 				.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(context);
@@ -375,13 +375,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 		private static BuyActivity CreateBuyActivity(Account account, DateTime date, decimal quantity, Money unitPrice, string transactionId)
 		{
-			var activity = new BuyActivity(
+			BuyActivity activity = new(
 				account,
 				null,
 				[],
 				date,
 				quantity,
 				unitPrice,
+				unitPrice.Times(quantity),
 				transactionId,
 				null,
 				null)
@@ -395,13 +396,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 		private static SellActivity CreateSellActivity(Account account, DateTime date, decimal quantity, Money unitPrice, string transactionId)
 		{
-			var activity = new SellActivity(
+			SellActivity activity = new(
 				account,
 				null,
 				[],
 				date,
 				quantity,
 				unitPrice,
+				unitPrice.Times(quantity),
 				transactionId,
 				null,
 				null)

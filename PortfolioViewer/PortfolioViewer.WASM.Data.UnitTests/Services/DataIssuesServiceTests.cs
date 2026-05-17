@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -35,18 +36,18 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithActivitiesWithoutHoldings_ShouldReturnDataIssues()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1)),
 				CreateSellActivityWithoutHolding(account, DateTime.Now.AddDays(-2)),
 				CreateDividendActivityWithoutHolding(account, DateTime.Now.AddDays(-3))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -63,19 +64,19 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithActivitiesWithHoldings_ShouldReturnEmptyList()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			SymbolProfile symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
+			Holding holding = CreateTestHolding(symbolProfile);
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1)),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -86,21 +87,21 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithMixedActivities_ShouldReturnOnlyActivitiesWithoutHoldings()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			SymbolProfile symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
+			Holding holding = CreateTestHolding(symbolProfile);
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1)), // Has holding
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-2)), // No holding
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-3)), // Has holding
 				CreateDividendActivityWithoutHolding(account, DateTime.Now.AddDays(-4)) // No holding
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -112,17 +113,17 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithOnlyNonPartialIdentifierActivities_ShouldReturnEmptyList()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			List<Activity> activities =
+			[
 				CreateCashDepositActivity(account, DateTime.Now.AddDays(-1)),
 				CreateInterestActivity(account, DateTime.Now.AddDays(-2))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -133,20 +134,20 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_ShouldOrderByDateDescendingThenById()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var today = DateTime.Now.Date;
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			DateTime today = DateTime.Now.Date;
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, today.AddDays(-3), id: 3),
 				CreateBuyActivityWithoutHolding(account, today.AddDays(-1), id: 1),
 				CreateBuyActivityWithoutHolding(account, today.AddDays(-1), id: 2),
 				CreateBuyActivityWithoutHolding(account, today.AddDays(-2), id: 4)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -166,9 +167,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_ShouldSetCorrectSeverityBasedOnActivityType()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1)),
 				CreateSellActivityWithoutHolding(account, DateTime.Now.AddDays(-2)),
 				CreateDividendActivityWithoutHolding(account, DateTime.Now.AddDays(-3)),
@@ -176,36 +177,36 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateSendActivityWithoutHolding(account, DateTime.Now.AddDays(-5)),
 				CreateStakingRewardActivityWithoutHolding(account, DateTime.Now.AddDays(-6)),
 				CreateGiftAssetActivityWithoutHolding(account, DateTime.Now.AddDays(-7))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
 			_ = result.Should().HaveCount(7);
 
-			var buyIssue = result.First(r => r.ActivityType.Contains("Buy"));
+			DataIssueDisplayModel buyIssue = result.First(r => r.ActivityType.Contains("Buy"));
 			_ = buyIssue.Severity.Should().Be("Error");
 
-			var sellIssue = result.First(r => r.ActivityType.Contains("Sell"));
+			DataIssueDisplayModel sellIssue = result.First(r => r.ActivityType.Contains("Sell"));
 			_ = sellIssue.Severity.Should().Be("Error");
 
-			var dividendIssue = result.First(r => r.ActivityType.Contains("Dividend"));
+			DataIssueDisplayModel dividendIssue = result.First(r => r.ActivityType.Contains("Dividend"));
 			_ = dividendIssue.Severity.Should().Be("Error");
 
-			var receiveIssue = result.First(r => r.ActivityType.Contains("Receive"));
+			DataIssueDisplayModel receiveIssue = result.First(r => r.ActivityType.Contains("Receive"));
 			_ = receiveIssue.Severity.Should().Be("Error");
 
-			var sendIssue = result.First(r => r.ActivityType.Contains("Send"));
+			DataIssueDisplayModel sendIssue = result.First(r => r.ActivityType.Contains("Send"));
 			_ = sendIssue.Severity.Should().Be("Error");
 
-			var stakingIssue = result.First(r => r.ActivityType.Contains("Staking"));
+			DataIssueDisplayModel stakingIssue = result.First(r => r.ActivityType.Contains("Staking"));
 			_ = stakingIssue.Severity.Should().Be("Error");
 
-			var giftIssue = result.First(r => r.ActivityType.Contains("Gift"));
+			DataIssueDisplayModel giftIssue = result.First(r => r.ActivityType.Contains("Gift"));
 			_ = giftIssue.Severity.Should().Be("Error");
 		}
 
@@ -213,22 +214,21 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithEnrichmentData_ShouldIncludeDetailedInformation()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var buyActivity = CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1), 10, 100);
-			var sellActivity = CreateSellActivityWithoutHolding(account, DateTime.Now.AddDays(-2), 5, 110);
-			List<Activity> activities = new()
-			{ buyActivity, sellActivity };
+			Account account = CreateTestAccount("Test Account");
+			BuyActivity buyActivity = CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1), 10, 100);
+			SellActivity sellActivity = CreateSellActivityWithoutHolding(account, DateTime.Now.AddDays(-2), 5, 110);
+			List<Activity> activities = [buyActivity, sellActivity];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
 			_ = result.Should().HaveCount(2);
 
-			var buyIssue = result.First(r => r.ActivityType == "Buy");
+			DataIssueDisplayModel buyIssue = result.First(r => r.ActivityType == "Buy");
 			_ = buyIssue.Quantity.Should().Be(10);
 			_ = buyIssue.UnitPrice.Should().NotBeNull();
 			_ = buyIssue.UnitPrice!.Amount.Should().Be(100);
@@ -237,7 +237,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_ = buyIssue.PartialIdentifiers.Should().NotBeEmpty();
 			_ = buyIssue.SymbolIdentifiers.Should().NotBeNullOrEmpty();
 
-			var sellIssue = result.First(r => r.ActivityType == "Sell");
+			DataIssueDisplayModel sellIssue = result.First(r => r.ActivityType == "Sell");
 			_ = sellIssue.Quantity.Should().Be(5);
 			_ = sellIssue.UnitPrice.Should().NotBeNull();
 			_ = sellIssue.UnitPrice!.Amount.Should().Be(110);
@@ -249,16 +249,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithNullAccountName_ShouldHandleGracefully()
 		{
 			// Arrange
-			var account = CreateTestAccount(null!); // Null account name
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount(null!); // Null account name
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -274,7 +274,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				.Throws(new InvalidOperationException("Database connection failed"));
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -292,10 +292,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			CancellationToken cancellationToken = new();
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(CreateTestAccount("Test Account"), DateTime.Now.AddDays(-1))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -313,7 +313,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -324,16 +324,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithEnrichmentFailure_ShouldContinueWithBasicData()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -372,16 +372,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_ShouldIncludeCorrectTransactionIdAndDescription()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1), transactionId: "TXN-001")
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -394,18 +394,18 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_ShouldIncludeCorrectActivityTypeMapping()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1)),
 				CreateSellActivityWithoutHolding(account, DateTime.Now.AddDays(-2)),
 				CreateDividendActivityWithoutHolding(account, DateTime.Now.AddDays(-3))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -420,21 +420,20 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetActivitiesWithoutHoldingsAsync_WithPartialSymbolIdentifiers_ShouldIncludeSymbolInformation()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var activity = CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1));
-			List<Activity> activities = new()
-			{ activity };
+			Account account = CreateTestAccount("Test Account");
+			BuyActivity activity = CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1));
+			List<Activity> activities = [activity];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
 			_ = result.Should().HaveCount(1);
 
-			var issue = result[0];
+			DataIssueDisplayModel issue = result[0];
 			_ = issue.PartialIdentifiers.Should().NotBeEmpty();
 			_ = issue.SymbolIdentifiers.Should().NotBeNullOrEmpty();
 			_ = issue.SymbolIdentifiers.Should().Contain("UNKNOWN");
@@ -444,19 +443,19 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task DataIssuesService_GetActivitiesWithoutHoldingsAsync_WithComplexScenario_ShouldHandleCorrectly()
 		{
 			// Arrange
-			var account1 = CreateTestAccount("Account 1", 1);
-			var account2 = CreateTestAccount("Account 2", 2);
+			Account account1 = CreateTestAccount("Account 1", 1);
+			Account account2 = CreateTestAccount("Account 2", 2);
 
 			// Create some activities with holdings
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
+			SymbolProfile symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
+			Holding holding = CreateTestHolding(symbolProfile);
 
 			// Use specific dates to avoid timing issues
 			DateTime baseDate = new(2023, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 
 			// Create various activities without holdings for comprehensive testing
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				// Activities WITH holdings (should be excluded)
 				CreateBuyActivity(account1, holding, baseDate.AddDays(-1)),
 				CreateSellActivity(account1, holding, baseDate.AddDays(-2)),
@@ -471,12 +470,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				// Non-IActivityWithPartialIdentifier activities (should be excluded)
 				CreateCashDepositActivity(account1, baseDate.AddDays(-8)),
 				CreateInterestActivity(account2, baseDate.AddDays(-9))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -511,12 +510,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			_ = CreateTestAccount("Test Account");
-			List<Activity> activities = new(); // Empty list
+			List<Activity> activities = []; // Empty list
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -527,16 +526,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task DataIssuesService_GetActivityTypeDisplayName_ShouldHandleProxyTypes()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
+			Account account = CreateTestAccount("Test Account");
 			// Create an activity that might have "Proxy" in its type name (simulated)
-			var buyActivity = CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1));
-			List<Activity> activities = new()
-			{ buyActivity };
+			BuyActivity buyActivity = CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1));
+			List<Activity> activities = [buyActivity];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -550,9 +548,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task DataIssuesService_DetermineSeverity_ShouldReturnCorrectSeverityLevels()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
-			List<Activity> activities = new()
-			{
+			Account account = CreateTestAccount("Test Account");
+			List<Activity> activities =
+			[
 				CreateBuyActivityWithoutHolding(account, DateTime.Now.AddDays(-1), id: 1),
 				CreateSellActivityWithoutHolding(account, DateTime.Now.AddDays(-2), id: 2),
 				CreateDividendActivityWithoutHolding(account, DateTime.Now.AddDays(-3), id: 3),
@@ -560,12 +558,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateSendActivityWithoutHolding(account, DateTime.Now.AddDays(-5), id: 5),
 				CreateStakingRewardActivityWithoutHolding(account, DateTime.Now.AddDays(-6), id: 6),
 				CreateGiftAssetActivityWithoutHolding(account, DateTime.Now.AddDays(-7), id: 7)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -607,10 +605,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static BuyActivity CreateBuyActivity(Account account, Holding holding, DateTime date, decimal quantity = 10, decimal price = 100, string transactionId = "TXN-001")
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "AAPL", null)!
-			};
+			];
 
 			return new BuyActivity(
 				account,
@@ -619,6 +617,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				date,
 				quantity,
 				new Money(Currency.USD, price),
+				new Money(Currency.USD, price).Times(quantity),
 				transactionId,
 				null,
 				"Test buy transaction")
@@ -628,10 +627,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static SellActivity CreateSellActivity(Account account, Holding holding, DateTime date, decimal quantity = 10, decimal price = 100, string transactionId = "TXN-002")
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "AAPL", null)!
-			};
+			];
 
 			return new SellActivity(
 				account,
@@ -640,6 +639,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				date,
 				quantity,
 				new Money(Currency.USD, price),
+				new Money(Currency.USD, price).Times(quantity),
 				transactionId,
 				null,
 				"Test sell transaction")
@@ -649,10 +649,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static BuyActivity CreateBuyActivityWithoutHolding(Account account, DateTime date, decimal quantity = 10, decimal price = 100, string transactionId = "TXN-001", long id = 1)
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "UNKNOWN", null)!
-			};
+			];
 
 			BuyActivity activity = new(
 				account,
@@ -661,6 +661,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				date,
 				quantity,
 				new Money(Currency.USD, price),
+				new Money(Currency.USD, price).Times(quantity),
 				transactionId,
 				null,
 				"Test buy transaction without holding")
@@ -673,10 +674,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static SellActivity CreateSellActivityWithoutHolding(Account account, DateTime date, decimal quantity = 5, decimal price = 110, string transactionId = "TXN-002", long id = 2)
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "UNKNOWN", null)!
-			};
+			];
 
 			SellActivity activity = new(
 				account,
@@ -685,6 +686,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				date,
 				quantity,
 				new Money(Currency.USD, price),
+				new Money(Currency.USD, price).Times(quantity),
 				transactionId,
 				null,
 				"Test sell transaction without holding")
@@ -697,10 +699,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static DividendActivity CreateDividendActivityWithoutHolding(Account account, DateTime date, decimal amount = 50, string transactionId = "TXN-003", long id = 3)
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "UNKNOWN", null)!
-			};
+			];
 
 			DividendActivity activity = new(
 				account,
@@ -720,10 +722,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static ReceiveActivity CreateReceiveActivityWithoutHolding(Account account, DateTime date, decimal quantity = 10, string transactionId = "TXN-004", long id = 4)
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "UNKNOWN", null)!
-			};
+			];
 
 			ReceiveActivity activity = new(
 				account,
@@ -743,10 +745,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static SendActivity CreateSendActivityWithoutHolding(Account account, DateTime date, decimal quantity = 5, string transactionId = "TXN-005", long id = 5)
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "UNKNOWN", null)!
-			};
+			];
 
 			SendActivity activity = new(
 				account,
@@ -766,10 +768,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static StakingRewardActivity CreateStakingRewardActivityWithoutHolding(Account account, DateTime date, decimal quantity = 2, string transactionId = "TXN-006", long id = 6)
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "UNKNOWN", null)!
-			};
+			];
 
 			StakingRewardActivity activity = new(
 				account,
@@ -789,10 +791,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static GiftAssetActivity CreateGiftAssetActivityWithoutHolding(Account account, DateTime date, decimal quantity = 1, string transactionId = "TXN-007", long id = 7)
 		{
-			List<PartialSymbolIdentifier> partialIdentifiers = new()
-			{
+			List<PartialSymbolIdentifier> partialIdentifiers =
+			[
 				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "UNKNOWN", null)!
-			};
+			];
 
 			GiftAssetActivity activity = new(
 				account,

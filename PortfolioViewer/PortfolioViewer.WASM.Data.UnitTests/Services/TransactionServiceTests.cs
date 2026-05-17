@@ -23,8 +23,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			_mockDatabaseContext = new Mock<DatabaseContext>();
 
-			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
-			dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+			Mock<IDbContextFactory<DatabaseContext>> dbFactory = new();
+			_ = dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(_mockDatabaseContext.Object);
 
 			_transactionService = new TransactionService(dbFactory.Object);
@@ -39,9 +39,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding = CreateTestHolding(symbolProfile);
 			var activities = CreateTestActivities(account, holding);
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -60,11 +60,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().NotBeEmpty();
-			result.PageNumber.Should().Be(1);
-			result.PageSize.Should().Be(10);
-			result.TotalCount.Should().BeGreaterThan(0);
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().NotBeEmpty();
+			_ = result.PageNumber.Should().Be(1);
+			_ = result.PageSize.Should().Be(10);
+			_ = result.TotalCount.Should().BeGreaterThan(0);
 		}
 
 		[Fact]
@@ -76,15 +76,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account1, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account2, holding, DateTime.Now.AddDays(-2), 5, 110)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -103,9 +103,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(1);
-			result.Transactions[0].AccountName.Should().Be("Account 1");
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(1);
+			_ = result.Transactions[0].AccountName.Should().Be("Account 1");
 		}
 
 		[Fact]
@@ -118,15 +118,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding1, DateTime.Now.AddDays(-1), 10, 100),
 				CreateBuyActivity(account, holding2, DateTime.Now.AddDays(-2), 5, 200)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -145,9 +145,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(1);
-			result.Transactions[0].Symbol.Should().Be("AAPL");
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(1);
+			_ = result.Transactions[0].Symbol.Should().Be("AAPL");
 		}
 
 		[Fact]
@@ -158,16 +158,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -186,9 +186,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(1);
-			result.Transactions[0].Type.Should().Be("Buy");
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(1);
+			_ = result.Transactions[0].Type.Should().Be("Buy");
 		}
 
 		[Fact]
@@ -201,15 +201,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding1, DateTime.Now.AddDays(-1), 10, 100, "BUY-001", "Apple purchase"),
 				CreateSellActivity(account, holding2, DateTime.Now.AddDays(-2), 5, 110, "SELL-001", "Microsoft sale")
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -228,10 +228,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
+			_ = result.Should().NotBeNull();
 			// Note: The actual search implementation may search across multiple fields,
 			// so we verify the behavior matches the expected filtering
-			result.Transactions.Should().NotBeEmpty();
+			_ = result.Transactions.Should().NotBeEmpty();
 		}
 
 		[Fact]
@@ -242,16 +242,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-3), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-2), 50)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -270,9 +270,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(3);
-			result.Transactions[0].Date.Should().BeAfter(result.Transactions[1].Date);
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(3);
+			_ = result.Transactions[0].Date.Should().BeAfter(result.Transactions[1].Date);
 		}
 
 		[Fact]
@@ -283,15 +283,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>();
+			List<Activity> activities = new();
 			for (int i = 0; i < 15; i++)
 			{
 				activities.Add(CreateBuyActivity(account, holding, DateTime.Now.AddDays(-i), 10, 100, $"TXN-{i:D3}"));
 			}
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -310,11 +310,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.PageNumber.Should().Be(2);
-			result.PageSize.Should().Be(10);
-			result.TotalCount.Should().BeGreaterThan(10); // Should have more than 10 total items
-			result.Transactions.Should().NotBeEmpty(); // Should have some transactions on second page
+			_ = result.Should().NotBeNull();
+			_ = result.PageNumber.Should().Be(2);
+			_ = result.PageSize.Should().Be(10);
+			_ = result.TotalCount.Should().BeGreaterThan(10); // Should have more than 10 total items
+			_ = result.Transactions.Should().NotBeEmpty(); // Should have some transactions on second page
 		}
 
 		[Fact]
@@ -325,7 +325,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
@@ -333,9 +333,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-4), 25)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -354,16 +354,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.TransactionTypeBreakdown.Should().NotBeEmpty();
-			result.TransactionTypeBreakdown.Should().ContainKey("Buy");
-			result.TransactionTypeBreakdown["Buy"].Should().Be(2);
-			result.TransactionTypeBreakdown.Should().ContainKey("Sell");
-			result.TransactionTypeBreakdown["Sell"].Should().Be(1);
-			result.TransactionTypeBreakdown.Should().ContainKey("Dividend");
-			result.TransactionTypeBreakdown["Dividend"].Should().Be(1);
-			result.AccountBreakdown.Should().ContainKey("Test Account");
-			result.AccountBreakdown["Test Account"].Should().Be(4);
+			_ = result.Should().NotBeNull();
+			_ = result.TransactionTypeBreakdown.Should().NotBeEmpty();
+			_ = result.TransactionTypeBreakdown.Should().ContainKey("Buy");
+			_ = result.TransactionTypeBreakdown["Buy"].Should().Be(2);
+			_ = result.TransactionTypeBreakdown.Should().ContainKey("Sell");
+			_ = result.TransactionTypeBreakdown["Sell"].Should().Be(1);
+			_ = result.TransactionTypeBreakdown.Should().ContainKey("Dividend");
+			_ = result.TransactionTypeBreakdown["Dividend"].Should().Be(1);
+			_ = result.AccountBreakdown.Should().ContainKey("Test Account");
+			_ = result.AccountBreakdown["Test Account"].Should().Be(4);
 		}
 
 		[Fact]
@@ -375,13 +375,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding = CreateTestHolding(symbolProfile);
 
 			var buyActivity = CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100);
-           buyActivity.Fees.Add(new Money(Currency.USD, 5));
-		   buyActivity.Taxes.Add(new Money(Currency.USD, 10));
+			buyActivity.Fees.Add(new Money(Currency.USD, 5));
+			buyActivity.Taxes.Add(new Money(Currency.USD, 10));
 
-			var activities = new List<Activity> { buyActivity };
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			List<Activity> activities = new()
+			{ buyActivity };
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -400,12 +401,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(1);
-			result.Transactions[0].Fee.Should().NotBeNull();
-			result.Transactions[0].Fee!.Amount.Should().Be(5);
-			result.Transactions[0].Tax.Should().NotBeNull();
-			result.Transactions[0].Tax!.Amount.Should().Be(10);
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(1);
+			_ = result.Transactions[0].Fee.Should().NotBeNull();
+			_ = result.Transactions[0].Fee!.Amount.Should().Be(5);
+			_ = result.Transactions[0].Tax.Should().NotBeNull();
+			_ = result.Transactions[0].Tax!.Amount.Should().Be(10);
 		}
 
 		[Fact]
@@ -416,7 +417,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
@@ -425,32 +426,32 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
 			var result = await _transactionService.GetTransactionTypesAsync(CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeEmpty();
-			result.Should().Contain("Buy");
-			result.Should().Contain("Sell");
-			result.Should().Contain("Dividend");
-			result.Should().Contain("CashDeposit");
-			result.Should().Contain("Interest");
-			result.Should().BeInAscendingOrder();
+			_ = result.Should().NotBeEmpty();
+			_ = result.Should().Contain("Buy");
+			_ = result.Should().Contain("Sell");
+			_ = result.Should().Contain("Dividend");
+			_ = result.Should().Contain("CashDeposit");
+			_ = result.Should().Contain("Interest");
+			_ = result.Should().BeInAscendingOrder();
 		}
 
 		[Fact]
 		public async Task GetTransactionTypesAsync_WhenNoActivities_ShouldReturnEmptyList()
 		{
 			// Arrange
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
 
 			// Act
 			var result = await _transactionService.GetTransactionTypesAsync(CancellationToken.None);
 
 			// Assert
-			result.Should().BeEmpty();
+			_ = result.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -461,15 +462,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-5), 10, 100), // Inside range
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-35), 5, 110) // Outside range
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-10)), // Start date
@@ -488,9 +489,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(1);
-			result.Transactions[0].Type.Should().Be("Buy");
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(1);
+			_ = result.Transactions[0].Type.Should().Be("Buy");
 		}
 
 		[Fact]
@@ -502,16 +503,17 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding = CreateTestHolding(symbolProfile);
 
 			var sellActivity = CreateSellActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100);
-           sellActivity.Fees.Add(new Money(Currency.USD, 3));
-		   sellActivity.Fees.Add(new Money(Currency.USD, 2));
+			sellActivity.Fees.Add(new Money(Currency.USD, 3));
+			sellActivity.Fees.Add(new Money(Currency.USD, 2));
 
 			var dividendActivity = CreateDividendActivity(account, holding, DateTime.Now.AddDays(-2), 50);
-           dividendActivity.Fees.Add(new Money(Currency.USD, 1));
+			dividendActivity.Fees.Add(new Money(Currency.USD, 1));
 
-			var activities = new List<Activity> { sellActivity, dividendActivity };
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			List<Activity> activities = new()
+			{ sellActivity, dividendActivity };
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -530,16 +532,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(2);
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(2);
 
 			var sellTransaction = result.Transactions.First(t => t.Type == "Sell");
-			sellTransaction.Fee.Should().NotBeNull();
-			sellTransaction.Fee!.Amount.Should().Be(5); // 3 + 2
+			_ = sellTransaction.Fee.Should().NotBeNull();
+			_ = sellTransaction.Fee!.Amount.Should().Be(5); // 3 + 2
 
 			var dividendTransaction = result.Transactions.First(t => t.Type == "Dividend");
-			dividendTransaction.Fee.Should().NotBeNull();
-			dividendTransaction.Fee!.Amount.Should().Be(1);
+			_ = dividendTransaction.Fee.Should().NotBeNull();
+			_ = dividendTransaction.Fee!.Amount.Should().Be(1);
 		}
 
 		[Fact]
@@ -548,15 +550,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Arrange
 			var account = CreateTestAccount("Test Account");
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateCashDepositActivity(account, DateTime.Now.AddDays(-1), 1000),
 				CreateInterestActivity(account, DateTime.Now.AddDays(-2), 25)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -575,27 +577,27 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(2);
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(2);
 
 			var depositTransaction = result.Transactions.First(t => t.Type == "CashDeposit");
-			depositTransaction.Amount.Should().NotBeNull();
-			depositTransaction.Amount!.Amount.Should().Be(1000);
-			depositTransaction.TotalValue.Should().NotBeNull();
-			depositTransaction.TotalValue!.Amount.Should().Be(1000);
+			_ = depositTransaction.Amount.Should().NotBeNull();
+			_ = depositTransaction.Amount!.Amount.Should().Be(1000);
+			_ = depositTransaction.TotalValue.Should().NotBeNull();
+			_ = depositTransaction.TotalValue!.Amount.Should().Be(1000);
 
 			var interestTransaction = result.Transactions.First(t => t.Type == "Interest");
-			interestTransaction.Amount.Should().NotBeNull();
-			interestTransaction.Amount!.Amount.Should().Be(25);
+			_ = interestTransaction.Amount.Should().NotBeNull();
+			_ = interestTransaction.Amount!.Amount.Should().Be(25);
 		}
 
 		[Fact]
 		public async Task GetTransactionsPaginatedAsync_WithEmptyDatabase_ShouldReturnEmptyResult()
 		{
 			// Arrange
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -614,13 +616,13 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().BeEmpty();
-			result.TotalCount.Should().Be(0);
-			result.PageNumber.Should().Be(1);
-			result.PageSize.Should().Be(10);
-			result.TransactionTypeBreakdown.Should().BeEmpty();
-			result.AccountBreakdown.Should().BeEmpty();
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().BeEmpty();
+			_ = result.TotalCount.Should().Be(0);
+			_ = result.PageNumber.Should().Be(1);
+			_ = result.PageSize.Should().Be(10);
+			_ = result.TransactionTypeBreakdown.Should().BeEmpty();
+			_ = result.AccountBreakdown.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -631,14 +633,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("UNKNOWN", null); // Null name
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100)
 			};
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -657,10 +659,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(1);
-			result.Transactions[0].Symbol.Should().Be("UNKNOWN");
-			result.Transactions[0].Name.Should().Be(""); // Should handle null gracefully
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(1);
+			_ = result.Transactions[0].Symbol.Should().Be("UNKNOWN");
+			_ = result.Transactions[0].Name.Should().Be(""); // Should handle null gracefully
 		}
 
 		[Fact]
@@ -672,12 +674,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding = CreateTestHolding(symbolProfile);
 
 			var activityBaseType = typeof(Activity);
-			var activityTypes = activityBaseType.Assembly.GetTypes()
+			List<Type> activityTypes = activityBaseType.Assembly.GetTypes()
 				.Where(t => activityBaseType.IsAssignableFrom(t) && !t.IsAbstract)
 				.ToList();
 
-			var activities = new List<Activity>();
-			var typeNames = new List<string>();
+			List<Activity> activities = new();
+			List<string> typeNames = new();
 
 			foreach (var type in activityTypes)
 			{
@@ -686,11 +688,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				typeNames.Add(instance.GetType().Name.Replace("Activity", ""));
 			}
 
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			foreach (var typeName in typeNames)
 			{
-				var parameters = new TransactionQueryParameters
+				TransactionQueryParameters parameters = new()
 				{
 					TargetCurrency = Currency.USD,
 					StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -709,9 +711,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 				// Assert
-				result.Should().NotBeNull();
-				result.Transactions.Should().NotBeEmpty();
-				result.Transactions.All(t => t.Type == typeName).Should().BeTrue();
+				_ = result.Should().NotBeNull();
+				_ = result.Transactions.Should().NotBeEmpty();
+				_ = result.Transactions.All(t => t.Type == typeName).Should().BeTrue();
 			}
 		}
 
@@ -731,14 +733,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile2 = CreateTestSymbolProfile("MSFT", "Microsoft");
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account1, holding1, DateTime.Now.AddDays(-1), 10, 100, "TXN-001", "Apple buy"),
 				CreateSellActivity(account2, holding2, DateTime.Now.AddDays(-2), 5, 200, "TXN-002", "Microsoft sell"),
 				CreateDividendActivity(account1, holding1, DateTime.Now.AddDays(-3), 50, "TXN-003", "Dividend Apple")
 			};
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
-			var parameters = new TransactionQueryParameters
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -753,8 +755,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				PageSize = 10
 			};
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
-			result.Should().NotBeNull();
-			result.Transactions.Should().NotBeEmpty();
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().NotBeEmpty();
 		}
 
 		[Fact]
@@ -763,14 +765,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			var activities = new List<Activity>
+			List<Activity> activities = new()
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
 			};
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
-			var parameters = new TransactionQueryParameters
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			TransactionQueryParameters parameters = new()
 			{
 				TargetCurrency = Currency.USD,
 				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
@@ -785,9 +787,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				PageSize = 10
 			};
 			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(2);
-			result.Transactions.All(t => t.Type == "Buy" || t.Type == "Sell").Should().BeTrue();
+			_ = result.Should().NotBeNull();
+			_ = result.Transactions.Should().HaveCount(2);
+			_ = result.Transactions.All(t => t.Type is "Buy" or "Sell").Should().BeTrue();
 		}
 
 		// Helper methods for creating test data
@@ -812,7 +814,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static Holding CreateTestHolding(SymbolProfile symbolProfile)
 		{
-			var holding = new Holding { Id = 1 };
+			Holding holding = new() { Id = 1 };
 			holding.SymbolProfiles.Add(symbolProfile);
 			return holding;
 		}
@@ -826,6 +828,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				date,
 				quantity,
 				new Money(Currency.USD, price),
+				new Money(Currency.USD, price).Times(quantity),
 				transactionId,
 				null,
 				description)
@@ -842,6 +845,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				date,
 				quantity,
 				new Money(Currency.USD, price),
+				new Money(Currency.USD, price).Times(quantity),
 				transactionId,
 				null,
 				description)
@@ -986,26 +990,29 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			return new ValuableActivity(account, null, [], date, new Money(Currency.USD, amount), transactionId, null, description);
 		}
 
-		private static Activity CreateTestActivityInstance(Type type, Account account, Holding holding) => type switch
+		private static Activity CreateTestActivityInstance(Type type, Account account, Holding holding)
 		{
-			_ when type == typeof(BuyActivity)            => CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
-			_ when type == typeof(SellActivity)           => CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
-			_ when type == typeof(DividendActivity)       => CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50),
-			_ when type == typeof(CashDepositActivity)    => CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000),
-			_ when type == typeof(InterestActivity)       => CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25),
-			_ when type == typeof(FeeActivity)            => CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10),
-			_ when type == typeof(KnownBalanceActivity)   => CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-7), 500),
-			_ when type == typeof(CashWithdrawalActivity) => CreateCashWithdrawalActivity(account, DateTime.Now.AddDays(-8), 250),
-			_ when type == typeof(GiftFiatActivity)       => CreateGiftFiatActivity(account, DateTime.Now.AddDays(-9), 100),
-			_ when type == typeof(GiftAssetActivity)      => CreateGiftAssetActivity(account, holding, DateTime.Now.AddDays(-10), 5),
-			_ when type == typeof(LiabilityActivity)      => CreateLiabilityActivity(account, DateTime.Now.AddDays(-11), 200),
-			_ when type == typeof(RepayBondActivity)      => CreateRepayBondActivity(account, DateTime.Now.AddDays(-12), 300),
-			_ when type == typeof(ReceiveActivity)        => CreateReceiveActivity(account, holding, DateTime.Now.AddDays(-13), 7),
-			_ when type == typeof(SendActivity)           => CreateSendActivity(account, holding, DateTime.Now.AddDays(-14), 8),
-			_ when type == typeof(StakingRewardActivity)  => CreateStakingRewardActivity(account, holding, DateTime.Now.AddDays(-15), 9),
-			_ when type == typeof(ValuableActivity)       => CreateValuableActivity(account, DateTime.Now.AddDays(-16), 400),
-			_ when type == typeof(CorrectionActivity)     => CreateCorrectionActivity(account, DateTime.Now.AddDays(-17), 50),
-			_ => throw new NotImplementedException($"No test instance creation defined for activity type {type.Name}.")
-		};
+			return type switch
+			{
+				_ when type == typeof(BuyActivity) => CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
+				_ when type == typeof(SellActivity) => CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
+				_ when type == typeof(DividendActivity) => CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50),
+				_ when type == typeof(CashDepositActivity) => CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000),
+				_ when type == typeof(InterestActivity) => CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25),
+				_ when type == typeof(FeeActivity) => CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10),
+				_ when type == typeof(KnownBalanceActivity) => CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-7), 500),
+				_ when type == typeof(CashWithdrawalActivity) => CreateCashWithdrawalActivity(account, DateTime.Now.AddDays(-8), 250),
+				_ when type == typeof(GiftFiatActivity) => CreateGiftFiatActivity(account, DateTime.Now.AddDays(-9), 100),
+				_ when type == typeof(GiftAssetActivity) => CreateGiftAssetActivity(account, holding, DateTime.Now.AddDays(-10), 5),
+				_ when type == typeof(LiabilityActivity) => CreateLiabilityActivity(account, DateTime.Now.AddDays(-11), 200),
+				_ when type == typeof(RepayBondActivity) => CreateRepayBondActivity(account, DateTime.Now.AddDays(-12), 300),
+				_ when type == typeof(ReceiveActivity) => CreateReceiveActivity(account, holding, DateTime.Now.AddDays(-13), 7),
+				_ when type == typeof(SendActivity) => CreateSendActivity(account, holding, DateTime.Now.AddDays(-14), 8),
+				_ when type == typeof(StakingRewardActivity) => CreateStakingRewardActivity(account, holding, DateTime.Now.AddDays(-15), 9),
+				_ when type == typeof(ValuableActivity) => CreateValuableActivity(account, DateTime.Now.AddDays(-16), 400),
+				_ when type == typeof(CorrectionActivity) => CreateCorrectionActivity(account, DateTime.Now.AddDays(-17), 50),
+				_ => throw new NotImplementedException($"No test instance creation defined for activity type {type.Name}.")
+			};
+		}
 	}
 }
