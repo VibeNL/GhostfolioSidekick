@@ -307,10 +307,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 			foreach (ActivityWithQuantityAndUnitPrice activity in dayActivities)
 			{
-				IEnumerable<Money> feesAndTaxes = (activity as SellActivity)?.Fees?.Cast<Money>().Concat((activity as SellActivity)?.Taxes ?? []) ??
-								  (activity as BuyActivity)?.Fees?.Cast<Money>().Concat((activity as BuyActivity)?.Taxes ?? []) ??
-								  (activity as ReceiveActivity)?.Fees?.Cast<Money>() ??
-								  [];
+				IEnumerable<Money> feesAndTaxes = (activity as SellActivity)?.Fees?.Concat((activity as SellActivity)?.Taxes ?? []) ??
+								  (activity as BuyActivity)?.Fees?.Concat((activity as BuyActivity)?.Taxes ?? []) ??
+								  (activity as ReceiveActivity)?.Fees ?? [];
 
 
 				int sign = activity switch
@@ -320,6 +319,17 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					_ => throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}"),
 				};
 
+				// Convert and sum all fees and taxes
+				decimal totalFeesAndTaxes = 0;
+				foreach (Money feeOrTax in feesAndTaxes)
+				{
+					Money convertedFeeOrTax = await currencyExchange.ConvertMoney(
+						feeOrTax,
+						targetCurrency,
+						date).ConfigureAwait(false);
+					totalFeesAndTaxes += convertedFeeOrTax.Amount;
+				}
+
 				if (sign == 1)
 				{
 					Money convertedTotal = await currencyExchange.ConvertMoney(
@@ -327,10 +337,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 						targetCurrency,
 						date).ConfigureAwait(false);
 
-
-
 					// For buy/receive/gift/staking, add the invested amount and update average cost price
-					snapshot.TotalInvested += convertedTotal.Amount;
+					snapshot.TotalInvested += convertedTotal.Amount + totalFeesAndTaxes;
 					snapshot.Quantity += activity.AdjustedQuantity;
 					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
 				}
@@ -338,7 +346,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				{
 					// For sell/send, first calculate cost basis reduction using current average cost price
 					decimal costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
-					snapshot.TotalInvested -= costBasisReduction;
+					snapshot.TotalInvested -= costBasisReduction + totalFeesAndTaxes;
 					snapshot.Quantity -= activity.AdjustedQuantity;
 
 					// Average cost price remains the same after a sell (unless position is fully closed)
