@@ -2,6 +2,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq.Expressions;
@@ -214,9 +215,14 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			ValueConverter<List<Money>, string> converter = new(
 				v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
 				v => JsonSerializer.Deserialize<List<Money>>(v, (JsonSerializerOptions?)null) ?? new List<Money>());
-			_ = builder.Property(propertyExpression)
+			ValueComparer<List<Money>> comparer = new(
+				(c1, c2) => c1 == c2 || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+				c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v)),
+				c => c == null ? new List<Money>() : c.ToList());
+			PropertyBuilder<List<Money>> propertyBuilder = builder.Property(propertyExpression)
 				.HasColumnName(columnName)
 				.HasConversion(converter);
+			propertyBuilder.Metadata.SetValueComparer(comparer);
 		}
 	}
 
