@@ -74,14 +74,20 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			await apiWrapper.SyncMarketData(profile, list);
 		}
 
-		// Refactored to reduce cognitive complexity by extracting logic for ReceiveActivity and SendActivity to helper methods.
 		private static IEnumerable<Activity> ConvertSendAndRecievesToBuyAndSells(IEnumerable<Activity> activities)
 		{
 			foreach (Activity activity in activities)
 			{
-				yield return activity is ReceiveActivity receiveActivity
-					? ConvertReceiveToBuy(receiveActivity)
-					: activity is SendActivity sendActivity ? ConvertSendToSell(sendActivity) : activity;
+				if (activity is ReceiveActivity receiveActivity)
+				{
+					yield return ConvertReceiveToBuy(receiveActivity);
+				}
+				else if (activity is SendActivity sendActivity)
+				{
+					yield return ConvertSendToSell(sendActivity);
+				}
+
+				yield return activity;
 			}
 		}
 
@@ -123,7 +129,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (Activity activity in activities)
 			{
-				yield return activity is GiftFiatActivity giftFiatActivity
+				Activity result = activity is GiftFiatActivity giftFiatActivity
 					? new InterestActivity(
 						giftFiatActivity.Account,
 						giftFiatActivity.Holding,
@@ -136,19 +142,20 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					}
 					: activity is GiftAssetActivity giftAssetActivity
 						? new BuyActivity(
-											giftAssetActivity.Account,
-											giftAssetActivity.Holding,
-											giftAssetActivity.PartialSymbolIdentifiers,
-											giftAssetActivity.Date,
-											giftAssetActivity.AdjustedQuantity != 0 ? giftAssetActivity.AdjustedQuantity : giftAssetActivity.Quantity,
-											giftAssetActivity.AdjustedUnitPrice.Amount != 0 ? giftAssetActivity.AdjustedUnitPrice : giftAssetActivity.UnitPrice,
-											giftAssetActivity.UnitPrice.Times(giftAssetActivity.Quantity),
-											giftAssetActivity.TransactionId,
-											giftAssetActivity.SortingPriority,
-											giftAssetActivity.Description)
+						giftAssetActivity.Account,
+						giftAssetActivity.Holding,
+						giftAssetActivity.PartialSymbolIdentifiers,
+						giftAssetActivity.Date,
+						giftAssetActivity.AdjustedQuantity != 0 ? giftAssetActivity.AdjustedQuantity : giftAssetActivity.Quantity,
+						giftAssetActivity.AdjustedUnitPrice.Amount != 0 ? giftAssetActivity.AdjustedUnitPrice : giftAssetActivity.UnitPrice,
+						giftAssetActivity.UnitPrice.Times(giftAssetActivity.Quantity),
+						giftAssetActivity.TransactionId,
+						giftAssetActivity.SortingPriority,
+						giftAssetActivity.Description)
 						{
 						}
 						: activity;
+				yield return result;
 			}
 		}
 
