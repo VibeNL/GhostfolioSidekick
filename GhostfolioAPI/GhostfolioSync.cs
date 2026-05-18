@@ -86,8 +86,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				{
 					yield return ConvertSendToSell(sendActivity);
 				}
-
-				yield return activity;
+				else
+				{
+					yield return activity;
+				}
 			}
 		}
 
