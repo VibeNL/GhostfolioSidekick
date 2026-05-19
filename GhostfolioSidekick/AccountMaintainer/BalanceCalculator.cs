@@ -39,10 +39,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 				switch (activity)
 				{
 					case BuyActivity buySellActivity:
-						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.UnitPrice.Times(buySellActivity.Quantity).Times(-1)));
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TransactionAmount.Times(-1)));
 						break;
 					case SellActivity buySellActivity:
-						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.UnitPrice.Times(buySellActivity.Quantity)));
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TransactionAmount));
 						break;
 					case CashDepositActivity cashDepositWithdrawalActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(cashDepositWithdrawalActivity.Date, cashDepositWithdrawalActivity.Amount));
