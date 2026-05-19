@@ -58,8 +58,8 @@ namespace GhostfolioSidekick.Database
 		{
 			if (!optionsBuilder.IsConfigured)
 			{
-				optionsBuilder.UseLazyLoadingProxies();
-				optionsBuilder.UseSqlite($"Data Source={DbFileName}");
+               optionsBuilder.UseLazyLoadingProxies();
+			   optionsBuilder.UseSqlite($"Data Source={DbFileName}");
 			}
 
 			base.OnConfiguring(optionsBuilder);

@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		public async Task AddPartialActivity_ShouldAddPartialActivities()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
@@ -35,18 +35,18 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Assert
 			var activities = await _activityManager.GenerateActivities();
-			activities.Should().HaveCount(1);
+			_ = activities.Should().HaveCount(1);
 		}
 
 		[Fact]
 		public async Task AddPartialActivity_ShouldAddToExistingList_WhenAccountAlreadyExists()
 		{
 			// Arrange
-			var firstBatch = new List<PartialActivity>
+			List<PartialActivity> firstBatch = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
-			var secondBatch = new List<PartialActivity>
+			List<PartialActivity> secondBatch = new()
 			{
 				PartialActivity.CreateSell(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL2", null)], 5, new Money(Currency.USD, 20), new Money(Currency.USD, 100), "T2")
 			};
@@ -57,14 +57,14 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Assert
 			var activities = await _activityManager.GenerateActivities();
-			activities.Should().HaveCount(2);
+			_ = activities.Should().HaveCount(2);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldGenerateActivities()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
@@ -74,15 +74,15 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			activities.First().Should().BeOfType<BuyActivity>();
+			_ = activities.Should().HaveCount(1);
+			_ = activities.First().Should().BeOfType<BuyActivity>();
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleMultiplePartialActivities()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 10, new Money(Currency.USD, 10), "T1")
@@ -93,35 +93,35 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			var activity = activities.First() as BuyActivity;
-			activity.Should().NotBeNull();
-			activity!.Fees.Should().HaveCount(1);
+			_ = activities.Should().HaveCount(1);
+			BuyActivity? activity = activities.First() as BuyActivity;
+			_ = activity.Should().NotBeNull();
+			_ = activity!.Fees.Should().HaveCount(1);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldClearUnusedPartialActivities()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
 
 			// Act
-			await _activityManager.GenerateActivities();
+			_ = await _activityManager.GenerateActivities();
 
 			// Assert
 			var activities = await _activityManager.GenerateActivities();
-			activities.Should().BeEmpty();
+			_ = activities.Should().BeEmpty();
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldCreateNewAccount_WhenAccountNotFound()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
 			};
@@ -131,15 +131,15 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			activities.First().Account.Name.Should().Be("NonExistentAccount");
+			_ = activities.Should().HaveCount(1);
+			_ = activities.First().Account.Name.Should().Be("NonExistentAccount");
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleMultipleTaxes()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateTax(Currency.USD, DateTime.Now, 5, new Money(Currency.USD, 5), "T1"),
@@ -151,17 +151,17 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			var activity = activities.First() as BuyActivity;
-			activity.Should().NotBeNull();
-			activity!.Taxes.Should().HaveCount(2);
+			_ = activities.Should().HaveCount(1);
+			BuyActivity? activity = activities.First() as BuyActivity;
+			_ = activity.Should().NotBeNull();
+			_ = activity!.Taxes.Should().HaveCount(2);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleMultipleFeesAndTaxes()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateSell(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 2, new Money(Currency.USD, 2), "T1"),
@@ -174,18 +174,18 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			var activity = activities.First() as SellActivity;
-			activity.Should().NotBeNull();
-			activity!.Fees.Should().HaveCount(2);
-			activity.Taxes.Should().HaveCount(1);
+			_ = activities.Should().HaveCount(1);
+			SellActivity? activity = activities.First() as SellActivity;
+			_ = activity.Should().NotBeNull();
+			_ = activity!.Fees.Should().HaveCount(2);
+			_ = activity.Taxes.Should().HaveCount(1);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldCreateMultipleActivities_WhenOtherTransactionsExist()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateCashDeposit(Currency.USD, DateTime.Now, 50, new Money(Currency.USD, 50), "T1")
@@ -196,22 +196,22 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(2);
-			activities.Should().Contain(x => x is BuyActivity);
-			activities.Should().Contain(x => x is CashDepositActivity);
+			_ = activities.Should().HaveCount(2);
+			_ = activities.Should().Contain(x => x is BuyActivity);
+			_ = activities.Should().Contain(x => x is CashDepositActivity);
 
 			// Check transaction IDs are different for additional activities
 			var buyActivity = activities.OfType<BuyActivity>().First();
 			var cashDepositActivity = activities.OfType<CashDepositActivity>().First();
-			buyActivity.TransactionId.Should().Be("T1");
-			cashDepositActivity.TransactionId.Should().Be("T1_2");
+			_ = buyActivity.TransactionId.Should().Be("T1");
+			_ = cashDepositActivity.TransactionId.Should().Be("T1_2");
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldUseTransactionWithSymbolIdentifiers_AsSource()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateCashDeposit(Currency.USD, DateTime.Now, 50, new Money(Currency.USD, 50), "T1"),
 				PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1")
@@ -222,13 +222,13 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(2);
+			_ = activities.Should().HaveCount(2);
 			var buyActivity = activities.OfType<BuyActivity>().First();
 			var cashDepositActivity = activities.OfType<CashDepositActivity>().First();
 
 			// The buy activity (with symbol identifiers) should be the source, so it gets the original transaction ID
-			buyActivity.TransactionId.Should().Be("T1");
-			cashDepositActivity.TransactionId.Should().Be("T1_2");
+			_ = buyActivity.TransactionId.Should().Be("T1");
+			_ = cashDepositActivity.TransactionId.Should().Be("T1_2");
 		}
 
 		// Test all activity types to ensure comprehensive coverage
@@ -260,19 +260,19 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			activities.First().Should().BeOfType(expectedType);
+			_ = activities.Should().HaveCount(1);
+			_ = activities.First().Should().BeOfType(expectedType);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldThrowNotSupportedException_ForUnsupportedActivityType()
 		{
 			// Arrange
-			var partialActivity = new PartialActivity((PartialActivityType)999, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1");
+			PartialActivity partialActivity = new((PartialActivityType)999, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act & Assert
-			await Assert.ThrowsAsync<NotSupportedException>(() => _activityManager.GenerateActivities());
+			_ = await Assert.ThrowsAsync<NotSupportedException>(_activityManager.GenerateActivities);
 		}
 
 		[Fact]
@@ -280,22 +280,21 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			// Arrange
 			var date = DateTime.UtcNow; // Use UTC to avoid timezone issues
-			var partialActivity = PartialActivity.CreateBuy(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 5), new Money(Currency.USD, 50), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateBuy(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, new Money(Currency.USD, 5), new Money(Currency.USD, 50), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var buyActivity = activities.First() as BuyActivity;
-			buyActivity.Should().NotBeNull();
-			buyActivity!.Date.Should().BeCloseTo(date, TimeSpan.FromMinutes(1));
-			buyActivity.Quantity.Should().Be(10);
-			buyActivity.UnitPrice.Amount.Should().Be(5);
-			buyActivity.UnitPrice.Currency.Should().Be(Currency.USD);
-			buyActivity.TransactionId.Should().Be("T1");
-			buyActivity.TotalTransactionAmount.Amount.Should().Be(50);
-			buyActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
+			BuyActivity? buyActivity = activities.First() as BuyActivity;
+			_ = buyActivity.Should().NotBeNull();
+			_ = buyActivity!.Date.Should().BeCloseTo(date, TimeSpan.FromMinutes(1));
+			_ = buyActivity.Quantity.Should().Be(10);
+			_ = buyActivity.UnitPrice.Amount.Should().Be(5);
+			_ = buyActivity.UnitPrice.Currency.Should().Be(Currency.USD);
+			_ = buyActivity.TransactionId.Should().Be("T1");
+			_ = buyActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
 		}
 
 		[Fact]
@@ -303,63 +302,64 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			// Arrange
 			var date = DateTime.UtcNow; // Use UTC to avoid timezone issues
-			var partialActivity = PartialActivity.CreateDividend(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 100, new Money(Currency.USD, 100), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateDividend(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 100, new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var dividendActivity = activities.First() as DividendActivity;
-			dividendActivity.Should().NotBeNull();
-			dividendActivity!.Date.Should().BeCloseTo(date, TimeSpan.FromMinutes(1));
-			dividendActivity.Amount.Amount.Should().Be(100);
-			dividendActivity.TransactionId.Should().Be("T1");
-			dividendActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
+			DividendActivity? dividendActivity = activities.First() as DividendActivity;
+			_ = dividendActivity.Should().NotBeNull();
+			_ = dividendActivity!.Date.Should().BeCloseTo(date, TimeSpan.FromMinutes(1));
+			_ = dividendActivity.Amount.Amount.Should().Be(100);
+			_ = dividendActivity.TransactionId.Should().Be("T1");
+			_ = dividendActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldCalculateCorrectTotalTransactionAmount_WhenNotProvided()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 5, new Money(Currency.USD, 20), new Money(Currency.USD, 100), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateBuy(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 5, new Money(Currency.USD, 20), new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var buyActivity = activities.First() as BuyActivity;
-			buyActivity.Should().NotBeNull();
-			buyActivity!.TotalTransactionAmount.Amount.Should().Be(100); // 5 * 20
+			BuyActivity? buyActivity = activities.First() as BuyActivity;
+			_ = buyActivity.Should().NotBeNull();
+			_ = buyActivity!.UnitPrice.Amount.Should().Be(20);
+			_ = buyActivity.Quantity.Should().Be(5);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldRemoveDuplicateSymbolIdentifiers()
 		{
 			// Arrange - Create a custom partial activity with duplicate symbol identifiers
-			var duplicateSymbolIds = new List<PartialSymbolIdentifier?>
+			List<PartialSymbolIdentifier?> duplicateSymbolIds = new()
 			{
 				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null),
 				PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null) // Duplicate
 			};
-			var partialActivity = PartialActivity.CreateBuy(Currency.USD, DateTime.Now, duplicateSymbolIds, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateBuy(Currency.USD, DateTime.Now, duplicateSymbolIds, 10, new Money(Currency.USD, 10), new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var buyActivity = activities.First() as BuyActivity;
-			buyActivity.Should().NotBeNull();
-			buyActivity!.PartialSymbolIdentifiers.Should().HaveCount(1); // Duplicates removed
+			BuyActivity? buyActivity = activities.First() as BuyActivity;
+			_ = buyActivity.Should().NotBeNull();
+			_ = buyActivity!.PartialSymbolIdentifiers.Should().HaveCount(1); // Duplicates removed
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleReceiveActivity_WithFees()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateReceive(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 5, new Money(Currency.USD, 5), "T1")
@@ -370,17 +370,17 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			var receiveActivity = activities.First() as ReceiveActivity;
-			receiveActivity.Should().NotBeNull();
-			receiveActivity!.Fees.Should().HaveCount(1);
+			_ = activities.Should().HaveCount(1);
+			ReceiveActivity? receiveActivity = activities.First() as ReceiveActivity;
+			_ = receiveActivity.Should().NotBeNull();
+			_ = receiveActivity!.Fees.Should().HaveCount(1);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleSendActivity_WithFees()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateSend(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 3, new Money(Currency.USD, 3), "T1")
@@ -391,17 +391,17 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			var sendActivity = activities.First() as SendActivity;
-			sendActivity.Should().NotBeNull();
-			sendActivity!.Fees.Should().HaveCount(1);
+			_ = activities.Should().HaveCount(1);
+			SendActivity? sendActivity = activities.First() as SendActivity;
+			_ = sendActivity.Should().NotBeNull();
+			_ = sendActivity!.Fees.Should().HaveCount(1);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleDividendActivity_WithFeesAndTaxes()
 		{
 			// Arrange
-			var partialActivities = new List<PartialActivity>
+			List<PartialActivity> partialActivities = new()
 			{
 				PartialActivity.CreateDividend(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 100, new Money(Currency.USD, 100), "T1"),
 				PartialActivity.CreateFee(Currency.USD, DateTime.Now, 2, new Money(Currency.USD, 2), "T1"),
@@ -413,171 +413,171 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			activities.Should().HaveCount(1);
-			var dividendActivity = activities.First() as DividendActivity;
-			dividendActivity.Should().NotBeNull();
-			dividendActivity!.Fees.Should().HaveCount(1);
-			dividendActivity.Taxes.Should().HaveCount(1);
+			_ = activities.Should().HaveCount(1);
+			DividendActivity? dividendActivity = activities.First() as DividendActivity;
+			_ = dividendActivity.Should().NotBeNull();
+			_ = dividendActivity!.Fees.Should().HaveCount(1);
+			_ = dividendActivity.Taxes.Should().HaveCount(1);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleKnownBalanceActivity_WithCorrectCalculation()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateKnownBalance(Currency.USD, DateTime.Now, 100);
+			PartialActivity partialActivity = PartialActivity.CreateKnownBalance(Currency.USD, DateTime.Now, 100);
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var knownBalanceActivity = activities.First() as KnownBalanceActivity;
-			knownBalanceActivity.Should().NotBeNull();
-			knownBalanceActivity!.Amount.Amount.Should().Be(100); // Uses the amount directly
+			KnownBalanceActivity? knownBalanceActivity = activities.First() as KnownBalanceActivity;
+			_ = knownBalanceActivity.Should().NotBeNull();
+			_ = knownBalanceActivity!.Amount.Amount.Should().Be(100); // Uses the amount directly
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleGiftFiatActivity_WithCorrectCalculation()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateGift(Currency.USD, DateTime.Now, 100, new Money(Currency.USD, 100), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateGift(Currency.USD, DateTime.Now, 100, new Money(Currency.USD, 100), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var giftFiatActivity = activities.First() as GiftFiatActivity;
-			giftFiatActivity.Should().NotBeNull();
-			giftFiatActivity!.Amount.Amount.Should().Be(100); // Uses money.Times(amount)
+			GiftFiatActivity? giftFiatActivity = activities.First() as GiftFiatActivity;
+			_ = giftFiatActivity.Should().NotBeNull();
+			_ = giftFiatActivity!.Amount.Amount.Should().Be(100); // Uses money.Times(amount)
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleGiftAssetActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateGift(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, "T1");
+			PartialActivity partialActivity = PartialActivity.CreateGift(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var giftAssetActivity = activities.First() as GiftAssetActivity;
-			giftAssetActivity.Should().NotBeNull();
-			giftAssetActivity!.Quantity.Should().Be(10);
+			GiftAssetActivity? giftAssetActivity = activities.First() as GiftAssetActivity;
+			_ = giftAssetActivity.Should().NotBeNull();
+			_ = giftAssetActivity!.Quantity.Should().Be(10);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleStakingRewardActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateStakingReward(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 5, "T1");
+			PartialActivity partialActivity = PartialActivity.CreateStakingReward(DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 5, "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var stakingRewardActivity = activities.First() as StakingRewardActivity;
-			stakingRewardActivity.Should().NotBeNull();
-			stakingRewardActivity!.Quantity.Should().Be(5);
+			StakingRewardActivity? stakingRewardActivity = activities.First() as StakingRewardActivity;
+			_ = stakingRewardActivity.Should().NotBeNull();
+			_ = stakingRewardActivity!.Quantity.Should().Be(5);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleValuableActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateValuable(Currency.USD, DateTime.Now, "Test valuable", new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateValuable(Currency.USD, DateTime.Now, "Test valuable", new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var valuableActivity = activities.First() as ValuableActivity;
-			valuableActivity.Should().NotBeNull();
-			valuableActivity!.Amount.Amount.Should().Be(1000);
+			ValuableActivity? valuableActivity = activities.First() as ValuableActivity;
+			_ = valuableActivity.Should().NotBeNull();
+			_ = valuableActivity!.Amount.Amount.Should().Be(1000);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleLiabilityActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateLiability(Currency.USD, DateTime.Now, "Test liability", new Money(Currency.USD, 500), new Money(Currency.USD, 500), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateLiability(Currency.USD, DateTime.Now, "Test liability", new Money(Currency.USD, 500), new Money(Currency.USD, 500), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var liabilityActivity = activities.First() as LiabilityActivity;
-			liabilityActivity.Should().NotBeNull();
-			liabilityActivity!.Amount.Amount.Should().Be(500);
+			LiabilityActivity? liabilityActivity = activities.First() as LiabilityActivity;
+			_ = liabilityActivity.Should().NotBeNull();
+			_ = liabilityActivity!.Amount.Amount.Should().Be(500);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleBondRepayActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateBondRepay(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "BOND1", null)], new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateBondRepay(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "BOND1", null)], new Money(Currency.USD, 1000), new Money(Currency.USD, 1000), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var bondRepayActivity = activities.First() as RepayBondActivity;
-			bondRepayActivity.Should().NotBeNull();
-			bondRepayActivity!.Amount.Amount.Should().Be(1000);
+			RepayBondActivity? bondRepayActivity = activities.First() as RepayBondActivity;
+			_ = bondRepayActivity.Should().NotBeNull();
+			_ = bondRepayActivity!.Amount.Amount.Should().Be(1000);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleInterestActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateInterest(Currency.USD, DateTime.Now, 50, "Interest payment", new Money(Currency.USD, 50), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateInterest(Currency.USD, DateTime.Now, 50, "Interest payment", new Money(Currency.USD, 50), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var interestActivity = activities.First() as InterestActivity;
-			interestActivity.Should().NotBeNull();
-			interestActivity!.Amount.Amount.Should().Be(50);
+			InterestActivity? interestActivity = activities.First() as InterestActivity;
+			_ = interestActivity.Should().NotBeNull();
+			_ = interestActivity!.Amount.Amount.Should().Be(50);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleCashWithdrawalActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateCashWithdrawal(Currency.USD, DateTime.Now, 200, new Money(Currency.USD, 200), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateCashWithdrawal(Currency.USD, DateTime.Now, 200, new Money(Currency.USD, 200), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var cashWithdrawalActivity = activities.First() as CashWithdrawalActivity;
-			cashWithdrawalActivity.Should().NotBeNull();
-			cashWithdrawalActivity!.Amount.Amount.Should().Be(200);
+			CashWithdrawalActivity? cashWithdrawalActivity = activities.First() as CashWithdrawalActivity;
+			_ = cashWithdrawalActivity.Should().NotBeNull();
+			_ = cashWithdrawalActivity!.Amount.Amount.Should().Be(200);
 		}
 
 		[Fact]
 		public async Task GenerateActivities_ShouldHandleFeeActivity()
 		{
 			// Arrange
-			var partialActivity = PartialActivity.CreateFee(Currency.USD, DateTime.Now, 25, new Money(Currency.USD, 25), "T1");
+			PartialActivity partialActivity = PartialActivity.CreateFee(Currency.USD, DateTime.Now, 25, new Money(Currency.USD, 25), "T1");
 			_activityManager.AddPartialActivity("Account1", [partialActivity]);
 
 			// Act
 			var activities = await _activityManager.GenerateActivities();
 
 			// Assert
-			var feeActivity = activities.First() as FeeActivity;
-			feeActivity.Should().NotBeNull();
-			feeActivity!.Amount.Amount.Should().Be(25);
+			FeeActivity? feeActivity = activities.First() as FeeActivity;
+			_ = feeActivity.Should().NotBeNull();
+			_ = feeActivity!.Amount.Amount.Should().Be(25);
 		}
 
 		private static PartialActivity CreatePartialActivityByType(PartialActivityType activityType, DateTime date, string transactionId)

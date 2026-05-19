@@ -1,7 +1,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
@@ -12,9 +11,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		protected override async Task OpenTransactionDetail(ILocator transaction)
 		{
 			await transaction.ScrollIntoViewIfNeededAsync();
-			await Page.EvaluateAsync("window.scrollBy(0, 100)");
+			_ = await Page.EvaluateAsync("window.scrollBy(0, 100)");
 			await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
-			await Page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+			_ = await Page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 		}
 
 		protected override async Task CloseTransactionDetail()
@@ -38,7 +37,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			// If is Interest
 			if (await Page.GetByTestId("icon-INTEREST").IsVisibleAsync())
 			{
-				var dateInterest = await GetHistoryDate("Interest booked\r\n");
+				DateTime dateInterest = await GetHistoryDate("Interest booked\r\n");
 
 				return new InterestActivity
 				{
@@ -48,13 +47,13 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				};
 			}
 
-			var otherDiv = Page.GetByTestId("icon-OTHERS");
+			ILocator otherDiv = Page.GetByTestId("icon-OTHERS");
 			if (await otherDiv.IsVisibleAsync())
 			{
 				var headerText = await otherDiv.Locator("..").InnerTextAsync();
 				if (headerText.Contains("Withdrawal"))
 				{
-					var dateDeposit = await GetHistoryDate("Payment settled");
+					DateTime dateDeposit = await GetHistoryDate("Payment settled");
 
 					return new CashWithdrawalActivity
 					{
@@ -68,7 +67,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			// If is Deposit or Withdrawal
 			if (await Page.GetByTestId("icon-DEPOSIT").IsVisibleAsync())
 			{
-				var dateDeposit = await GetHistoryDate("Deposit settled");
+				DateTime dateDeposit = await GetHistoryDate("Deposit settled");
 
 				return new CashDepositActivity
 				{
@@ -80,7 +79,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 			if (await Page.GetByTestId("icon-WITHDRAWAL").IsVisibleAsync())
 			{
-				var dateWithdrawal = await GetHistoryDate("Withdrawal settled");
+				DateTime dateWithdrawal = await GetHistoryDate("Withdrawal settled");
 
 				return new CashWithdrawalActivity
 				{
@@ -100,8 +99,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			if (isSecurity)
 			{
 				// Get parent div & compare text to 'Buy' or 'Sell'
-				var icon = Page.GetByTestId("icon-SECURITY");
-				var parent = icon.Locator("..");
+				ILocator icon = Page.GetByTestId("icon-SECURITY");
+				ILocator parent = icon.Locator("..");
 				var text = await parent.InnerTextAsync();
 
 				switch (text)
@@ -122,35 +121,30 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				isSell ||
 				isReinvest)
 			{
-				var date = await GetHistoryDate("Execution confirmed");
+				DateTime date = await GetHistoryDate("Execution confirmed");
 				Money? fee = null;
 				if (!isSaving && !isReinvest)
 				{
 					fee = await GetMoneyField("Order fee");
 				}
 
-				if (isSell)
-				{
-					return new SellActivity
+				return isSell
+					? new SellActivity
 					{
 						Quantity = await GetField<decimal>("Executed quantity"),
 						UnitPrice = await GetMoneyField("Execution price"),
-						TotalTransactionAmount = await GetMoneyField("Market valuation"),
-						Fees = fee != null ? [new SellActivityFee(fee)] : [],
+						Fees = fee != null ? [fee] : [],
+						Date = date,
+						TransactionId = await GetField<string>(Description),
+					}
+					: new BuyActivity
+					{
+						Quantity = await GetField<decimal>("Executed quantity"),
+						UnitPrice = await GetMoneyField("Execution price"),
+						Fees = fee != null ? [fee] : [],
 						Date = date,
 						TransactionId = await GetField<string>(Description),
 					};
-				}
-
-				return new BuyActivity
-				{
-					Quantity = await GetField<decimal>("Executed quantity"),
-					UnitPrice = await GetMoneyField("Execution price"),
-					TotalTransactionAmount = await GetMoneyField("Market valuation"),
-					Fees = fee != null ? [new BuyActivityFee(fee)] : [],
-					Date = date,
-					TransactionId = await GetField<string>(Description),
-				};
 			}
 
 			// If is Distribution

@@ -5,7 +5,6 @@ using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
@@ -27,14 +26,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			_fixture.Customize<DateOnly>(o => o.FromFactory((DateTime dt) => DateOnly.FromDateTime(dt)));
 			_fixture.Customize<TimeOnly>(o => o.FromFactory((DateTime dt) => TimeOnly.FromDateTime(dt)));
 
-			_fixture.Customize<BuyActivityFee>(o => o.FromFactory(() => new BuyActivityFee(new Money(Currency.USD, 100m))));
-			_fixture.Customize<BuyActivityTax>(o => o.FromFactory(() => new BuyActivityTax(new Money(Currency.USD, 100m))));
-			_fixture.Customize<SellActivityFee>(o => o.FromFactory(() => new SellActivityFee(new Money(Currency.USD, 100m))));
-			_fixture.Customize<SellActivityTax>(o => o.FromFactory(() => new SellActivityTax(new Money(Currency.USD, 100m))));
-			_fixture.Customize<DividendActivityFee>(o => o.FromFactory(() => new DividendActivityFee(new Money(Currency.USD, 100m))));
-			_fixture.Customize<DividendActivityTax>(o => o.FromFactory(() => new DividendActivityTax(new Money(Currency.USD, 100m))));
-			_fixture.Customize<ReceiveActivityFee>(o => o.FromFactory(() => new ReceiveActivityFee(new Money(Currency.USD, 100m))));
-			_fixture.Customize<SellActivityFee>(o => o.FromFactory(() => new SellActivityFee(new Money(Currency.USD, 100m))));
 
 			_exchangeRateServiceMock = new Mock<ICurrencyExchange>();
 		}
@@ -243,7 +234,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			// Explicitly add 3 fees to match test expectation
 			for (int i = 0; i < 3; i++)
 			{
-				sendActivity.Fees.Add(new SendActivityFee(new Money(Currency.USD, 100m)));
 			}
 
 			_exchangeRateServiceMock
@@ -304,8 +294,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var cashDeposit = new GhostfolioSidekick.Model.Activities.Types.CashDepositActivity(modelAccount, holding, date, money, transactionId, sortingPriority, description);
 			var cashWithdrawal = new GhostfolioSidekick.Model.Activities.Types.CashWithdrawalActivity(modelAccount, holding, date, money, transactionId, sortingPriority, description);
             var partialSymbol = new GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier(
-				GhostfolioSidekick.Model.Activities.IdentifierType.ISIN, "ABC", null, new List<GhostfolioSidekick.Model.Activities.AssetClass>(), new List<GhostfolioSidekick.Model.Activities.AssetSubClass>());
-			var stakingReward = new GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity(modelAccount, holding, new List<GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier> { partialSymbol }, date, 1m, transactionId, sortingPriority, description);
+				GhostfolioSidekick.Model.Activities.IdentifierType.ISIN, "ABC", null, [], []);
+			var stakingReward = new GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity(modelAccount, holding, [partialSymbol], date, 1m, transactionId, sortingPriority, description);
 
 			var result1 = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, cashDeposit, null);
 			var result2 = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, cashWithdrawal, null);

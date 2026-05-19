@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting.Server;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
@@ -11,8 +5,16 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
+using System.Data.Common;
+using System.Diagnostics;
 
 namespace PortfolioViewer.WASM.UITests
 {
@@ -48,55 +50,55 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			// Create the host for TestServer now before we
 			// modify the builder to use Kestrel instead.
-			var testHost = builder.Build();
+			IHost testHost = builder.Build();
 
 			// Modify the host builder to use Kestrel instead
 			// of TestServer so we can listen on a real address.
-			builder.ConfigureWebHost(webHostBuilder => webHostBuilder
+			_ = builder.ConfigureWebHost(webHostBuilder => webHostBuilder
 														.UseKestrel()
 														.UseUrls("http://127.0.0.1:0") // Use dynamic port (0 = auto-select available port)
 														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
 															.ConfigureServices(services =>
 															{
 																// Replace IApplicationSettings with a mock that provides the test token
-																var mockSettings = new Mock<IApplicationSettings>();
-																mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
+																Mock<IApplicationSettings> mockSettings = new();
+																_ = mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
 
 																// Remove existing registration and add our mock
-																var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
+																ServiceDescriptor? descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
 																if (descriptor != null)
 																{
-																	services.Remove(descriptor);
+																	_ = services.Remove(descriptor);
 																}
-																services.AddSingleton(mockSettings.Object);
+																_ = services.AddSingleton(mockSettings.Object);
 
 																// Remove existing DbContext registrations and replace with in-memory SQLite
-																var dbContextDescriptors = services.Where(d =>
+																List<ServiceDescriptor> dbContextDescriptors = services.Where(d =>
 																	d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
 																	d.ServiceType == typeof(DatabaseContext) ||
 																	d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
 																	.ToList();
 
 
-																foreach (var desc in dbContextDescriptors)
+																foreach (ServiceDescriptor? desc in dbContextDescriptors)
 																{
-																	services.Remove(desc);
+																	_ = services.Remove(desc);
 																}
 
 																// Register in-memory SQLite database for testing
 																// Important: Share the same connection across all DbContext instances
 																// to ensure in-memory database persists
-																services.AddDbContext<DatabaseContext>(options =>
+																_ = services.AddDbContext<DatabaseContext>(options =>
 																{
 																	// Use the shared in-memory connection
 																	// Don't let EF Core manage the connection (we keep it open)
-																	options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
+																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
 																}, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
 
 																// Also register DbContextFactory with the same connection
-																services.AddDbContextFactory<DatabaseContext>(options =>
+																_ = services.AddDbContextFactory<DatabaseContext>(options =>
 																{
-																	options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
+																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
 																}, ServiceLifetime.Scoped);
 															}));
 
@@ -116,8 +118,8 @@ namespace PortfolioViewer.WASM.UITests
 			// and assign it onto the client options for convenience so it
 			// "just works" as otherwise it'll be the default http://localhost
 			// URL, which won't route to the Kestrel-hosted HTTP server.
-			var server = _host.Services.GetRequiredService<IServer>();
-			var addresses = server.Features.Get<IServerAddressesFeature>();
+			IServer server = _host.Services.GetRequiredService<IServer>();
+			IServerAddressesFeature? addresses = server.Features.Get<IServerAddressesFeature>();
 
 			ClientOptions.BaseAddress = addresses!.Addresses
 				.Select(x => new Uri(x))
@@ -143,7 +145,7 @@ namespace PortfolioViewer.WASM.UITests
 			if (_host is null)
 			{
 				// This forces WebApplicationFactory to bootstrap the server
-				using var _ = CreateDefaultClient();
+				using HttpClient _ = CreateDefaultClient();
 			}
 		}
 
@@ -171,19 +173,19 @@ namespace PortfolioViewer.WASM.UITests
 				Directory.Delete(apiDebugWwwroot, true);
 			}
 
-			Directory.CreateDirectory(apiDebugWwwroot);
+			_ = Directory.CreateDirectory(apiDebugWwwroot);
 
 			// Publish WASM project directly into temp folder
-			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
+			ProcessStartInfo psi = new("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
 			{
 				WorkingDirectory = solutionDir,
 				RedirectStandardOutput = true,
 				RedirectStandardError = true
 			};
-			using var proc = System.Diagnostics.Process.Start(psi)!;
+			using Process proc = System.Diagnostics.Process.Start(psi)!;
 			// Read output and error asynchronously to avoid deadlock
-			var outputTask = proc.StandardOutput.ReadToEndAsync();
-			var errorTask = proc.StandardError.ReadToEndAsync();
+			Task<string> outputTask = proc.StandardOutput.ReadToEndAsync();
+			Task<string> errorTask = proc.StandardError.ReadToEndAsync();
 			proc.WaitForExit();
 			var output = outputTask.Result;
 			var error = errorTask.Result;
@@ -207,7 +209,7 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			foreach (var dirPath in Directory.GetDirectories(tempFolder, "*", SearchOption.AllDirectories))
 			{
-				Directory.CreateDirectory(dirPath.Replace(tempFolder, apiWwwroot));
+				_ = Directory.CreateDirectory(dirPath.Replace(tempFolder, apiWwwroot));
 			}
 
 			foreach (var newPath in Directory.GetFiles(tempFolder, "*.*", SearchOption.AllDirectories))
@@ -220,21 +222,21 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			try
 			{
-				using var scope = services.CreateScope();
-				var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+				using IServiceScope scope = services.CreateScope();
+				DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
 
 				// Create the database schema for the in-memory database
 				// Note: The connection is already open and shared across all DbContext instances
-				dbContext.Database.EnsureCreated();
+				_ = dbContext.Database.EnsureCreated();
 
 				// Seed test data
 				// Create test account
-				var testAccount = new Account("Test Account");
-				dbContext.Accounts.Add(testAccount);
-				dbContext.SaveChanges();
+				Account testAccount = new("Test Account");
+				_ = dbContext.Accounts.Add(testAccount);
+				_ = dbContext.SaveChanges();
 
 				// Create test symbol profile
-				var testSymbolProfile = new SymbolProfile(
+				SymbolProfile testSymbolProfile = new(
 					"AAPL",
 					"Apple Inc.",
 					[],
@@ -246,15 +248,15 @@ namespace PortfolioViewer.WASM.UITests
 					[]);
 
 				// Create test holding
-				var testHolding = new Holding();
+				Holding testHolding = new();
 				testHolding.SymbolProfiles.Add(testSymbolProfile);
-				dbContext.Holdings.Add(testHolding);
+				_ = dbContext.Holdings.Add(testHolding);
 
 				// Create some test activities
 				// Use fixed dates for deterministic test behavior
-				var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-				var activities = new List<GhostfolioSidekick.Model.Activities.Activity>
-		{
+				DateTime baseDate = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+				List<GhostfolioSidekick.Model.Activities.Activity> activities = new()
+				{
 			new CashDepositActivity(
 				testAccount,
 				null,
@@ -270,11 +272,11 @@ namespace PortfolioViewer.WASM.UITests
 				baseDate.AddDays(-9),
 				10m,
 				new Money(Currency.USD, 150m),
+				new Money(Currency.USD, 150m).Times(10),
 				"BUY-001",
 				null,
 				"Buy Apple shares")
 			{
-				TotalTransactionAmount = new Money(Currency.USD, 1500m)
 			},
 			new BuyActivity(
 				testAccount,
@@ -283,11 +285,11 @@ namespace PortfolioViewer.WASM.UITests
 				baseDate.AddDays(-5),
 				5m,
 				new Money(Currency.USD, 155m),
+				new Money(Currency.USD, 155m).Times(5),
 				"BUY-002",
 				null,
 				"Buy more Apple shares")
 			{
-				TotalTransactionAmount = new Money(Currency.USD, 775m)
 			},
 			new DividendActivity(
 				testAccount,
@@ -301,7 +303,7 @@ namespace PortfolioViewer.WASM.UITests
 			};
 
 				dbContext.Activities.AddRange(activities);
-				dbContext.SaveChanges();
+				_ = dbContext.SaveChanges();
 
 				Console.WriteLine($"Test data seeded successfully: {activities.Count} activities created");
 
@@ -312,11 +314,11 @@ namespace PortfolioViewer.WASM.UITests
 				Console.WriteLine($"Verification - Activities: {activityCount}, Accounts: {accountCount}, Holdings: {holdingCount}");
 
 				// List all tables in the database
-				using var connection = dbContext.Database.GetDbConnection();
+				using DbConnection connection = dbContext.Database.GetDbConnection();
 				connection.Open();
-				using var command = connection.CreateCommand();
+				using DbCommand command = connection.CreateCommand();
 				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
-				using var reader = command.ExecuteReader();
+				using DbDataReader reader = command.ExecuteReader();
 				Console.WriteLine("Database tables:");
 				while (reader.Read())
 				{

@@ -11,13 +11,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private List<TransactionDebugRow> TransactionDebugRows = [];
 		private List<AccountInfo> Accounts = [];
 		private int? SelectedAccountId;
-		
+
 		// Filtering fields for symbol type
 		protected string SelectedAssetClass = string.Empty;
 		protected string SelectedAssetSubClass = string.Empty;
-		protected List<string> AssetClassOptions = new() { "", "Liquidity", "Commodity", "Equity", "FixedIncome", "RealEstate" };
-		protected List<string> AssetSubClassOptions = new() { "", "CryptoCurrency", "Etf", "Stock", "MutualFund", "Bond", "Commodity", "PreciousMetal", "PrivateEquity" };
-     protected string SelectedSymbol = string.Empty;
+		protected List<string> AssetClassOptions = ["", "Liquidity", "Commodity", "Equity", "FixedIncome", "RealEstate"];
+		protected List<string> AssetSubClassOptions = ["", "CryptoCurrency", "Etf", "Stock", "MutualFund", "Bond", "Commodity", "PreciousMetal", "PrivateEquity"];
+		protected string SelectedSymbol = string.Empty;
 		protected IEnumerable<string> GetSymbolOptions()
 		{
 			return TransactionDebugRows
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			await Task.Delay(100); // Allow UI to update
 
-			if (int.TryParse(e.Value?.ToString(), out var id))
+			if (int.TryParse(e.Value?.ToString(), out int id))
 			{
 				SelectedAccountId = id;
 				await LoadForSelectedAccount();
@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task LoadForSelectedAccount()
 		{
-			if (SelectedAccountId == null || SelectedAccountId == 0)
+			if (SelectedAccountId is null or 0)
 			{
 				TransactionDebugRows = [];
 				StateHasChanged();
@@ -120,57 +120,44 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 			var paged = await TransactionService.GetTransactionsPaginatedAsync(parameters);
 			var transactions = paged.Transactions.OrderBy(t => t.Date).ToList();
+			if (transactions.Count == 0)
+			{
+				return [];
+			}
 
-			var cashBalances = accounts.ToDictionary(a => a.Id, a => 0m);
-			var assetStates = accounts.ToDictionary(a => a.Id, a => new Dictionary<string, decimal>());
+			var minDate = DateOnly.FromDateTime(transactions.First().Date);
+			var maxDate = DateOnly.FromDateTime(transactions.Last().Date);
 
-           var debugRows = new List<TransactionDebugRow>();
-		   foreach (var t in transactions)
-		   {
+			var valueHistory = await AccountDataService.GetAccountValueHistoryAsync(minDate, maxDate);
+			var valueHistoryForAccount = valueHistory?.Where(x => x.AccountId == accountId).ToList() ?? [];
+
+			var debugRows = new List<TransactionDebugRow>();
+			foreach (var t in transactions)
+			{
 				var account = accounts.FirstOrDefault(a => a.Name == t.AccountName);
-				if (account == null) continue;
-				var accId = account.Id;
+				if (account == null)
+				{
+					continue;
+				}
 
-				decimal cashDelta = 0;
-				if (t.Type == "Buy" && t.TotalValue != null)
-					cashDelta = -t.TotalValue.Amount;
-				else if (t.Type == "Sell" && t.TotalValue != null)
-					cashDelta = t.TotalValue.Amount;
-				else if ((t.Type == "Deposit" || t.Type == "CashDeposit") && t.Amount != null)
-					cashDelta = t.Amount.Amount;
-				else if ((t.Type == "Withdrawal" || t.Type == "CashWithdrawal") && t.Amount != null)
-					cashDelta = -t.Amount.Amount;
-				else if (t.Type == "Dividend" && t.Amount != null)
-					cashDelta = t.Amount.Amount;
-				else if (t.Type == "Fee" && t.Amount != null)
-					cashDelta = -t.Amount.Amount;
-				else if (t.Type == "Interest" && t.Amount != null)
-					cashDelta = t.Amount.Amount;
+				var txDateOnly = DateOnly.FromDateTime(t.Date);
+				var historyPoint = valueHistoryForAccount
+					.Where(h => h.Date <= txDateOnly)
+					.OrderByDescending(h => h.Date)
+					.FirstOrDefault();
 
-				cashBalances[accId] += cashDelta;
+				string cashBalanceDisplay = historyPoint != null
+					? $"{historyPoint.CashBalance.Currency.Symbol} {historyPoint.CashBalance.Amount:N2}"
+					: "N/A";
+				string assetValueDisplay = historyPoint != null
+					? $"{historyPoint.TotalAssetValue.Currency.Symbol} {historyPoint.TotalAssetValue.Amount:N2}"
+					: "N/A";
 
-				var assets = assetStates[accId];
-               if (!string.IsNullOrEmpty(t.Symbol))
-			   {
-				   if (!assets.ContainsKey(t.Symbol))
-					   assets[t.Symbol] = 0m;
-				   if (t.Type == "Buy" && t.Quantity.HasValue)
-				   {
-					   assets[t.Symbol] += t.Quantity.Value;
-				   }
-                   else if (t.Type == "Sell" && t.Quantity.HasValue)
-				   {
-					   var normalizedQty = Math.Abs(t.Quantity.Value);
-					   assets[t.Symbol] -= normalizedQty;
-				   }
-			   }
-
-				var assetStateDisplay = assets
-					.Where(kvp => kvp.Value != 0m)
-					.ToDictionary(
-						kvp => kvp.Key,
-						kvp => kvp.Value.ToString("N4")
-					);
+				var assetStateDisplay = new Dictionary<string, string>();
+				if (!string.IsNullOrEmpty(t.Symbol) && historyPoint != null)
+				{
+					assetStateDisplay[t.Symbol] = assetValueDisplay;
+				}
 
 				debugRows.Add(new TransactionDebugRow
 				{
@@ -178,7 +165,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Type = t.Type,
 					Symbol = t.Symbol ?? string.Empty,
 					AccountName = t.AccountName,
-					CashBalanceDisplay = t.TotalValue != null ? t.TotalValue.Currency.Symbol + " " + cashBalances[accId].ToString("N2") : cashBalances[accId].ToString("N2"),
+					CashBalanceDisplay = cashBalanceDisplay,
 					AssetStates = assetStateDisplay,
 					TransactionId = t.TransactionId
 				});
@@ -186,18 +173,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return debugRows;
 		}
 
-       public class TransactionDebugRow
-	   {
-		   public DateTime Date { get; set; }
-		   public string Type { get; set; } = string.Empty;
-		   public string Symbol { get; set; } = string.Empty;
-		   public string AccountName { get; set; } = string.Empty;
-		   public string CashBalanceDisplay { get; set; } = string.Empty;
-		   public Dictionary<string, string> AssetStates { get; set; } = [];
-		   public string TransactionId { get; set; } = string.Empty;
-		   public string? AssetClass { get; set; }
-		   public string? AssetSubClass { get; set; }
-	   }
+		public class TransactionDebugRow
+		{
+			public DateTime Date { get; set; }
+			public string Type { get; set; } = string.Empty;
+			public string Symbol { get; set; } = string.Empty;
+			public string AccountName { get; set; } = string.Empty;
+			public string CashBalanceDisplay { get; set; } = string.Empty;
+			public Dictionary<string, string> AssetStates { get; set; } = [];
+			public string TransactionId { get; set; } = string.Empty;
+			public string? AssetClass { get; set; }
+			public string? AssetSubClass { get; set; }
+		}
 
 		public class AccountInfo
 		{

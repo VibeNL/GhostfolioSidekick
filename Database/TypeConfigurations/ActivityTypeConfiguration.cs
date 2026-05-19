@@ -1,10 +1,12 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
@@ -29,25 +31,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<ReceiveActivity>,
 		IEntityTypeConfiguration<StakingRewardActivity>,
 		IEntityTypeConfiguration<ValuableActivity>,
-
-		IEntityTypeConfiguration<BuyActivityFee>,
-		IEntityTypeConfiguration<SellActivityFee>,
-		IEntityTypeConfiguration<BuyActivityTax>,
-		IEntityTypeConfiguration<SellActivityTax>,
-		IEntityTypeConfiguration<DividendActivityFee>,
-		IEntityTypeConfiguration<DividendActivityTax>,
-		IEntityTypeConfiguration<SendActivityFee>,
-		IEntityTypeConfiguration<ReceiveActivityFee>,
-
 		IEntityTypeConfiguration<CalculatedPriceTrace>
 	{
 		public void Configure(EntityTypeBuilder<Activity> builder)
 		{
-			builder.ToTable("Activities");
-			builder.UseTphMappingStrategy();
+			_ = builder.ToTable("Activities");
+			_ = builder.UseTphMappingStrategy();
 
 			// Configure custom discriminator values
-			builder.HasDiscriminator<string>("Discriminator")
+			_ = builder.HasDiscriminator<string>("Discriminator")
 				.HasValue<BuyActivity>("Buy")
 				.HasValue<SellActivity>("Sell")
 				.HasValue<CashDepositActivity>("CashDeposit")
@@ -66,21 +58,21 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasValue<StakingRewardActivity>("StakingReward")
 				.HasValue<ValuableActivity>("Valuable");
 
-			builder.HasKey(a => a.Id);
+			_ = builder.HasKey(a => a.Id);
 
 			// Indexes
-			builder.HasIndex(a => a.Date);
-			builder.HasIndex("AccountId");
+			_ = builder.HasIndex(a => a.Date);
+			_ = builder.HasIndex("AccountId");
 		}
 
 		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(ActivityWithQuantityAndUnitPrice.UnitPrice));
 			MapMoney(builder, x => x.AdjustedUnitPrice, nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice));
-			MapMoney(builder, x => x.TotalTransactionAmount, nameof(ActivityWithQuantityAndUnitPrice.TotalTransactionAmount));
+			MapMoney(builder, x => x.TransactionAmount, nameof(ActivityWithQuantityAndUnitPrice.TransactionAmount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 
-			builder.HasMany(x => x.AdjustedUnitPriceSource)
+			_ = builder.HasMany(x => x.AdjustedUnitPriceSource)
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
@@ -94,27 +86,17 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<BuyActivity> builder)
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(BuyActivity.UnitPrice));
-			builder.HasMany(x => x.Fees)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
-			builder.HasMany(x => x.Taxes)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
+			MapMoneyList(builder, x => x.Fees, nameof(BuyActivity.Fees));
+			MapMoneyList(builder, x => x.Taxes, nameof(BuyActivity.Taxes));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<SellActivity> builder)
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(SellActivity.UnitPrice));
-			builder.HasMany(x => x.Fees)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
-			builder.HasMany(x => x.Taxes)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
+			MapMoneyList(builder, x => x.Fees, nameof(SellActivity.Fees));
+			MapMoneyList(builder, x => x.Taxes, nameof(SellActivity.Taxes));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<CashDepositActivity> builder)
@@ -131,14 +113,9 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			MapMoney(builder, x => x.Amount, nameof(DividendActivity.Amount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
-			builder.HasMany(x => x.Fees)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
-			builder.HasMany(x => x.Taxes)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
+			MapMoneyList(builder, x => x.Fees, nameof(DividendActivity.Fees));
+			MapMoneyList(builder, x => x.Taxes, nameof(DividendActivity.Taxes));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
@@ -184,18 +161,14 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<SendActivity> builder)
 		{
-			builder.HasMany(x => x.Fees)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
+			MapMoneyList(builder, x => x.Fees, nameof(SendActivity.Fees));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<ReceiveActivity> builder)
 		{
-			builder.HasMany(x => x.Fees)
-				.WithOne()
-				.HasForeignKey(x => x.ActivityId)
-				.OnDelete(DeleteBehavior.Cascade);
+			MapMoneyList(builder, x => x.Fees, nameof(ReceiveActivity.Fees));
+			_ = builder.Ignore(x => x.Costs);
 		}
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
@@ -208,77 +181,22 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 		}
 
-		public void Configure(EntityTypeBuilder<BuyActivityFee> builder)
-		{
-			builder.ToTable(nameof(BuyActivityFee) + "s");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(BuyActivityFee.Money));
-		}
-
-		public void Configure(EntityTypeBuilder<SellActivityFee> builder)
-		{
-			builder.ToTable(nameof(SellActivityFee) + "s");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(SellActivityFee.Money));
-		}
-
-		public void Configure(EntityTypeBuilder<BuyActivityTax> builder)
-		{
-			builder.ToTable(nameof(BuyActivityTax) + "es");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(BuyActivityTax.Money));
-		}
-
-		public void Configure(EntityTypeBuilder<SellActivityTax> builder)
-		{
-			builder.ToTable(nameof(SellActivityTax) + "es");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(SellActivityTax.Money));
-		}
-
-		public void Configure(EntityTypeBuilder<DividendActivityFee> builder)
-		{
-			builder.ToTable(nameof(DividendActivityFee) + "s");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(DividendActivityFee.Money));
-		}
-
-		public void Configure(EntityTypeBuilder<DividendActivityTax> builder)
-		{
-			builder.ToTable(nameof(DividendActivityTax) + "es");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(DividendActivityTax.Money));
-		}
-
-		public void Configure(EntityTypeBuilder<SendActivityFee> builder)
-		{
-			builder.ToTable(nameof(SendActivityFee) + "s");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(DividendActivityTax.Money));
-		}
-
-		public void Configure(EntityTypeBuilder<ReceiveActivityFee> builder)
-		{
-			builder.ToTable(nameof(ReceiveActivityFee) + "s");
-			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(DividendActivityTax.Money));
-		}
 
 		public void Configure(EntityTypeBuilder<CalculatedPriceTrace> builder)
 		{
-			builder.ToTable("CalculatedPriceTrace");
-			builder.Property<long>("ID")
+			_ = builder.ToTable("CalculatedPriceTrace");
+			_ = builder.Property<long>("ID")
 				.HasColumnType("integer")
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
-			builder.HasKey("ID");
+			_ = builder.HasKey("ID");
 
 			MapMoney(builder, x => x.NewPrice, nameof(CalculatedPriceTrace.NewPrice));
 		}
 
 		private static void MapPartialSymbolIdentifiers<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, IEnumerable<PartialSymbolIdentifier>?>>? navigationExpression) where TEntity : class
 		{
-			builder.HasMany(navigationExpression)
+			_ = builder.HasMany(navigationExpression)
 		   .WithMany()
 		   .UsingEntity<PartialSymbolIdentifierActivity>(
 			   l => l.HasOne<PartialSymbolIdentifier>().WithMany().HasForeignKey("PartialSymbolIdentifierId").OnDelete(DeleteBehavior.Cascade),
@@ -288,8 +206,23 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money?>> navigationExpression, string name) where TEntity : class
 		{
-			builder.ComplexProperty(navigationExpression).IsRequired().Property(x => x.Amount).HasColumnName(name);
-			builder.ComplexProperty(navigationExpression).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
+			_ = builder.ComplexProperty(navigationExpression).IsRequired().Property(x => x.Amount).HasColumnName(name);
+			_ = builder.ComplexProperty(navigationExpression).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
+		}
+
+		private static void MapMoneyList<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, List<Money>>> propertyExpression, string columnName) where TEntity : class
+		{
+			ValueConverter<List<Money>, string> converter = new(
+				v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+				v => JsonSerializer.Deserialize<List<Money>>(v, (JsonSerializerOptions?)null) ?? new List<Money>());
+			ValueComparer<List<Money>> comparer = new(
+				(c1, c2) => c1 == c2 || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+				c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v)),
+				c => c == null ? new List<Money>() : c.ToList());
+			PropertyBuilder<List<Money>> propertyBuilder = builder.Property(propertyExpression)
+				.HasColumnName(columnName)
+				.HasConversion(converter);
+			propertyBuilder.Metadata.SetValueComparer(comparer);
 		}
 	}
 

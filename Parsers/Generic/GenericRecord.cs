@@ -12,11 +12,11 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		[Optional]
 		[TypeConverter(typeof(AssetClassListConverter))]
-		public List<AssetClass> AssetClass { get; set; } = new();
+		public List<AssetClass> AssetClass { get; set; } = [];
 
 		[Optional]
 		[TypeConverter(typeof(AssetSubClassListConverter))]
-		public List<AssetSubClass> AssetSubClass { get; set; } = new();
+		public List<AssetSubClass> AssetSubClass { get; set; } = [];
 
 		public string? Symbol { get; set; }
 

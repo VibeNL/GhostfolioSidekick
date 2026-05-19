@@ -39,8 +39,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					Currency = buyActivity.UnitPrice.Currency.Symbol,
 					Quantity = buyActivity.Quantity,
 					UnitPrice = buyActivity.UnitPrice.Amount,
-					Fee = Sum(buyActivity.Fees.Select(x => x.Money)),
-					Tax = Sum(buyActivity.Taxes.Select(x => x.Money)),
+                   Fee = Sum(buyActivity.Fees),
+				   Tax = Sum(buyActivity.Taxes),
 					AssetClass = [AssetClass.Equity],
 					AssetSubClass = [AssetSubClass.Stock, AssetSubClass.Etf],
 				};
@@ -58,8 +58,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					Currency = sellActivity.UnitPrice.Currency.Symbol,
 					Quantity = sellActivity.Quantity,
 					UnitPrice = sellActivity.UnitPrice.Amount,
-					Fee = Sum(sellActivity.Fees.Select(x => x.Money)),
-					Tax = Sum(sellActivity.Taxes.Select(x => x.Money)),
+                   Fee = Sum(sellActivity.Fees),
+				   Tax = Sum(sellActivity.Taxes),
 					AssetClass = [AssetClass.Equity],
 					AssetSubClass = [AssetSubClass.Stock, AssetSubClass.Etf],
 				};
@@ -77,8 +77,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					Currency = dividendActivity.Amount.Currency.Symbol,
 					Quantity = 1,
 					UnitPrice = dividendActivity.Amount.Amount,
-					Fee = Sum(dividendActivity.Fees.Select(x => x.Money)),
-					Tax = Sum(dividendActivity.Taxes.Select(x => x.Money)),
+                   Fee = Sum(dividendActivity.Fees),
+				   Tax = Sum(dividendActivity.Taxes),
 					AssetClass = [AssetClass.Equity],
 					AssetSubClass = [AssetSubClass.Stock, AssetSubClass.Etf],
 				};

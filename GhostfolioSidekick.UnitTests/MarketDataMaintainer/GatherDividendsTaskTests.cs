@@ -240,7 +240,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			{
 				Symbol = symbol,
 				DataSource = "YAHOO",
-				Dividends = dividends ?? new List<Dividend>()
+				Dividends = dividends ?? []
 			};
 		}
 

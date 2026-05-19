@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.Model.Activities
 {
@@ -18,6 +18,7 @@ namespace GhostfolioSidekick.Model.Activities
 			DateTime dateTime,
 			decimal quantity,
 			Money unitPrice,
+			Money transactionAmount,
 			string transactionId,
 			int? sortingPriority,
 			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
@@ -25,6 +26,7 @@ namespace GhostfolioSidekick.Model.Activities
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
 			Quantity = quantity;
 			UnitPrice = unitPrice;
+			TransactionAmount = transactionAmount;
 			AdjustedQuantity = 0;
 			AdjustedUnitPrice = new Money();
 		}
@@ -35,11 +37,11 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public Money UnitPrice { get; set; }
 
+		public Money TransactionAmount { get; set; } = new Money();
+
 		public decimal AdjustedQuantity { get; set; }
 
 		public Money AdjustedUnitPrice { get; set; }
-
-		public Money TotalTransactionAmount { get; set; } = new Money();
 
 		public virtual List<CalculatedPriceTrace> AdjustedUnitPriceSource { get; set; } = [];
 	}
