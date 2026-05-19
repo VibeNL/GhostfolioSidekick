@@ -11,13 +11,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private List<TransactionDebugRow> TransactionDebugRows = [];
 		private List<AccountInfo> Accounts = [];
 		private int? SelectedAccountId;
-		
+
 		// Filtering fields for symbol type
 		protected string SelectedAssetClass = string.Empty;
 		protected string SelectedAssetSubClass = string.Empty;
 		protected List<string> AssetClassOptions = ["", "Liquidity", "Commodity", "Equity", "FixedIncome", "RealEstate"];
 		protected List<string> AssetSubClassOptions = ["", "CryptoCurrency", "Etf", "Stock", "MutualFund", "Bond", "Commodity", "PreciousMetal", "PrivateEquity"];
-     protected string SelectedSymbol = string.Empty;
+		protected string SelectedSymbol = string.Empty;
 		protected IEnumerable<string> GetSymbolOptions()
 		{
 			return TransactionDebugRows
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			await Task.Delay(100); // Allow UI to update
 
-			if (int.TryParse(e.Value?.ToString(), out var id))
+			if (int.TryParse(e.Value?.ToString(), out int id))
 			{
 				SelectedAccountId = id;
 				await LoadForSelectedAccount();
@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task LoadForSelectedAccount()
 		{
-			if (SelectedAccountId == null || SelectedAccountId == 0)
+			if (SelectedAccountId is null or 0)
 			{
 				TransactionDebugRows = [];
 				StateHasChanged();
@@ -120,20 +120,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 			var paged = await TransactionService.GetTransactionsPaginatedAsync(parameters);
 			var transactions = paged.Transactions.OrderBy(t => t.Date).ToList();
-			if (!transactions.Any())
-				return new List<TransactionDebugRow>();
+			if (transactions.Count == 0)
+			{
+				return [];
+			}
 
 			var minDate = DateOnly.FromDateTime(transactions.First().Date);
 			var maxDate = DateOnly.FromDateTime(transactions.Last().Date);
 
 			var valueHistory = await AccountDataService.GetAccountValueHistoryAsync(minDate, maxDate);
-			var valueHistoryForAccount = valueHistory?.Where(x => x.AccountId == accountId).ToList() ?? new List<Data.Models.AccountValueHistoryPoint>();
+			var valueHistoryForAccount = valueHistory?.Where(x => x.AccountId == accountId).ToList() ?? [];
 
 			var debugRows = new List<TransactionDebugRow>();
 			foreach (var t in transactions)
 			{
 				var account = accounts.FirstOrDefault(a => a.Name == t.AccountName);
-				if (account == null) continue;
+				if (account == null)
+				{
+					continue;
+				}
 
 				var txDateOnly = DateOnly.FromDateTime(t.Date);
 				var historyPoint = valueHistoryForAccount
@@ -168,18 +173,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return debugRows;
 		}
 
-       public class TransactionDebugRow
-	   {
-		   public DateTime Date { get; set; }
-		   public string Type { get; set; } = string.Empty;
-		   public string Symbol { get; set; } = string.Empty;
-		   public string AccountName { get; set; } = string.Empty;
-		   public string CashBalanceDisplay { get; set; } = string.Empty;
-		   public Dictionary<string, string> AssetStates { get; set; } = [];
-		   public string TransactionId { get; set; } = string.Empty;
-		   public string? AssetClass { get; set; }
-		   public string? AssetSubClass { get; set; }
-	   }
+		public class TransactionDebugRow
+		{
+			public DateTime Date { get; set; }
+			public string Type { get; set; } = string.Empty;
+			public string Symbol { get; set; } = string.Empty;
+			public string AccountName { get; set; } = string.Empty;
+			public string CashBalanceDisplay { get; set; } = string.Empty;
+			public Dictionary<string, string> AssetStates { get; set; } = [];
+			public string TransactionId { get; set; } = string.Empty;
+			public string? AssetClass { get; set; }
+			public string? AssetSubClass { get; set; }
+		}
 
 		public class AccountInfo
 		{

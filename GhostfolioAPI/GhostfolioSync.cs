@@ -82,13 +82,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				{
 					yield return ConvertReceiveToBuy(receiveActivity);
 				}
-				else if (activity is SendActivity sendActivity)
-				{
-					yield return ConvertSendToSell(sendActivity);
-				}
 				else
 				{
-					yield return activity;
+					yield return activity is SendActivity sendActivity ? ConvertSendToSell(sendActivity) : activity;
 				}
 			}
 		}
@@ -131,8 +127,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (Activity activity in activities)
 			{
-				Activity result = activity is GiftFiatActivity giftFiatActivity
-					? new InterestActivity(
+				Activity result;
+				if (activity is GiftFiatActivity giftFiatActivity)
+				{
+					result = new InterestActivity(
 						giftFiatActivity.Account,
 						giftFiatActivity.Holding,
 						giftFiatActivity.Date,
@@ -141,8 +139,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						giftFiatActivity.SortingPriority,
 						giftFiatActivity.Description)
 					{
-					}
-					: activity is GiftAssetActivity giftAssetActivity
+					};
+				}
+				else
+				{
+					result = activity is GiftAssetActivity giftAssetActivity
 						? new BuyActivity(
 						giftAssetActivity.Account,
 						giftAssetActivity.Holding,
@@ -157,6 +158,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						{
 						}
 						: activity;
+				}
+
 				yield return result;
 			}
 		}
