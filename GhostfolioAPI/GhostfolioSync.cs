@@ -78,9 +78,18 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (Activity activity in activities)
 			{
-				yield return activity is ReceiveActivity receiveActivity
-					? ConvertReceiveToBuy(receiveActivity)
-					: activity is SendActivity sendActivity ? ConvertSendToSell(sendActivity) : activity;
+			   if (activity is ReceiveActivity receiveActivity)
+			   {
+				   yield return ConvertReceiveToBuy(receiveActivity);
+			   }
+			   else if (activity is SendActivity sendActivity)
+			   {
+				   yield return ConvertSendToSell(sendActivity);
+			   }
+			   else
+			   {
+				   yield return activity;
+			   }
 			}
 		}
 
