@@ -14,8 +14,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 			var holding = new Holding();
           var newIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>()),
-				new PartialSymbolIdentifier(IdentifierType.Default, "ID2", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>())
+				new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, [], []),
+				new PartialSymbolIdentifier(IdentifierType.Default, "ID2", Currency.EUR, [], [])
 			};
 
 			// Act
@@ -32,13 +32,13 @@ namespace GhostfolioSidekick.Model.UnitTests
 		{
 			// Arrange
 			var holding = new Holding();
-            var existingIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
+            var existingIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, [], []);
 			holding.PartialSymbolIdentifiers.Add(existingIdentifier);
 
 			var newIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>()),
-				new PartialSymbolIdentifier(IdentifierType.Default, "ID2", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>())
+				new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, [], []),
+				new PartialSymbolIdentifier(IdentifierType.Default, "ID2", Currency.EUR, [], [])
 			};
 
 			// Act
@@ -79,10 +79,10 @@ namespace GhostfolioSidekick.Model.UnitTests
 		{
 			// Arrange
 			var holding = new Holding();
-            var existingIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
+            var existingIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, [], []);
 			holding.PartialSymbolIdentifiers.Add(existingIdentifier);
 
-			var newIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
+			var newIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, [], []);
 
 			// Act
 			var result = holding.IdentifierContainsInList(newIdentifier);
@@ -96,10 +96,10 @@ namespace GhostfolioSidekick.Model.UnitTests
 		{
 			// Arrange
 			var holding = new Holding();
-            var existingIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
+            var existingIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID1", Currency.EUR, [], []);
 			holding.PartialSymbolIdentifiers.Add(existingIdentifier);
 
-			var newIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID2", Currency.EUR, new List<AssetClass>(), new List<AssetSubClass>());
+			var newIdentifier = new PartialSymbolIdentifier(IdentifierType.Default, "ID2", Currency.EUR, [], []);
 
 			// Act
 			var result = holding.IdentifierContainsInList(newIdentifier);
@@ -117,8 +117,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 				IdentifierType.Default,
 				"ID1",
 				Currency.EUR,
-				new List<AssetClass> { AssetClass.RealEstate },
-				new List<AssetSubClass>()
+				[AssetClass.RealEstate],
+				[]
 			);
 			holding.PartialSymbolIdentifiers.Add(existingIdentifier);
 
@@ -126,8 +126,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 				IdentifierType.Default,
 				"ID1",
 				Currency.EUR,
-				new List<AssetClass> { AssetClass.Liquidity },
-				new List<AssetSubClass>()
+				[AssetClass.Liquidity],
+				[]
 			);
 
 			// Act
@@ -146,8 +146,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 				IdentifierType.Default,
 				"ID1",
 				Currency.EUR,
-				new List<AssetClass> { AssetClass.RealEstate },
-				new List<AssetSubClass>()
+				[AssetClass.RealEstate],
+				[]
 			);
 			holding.PartialSymbolIdentifiers.Add(existingIdentifier);
 
@@ -155,8 +155,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 				IdentifierType.Default,
 				"ID1",
 				Currency.EUR,
-				new List<AssetClass>(),
-				new List<AssetSubClass>()
+				[],
+				[]
 			);
 
 			// Act
@@ -175,8 +175,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 				IdentifierType.Default,
 				"ID1",
 				Currency.EUR,
-				new List<AssetClass>(),
-				new List<AssetSubClass> { AssetSubClass.Commodity }
+				[],
+				[AssetSubClass.Commodity]
 			);
 			holding.PartialSymbolIdentifiers.Add(existingIdentifier);
 
@@ -184,8 +184,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 				IdentifierType.Default,
 				"ID1",
 				Currency.EUR,
-				new List<AssetClass>(),
-				new List<AssetSubClass>()
+				[],
+				[]
 			);
 
 			// Act

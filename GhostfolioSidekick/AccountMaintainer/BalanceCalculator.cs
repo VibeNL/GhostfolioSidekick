@@ -12,10 +12,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 			Currency baseCurrency,
 			IEnumerable<Activity> activities)
 		{
-			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
+			IOrderedEnumerable<Activity> descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
 
 			// Check if we have known balances
-			var knownBalances = descendingSortedActivities
+			IEnumerable<KnownBalanceActivity> knownBalances = descendingSortedActivities
 				.OfType<KnownBalanceActivity>();
 			if (knownBalances.Any())
 			{
@@ -26,16 +26,23 @@ namespace GhostfolioSidekick.AccountMaintainer
 			}
 
 			List<Tuple<DateTime, Money>> moneyTrail = [];
-			foreach (var activity in activities.OrderBy(x => x.Date).ThenBy(x => x.SortingPriority))
+			foreach (Activity? activity in activities.OrderBy(x => x.Date).ThenBy(x => x.SortingPriority))
 			{
+				// Remove the costs of the activity if it has any
+				if (activity is IActivityWithCosts activityWithCosts)
+				{
+					Money costs = Money.Sum(activityWithCosts.Costs);
+					moneyTrail.Add(new Tuple<DateTime, Money>(activity.Date, costs.Times(-1)));
+				}
+
 				// write a switch on the type of activity
 				switch (activity)
 				{
 					case BuyActivity buySellActivity:
-						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount.Times(-1)));
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TransactionAmount.Times(-1)));
 						break;
 					case SellActivity buySellActivity:
-						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount));
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TransactionAmount));
 						break;
 					case CashDepositActivity cashDepositWithdrawalActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(cashDepositWithdrawalActivity.Date, cashDepositWithdrawalActivity.Amount));
@@ -74,13 +81,13 @@ namespace GhostfolioSidekick.AccountMaintainer
 				}
 			}
 
-			var balances = new List<Balance>();
+			List<Balance> balances = [];
 			decimal totalAmount = 0m;
-			foreach (var moneyPerDate in moneyTrail.GroupBy(x => DateOnly.FromDateTime(x.Item1)))
+			foreach (IGrouping<DateOnly, Tuple<DateTime, Money>> moneyPerDate in moneyTrail.GroupBy(x => DateOnly.FromDateTime(x.Item1)))
 			{
-				foreach (var money in moneyPerDate)
+				foreach (Tuple<DateTime, Money>? money in moneyPerDate)
 				{
-					var activityAmount = await exchangeRateService.ConvertMoney(money.Item2, baseCurrency, DateOnly.FromDateTime(money.Item1));
+					Money activityAmount = await exchangeRateService.ConvertMoney(money.Item2, baseCurrency, DateOnly.FromDateTime(money.Item1));
 					totalAmount += activityAmount.Amount;
 				}
 

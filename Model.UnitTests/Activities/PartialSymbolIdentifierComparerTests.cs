@@ -17,8 +17,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				IdentifierType.Default,
 				"AAPL",
 				Currency.USD,
-				new List<AssetClass> { AssetClass.Equity, AssetClass.Undefined }, // More permissive
-				new List<AssetSubClass> { AssetSubClass.Stock } // Overlaps with identifier1
+				[AssetClass.Equity, AssetClass.Undefined], // More permissive
+				[AssetSubClass.Stock] // Overlaps with identifier1
 			);
 
 			// Act
@@ -60,8 +60,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				 IdentifierType.Default,
 				 "TEST",
 				 Currency.USD,
-				 new List<AssetClass> { AssetClass.Undefined },
-				 new List<AssetSubClass>()
+				 [AssetClass.Undefined],
+				 []
 			 );
 			var identifier2 = PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Default, "TEST", Currency.USD)!;
 

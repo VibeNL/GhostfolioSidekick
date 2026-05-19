@@ -15,13 +15,13 @@ namespace GhostfolioSidekick.Model.Activities
 			PartialActivityType activityType,
 			DateTime dateTime,
 			Currency currency,
-			Money TotalTransactionAmount,
+			Money totalTransactionAmount,
 			string transactionId)
 		{
 			ActivityType = activityType;
 			Date = dateTime.ToUniversalTime();
 			Currency = currency;
-			this.TotalTransactionAmount = TotalTransactionAmount;
+			TotalTransactionAmount = totalTransactionAmount;
 			TransactionId = transactionId;
 			SymbolIdentifiers = [];
 		}
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Model.Activities
 			DateTime date,
 			decimal amount,
 			int? rownumber = 0)
-	   {
+		{
 			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), $"KNOWNBALANCE_{date:yyyyMMdd}")
 			{
 				Amount = amount,
@@ -185,7 +185,7 @@ namespace GhostfolioSidekick.Model.Activities
 		{
 			GuardNonNegative(amount, nameof(amount));
 			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
-		
+
 			return new PartialActivity(PartialActivityType.Correction, date, currency, totalTransactionAmount, transactionId)
 			{
 				Amount = amount,

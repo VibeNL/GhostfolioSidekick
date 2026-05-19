@@ -16,8 +16,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			TransactionQueryParameters parameters,
 			CancellationToken cancellationToken = default)
 		{
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			var baseQuery = await BuildBaseQuery(
+			using DatabaseContext databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+			IQueryable<Activity> baseQuery = await BuildBaseQuery(
 				databaseContext,
 				parameters.StartDate,
 				parameters.EndDate,
@@ -30,11 +30,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			var totalCount = await baseQuery.CountAsync(cancellationToken);
 
 			// Apply sorting
-			var sortedQuery = ApplySorting(baseQuery, parameters.SortColumn, parameters.SortAscending);
+			IQueryable<Activity> sortedQuery = ApplySorting(baseQuery, parameters.SortColumn, parameters.SortAscending);
 
 			// Apply pagination and get activities
 			var skip = (parameters.PageNumber - 1) * parameters.PageSize;
-			var activities = await sortedQuery
+			List<Activity> activities = await sortedQuery
 				.Skip(skip)
 				.Take(parameters.PageSize)
 				.AsNoTracking()
@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				Description = activity.Description ?? "",
 				TransactionId = activity.TransactionId ?? "",
 				AccountName = activity.Account.Name ?? "",
-				Quantity = activity is ActivityWithQuantityAndUnitPrice quantityActivity ? quantityActivity.Quantity : (decimal?)null,
+				Quantity = activity is ActivityWithQuantityAndUnitPrice quantityActivity ? quantityActivity.Quantity : null,
 				UnitPrice = activity is ActivityWithQuantityAndUnitPrice quantityActivity2 ? quantityActivity2.UnitPrice : null,
 				Currency = activity is ActivityWithQuantityAndUnitPrice quantityActivity3 ? quantityActivity3.UnitPrice.Currency.Symbol : "",
 				Amount = activity is ActivityWithAmount amountActivity ? amountActivity.Amount : null,
@@ -63,8 +63,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}).ToList();
 
 			// Get summary statistics efficiently using separate simpler queries
-			var typeBreakdown = await GetTransactionTypeBreakdownAsync(baseQuery, cancellationToken);
-			var accountBreakdown = await GetAccountBreakdownAsync(baseQuery, cancellationToken);
+			Dictionary<string, int> typeBreakdown = await GetTransactionTypeBreakdownAsync(baseQuery, cancellationToken);
+			Dictionary<string, int> accountBreakdown = await GetAccountBreakdownAsync(baseQuery, cancellationToken);
 
 			return new PaginatedTransactionResult
 			{
@@ -81,26 +81,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
 			if (activity is ActivityWithQuantityAndUnitPrice quantityActivity)
 			{
-				return quantityActivity.TotalTransactionAmount;
+				return quantityActivity.UnitPrice.Times(quantityActivity.Quantity);
 			}
 
-			if (activity is ActivityWithAmount amountActivity)
-			{
-				return amountActivity.Amount;
-			}
-
-			return null;
+			return activity is ActivityWithAmount amountActivity ? amountActivity.Amount : null;
 		}
 
 		private static Money? GetFeeForActivity(Activity activity)
 		{
 			return activity switch
 			{
-				BuyActivity buy when buy.Fees.Count != 0 => Money.Sum(buy.Fees.Select(f => f.Money)),
-				SellActivity sell when sell.Fees.Count != 0 => Money.Sum(sell.Fees.Select(f => f.Money)),
-				DividendActivity dividend when dividend.Fees.Count != 0 => Money.Sum(dividend.Fees.Select(f => f.Money)),
-				ReceiveActivity receive when receive.Fees.Count != 0 => Money.Sum(receive.Fees.Select(f => f.Money)),
-				SendActivity send when send.Fees.Count != 0 => Money.Sum(send.Fees.Select(f => f.Money)),
+				BuyActivity buy when buy.Fees.Count != 0 => Money.Sum(buy.Fees),
+				SellActivity sell when sell.Fees.Count != 0 => Money.Sum(sell.Fees),
+				DividendActivity dividend when dividend.Fees.Count != 0 => Money.Sum(dividend.Fees),
+				ReceiveActivity receive when receive.Fees.Count != 0 => Money.Sum(receive.Fees),
+				SendActivity send when send.Fees.Count != 0 => Money.Sum(send.Fees),
 				_ => null
 			};
 		}
@@ -109,9 +104,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
 			return activity switch
 			{
-				BuyActivity buy when buy.Taxes.Count != 0 => Money.Sum(buy.Taxes.Select(t => t.Money)),
-				SellActivity sell when sell.Taxes.Count != 0 => Money.Sum(sell.Taxes.Select(t => t.Money)),
-				DividendActivity dividend when dividend.Taxes.Count != 0 => Money.Sum(dividend.Taxes.Select(t => t.Money)),
+				BuyActivity buy when buy.Taxes.Count != 0 => Money.Sum(buy.Taxes),
+				SellActivity sell when sell.Taxes.Count != 0 => Money.Sum(sell.Taxes),
+				DividendActivity dividend when dividend.Taxes.Count != 0 => Money.Sum(dividend.Taxes),
 				_ => null
 			};
 		}
@@ -122,52 +117,100 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			// Query for each activity type separately with user-friendly names
 			var buyCount = await baseQuery.OfType<BuyActivity>().CountAsync(cancellationToken);
-			if (buyCount > 0) breakdowns["Buy"] = buyCount;
+			if (buyCount > 0)
+			{
+				breakdowns["Buy"] = buyCount;
+			}
 
 			var sellCount = await baseQuery.OfType<SellActivity>().CountAsync(cancellationToken);
-			if (sellCount > 0) breakdowns["Sell"] = sellCount;
+			if (sellCount > 0)
+			{
+				breakdowns["Sell"] = sellCount;
+			}
 
 			var dividendCount = await baseQuery.OfType<DividendActivity>().CountAsync(cancellationToken);
-			if (dividendCount > 0) breakdowns["Dividend"] = dividendCount;
+			if (dividendCount > 0)
+			{
+				breakdowns["Dividend"] = dividendCount;
+			}
 
 			var depositCount = await baseQuery.OfType<CashDepositActivity>().CountAsync(cancellationToken);
-			if (depositCount > 0) breakdowns["Deposit"] = depositCount;
+			if (depositCount > 0)
+			{
+				breakdowns["Deposit"] = depositCount;
+			}
 
 			var withdrawalCount = await baseQuery.OfType<CashWithdrawalActivity>().CountAsync(cancellationToken);
-			if (withdrawalCount > 0) breakdowns["Withdrawal"] = withdrawalCount;
+			if (withdrawalCount > 0)
+			{
+				breakdowns["Withdrawal"] = withdrawalCount;
+			}
 
 			var feeCount = await baseQuery.OfType<FeeActivity>().CountAsync(cancellationToken);
-			if (feeCount > 0) breakdowns["Fee"] = feeCount;
+			if (feeCount > 0)
+			{
+				breakdowns["Fee"] = feeCount;
+			}
 
 			var interestCount = await baseQuery.OfType<InterestActivity>().CountAsync(cancellationToken);
-			if (interestCount > 0) breakdowns["Interest"] = interestCount;
+			if (interestCount > 0)
+			{
+				breakdowns["Interest"] = interestCount;
+			}
 
 			var receiveCount = await baseQuery.OfType<ReceiveActivity>().CountAsync(cancellationToken);
-			if (receiveCount > 0) breakdowns["Receive"] = receiveCount;
+			if (receiveCount > 0)
+			{
+				breakdowns["Receive"] = receiveCount;
+			}
 
 			var sendCount = await baseQuery.OfType<SendActivity>().CountAsync(cancellationToken);
-			if (sendCount > 0) breakdowns["Send"] = sendCount;
+			if (sendCount > 0)
+			{
+				breakdowns["Send"] = sendCount;
+			}
 
 			var stakingRewardCount = await baseQuery.OfType<StakingRewardActivity>().CountAsync(cancellationToken);
-			if (stakingRewardCount > 0) breakdowns["Staking Reward"] = stakingRewardCount;
+			if (stakingRewardCount > 0)
+			{
+				breakdowns["Staking Reward"] = stakingRewardCount;
+			}
 
 			var giftFiatCount = await baseQuery.OfType<GiftFiatActivity>().CountAsync(cancellationToken);
-			if (giftFiatCount > 0) breakdowns["Gift Fiat"] = giftFiatCount;
+			if (giftFiatCount > 0)
+			{
+				breakdowns["Gift Fiat"] = giftFiatCount;
+			}
 
 			var giftAssetCount = await baseQuery.OfType<GiftAssetActivity>().CountAsync(cancellationToken);
-			if (giftAssetCount > 0) breakdowns["Gift Asset"] = giftAssetCount;
+			if (giftAssetCount > 0)
+			{
+				breakdowns["Gift Asset"] = giftAssetCount;
+			}
 
 			var valuableCount = await baseQuery.OfType<ValuableActivity>().CountAsync(cancellationToken);
-			if (valuableCount > 0) breakdowns["Valuable"] = valuableCount;
+			if (valuableCount > 0)
+			{
+				breakdowns["Valuable"] = valuableCount;
+			}
 
 			var liabilityCount = await baseQuery.OfType<LiabilityActivity>().CountAsync(cancellationToken);
-			if (liabilityCount > 0) breakdowns["Liability"] = liabilityCount;
+			if (liabilityCount > 0)
+			{
+				breakdowns["Liability"] = liabilityCount;
+			}
 
 			var repayBondCount = await baseQuery.OfType<RepayBondActivity>().CountAsync(cancellationToken);
-			if (repayBondCount > 0) breakdowns["Repay Bond"] = repayBondCount;
+			if (repayBondCount > 0)
+			{
+				breakdowns["Repay Bond"] = repayBondCount;
+			}
 
 			var correctionCount = await baseQuery.OfType<CorrectionActivity>().CountAsync(cancellationToken);
-			if (correctionCount > 0) breakdowns["Correction"] = correctionCount;
+			if (correctionCount > 0)
+			{
+				breakdowns["Correction"] = correctionCount;
+			}
 
 			return breakdowns;
 		}
@@ -189,7 +232,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			List<string> transactionTypes,
 			string searchText)
 		{
-			var query = databaseContext.Activities
+			IQueryable<Activity> query = databaseContext.Activities
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
 				.Where(a => a.Date >= startDate.ToDateTime(TimeOnly.MinValue) && a.Date <= endDate.ToDateTime(TimeOnly.MinValue));
@@ -237,11 +280,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				if (typePredicates.Count > 0)
 				{
 					// Combine all predicates using Expression.OrElse
-					var param = Expression.Parameter(typeof(Activity), "a");
+					ParameterExpression param = Expression.Parameter(typeof(Activity), "a");
 					Expression? body = null;
-					foreach (var predicate in typePredicates)
+					foreach (Expression<Func<Activity, bool>> predicate in typePredicates)
 					{
-						var invoked = Expression.Invoke(predicate, param);
+						InvocationExpression invoked = Expression.Invoke(predicate, param);
 						body = body == null ? invoked : Expression.OrElse(body, invoked);
 					}
 					if (body != null)
@@ -265,43 +308,47 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return query;
 		}
 
-		private static object GetTotalValueAmount(Activity activity)
+        private static decimal GetTotalValueAmount(Activity activity)
 		{
 			if (activity is ActivityWithQuantityAndUnitPrice quantityActivity)
 			{
-				return quantityActivity.TotalTransactionAmount.Amount;
+				var money = quantityActivity.UnitPrice.Times(quantityActivity.Quantity);
+				return money?.Amount ?? 0m;
 			}
-			
 			if (activity is ActivityWithAmount amountActivity)
 			{
-				return amountActivity.Amount.Amount;
+				return amountActivity.Amount?.Amount ?? 0m;
 			}
-			
-			return 0;
+			return 0m;
 		}
 
-		private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
+     private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
 		{
-			Expression<Func<Activity, object>> sortExpression = sortColumn switch
+			if (sortColumn == "TotalValue")
+			{
+				Expression<Func<Activity, decimal>> sortExpression = a => GetTotalValueAmount(a);
+				return sortAscending ? query.OrderBy(sortExpression) : query.OrderByDescending(sortExpression);
+			}
+
+			Expression<Func<Activity, object>> sortObjExpression = sortColumn switch
 			{
 				"Date" => a => a.Date,
 				"Type" => a => a.GetType().Name,
 				"Symbol" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Symbol : "",
 				"Name" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Name ?? "" : "",
 				"AccountName" => a => a.Account.Name,
-				"TotalValue" => a => GetTotalValueAmount(a),
 				"Description" => a => a.Description ?? "",
 				_ => a => a.Date // Default sort
 			};
 
-			return sortAscending ? query.OrderBy(sortExpression) : query.OrderByDescending(sortExpression);
+			return sortAscending ? query.OrderBy(sortObjExpression) : query.OrderByDescending(sortObjExpression);
 		}
 
 		public async Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default)
 		{
 			// Get all distinct activity types from the database
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			var typeNames = await databaseContext.Activities
+			using DatabaseContext databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+			List<string> typeNames = await databaseContext.Activities
 				.Select(a => a.GetType().Name)
 				.Distinct()
 				.ToListAsync(cancellationToken);

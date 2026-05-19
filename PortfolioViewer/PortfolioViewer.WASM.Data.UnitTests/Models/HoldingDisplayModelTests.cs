@@ -32,7 +32,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Models
         {
             var model = new HoldingDisplayModel
             {
-                Symbols = new List<string> { "AAPL", "APC" },
+                Symbols = ["AAPL", "APC"],
                 Name = "Apple Inc.",
                 CurrentValue = new Money(Currency.USD, 100),
                 Quantity = 5,
@@ -45,7 +45,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Models
                 AssetClass = "Equity",
                 Currency = "EUR"
             };
-            Assert.Equal(new List<string> { "AAPL", "APC" }, model.Symbols);
+            Assert.Equal(["AAPL", "APC"], model.Symbols);
             Assert.Equal("Apple Inc.", model.Name);
             Assert.Equal(5, model.Quantity);
             Assert.Equal(20, model.GainLossPercentage);
@@ -60,7 +60,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Models
         {
             var model = new HoldingDisplayModel
             {
-                Symbols = new List<string> { "AAPL" },
+                Symbols = ["AAPL"],
                 Name = "Apple Inc.",
                 CurrentValue = new Money(Currency.USD, 100),
                 Quantity = 5,

@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -18,7 +19,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			if (account.Platform != null)
 			{
 				logger.LogDebug("Syncing platform {PlatformName}", account.Platform.Name);
-				var platform = await apiWrapper.GetPlatformByName(account.Platform.Name);
+				Platform? platform = await apiWrapper.GetPlatformByName(account.Platform.Name);
 				if (platform == null)
 				{
 					logger.LogDebug("Creating platform {PlatformName}", account.Platform.Name);
@@ -28,7 +29,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			}
 
 			logger.LogDebug("Syncing account {AccountName}", account.Name);
-			var ghostFolioAccount = await apiWrapper.GetAccountByName(account.Name);
+			Account? ghostFolioAccount = await apiWrapper.GetAccountByName(account.Name);
 			if (ghostFolioAccount == null)
 			{
 				logger.LogDebug("Creating account {AccountName}", account.Name);
@@ -57,7 +58,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			allActivities = ConvertGiftsToInterestOrBuy(allActivities);
 			allActivities = ConvertBondRepay(allActivities);
 			allActivities = SettleNegativeDividends(allActivities);
-			var allactivitiesList = allActivities.Where(x => x.Account.SyncActivities).ToList();
+			List<Activity> allactivitiesList = allActivities.Where(x => x.Account.SyncActivities).ToList();
 
 			await apiWrapper.SyncAllActivities([.. allactivitiesList]);
 			logger.LogDebug("activities synced");
@@ -73,23 +74,22 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			await apiWrapper.SyncMarketData(profile, list);
 		}
 
-		// Refactored to reduce cognitive complexity by extracting logic for ReceiveActivity and SendActivity to helper methods.
 		private static IEnumerable<Activity> ConvertSendAndRecievesToBuyAndSells(IEnumerable<Activity> activities)
 		{
-			foreach (var activity in activities)
+			foreach (Activity activity in activities)
 			{
-				if (activity is ReceiveActivity receiveActivity)
-				{
-					yield return ConvertReceiveToBuy(receiveActivity);
-				}
-				else if (activity is SendActivity sendActivity)
-				{
-					yield return ConvertSendToSell(sendActivity);
-				}
-				else
-				{
-					yield return activity;
-				}
+			   if (activity is ReceiveActivity receiveActivity)
+			   {
+				   yield return ConvertReceiveToBuy(receiveActivity);
+			   }
+			   else if (activity is SendActivity sendActivity)
+			   {
+				   yield return ConvertSendToSell(sendActivity);
+			   }
+			   else
+			   {
+				   yield return activity;
+			   }
 			}
 		}
 
@@ -102,6 +102,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				receiveActivity.Date,
 				receiveActivity.AdjustedQuantity != 0 ? receiveActivity.AdjustedQuantity : receiveActivity.Quantity,
 				receiveActivity.AdjustedUnitPrice.Amount != 0 ? receiveActivity.AdjustedUnitPrice : receiveActivity.UnitPrice,
+				receiveActivity.UnitPrice.Times(receiveActivity.Quantity),
 				receiveActivity.TransactionId,
 				receiveActivity.SortingPriority,
 				receiveActivity.Description)
@@ -118,6 +119,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				sendActivity.Date,
 				sendActivity.AdjustedQuantity != 0 ? sendActivity.AdjustedQuantity : sendActivity.Quantity,
 				sendActivity.AdjustedUnitPrice.Amount != 0 ? sendActivity.AdjustedUnitPrice : sendActivity.UnitPrice,
+				sendActivity.UnitPrice.Times(sendActivity.Quantity),
 				sendActivity.TransactionId,
 				sendActivity.SortingPriority,
 				sendActivity.Description)
@@ -127,11 +129,12 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		private static IEnumerable<Activity> ConvertGiftsToInterestOrBuy(IEnumerable<Activity> activities)
 		{
-			foreach (var activity in activities)
+			foreach (Activity activity in activities)
 			{
+				Activity result;
 				if (activity is GiftFiatActivity giftFiatActivity)
 				{
-					yield return new InterestActivity(
+					result = new InterestActivity(
 						giftFiatActivity.Account,
 						giftFiatActivity.Holding,
 						giftFiatActivity.Date,
@@ -142,31 +145,37 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					{
 					};
 				}
-				else if (activity is GiftAssetActivity giftAssetActivity)
-				{
-					yield return new BuyActivity(
-						giftAssetActivity.Account,
-						giftAssetActivity.Holding,
-						giftAssetActivity.PartialSymbolIdentifiers,
-						giftAssetActivity.Date,
-						giftAssetActivity.AdjustedQuantity != 0 ? giftAssetActivity.AdjustedQuantity : giftAssetActivity.Quantity,
-						giftAssetActivity.AdjustedUnitPrice.Amount != 0 ? giftAssetActivity.AdjustedUnitPrice : giftAssetActivity.UnitPrice,
-						giftAssetActivity.TransactionId,
-						giftAssetActivity.SortingPriority,
-						giftAssetActivity.Description)
-					{
-					};
-				}
 				else
 				{
-					yield return activity;
+					if (activity is GiftAssetActivity giftAssetActivity)
+					{
+						decimal quantity = giftAssetActivity.AdjustedQuantity != 0 ? giftAssetActivity.AdjustedQuantity : giftAssetActivity.Quantity;
+						Money unitPrice = giftAssetActivity.AdjustedUnitPrice.Amount != 0 ? giftAssetActivity.AdjustedUnitPrice : giftAssetActivity.UnitPrice;
+						result = new BuyActivity(
+							giftAssetActivity.Account,
+							giftAssetActivity.Holding,
+							giftAssetActivity.PartialSymbolIdentifiers,
+							giftAssetActivity.Date,
+							quantity,
+							unitPrice,
+							giftAssetActivity.UnitPrice.Times(giftAssetActivity.Quantity),
+							giftAssetActivity.TransactionId,
+							giftAssetActivity.SortingPriority,
+							giftAssetActivity.Description);
+					}
+					else
+					{
+						result = activity;
+					}
 				}
+
+				yield return result;
 			}
 		}
 
 		private IEnumerable<Activity> ConvertBondRepay(IEnumerable<Activity> activities)
 		{
-			foreach (var activity in activities)
+			foreach (Activity activity in activities)
 			{
 				if (activity is RepayBondActivity repayBondActivity)
 				{
@@ -176,11 +185,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						continue;
 					}
 
-					var buyQuantity = repayBondActivity.Holding!.Activities.OfType<BuyActivity>().Sum(x => x.Quantity);
-					var sellQuantity = repayBondActivity.Holding!.Activities.OfType<SellActivity>().Sum(x => x.Quantity);
-					var quantity = buyQuantity - sellQuantity;
+					decimal buyQuantity = repayBondActivity.Holding!.Activities.OfType<BuyActivity>().Sum(x => x.Quantity);
+					decimal sellQuantity = repayBondActivity.Holding!.Activities.OfType<SellActivity>().Sum(x => x.Quantity);
+					decimal quantity = buyQuantity - sellQuantity;
 
-					var price = repayBondActivity.Amount.SafeDivide(quantity);
+					Money price = repayBondActivity.Amount.SafeDivide(quantity);
 
 					yield return new SellActivity(
 						activity.Account,
@@ -189,6 +198,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						activity.Date,
 						quantity,
 						price,
+						price.Times(quantity),
 						activity.TransactionId,
 						activity.SortingPriority,
 						activity.Description)
@@ -204,7 +214,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		private static IEnumerable<Activity> SettleNegativeDividends(IEnumerable<Activity> activities)
 		{
-			foreach (var activity in activities)
+			foreach (Activity activity in activities)
 			{
 				if (activity is DividendActivity divided && divided.Amount.Amount < 0)
 				{

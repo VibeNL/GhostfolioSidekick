@@ -173,7 +173,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			buyActivities.Should().AllSatisfy(a =>
 			{
 				a.Fees.Should().HaveCount(1, $"buy activity {a.TransactionId} should have exactly one fee");
-				a.Fees.First().Money.Amount.Should().Be(0.02m, $"buy activity {a.TransactionId} should have a fee of 0.02");
+               a.Fees.First().Amount.Should().Be(0.02m, $"buy activity {a.TransactionId} should have a fee of 0.02");
 			});
 		}
 

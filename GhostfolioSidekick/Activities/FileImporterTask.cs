@@ -1,7 +1,7 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
@@ -253,6 +253,11 @@ namespace GhostfolioSidekick.Activities
 					.OrderBy(x => x.SortingPriority)
 					.ThenBy(x => x.Description);
 
+				if (AccountId == 4 && newActivity.First() is BuyActivity)
+				{
+					// HELLO
+				}
+
 				if (!AreActivitiesEqual(existingActivity, newActivity))
 				{
 					databaseContext.Activities.RemoveRange(existingActivity);
@@ -274,14 +279,7 @@ namespace GhostfolioSidekick.Activities
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedQuantity),
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice),
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPriceSource),
-						nameof(BuyActivityFee.ActivityId),
-						nameof(SellActivityFee.ActivityId),
-						nameof(BuyActivityTax.ActivityId),
-						nameof(SellActivityTax.ActivityId),
-						nameof(ReceiveActivityFee.ActivityId),
-						nameof(SendActivityFee.ActivityId),
-						nameof(DividendActivityFee.ActivityId),
-						nameof(DividendActivityTax.ActivityId)
+                       // Removed obsolete fee/tax types
 					]
 				}
 			};

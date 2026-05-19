@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		public static Account MapAccount(Contract.Account rawAccount, Contract.Platform? platform)
 		{
-			var account = new Account(rawAccount.Name)
+			Account account = new(rawAccount.Name)
 			{
 				Comment = rawAccount.Comment,
 				Platform = platform != null ? MapPlatform(platform) : null,
@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		}
 		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
-			var symbol = new SymbolProfile(
+			SymbolProfile symbol = new(
 				symbolProfile.Symbol,
 				symbolProfile.Name,
 				MapIdentifiers(symbolProfile),
@@ -49,11 +49,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		private static List<SymbolIdentifier> MapIdentifiers(Contract.SymbolProfile symbolProfile)
 		{
-			var result = new List<SymbolIdentifier>();
+			List<SymbolIdentifier> result = [];
 			if (!string.IsNullOrWhiteSpace(symbolProfile.ISIN))
+			{
 				result.Add(new SymbolIdentifier { Identifier = symbolProfile.ISIN, IdentifierType = IdentifierType.ISIN });
+			}
+
 			if (!string.IsNullOrWhiteSpace(symbolProfile.Symbol))
+			{
 				result.Add(new SymbolIdentifier { Identifier = symbolProfile.Symbol, IdentifierType = IdentifierType.Ticker });
+			}
+
 			return result;
 		}
 
@@ -69,19 +75,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		internal static Model.Activities.Activity MapActivity(Account account, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)
 		{
-			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
+			Contract.SymbolProfile symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
 
 			// Create partial symbol identifiers based on the symbol profile
-			var partialSymbolIdentifiers = new Model.Activities.PartialSymbolIdentifier?[]
+			List<PartialSymbolIdentifier> partialSymbolIdentifiers = new Model.Activities.PartialSymbolIdentifier?[]
 			{
 				Model.Activities.PartialSymbolIdentifier.CreateGeneric(Model.Activities.IdentifierType.ISIN, symbol.ISIN, Currency.GetCurrency(symbol.Currency)),
 				Model.Activities.PartialSymbolIdentifier.CreateGeneric(Model.Activities.IdentifierType.Ticker, symbol.Symbol, Currency.GetCurrency(symbol.Currency))
 			}.Where(x => x != null).OfType<Model.Activities.PartialSymbolIdentifier>().ToList();
 
 			// Create money objects for amounts
-			var currency = Currency.GetCurrency(symbol.Currency);
-			var unitPrice = new Money(currency, rawActivity.UnitPrice);
-			var feeAmount = rawActivity.Fee > 0 ? new Money(Currency.GetCurrency(rawActivity.FeeCurrency ?? symbol.Currency), rawActivity.Fee) : null;
+			Currency currency = Currency.GetCurrency(symbol.Currency);
+			Money unitPrice = new(currency, rawActivity.UnitPrice);
+			Money? feeAmount = rawActivity.Fee > 0 ? new Money(Currency.GetCurrency(rawActivity.FeeCurrency ?? symbol.Currency), rawActivity.Fee) : null;
 
 			return rawActivity.Type switch
 			{
@@ -92,12 +98,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					rawActivity.Date,
 					rawActivity.Quantity,
 					unitPrice,
+					unitPrice.Times(rawActivity.Quantity), // total cost
 					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
 					null, // sortingPriority
 					rawActivity.Comment)
 				{
-					TotalTransactionAmount = new Money(currency, rawActivity.Quantity * rawActivity.UnitPrice),
-					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.BuyActivityFee(feeAmount)] : []
+					Fees = feeAmount != null ? [feeAmount] : []
 				},
 
 				Contract.ActivityType.SELL => new SellActivity(
@@ -107,12 +113,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					rawActivity.Date,
 					rawActivity.Quantity,
 					unitPrice,
+					unitPrice.Times(rawActivity.Quantity), // total cost
 					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
 					null, // sortingPriority
 					rawActivity.Comment)
 				{
-					TotalTransactionAmount = new Money(currency, rawActivity.Quantity * rawActivity.UnitPrice),
-					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.SellActivityFee(feeAmount)] : []
+					Fees = feeAmount != null ? [feeAmount] : []
 				},
 
 				Contract.ActivityType.DIVIDEND => new DividendActivity(
@@ -125,7 +131,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					null, // sortingPriority
 					rawActivity.Comment)
 				{
-					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.DividendActivityFee(feeAmount)] : []
+					Fees = feeAmount != null ? [feeAmount] : []
 				},
 
 				Contract.ActivityType.INTEREST => new InterestActivity(
