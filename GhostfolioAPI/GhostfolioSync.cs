@@ -78,14 +78,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (Activity activity in activities)
 			{
-				if (activity is ReceiveActivity receiveActivity)
-				{
-					yield return ConvertReceiveToBuy(receiveActivity);
-				}
-				else
-				{
-					yield return activity is SendActivity sendActivity ? ConvertSendToSell(sendActivity) : activity;
-				}
+				yield return activity is ReceiveActivity receiveActivity
+					? ConvertReceiveToBuy(receiveActivity)
+					: activity is SendActivity sendActivity ? ConvertSendToSell(sendActivity) : activity;
 			}
 		}
 
@@ -143,21 +138,26 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				}
 				else
 				{
-					result = activity is GiftAssetActivity giftAssetActivity
-						? new BuyActivity(
-						giftAssetActivity.Account,
-						giftAssetActivity.Holding,
-						giftAssetActivity.PartialSymbolIdentifiers,
-						giftAssetActivity.Date,
-						giftAssetActivity.AdjustedQuantity != 0 ? giftAssetActivity.AdjustedQuantity : giftAssetActivity.Quantity,
-						giftAssetActivity.AdjustedUnitPrice.Amount != 0 ? giftAssetActivity.AdjustedUnitPrice : giftAssetActivity.UnitPrice,
-						giftAssetActivity.UnitPrice.Times(giftAssetActivity.Quantity),
-						giftAssetActivity.TransactionId,
-						giftAssetActivity.SortingPriority,
-						giftAssetActivity.Description)
-						{
-						}
-						: activity;
+					if (activity is GiftAssetActivity giftAssetActivity)
+					{
+						decimal quantity = giftAssetActivity.AdjustedQuantity != 0 ? giftAssetActivity.AdjustedQuantity : giftAssetActivity.Quantity;
+						Money unitPrice = giftAssetActivity.AdjustedUnitPrice.Amount != 0 ? giftAssetActivity.AdjustedUnitPrice : giftAssetActivity.UnitPrice;
+						result = new BuyActivity(
+							giftAssetActivity.Account,
+							giftAssetActivity.Holding,
+							giftAssetActivity.PartialSymbolIdentifiers,
+							giftAssetActivity.Date,
+							quantity,
+							unitPrice,
+							giftAssetActivity.UnitPrice.Times(giftAssetActivity.Quantity),
+							giftAssetActivity.TransactionId,
+							giftAssetActivity.SortingPriority,
+							giftAssetActivity.Description);
+					}
+					else
+					{
+						result = activity;
+					}
 				}
 
 				yield return result;
