@@ -120,57 +120,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 			var paged = await TransactionService.GetTransactionsPaginatedAsync(parameters);
 			var transactions = paged.Transactions.OrderBy(t => t.Date).ToList();
+			if (!transactions.Any())
+				return new List<TransactionDebugRow>();
 
-			var cashBalances = accounts.ToDictionary(a => a.Id, a => 0m);
-			var assetStates = accounts.ToDictionary(a => a.Id, a => new Dictionary<string, decimal>());
+			var minDate = DateOnly.FromDateTime(transactions.First().Date);
+			var maxDate = DateOnly.FromDateTime(transactions.Last().Date);
 
-           var debugRows = new List<TransactionDebugRow>();
-		   foreach (var t in transactions)
-		   {
+			var valueHistory = await AccountDataService.GetAccountValueHistoryAsync(minDate, maxDate);
+			var valueHistoryForAccount = valueHistory?.Where(x => x.AccountId == accountId).ToList() ?? new List<Data.Models.AccountValueHistoryPoint>();
+
+			var debugRows = new List<TransactionDebugRow>();
+			foreach (var t in transactions)
+			{
 				var account = accounts.FirstOrDefault(a => a.Name == t.AccountName);
 				if (account == null) continue;
-				var accId = account.Id;
 
-				decimal cashDelta = 0;
-				if (t.Type == "Buy" && t.TotalValue != null)
-					cashDelta = -t.TotalValue.Amount;
-				else if (t.Type == "Sell" && t.TotalValue != null)
-					cashDelta = t.TotalValue.Amount;
-				else if ((t.Type == "Deposit" || t.Type == "CashDeposit") && t.Amount != null)
-					cashDelta = t.Amount.Amount;
-				else if ((t.Type == "Withdrawal" || t.Type == "CashWithdrawal") && t.Amount != null)
-					cashDelta = -t.Amount.Amount;
-				else if (t.Type == "Dividend" && t.Amount != null)
-					cashDelta = t.Amount.Amount;
-				else if (t.Type == "Fee" && t.Amount != null)
-					cashDelta = -t.Amount.Amount;
-				else if (t.Type == "Interest" && t.Amount != null)
-					cashDelta = t.Amount.Amount;
+				var txDateOnly = DateOnly.FromDateTime(t.Date);
+				var historyPoint = valueHistoryForAccount
+					.Where(h => h.Date <= txDateOnly)
+					.OrderByDescending(h => h.Date)
+					.FirstOrDefault();
 
-				cashBalances[accId] += cashDelta;
+				string cashBalanceDisplay = historyPoint != null
+					? $"{historyPoint.CashBalance.Currency.Symbol} {historyPoint.CashBalance.Amount:N2}"
+					: "N/A";
+				string assetValueDisplay = historyPoint != null
+					? $"{historyPoint.TotalAssetValue.Currency.Symbol} {historyPoint.TotalAssetValue.Amount:N2}"
+					: "N/A";
 
-				var assets = assetStates[accId];
-               if (!string.IsNullOrEmpty(t.Symbol))
-			   {
-				   if (!assets.ContainsKey(t.Symbol))
-					   assets[t.Symbol] = 0m;
-				   if (t.Type == "Buy" && t.Quantity.HasValue)
-				   {
-					   assets[t.Symbol] += t.Quantity.Value;
-				   }
-                   else if (t.Type == "Sell" && t.Quantity.HasValue)
-				   {
-					   var normalizedQty = Math.Abs(t.Quantity.Value);
-					   assets[t.Symbol] -= normalizedQty;
-				   }
-			   }
-
-				var assetStateDisplay = assets
-					.Where(kvp => kvp.Value != 0m)
-					.ToDictionary(
-						kvp => kvp.Key,
-						kvp => kvp.Value.ToString("N4")
-					);
+				var assetStateDisplay = new Dictionary<string, string>();
+				if (!string.IsNullOrEmpty(t.Symbol) && historyPoint != null)
+				{
+					assetStateDisplay[t.Symbol] = assetValueDisplay;
+				}
 
 				debugRows.Add(new TransactionDebugRow
 				{
@@ -178,7 +160,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Type = t.Type,
 					Symbol = t.Symbol ?? string.Empty,
 					AccountName = t.AccountName,
-					CashBalanceDisplay = t.TotalValue != null ? t.TotalValue.Currency.Symbol + " " + cashBalances[accId].ToString("N2") : cashBalances[accId].ToString("N2"),
+					CashBalanceDisplay = cashBalanceDisplay,
 					AssetStates = assetStateDisplay,
 					TransactionId = t.TransactionId
 				});
