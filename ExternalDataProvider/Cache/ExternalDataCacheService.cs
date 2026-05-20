@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 {
 	public class ExternalDataCacheService(DatabaseContext dbContext)
 	{
-		public async Task<T?> GetOrAddAsync<T>(string cacheKey, string dataType, Func<Task<T>> factory, TimeSpan? expiration = null)
+		public async Task<T?> GetOrAddAsync<T>(string cacheKey, string dataType, Func<Task<T>> factory, TimeSpan expiration)
 		{
 			DateTime now = DateTime.UtcNow;
 			ExternalDataCacheEntry? entry = await dbContext.ExternalDataCacheEntries
@@ -26,21 +26,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 				}
 			}
 
-			T? value = default;
-			try
-			{
-				value = await factory();
-			}
-			catch
-			{
-				// Do not cache failed results, let the exception bubble up if needed
-				throw;
-			}
+			T? value = await factory();
 			if (value != null)
 			{
 				string dataJson = JsonSerializer.Serialize(value);
-				DateTime? expiresAt = expiration.HasValue ? now.Add(expiration.Value) : null;
-				var newEntry = new ExternalDataCacheEntry
+				DateTime? expiresAt = now.Add(expiration);
+				ExternalDataCacheEntry newEntry = new()
 				{
 					CacheKey = cacheKey,
 					DataType = dataType,
