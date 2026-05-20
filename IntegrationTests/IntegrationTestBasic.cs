@@ -1,6 +1,4 @@
 using AwesomeAssertions;
-using Docker.DotNet;
-using Docker.DotNet.Models;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
@@ -47,8 +45,8 @@ namespace GhostfolioSidekick.IntegrationTests
 		public async Task CanSetupGhostfolioDependencies()
 		{
 			// url ghostfolio for debugging:
-			var url = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
-			authToken.Should().NotBeNull();
+			string url = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
+			_ = authToken.Should().NotBeNull();
 
 			await InitializeSidekick(authToken, url);
 		}
@@ -57,8 +55,6 @@ namespace GhostfolioSidekick.IntegrationTests
 
 		public async ValueTask InitializeAsync()
 		{
-			await DeleteNetworkIfExistsAsync(NetworkName).ConfigureAwait(false);
-
 			network = new NetworkBuilder()
 				.WithCleanUp(true)
 				.WithName(NetworkName)
@@ -77,11 +73,11 @@ namespace GhostfolioSidekick.IntegrationTests
 			// Can access the Ghostfolio container.
 			var ghostfolioUri = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri;
 			var response = await httpClient.GetAsync(ghostfolioUri, TestContext.Current.CancellationToken).ConfigureAwait(false);
-			response.EnsureSuccessStatusCode();
+			_ = response.EnsureSuccessStatusCode();
 
 			// Create a new user.
 			response = await httpClient.PostAsync($"{ghostfolioUri}api/v1/user", new StringContent("{}")).ConfigureAwait(false);
-			response.EnsureSuccessStatusCode();
+			_ = response.EnsureSuccessStatusCode();
 			authToken = await response.Content.ReadFromJsonAsync<AuthData>().ConfigureAwait(false);
 		}
 
@@ -103,7 +99,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await redisContainer.DisposeAsync().ConfigureAwait(false);
 
 			// Dispose the network.
-			await network.DisposeAsync().ConfigureAwait(false);
+			await DeleteNetworkIfExistsAsync(network).ConfigureAwait(false);
 		}
 
 		private async Task InitializeSidekick(AuthData authToken, string url)
@@ -115,7 +111,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
 
 			// Clean up existing database file if present
-			var dbPath = "./Files/ghostfolio.db";
+			string dbPath = "./Files/ghostfolio.db";
 			if (System.IO.File.Exists(dbPath))
 			{
 				System.IO.File.Delete(dbPath);
@@ -126,7 +122,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.CreateHostBuilder()
 				.ConfigureServices((hostContext, services) =>
 				{
-					services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
+					_ = services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
 				})
 				.Build();
 
@@ -152,10 +148,10 @@ namespace GhostfolioSidekick.IntegrationTests
 			foreach (var item in AccountsWithExpectedNumbers)
 			{
 				var account = await apiWrapper.GetAccountByName(item.Key);
-				account.Should().NotBeNull();
+				_ = account.Should().NotBeNull();
 
 				var activities = await apiWrapper.GetActivitiesByAccount(account!);
-				activities.Should().HaveCount(item.Value);
+				_ = activities.Should().HaveCount(item.Value);
 			}
 
 			await VerifyFeesAreProcessed(apiWrapper);
@@ -164,16 +160,16 @@ namespace GhostfolioSidekick.IntegrationTests
 		private static async Task VerifyFeesAreProcessed(IApiWrapper apiWrapper)
 		{
 			var account = await apiWrapper.GetAccountByName("TestAccount1");
-			account.Should().NotBeNull();
+			_ = account.Should().NotBeNull();
 
 			var activities = await apiWrapper.GetActivitiesByAccount(account!);
 			var buyActivities = activities.OfType<Model.Activities.Types.BuyActivity>().ToList();
 
-			buyActivities.Should().NotBeEmpty("TestAccount1 should have Buy activities with fees");
-			buyActivities.Should().AllSatisfy(a =>
+			_ = buyActivities.Should().NotBeEmpty("TestAccount1 should have Buy activities with fees");
+			_ = buyActivities.Should().AllSatisfy(a =>
 			{
-				a.Fees.Should().HaveCount(1, $"buy activity {a.TransactionId} should have exactly one fee");
-               a.Fees.First().Amount.Should().Be(0.02m, $"buy activity {a.TransactionId} should have a fee of 0.02");
+				_ = a.Fees.Should().HaveCount(1, $"buy activity {a.TransactionId} should have exactly one fee");
+				_ = a.Fees.First().Amount.Should().Be(0.02m, $"buy activity {a.TransactionId} should have a fee of 0.02");
 			});
 		}
 
@@ -199,8 +195,8 @@ namespace GhostfolioSidekick.IntegrationTests
 			var execResult = await postgresContainer.ExecScriptAsync(scriptContent).ConfigureAwait(false);
 
 			// Then
-			execResult.ExitCode.Should().Be(0L, execResult.Stderr);
-			execResult.Stderr.Should().BeEmpty();
+			_ = execResult.ExitCode.Should().Be(0L, execResult.Stderr);
+			_ = execResult.Stderr.Should().BeEmpty();
 		}
 
 		private async Task InitializeRedisContainer(INetwork network)
@@ -250,22 +246,19 @@ namespace GhostfolioSidekick.IntegrationTests
 			await TestcontainersSettings.ExposeHostPortsAsync(ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).ConfigureAwait(false);
 		}
 
-		private static async Task DeleteNetworkIfExistsAsync(string networkName)
+		private static async Task DeleteNetworkIfExistsAsync(INetwork? network)
 		{
-			using var dockerClient = new DockerClientConfiguration().CreateClient();
-			var networks = await dockerClient.Networks.ListNetworksAsync(new NetworksListParameters()).ConfigureAwait(false);
-			var existing = networks.FirstOrDefault(n => n.Name == networkName);
-			if (existing != null)
+			if (network != null)
 			{
-				await dockerClient.Networks.DeleteNetworkAsync(existing.ID).ConfigureAwait(false);
+				await network.DisposeAsync();
 			}
 		}
 
 		private void EnsureContainersAreRunning()
 		{
-			postgresContainer.State.Should().Be(TestcontainersStates.Running, "the PostgreSQL container should be running.");
-			redisContainer.State.Should().Be(TestcontainersStates.Running, "the Redis container should be running.");
-			ghostfolioContainer.State.Should().Be(TestcontainersStates.Running, "the Ghostfolio container should be running.");
+			_ = postgresContainer.State.Should().Be(TestcontainersStates.Running, "the PostgreSQL container should be running.");
+			_ = redisContainer.State.Should().Be(TestcontainersStates.Running, "the Redis container should be running.");
+			_ = ghostfolioContainer.State.Should().Be(TestcontainersStates.Running, "the Ghostfolio container should be running.");
 		}
 
 	}

@@ -15,9 +15,9 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-		<PackageReference Include="Testcontainers" Version="4.11.0" />
-		<PackageReference Include="Testcontainers.PostgreSql" Version="4.11.0" />
-		<PackageReference Include="Testcontainers.Redis" Version="4.11.0" />
+		<PackageReference Include="Testcontainers" Version="4.12.0" />
+		<PackageReference Include="Testcontainers.PostgreSql" Version="4.12.0" />
+		<PackageReference Include="Testcontainers.Redis" Version="4.12.0" />
 		<!--<PackageReference Include="xRetry" Version="1.9.0" />-->
 		<PackageReference Include="xunit.v3" Version="3.2.2" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
@@ -33,14 +33,14 @@
 		<Using Include="Xunit" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Update="Files\config.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Files\TestAccount1\generic.csv">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Files\TestAccount2\degiro_pt.csv">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
+		<None Update="Files\config.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Files\TestAccount1\generic.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Files\TestAccount2\degiro_pt.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 </Project>
