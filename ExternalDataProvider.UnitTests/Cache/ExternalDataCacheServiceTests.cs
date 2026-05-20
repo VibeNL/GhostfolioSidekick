@@ -9,9 +9,16 @@ using Xunit;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 {
-	public class ExternalDataCacheServiceTests : IDisposable
+
+public class ExternalDataCacheServiceTests : IDisposable
+{
+	private enum TestCacheDataType
 	{
-		private readonly DatabaseContext _dbContext;
+		TestType,
+		ExpireType
+	}
+
+	private readonly DatabaseContext _dbContext;
 		private readonly ExternalDataCacheService _cacheService;
 		private readonly SqliteConnection _connection;
 
@@ -27,35 +34,33 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 			_cacheService = new ExternalDataCacheService(_dbContext);
 		}
 
-		[Fact]
-		public async Task GetOrAddAsync_CachesAndRetrievesValue()
-		{
-			string key = "test:key";
-			string type = "TestType";
-			int value = 42;
-			var result1 = await _cacheService.GetOrAddAsync(key, type, () => Task.FromResult(value), TimeSpan.FromMinutes(5));
-			Assert.Equal(value, result1);
-
-			// Should retrieve from cache, not factory
-			var result2 = await _cacheService.GetOrAddAsync(key, type, () => Task.FromResult(99), TimeSpan.FromMinutes(5));
-			Assert.Equal(value, result2);
-		}
-
 	   [Fact]
-	   public async Task GetOrAddAsync_ExpiresCache()
+	   public async Task GetOrAddAsync_CachesAndRetrievesValue()
 	   {
-		   string key = "expire:key";
-		   string type = "ExpireType";
-		   int value = 123;
-		   await _cacheService.GetOrAddAsync(key, type, () => Task.FromResult(value), TimeSpan.FromMilliseconds(10));
-#if NET8_0_OR_GREATER
-		   await Task.Delay(50, TestContext.Current.CancellationToken);
-#else
-		   await Task.Delay(50);
-#endif
-		   var result = await _cacheService.GetOrAddAsync(key, type, () => Task.FromResult(456), TimeSpan.FromMinutes(5));
-		   Assert.Equal(456, result);
+		   string key = "test:key";
+		   int value = 42;
+		   var result1 = await _cacheService.GetOrAddAsync<int, TestCacheDataType>(key, TestCacheDataType.TestType, () => Task.FromResult(value), TimeSpan.FromMinutes(5));
+		   Assert.Equal(value, result1);
+
+		   // Should retrieve from cache, not factory
+		   var result2 = await _cacheService.GetOrAddAsync<int, TestCacheDataType>(key, TestCacheDataType.TestType, () => Task.FromResult(99), TimeSpan.FromMinutes(5));
+		   Assert.Equal(value, result2);
 	   }
+
+		 [Fact]
+	  public async Task GetOrAddAsync_ExpiresCache()
+	  {
+		  string key = "expire:key";
+		  int value = 123;
+		  await _cacheService.GetOrAddAsync<int, TestCacheDataType>(key, TestCacheDataType.ExpireType, () => Task.FromResult(value), TimeSpan.FromMilliseconds(10));
+#if NET8_0_OR_GREATER
+		  await Task.Delay(50, TestContext.Current.CancellationToken);
+#else
+		  await Task.Delay(50);
+#endif
+		  var result = await _cacheService.GetOrAddAsync<int, TestCacheDataType>(key, TestCacheDataType.ExpireType, () => Task.FromResult(456), TimeSpan.FromMinutes(5));
+		  Assert.Equal(456, result);
+	  }
 
 		public void Dispose()
 		{

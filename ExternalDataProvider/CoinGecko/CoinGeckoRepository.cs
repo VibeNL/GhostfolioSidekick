@@ -38,10 +38,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			}
 
 			string cacheKey = $"coingecko:symbol:{id.Identifier}";
-			return await cacheService.GetOrAddAsync(cacheKey, "SymbolProfile", async () =>
+			return await cacheService.GetOrAddAsync<SymbolProfile, CoinGeckoCacheDataType>(cacheKey, CoinGeckoCacheDataType.SymbolProfile, async () =>
 			{
 				AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
-				return await retryPolicy.ExecuteAsync(async () =>
+				return (await retryPolicy.ExecuteAsync(async () =>
 				{
 					CoinGeckoAsset? coinGeckoAsset = await GetCoinGeckoAsset(id.Identifier);
 					if (coinGeckoAsset == null)
@@ -66,58 +66,58 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 						WebsiteUrl = $"https://www.coingecko.com/en/coins/{coinGeckoAsset.Id}"
 					};
 					return symbolProfile;
-				});
+				}))!;
 			}, TimeSpan.FromDays(1));
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
 			string cacheKey = $"coingecko:marketdata:{symbol.Symbol}:{fromDate:yyyyMMdd}";
-			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(cacheKey, "MarketData", async () =>
-		 {
-			 CoinGeckoAsset? coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
-			 if (coinGeckoAsset == null)
-			 {
-				 return [];
-			 }
+			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync<IEnumerable<MarketData>, CoinGeckoCacheDataType>(cacheKey, CoinGeckoCacheDataType.MarketData, async () =>
+			{
+				CoinGeckoAsset? coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
+				if (coinGeckoAsset == null)
+				{
+					return [];
+				}
 
-			 WebCallResult<CoinGeckoOhlc[]> longRange = await RetryPolicyHelper
-							 .GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
-							 .WrapAsync(RetryPolicyHelper
-								 .GetRetryPolicy(logger))
-								 .ExecuteAsync(async () =>
-								 {
-									 WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
+				WebCallResult<CoinGeckoOhlc[]> longRange = await RetryPolicyHelper
+								.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
+								.WrapAsync(RetryPolicyHelper
+									.GetRetryPolicy(logger))
+									.ExecuteAsync(async () =>
+									{
+										WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
 
-									 return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
-								 });
+										return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
+									});
 
-			 WebCallResult<CoinGeckoOhlc[]> shortRange = await RetryPolicyHelper
-							 .GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
-							 .WrapAsync(RetryPolicyHelper
-								 .GetRetryPolicy(logger))
-								 .ExecuteAsync(async () =>
-								 {
-									 WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
+				WebCallResult<CoinGeckoOhlc[]> shortRange = await RetryPolicyHelper
+								.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
+								.WrapAsync(RetryPolicyHelper
+									.GetRetryPolicy(logger))
+									.ExecuteAsync(async () =>
+									{
+										WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
 
-									 return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
-								 });
+										return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
+									});
 
-			 var list = new List<MarketData>();
-			 foreach (CoinGeckoOhlc? candle in ((longRange?.Data) ?? []).Union(shortRange?.Data ?? []))
-			 {
-				 var item = new MarketData(
-									 Currency.USD,
-									 candle.Close,
-									 candle.Open,
-									 candle.High,
-									 candle.Low,
-									 0,
-									 DateOnly.FromDateTime(candle.Timestamp.Date));
-				 list.Add(item);
-			 }
+				var list = new List<MarketData>();
+				foreach (CoinGeckoOhlc? candle in ((longRange?.Data) ?? []).Union(shortRange?.Data ?? []))
+				{
+					var item = new MarketData(
+									Currency.USD,
+									candle.Close,
+									candle.Open,
+									candle.High,
+									candle.Low,
+									0,
+									DateOnly.FromDateTime(candle.Timestamp.Date));
+					list.Add(item);
+				}
 
-			 // Add the existing market data
+				// Add the existing market data
 			 list = [.. list.Union(symbol.MarketData)];
 
 			 IEnumerable<MarketData> x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);

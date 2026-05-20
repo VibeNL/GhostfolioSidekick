@@ -49,10 +49,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 
 			string cacheKey = $"yahoo:symbol:{id.Identifier}";
-			return await cacheService.GetOrAddAsync(cacheKey, "SymbolProfile", async () =>
+			return await cacheService.GetOrAddAsync<SymbolProfile, YahooCacheDataType>(cacheKey, YahooCacheDataType.SymbolProfile, async () =>
 			{
 				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
-				return await retryPolicy.ExecuteAsync(async () =>
+				return (await retryPolicy.ExecuteAsync(async () =>
 				{
 					var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
 					if (searchResults.Count == 0)
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 						var cleanedIdentifier = SymbolNameCleaner.CleanTickerSymbol(identifier.Identifier);
 						var exactMatches = searchResults
 							.Where(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase)
-										 || SymbolNameCleaner.CleanTickerSymbol(r.Symbol).Equals(cleanedIdentifier, StringComparison.OrdinalIgnoreCase))
+								 || SymbolNameCleaner.CleanTickerSymbol(r.Symbol).Equals(cleanedIdentifier, StringComparison.OrdinalIgnoreCase))
 							.ToList();
 						if (exactMatches.Count == 0)
 							continue;
@@ -97,17 +97,17 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					}
 					bestMatch ??= searchResults[0];
 					return await CreateSymbolProfileFromMatch(bestMatch);
-				});
+				}))!;
 			}, TimeSpan.FromDays(1));
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
 			string cacheKey = $"yahoo:marketdata:{symbol.Symbol}:{fromDate:yyyyMMdd}";
-			var result = await cacheService.GetOrAddAsync(cacheKey, "MarketData", async () =>
-		 {
-			 return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
-		 }, TimeSpan.FromDays(1));
+			var result = await cacheService.GetOrAddAsync<IEnumerable<MarketData>, YahooCacheDataType>(cacheKey, YahooCacheDataType.MarketData, async () =>
+			{
+				return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
+			}, TimeSpan.FromDays(1));
 			return result ?? [];
 		}
 
