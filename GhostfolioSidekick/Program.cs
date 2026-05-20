@@ -32,9 +32,9 @@ namespace GhostfolioSidekick
 	internal static class Program
 	{
 		[ExcludeFromCodeCoverage]
-		static async Task Main()
+		private static async Task Main()
 		{
-			var hostBuilder = CreateHostBuilder();
+			IHostBuilder hostBuilder = CreateHostBuilder();
 			await hostBuilder.RunConsoleAsync();
 		}
 
@@ -43,30 +43,30 @@ namespace GhostfolioSidekick
 			return new HostBuilder()
 						.ConfigureAppConfiguration((hostContext, configBuilder) =>
 						{
-							configBuilder.SetBasePath(Directory.GetCurrentDirectory());
-							configBuilder.AddJsonFile("appsettings.json", optional: true);
-							configBuilder.AddJsonFile(
+							_ = configBuilder.SetBasePath(Directory.GetCurrentDirectory());
+							_ = configBuilder.AddJsonFile("appsettings.json", optional: true);
+							_ = configBuilder.AddJsonFile(
 								$"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json",
 								optional: true);
-							configBuilder.AddEnvironmentVariables();
+							_ = configBuilder.AddEnvironmentVariables();
 						})
 						.ConfigureLogging((hostContext, configLogging) =>
 						{
-							configLogging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
-							configLogging.AddConsole();
+							_ = configLogging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
+							_ = configLogging.AddConsole();
 						})
 						.ConfigureServices((hostContext, services) =>
 						{
-							services.AddHttpClient();
+							_ = services.AddHttpClient();
 
-							services.AddSingleton<MemoryCache, MemoryCache>();
-							services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
-							services.AddSingleton<IApplicationSettings, ApplicationSettings>();
+							_ = services.AddSingleton<MemoryCache, MemoryCache>();
+							_ = services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+							_ = services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
-							services.AddSingleton<IRestClient, RestClient>(x =>
+							_ = services.AddSingleton<IRestClient, RestClient>(x =>
 							{
-								var settings = x.GetService<IApplicationSettings>();
-								var options = new RestClientOptions(settings!.GhostfolioUrl)
+								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
+								RestClientOptions options = new(settings!.GhostfolioUrl)
 								{
 									ThrowOnAnyError = false,
 									ThrowOnDeserializationError = false,
@@ -75,9 +75,9 @@ namespace GhostfolioSidekick
 								return new RestClient(options);
 							});
 
-							services.AddSingleton(x =>
+							_ = services.AddSingleton(x =>
 							{
-								var settings = x.GetService<IApplicationSettings>();
+								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
 								return new RestCall(x.GetService<IRestClient>()!,
 													x.GetService<MemoryCache>()!,
 													x.GetService<ILogger<RestCall>>()!,
@@ -85,68 +85,71 @@ namespace GhostfolioSidekick
 													settings!.GhostfolioAccessToken,
 													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
 							});
-							services.AddSingleton(x =>
+							_ = services.AddSingleton(x =>
 							{
-								var settings = x.GetService<IApplicationSettings>();
+								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
-							services.AddDbContextFactory<DatabaseContext>(options =>
+							_ = services.AddDbContextFactory<DatabaseContext>(options =>
 							{
-								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+								IApplicationSettings? settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
 								var dbPath = settings?.DatabaseFilePath;
-								options.UseSqlite($"Data Source={dbPath}");
-								options.UseLazyLoadingProxies();
+								_ = options.UseSqlite($"Data Source={dbPath}");
+								_ = options.UseLazyLoadingProxies();
 							});
 
-							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
-							services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
-							services.AddSingleton<IApiWrapper, ApiWrapper>();
+							_ = services.AddSingleton<ICurrencyMapper, SymbolMapper>();
+							_ = services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
+							_ = services.AddSingleton<IApiWrapper, ApiWrapper>();
 
-							services.AddSingleton<YahooRepository>();
-							services.AddSingleton<CoinGeckoRepository>();
-							services.AddSingleton<GhostfolioSymbolMatcher>();
-							services.AddSingleton<ManualSymbolRepository>();
-							services.AddSingleton<DividendMaxMatcher>();
-							services.AddTransient<ICoinGeckoRestClient>(sp =>
+							// Register ExternalDataCacheService for caching external data provider requests
+							_ = services.AddSingleton<GhostfolioSidekick.ExternalDataProvider.Cache.ExternalDataCacheService>();
+
+							_ = services.AddSingleton<YahooRepository>();
+							_ = services.AddSingleton<CoinGeckoRepository>();
+							_ = services.AddSingleton<GhostfolioSymbolMatcher>();
+							_ = services.AddSingleton<ManualSymbolRepository>();
+							_ = services.AddSingleton<DividendMaxMatcher>();
+							_ = services.AddTransient<ICoinGeckoRestClient>(sp =>
 								new CoinGeckoRestClient(
 									sp.GetRequiredService<HttpClient>(),
 									sp.GetRequiredService<ILoggerFactory>(),
 									Options.Create(new CoinGeckoRestOptions())));
 
-							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
-							services.AddSingleton<ISymbolMatcher[]>(sp => [
+							_ = services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
+							_ = services.AddSingleton<ISymbolMatcher[]>(sp => [
 									sp.GetRequiredService<YahooRepository>(),
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
 									sp.GetRequiredService<ManualSymbolRepository>(),
 									sp.GetRequiredService<DividendMaxMatcher>()
 								]);
-							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
-							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
-							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
-							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
+							_ = services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
+							_ = services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
+							_ = services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
+							_ = services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
-							services.AddHttpClient<IDividendRepository, DividendMaxScraper>();
+							_ = services.AddHttpClient<IDividendRepository, DividendMaxScraper>();
 
-					services.AddScoped<IHostedService, TimedHostedService>();
-					RegisterAllWithInterface<IScheduledWork>(services);
-					RegisterAllWithInterface<IHoldingStrategy>(services);
-					RegisterAllWithInterface<IFileImporter>(services);
-					RegisterAllWithInterface<ITradeRepublicActivityParser>(services);
+							_ = services.AddScoped<IHostedService, TimedHostedService>();
+							RegisterAllWithInterface<IScheduledWork>(services);
+							RegisterAllWithInterface<IHoldingStrategy>(services);
+							RegisterAllWithInterface<IFileImporter>(services);
+							RegisterAllWithInterface<ITradeRepublicActivityParser>(services);
 
-					services.AddScoped<IPerformanceCalculator, PerformanceCalculator>();
+							_ = services.AddScoped<IPerformanceCalculator, PerformanceCalculator>();
 
-					services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
+							_ = services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 						});
 		}
 
 		private static void RegisterAllWithInterface<T>(IServiceCollection services)
 		{
-			var types = typeof(T).Assembly.GetTypes()
+			IEnumerable<Type> types = typeof(T).Assembly.GetTypes()
 				.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
-			foreach (var type in types)
+			foreach (Type? type in types)
 			{
-				services.AddScoped(typeof(T), type);
+				_ = services.AddScoped(typeof(T), type);
 			}
 		}
 	}

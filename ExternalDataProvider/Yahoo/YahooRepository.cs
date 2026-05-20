@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
@@ -9,11 +10,11 @@ using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository(ILogger<YahooRepository> logger) :
-		ICurrencyRepository,
-		ISymbolMatcher,
-		IStockPriceRepository,
-		IStockSplitRepository
+	public class YahooRepository(ILogger<YahooRepository> logger, ExternalDataCacheService cacheService) :
+			ICurrencyRepository,
+			ISymbolMatcher,
+			IStockPriceRepository,
+			IStockSplitRepository
 	{
 		public string DataSource => Datasource.YAHOO;
 
@@ -41,49 +42,44 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
-			try
+			var id = symbolIdentifiers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Identifier));
+			if (id == null)
+			{
+				return null;
+			}
+
+			string cacheKey = $"yahoo:symbol:{id.Identifier}";
+			return await cacheService.GetOrAddAsync(cacheKey, "SymbolProfile", async () =>
 			{
 				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
 				return await retryPolicy.ExecuteAsync(async () =>
 				{
 					var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
-
 					if (searchResults.Count == 0)
-					{
 						return null;
-					}
 
 					SearchResult? bestMatch = null;
-
 					var expectedCurrency = symbolIdentifiers
 						.Where(i => i.Currency != null)
 						.Select(i => i.Currency)
 						.FirstOrDefault();
-
 					var symbolCurrencies = new Dictionary<string, Currency?>(StringComparer.OrdinalIgnoreCase);
 					foreach (var result in searchResults)
 					{
 						symbolCurrencies[result.Symbol] = await GetActualCurrencyAsync(result.Symbol);
 					}
-
-					// Prefer exact symbol match (case-insensitive) with any identifier, preferring currency match
 					foreach (var identifier in symbolIdentifiers)
 					{
 						var cleanedIdentifier = SymbolNameCleaner.CleanTickerSymbol(identifier.Identifier);
 						var exactMatches = searchResults
 							.Where(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase)
-									 || SymbolNameCleaner.CleanTickerSymbol(r.Symbol).Equals(cleanedIdentifier, StringComparison.OrdinalIgnoreCase))
+										 || SymbolNameCleaner.CleanTickerSymbol(r.Symbol).Equals(cleanedIdentifier, StringComparison.OrdinalIgnoreCase))
 							.ToList();
 						if (exactMatches.Count == 0)
-						{
 							continue;
-						}
-
 						bestMatch = exactMatches.MaxBy(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies));
 						break;
 					}
-
-					// If no exact match, use semantic match score with currency as tiebreaker
 					if (bestMatch == null)
 					{
 						var identifierValues = symbolIdentifiers
@@ -99,22 +95,20 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 							.ThenByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
 							.First();
 					}
-
-					// Fallback to first result
 					bestMatch ??= searchResults[0];
-
 					return await CreateSymbolProfileFromMatch(bestMatch);
 				});
-			}
-			catch
-			{
-				return null;
-			}
+			}, TimeSpan.FromDays(1));
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
-       {
-			return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
+		{
+			string cacheKey = $"yahoo:marketdata:{symbol.Symbol}:{fromDate:yyyyMMdd}";
+			var result = await cacheService.GetOrAddAsync(cacheKey, "MarketData", async () =>
+		 {
+			 return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
+		 }, TimeSpan.FromDays(1));
+			return result ?? [];
 		}
 
 		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate)
@@ -278,7 +272,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				}
 			}
 
-            // Always update today's price with the latest
+			// Always update today's price with the latest
 			var today = DateOnly.FromDateTime(DateTime.Now);
 			var symbolFields = await YahooFinanceApi.Yahoo.Symbols(symbol)
 				.Fields(

@@ -2,22 +2,25 @@ using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
 using GhostfolioSidekick.Cryptocurrency;
+using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Polly.Retry;
 
 namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 {
 	public class CoinGeckoRepository(
 			ILogger<CoinGeckoRepository> logger,
 			IMemoryCache memoryCache,
-			ICoinGeckoRestClient coinGeckoRestClient
+			ICoinGeckoRestClient coinGeckoRestClient,
+			ExternalDataCacheService cacheService
 			) :
-		ISymbolMatcher,
-		IStockPriceRepository
+		 ISymbolMatcher,
+		 IStockPriceRepository
 	{
 		public string DataSource => Datasource.COINGECKO;
 
@@ -26,111 +29,101 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 		public bool AllowedForDeterminingHolding => true;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-       {
-			try
-			{
-				var retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
-				return await retryPolicy.ExecuteAsync(async () =>
-				{
-					foreach (var id in symbolIdentifiers)
-					{
-						if (id.AllowedAssetSubClasses == null || !id.AllowedAssetSubClasses.Contains(AssetSubClass.CryptoCurrency))
-						{
-							continue;
-						}
-
-						var coinGeckoAsset = await GetCoinGeckoAsset(id.Identifier);
-						if (coinGeckoAsset == null)
-						{
-							continue;
-						}
-
-						var symbolProfile = new SymbolProfile(
-							coinGeckoAsset.Symbol,
-							coinGeckoAsset.Name,
-							[
-								new SymbolIdentifier { Identifier = coinGeckoAsset.Symbol, IdentifierType = IdentifierType.Ticker },
-								new SymbolIdentifier { Identifier = coinGeckoAsset.Name, IdentifierType = IdentifierType.Name }
-							],
-							Currency.USD with { },
-							Datasource.COINGECKO,
-							AssetClass.Liquidity,
-							AssetSubClass.CryptoCurrency,
-							[],
-							[])
-						{
-							WebsiteUrl = $"https://www.coingecko.com/en/coins/{coinGeckoAsset.Id}"
-						};
-						return symbolProfile;
-					}
-					return null;
-				});
-			}
-			catch
+		{
+			// Use the first valid identifier for cache key
+			PartialSymbolIdentifier? id = symbolIdentifiers.FirstOrDefault(x => x.AllowedAssetSubClasses != null && x.AllowedAssetSubClasses.Contains(AssetSubClass.CryptoCurrency));
+			if (id == null)
 			{
 				return null;
 			}
+
+			string cacheKey = $"coingecko:symbol:{id.Identifier}";
+			return await cacheService.GetOrAddAsync(cacheKey, "SymbolProfile", async () =>
+			{
+				AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
+				return await retryPolicy.ExecuteAsync(async () =>
+				{
+					CoinGeckoAsset? coinGeckoAsset = await GetCoinGeckoAsset(id.Identifier);
+					if (coinGeckoAsset == null)
+					{
+						return null;
+					}
+
+					var symbolProfile = new SymbolProfile(
+						coinGeckoAsset.Symbol,
+						coinGeckoAsset.Name,
+						[
+							new SymbolIdentifier { Identifier = coinGeckoAsset.Symbol, IdentifierType = IdentifierType.Ticker },
+						   new SymbolIdentifier { Identifier = coinGeckoAsset.Name, IdentifierType = IdentifierType.Name }
+						],
+						Currency.USD with { },
+						Datasource.COINGECKO,
+						AssetClass.Liquidity,
+						AssetSubClass.CryptoCurrency,
+						[],
+						[])
+					{
+						WebsiteUrl = $"https://www.coingecko.com/en/coins/{coinGeckoAsset.Id}"
+					};
+					return symbolProfile;
+				});
+			}, TimeSpan.FromDays(1));
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
-			var coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
-			if (coinGeckoAsset == null)
-			{
-				return [];
-			}
+			string cacheKey = $"coingecko:marketdata:{symbol.Symbol}:{fromDate:yyyyMMdd}";
+			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(cacheKey, "MarketData", async () =>
+		 {
+			 CoinGeckoAsset? coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
+			 if (coinGeckoAsset == null)
+			 {
+				 return [];
+			 }
 
-			var longRange = await RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
-							.WrapAsync(RetryPolicyHelper
-								.GetRetryPolicy(logger))
-								.ExecuteAsync(async () =>
-								{
-									var response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
+			 WebCallResult<CoinGeckoOhlc[]> longRange = await RetryPolicyHelper
+							 .GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
+							 .WrapAsync(RetryPolicyHelper
+								 .GetRetryPolicy(logger))
+								 .ExecuteAsync(async () =>
+								 {
+									 WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
 
-									if (response == null || !response.Success)
-									{
-										throw new InvalidOperationException(response?.Error?.Message);
-									}
+									 return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
+								 });
 
-									return response;
-								});
+			 WebCallResult<CoinGeckoOhlc[]> shortRange = await RetryPolicyHelper
+							 .GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
+							 .WrapAsync(RetryPolicyHelper
+								 .GetRetryPolicy(logger))
+								 .ExecuteAsync(async () =>
+								 {
+									 WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
 
-			var shortRange = await RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
-							.WrapAsync(RetryPolicyHelper
-								.GetRetryPolicy(logger))
-								.ExecuteAsync(async () =>
-								{
-									var response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
+									 return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
+								 });
 
-									if (response == null || !response.Success)
-									{
-										throw new InvalidOperationException(response?.Error?.Message);
-									}
+			 var list = new List<MarketData>();
+			 foreach (CoinGeckoOhlc? candle in ((longRange?.Data) ?? []).Union(shortRange?.Data ?? []))
+			 {
+				 var item = new MarketData(
+									 Currency.USD,
+									 candle.Close,
+									 candle.Open,
+									 candle.High,
+									 candle.Low,
+									 0,
+									 DateOnly.FromDateTime(candle.Timestamp.Date));
+				 list.Add(item);
+			 }
 
-									return response;
-								});
+			 // Add the existing market data
+			 list = [.. list.Union(symbol.MarketData)];
 
-			var list = new List<MarketData>();
-			foreach (var candle in ((longRange?.Data) ?? []).Union((shortRange?.Data ?? [])))
-			{
-				var item = new MarketData(
-									Currency.USD,
-									candle.Close,
-									candle.Open,
-									candle.High,
-									candle.Low,
-									0,
-									DateOnly.FromDateTime(candle.Timestamp.Date));
-				list.Add(item);
-			}
-
-			// Add the existing market data
-			list = [.. list.Union(symbol.MarketData)];
-
-			var x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);
-			return x;
+			 IEnumerable<MarketData> x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);
+			 return x;
+		 }, TimeSpan.FromDays(1));
+			return result ?? [];
 		}
 
 		private async Task<CoinGeckoAsset?> GetCoinGeckoAsset(string identifier)
@@ -141,19 +134,19 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return null;
 			}
 
-			if (memoryCache.TryGetValue<List<CoinGeckoAsset>>(DataSource, out var cachedCoinGecko))
+			if (memoryCache.TryGetValue<List<CoinGeckoAsset>>(DataSource, out List<CoinGeckoAsset>? cachedCoinGecko))
 			{
 				return GetAsset(identifier, cachedCoinGecko!);
 			}
 
-			var coinGeckoAssets = await coinGeckoRestClient.Api.GetAssetsAsync();
+			WebCallResult<CoinGeckoAsset[]> coinGeckoAssets = await coinGeckoRestClient.Api.GetAssetsAsync();
 			if (coinGeckoAssets == null || !coinGeckoAssets.Success)
 			{
 				return null;
 			}
 
 			var list = new List<CoinGeckoAsset>();
-			foreach (var asset in coinGeckoAssets.Data)
+			foreach (CoinGeckoAsset asset in coinGeckoAssets.Data)
 			{
 				var cachedCoinGeckoAsset = new CoinGeckoAsset
 				{
@@ -164,14 +157,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				list.Add(cachedCoinGeckoAsset);
 			}
 
-			memoryCache.Set(DataSource, list, TimeSpan.FromDays(1));
+			_ = memoryCache.Set(DataSource, list, TimeSpan.FromDays(1));
 
-			if (memoryCache.TryGetValue(DataSource, out cachedCoinGecko))
-			{
-				return GetAsset(identifier, cachedCoinGecko!);
-			}
-
-			return null;
+			return memoryCache.TryGetValue(DataSource, out cachedCoinGecko) ? GetAsset(identifier, cachedCoinGecko!) : null;
 
 			static CoinGeckoAsset? GetAsset(string identifier, List<CoinGeckoAsset> cachedCoinGecko)
 			{

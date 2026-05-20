@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
+using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 {
@@ -16,11 +17,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
 		private readonly YahooRepository _repository;
 
-		public YahooRepositoryTests()
-		{
-			_loggerMock = new Mock<ILogger<YahooRepository>>();
-			_repository = new YahooRepository(_loggerMock.Object);
-		}
+	   public YahooRepositoryTests()
+	   {
+		   _loggerMock = new Mock<ILogger<YahooRepository>>();
+		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
+		   _repository = new YahooRepository(_loggerMock.Object, cacheService);
+	   }
 
 		[Fact]
 		public async Task GetStockMarketData_ShouldIncludeCurrentPriceIfNotPresent()

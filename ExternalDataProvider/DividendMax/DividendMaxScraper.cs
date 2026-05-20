@@ -2,6 +2,7 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
 using System.Globalization;
+using GhostfolioSidekick.ExternalDataProvider.Cache;
 using HtmlAgilityPack;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
@@ -16,7 +17,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 	///     Status, Type, Decl. date, Ex-div date, Pay date, Decl. Currency, Forecast amount, Decl. amount, Accuracy
 	/// 4) generate UpcomingDividend objects from the rows where Ex-div date is in the future. and the decl. amount is not empty / a '-',
 	/// </summary>
-	public class DividendMaxScraper(HttpClient httpClient) : IDividendRepository
+   public class DividendMaxScraper(HttpClient httpClient, ExternalDataCacheService cacheService) : IDividendRepository
 	{
 		private const string TableSelector = "//table[contains(@class, 'mdc-data-table__table')]";
 		private const string TableRowsSelector = ".//tbody/tr";
@@ -31,37 +32,40 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return Task.FromResult(true);
 		}
 
-		public async Task<IList<Dividend>> GetDividends(SymbolProfile symbol)
-		{
-			if (!await IsSymbolSupported(symbol))
-			{
-				return [];
-			}
+	   public async Task<IList<Dividend>> GetDividends(SymbolProfile symbol)
+	   {
+		   if (!await IsSymbolSupported(symbol))
+		   {
+			   return [];
+		   }
 
-			var page = await GetDividendPageHtml(symbol.WebsiteUrl!);
-			if (string.IsNullOrWhiteSpace(page))
-			{
-				return [];
-			}
+		   string cacheKey = $"dividendmax:dividends:{symbol.Symbol}";
+		   return await cacheService.GetOrAddAsync(cacheKey, "Dividends", async () =>
+		   {
+			   var page = await GetDividendPageHtml(symbol.WebsiteUrl!);
+			   if (string.IsNullOrWhiteSpace(page))
+			   {
+				   return [];
+			   }
 
-			var dividends = ParseDividendsFromHtml(page);
+			   var dividends = ParseDividendsFromHtml(page);
 
-			// Group per ex-dividend date and sum
-			dividends = [.. dividends
-				.GroupBy(d => new { d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState })
-				.Select(g => new Dividend
-				{
-					Id = 0,
-					ExDividendDate = g.Key.ExDividendDate,
-					PaymentDate = g.Key.PaymentDate,
-					DividendType = g.Key.DividendType,
-					DividendState = g.Key.DividendState,
-					Amount = new Money(g.First().Amount.Currency, g.Sum(d => d.Amount.Amount))
-				})];
+			   // Group per ex-dividend date and sum
+			   dividends = [.. dividends
+				   .GroupBy(d => new { d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState })
+				   .Select(g => new Dividend
+				   {
+					   Id = 0,
+					   ExDividendDate = g.Key.ExDividendDate,
+					   PaymentDate = g.Key.PaymentDate,
+					   DividendType = g.Key.DividendType,
+					   DividendState = g.Key.DividendState,
+					   Amount = new Money(g.First().Amount.Currency, g.Sum(d => d.Amount.Amount))
+				   })];
 
-
-			return dividends;
-		}
+			   return dividends;
+		   }, TimeSpan.FromDays(1)) ?? [];
+	   }
 
 		private async Task<string?> GetDividendPageHtml(string pageUrl)
 		{

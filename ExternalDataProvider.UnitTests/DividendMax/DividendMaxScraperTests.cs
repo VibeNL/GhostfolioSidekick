@@ -3,6 +3,7 @@ using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.Model.Symbols;
 using Moq;
 using Moq.Protected;
+using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {
@@ -38,7 +39,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 				.ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(html) });
 
 			var httpClient = new HttpClient(handlerMock.Object);
-			var repo = new DividendMaxScraper(httpClient);
+		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
+		   var repo = new DividendMaxScraper(httpClient, cacheService);
 
 			// Act
 			var result = await repo.GetDividends(symbol);
@@ -77,7 +79,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 				.ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(html) });
 
 			var httpClient = new HttpClient(handlerMock.Object);
-			var repo = new DividendMaxScraper(httpClient);
+		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
+		   var repo = new DividendMaxScraper(httpClient, cacheService);
 
 			// Act
 			var result = await repo.GetDividends(symbol);
