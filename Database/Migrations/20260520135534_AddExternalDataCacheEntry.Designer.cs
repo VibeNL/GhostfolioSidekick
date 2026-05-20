@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20260520105719_AddExternalDataCacheEntry")]
+    [Migration("20260520135534_AddExternalDataCacheEntry")]
     partial class AddExternalDataCacheEntry
     {
         /// <inheritdoc />
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Database.Cache.ExternalDataCacheEntry", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -38,9 +38,9 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DataJson")
+                    b.Property<byte[]>("DataJson")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("DataType")
                         .IsRequired()

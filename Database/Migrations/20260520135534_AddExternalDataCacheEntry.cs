@@ -15,11 +15,11 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "ExternalDataCacheEntries",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     CacheKey = table.Column<string>(type: "TEXT", nullable: false),
                     DataType = table.Column<string>(type: "TEXT", nullable: false),
-                    DataJson = table.Column<string>(type: "TEXT", nullable: false),
+                    DataJson = table.Column<byte[]>(type: "BLOB", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },

@@ -1,6 +1,8 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Cache;
 using Microsoft.EntityFrameworkCore;
+using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Cache
@@ -28,7 +30,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 			{
 				try
 				{
-					return JsonSerializer.Deserialize<T>(entry.DataJson);
+					// Decompress and deserialize
+					using MemoryStream ms = new(entry.DataJson);
+					using GZipStream gzip = new(ms, CompressionMode.Decompress);
+					using StreamReader reader = new(gzip, Encoding.UTF8);
+					string json = await reader.ReadToEndAsync();
+					return JsonSerializer.Deserialize<T>(json);
 				}
 				catch (JsonException)
 				{
@@ -41,12 +48,24 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 			if (!EqualityComparer<T>.Default.Equals(value, default!))
 			{
 				string dataJson = JsonSerializer.Serialize(value);
+				byte[] compressed;
+				using (MemoryStream ms = new())
+				{
+					using (GZipStream gzip = new(ms, CompressionLevel.Optimal, leaveOpen: true))
+					using (StreamWriter writer = new(gzip, Encoding.UTF8))
+					{
+						await writer.WriteAsync(dataJson);
+					}
+
+					compressed = ms.ToArray();
+				}
+
 				DateTime? expiresAt = now.Add(expiration);
 				ExternalDataCacheEntry newEntry = new()
 				{
 					CacheKey = cacheKey,
 					DataType = dataTypeString,
-					DataJson = dataJson,
+					DataJson = compressed,
 					CreatedAt = now,
 					ExpiresAt = expiresAt
 				};
