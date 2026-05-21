@@ -18,12 +18,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 			DateTime now = DateTime.UtcNow;
 
 			// Remove all expired cache entries before proceeding
-			_ = await dbContext.ExternalDataCacheEntries.Where(e => e.ExpiresAt != null && e.ExpiresAt <= now).ExecuteDeleteAsync();
+			_ = await dbContext.ExternalDataCacheEntries.Where(e => e.ExpiresAt <= now).ExecuteDeleteAsync();
 
 			// Try to get a valid (not expired) cache entry
 			string dataTypeString = $"{typeof(TDataType).FullName}.{dataType}";
 			ExternalDataCacheEntry? entry = await dbContext.ExternalDataCacheEntries
-				.Where(e => e.CacheKey == cacheKey && e.DataType == dataTypeString && (e.ExpiresAt == null || e.ExpiresAt > now))
+				.Where(e => e.CacheKey == cacheKey && e.DataType == dataTypeString && e.ExpiresAt > now)
 				.FirstOrDefaultAsync();
 
 			if (entry != null)
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 					compressed = ms.ToArray();
 				}
 
-				DateTime? expiresAt = now.Add(expiration);
+				DateTime expiresAt = now.Add(expiration);
 				ExternalDataCacheEntry newEntry = new()
 				{
 					CacheKey = cacheKey,

@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("ExpiresAt")
+                    b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

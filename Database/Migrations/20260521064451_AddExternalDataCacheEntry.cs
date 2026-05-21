@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     DataType = table.Column<string>(type: "TEXT", nullable: false),
                     DataJson = table.Column<byte[]>(type: "BLOB", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
