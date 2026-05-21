@@ -45,36 +45,34 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 
 			// Generate new value and cache it
 			T? value = await factory();
-			if (!EqualityComparer<T>.Default.Equals(value, default!))
+			string dataJson = JsonSerializer.Serialize(value);
+			byte[] compressed;
+			using (MemoryStream ms = new())
 			{
-				string dataJson = JsonSerializer.Serialize(value);
-				byte[] compressed;
-				using (MemoryStream ms = new())
+				using (GZipStream gzip = new(ms, CompressionLevel.Optimal, leaveOpen: true))
+				using (StreamWriter writer = new(gzip, Encoding.UTF8))
 				{
-					using (GZipStream gzip = new(ms, CompressionLevel.Optimal, leaveOpen: true))
-					using (StreamWriter writer = new(gzip, Encoding.UTF8))
-					{
-						await writer.WriteAsync(dataJson);
-					}
-
-					compressed = ms.ToArray();
+					await writer.WriteAsync(dataJson);
 				}
 
-				DateTime expiresAt = now.Add(expiration);
-				ExternalDataCacheEntry newEntry = new()
-				{
-					CacheKey = cacheKey,
-					DataType = dataTypeString,
-					DataJson = compressed,
-					CreatedAt = now,
-					ExpiresAt = expiresAt
-				};
-
-				// Remove old entries for this key/type
-				dbContext.ExternalDataCacheEntries.RemoveRange(dbContext.ExternalDataCacheEntries.Where(e => e.CacheKey == cacheKey && e.DataType == dataTypeString));
-				_ = dbContext.ExternalDataCacheEntries.Add(newEntry);
-				_ = await dbContext.SaveChangesAsync();
+				compressed = ms.ToArray();
 			}
+
+			DateTime expiresAt = now.Add(expiration);
+			ExternalDataCacheEntry newEntry = new()
+			{
+				CacheKey = cacheKey,
+				DataType = dataTypeString,
+				DataJson = compressed,
+				CreatedAt = now,
+				ExpiresAt = expiresAt
+			};
+
+			// Remove old entries for this key/type
+			dbContext.ExternalDataCacheEntries.RemoveRange(dbContext.ExternalDataCacheEntries.Where(e => e.CacheKey == cacheKey && e.DataType == dataTypeString));
+			_ = dbContext.ExternalDataCacheEntries.Add(newEntry);
+			_ = await dbContext.SaveChangesAsync();
+
 			return value;
 		}
 	}
