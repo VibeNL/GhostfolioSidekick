@@ -167,6 +167,7 @@ namespace GhostfolioSidekick.Activities
 			var existingHoldings = await databaseContext.Holdings
 				.Include(h => h.SymbolProfiles)
 				.Include(h => h.Activities)
+				.AsSplitQuery()
 				.ToListAsync();
 
 			// Reset all existing holdings to a clean state
