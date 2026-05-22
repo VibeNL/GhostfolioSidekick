@@ -1,5 +1,5 @@
 # Base runtime image for the API
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:10.0 AS base
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0-chiseled AS base
 
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -25,13 +25,12 @@ ARG SourceRevisionId
 
 WORKDIR /src
 
-# Install Python, wasm-tools workload, and supervisord in a single layer
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip supervisor && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
+RUN microdnf install python3 python3-pip && \
     dotnet workload install wasm-tools && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    microdnf install nodejs && \
+    pip3 install supervisor && \
+    microdnf clean all
 
 # Copy and restore projects
 COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer.ApiService/"]
@@ -77,14 +76,11 @@ RUN dotnet publish -a "$TARGETARCH" \
 
 
 # Final runtime image
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0-chiseled AS final
 
 WORKDIR /app
 
-# Install supervisord
-RUN apt-get update && \
-    apt-get install -y supervisor && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Chiseled images do not include a package manager or shell. Supervisor is provided via pip in the build stage and copied if needed.
 
 # Copy published outputs
 COPY --from=publish-api /app/publish ./
@@ -105,5 +101,6 @@ ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
 EXPOSE 80
 EXPOSE 443
 
-# Start app via supervisord
+
+# Start app via supervisord (ensure entrypoint/cmd is compatible with chiseled image)
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
