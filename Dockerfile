@@ -1,5 +1,5 @@
 # Base runtime image for the API
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0-chiseled AS base
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS base
 
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -76,7 +76,7 @@ RUN dotnet publish -a "$TARGETARCH" \
 
 
 # Final runtime image
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0-chiseled AS final
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS final
 
 WORKDIR /app
 
