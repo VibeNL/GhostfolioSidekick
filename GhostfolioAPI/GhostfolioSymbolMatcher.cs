@@ -1,27 +1,32 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Polly.Retry;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public class GhostfolioSymbolMatcher : ISymbolMatcher
 	{
 		private readonly IApiWrapper apiWrapper;
-		private readonly MemoryCache memoryCache;
 		private readonly ILogger<GhostfolioSymbolMatcher> logger;
+		private readonly IExternalDataCacheService cacheService;
 
-		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper, MemoryCache memoryCache, ILogger<GhostfolioSymbolMatcher> logger)
+		public GhostfolioSymbolMatcher(
+			IApplicationSettings settings,
+			IApiWrapper apiWrapper,
+			ILogger<GhostfolioSymbolMatcher> logger,
+			IExternalDataCacheService cacheService)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
-			this.memoryCache = memoryCache;
 			this.logger = logger;
+			this.cacheService = cacheService;
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
@@ -32,61 +37,55 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		public bool AllowedForDeterminingHolding => true;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-       {
+		{
 			try
 			{
-				var retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
-				return await retryPolicy.ExecuteAsync(async () =>
+				if (symbolIdentifiers == null || symbolIdentifiers.Length == 0)
 				{
-					if (symbolIdentifiers == null || symbolIdentifiers.Length == 0)
-					{
-						return null;
-					}
-
-					// Check if we have a cached version
-					var cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier));
-
-					if (string.IsNullOrWhiteSpace(cacheKey))
-					{
-						return null;
-					}
-
-					if (memoryCache.TryGetValue(cacheKey, out SymbolProfile? cachedSymbol))
-					{
-						return cachedSymbol;
-					}
-
-					foreach (var identifier in symbolIdentifiers)
-					{
-						var ids = new List<string> { identifier.Identifier };
-
-						if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
-						{
-							ids.Add($"{identifier.Identifier}USD");
-							ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
-						}
-
-						ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
-
-						var symbol = await FindByDataProvider(
-							ids,
-							null,
-							identifier.AllowedAssetClasses?.ToArray(),
-							identifier.AllowedAssetSubClasses?.ToArray(),
-							false);
-
-						if (symbol != null)
-						{
-							// Cache the symbol
-							memoryCache.Set(cacheKey, symbol, CacheDuration.Short());
-							return symbol;
-						}
-					}
-
-					// Cache the null result to avoid flooding the API with requests
-					memoryCache.Set(cacheKey, (SymbolProfile?)null, CacheDuration.Short());
 					return null;
-				});
+				}
+
+				string cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier));
+				return string.IsNullOrWhiteSpace(cacheKey)
+				? null
+				: await cacheService.GetOrAddAsync<SymbolProfile, GhostfolioCacheDataType>(
+				cacheKey,
+				GhostfolioCacheDataType.SymbolProfile,
+				async () =>
+				{
+					AsyncRetryPolicy retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
+					return (await retryPolicy.ExecuteAsync(async () =>
+					{
+						foreach (PartialSymbolIdentifier identifier in symbolIdentifiers)
+						{
+							List<string> ids = new()
+							{ identifier.Identifier };
+
+							if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
+							{
+								ids.Add($"{identifier.Identifier}USD");
+								ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
+							}
+
+							ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
+
+							SymbolProfile? symbol = await FindByDataProvider(
+								ids,
+								null,
+								identifier.AllowedAssetClasses?.ToArray(),
+								identifier.AllowedAssetSubClasses?.ToArray(),
+								false);
+
+							if (symbol != null)
+							{
+								return symbol;
+							}
+						}
+						return null;
+					}))!;
+				},
+				TimeSpan.FromDays(1)
+			)!;
 			}
 			catch
 			{
@@ -96,14 +95,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		private async Task<SymbolProfile?> FindByDataProvider(IEnumerable<string> ids, Currency? expectedCurrency, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass, bool includeIndexes)
 		{
-			var identifiers = ids.ToList();
-			var allAssets = new List<SymbolProfile>();
+			List<string> identifiers = ids.ToList();
+			List<SymbolProfile> allAssets = new();
 
-			foreach (var identifier in identifiers)
+			foreach (string? identifier in identifiers)
 			{
-				for (var i = 0; i < 5; i++) // Bug Ghostfolio, sometimes it just returns 0 items.
+				for (int i = 0; i < 5; i++) // Bug Ghostfolio, sometimes it just returns 0 items.
 				{
-					var assets = await apiWrapper.GetSymbolProfile(identifier, includeIndexes);
+					List<SymbolProfile> assets = await apiWrapper.GetSymbolProfile(identifier, includeIndexes);
 
 					if (assets != null && assets.Count > 0)
 					{
@@ -113,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				}
 			}
 
-			var filteredAsset = allAssets
+			List<SymbolProfile> filteredAsset = allAssets
 				.Where(x => x != null)
 				.Select(FixYahooCrypto)
 				.Where(x => expectedAssetClass == null || expectedAssetClass.Length == 0 || expectedAssetClass.Contains(x.AssetClass))
@@ -124,7 +123,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				.ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
 				.ThenBy(x =>
 				{
-					var index = SortorderDataSources.IndexOf(x.DataSource.Replace(DataSource + "_", string.Empty).ToString().ToUpperInvariant());
+					int index = SortorderDataSources.IndexOf(x.DataSource.Replace(DataSource + "_", string.Empty).ToString().ToUpperInvariant());
 					if (index < 0)
 					{
 						index = int.MaxValue;
@@ -139,7 +138,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		private static int FussyMatch(List<string> identifiers, SymbolProfile profile)
 		{
-			var match = identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
+			int match = identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
 			return match;
 		}
 
@@ -148,7 +147,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			// Workaround for bug Ghostfolio
 			if (x.AssetSubClass == AssetSubClass.CryptoCurrency && Datasource.YAHOO.ToString().Equals(x.DataSource, StringComparison.InvariantCultureIgnoreCase) && x.Symbol.Length >= 6)
 			{
-				var t = x.Symbol;
+				string t = x.Symbol;
 				x.Symbol = string.Concat(t.AsSpan(0, t.Length - 3), "-", t.AsSpan(t.Length - 3, 3));
 			}
 
@@ -167,24 +166,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				return true;
 			}
 
-			if (x.AssetSubClass == AssetSubClass.CryptoCurrency &&
-				string.Equals(x.Symbol, id + "USD", StringComparison.InvariantCultureIgnoreCase)) // Add USD for Yahoo crypto
-			{
-				return true;
-			}
-
-			if (x.AssetSubClass == AssetSubClass.CryptoCurrency &&
-				string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase)) // Add dashes for CoinGecko
-			{
-				return true;
-			}
-
-			if (string.Equals(x.Name, id, StringComparison.InvariantCultureIgnoreCase))
-			{
-				return true;
-			}
-
-			return false;
+			return x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+				string.Equals(x.Symbol, id + "USD", StringComparison.InvariantCultureIgnoreCase) || (x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+				string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase)) || string.Equals(x.Name, id, StringComparison.InvariantCultureIgnoreCase);
 		}
 	}
 }

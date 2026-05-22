@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			ILogger<CoinGeckoRepository> logger,
 			IMemoryCache memoryCache,
 			ICoinGeckoRestClient coinGeckoRestClient,
-			ExternalDataCacheService cacheService
+			IExternalDataCacheService cacheService
 			) :
 		 ISymbolMatcher,
 		 IStockPriceRepository
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 						return null;
 					}
 
-					var symbolProfile = new SymbolProfile(
+					SymbolProfile symbolProfile = new(
 						coinGeckoAsset.Symbol,
 						coinGeckoAsset.Name,
 						[
@@ -103,10 +103,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 										return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
 									});
 
-				var list = new List<MarketData>();
+				List<MarketData> list = new();
 				foreach (CoinGeckoOhlc? candle in ((longRange?.Data) ?? []).Union(shortRange?.Data ?? []))
 				{
-					var item = new MarketData(
+					MarketData item = new(
 									Currency.USD,
 									candle.Close,
 									candle.Open,
@@ -118,11 +118,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				}
 
 				// Add the existing market data
-			 list = [.. list.Union(symbol.MarketData)];
+				list = [.. list.Union(symbol.MarketData)];
 
-			 IEnumerable<MarketData> x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);
-			 return x;
-		 }, TimeSpan.FromDays(1));
+				IEnumerable<MarketData> x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);
+				return x;
+			}, TimeSpan.FromDays(1));
 			return result ?? [];
 		}
 
@@ -145,10 +145,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return null;
 			}
 
-			var list = new List<CoinGeckoAsset>();
+			List<CoinGeckoAsset> list = new();
 			foreach (CoinGeckoAsset asset in coinGeckoAssets.Data)
 			{
-				var cachedCoinGeckoAsset = new CoinGeckoAsset
+				CoinGeckoAsset cachedCoinGeckoAsset = new()
 				{
 					Id = asset.Id,
 					Name = asset.Name,

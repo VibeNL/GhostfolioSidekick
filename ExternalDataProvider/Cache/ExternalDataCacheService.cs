@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Cache
 {
-	public class ExternalDataCacheService(DatabaseContext dbContext)
+	public class ExternalDataCacheService(DatabaseContext dbContext) : IExternalDataCacheService
 	{
 
 		/// <summary>

@@ -93,7 +93,7 @@ namespace GhostfolioSidekick
 							_ = services.AddDbContextFactory<DatabaseContext>((sp, options) =>
 							{
 								IApplicationSettings? settings = sp.GetService<IApplicationSettings>();
-								var dbPath = settings?.DatabaseFilePath;
+								string? dbPath = settings?.DatabaseFilePath;
 								_ = options.UseSqlite($"Data Source={dbPath}");
 								_ = options.UseLazyLoadingProxies();
 							});
@@ -103,7 +103,7 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton<IApiWrapper, ApiWrapper>();
 
 							// Register ExternalDataCacheService for caching external data provider requests
-							_ = services.AddSingleton<GhostfolioSidekick.ExternalDataProvider.Cache.ExternalDataCacheService>();
+							_ = services.AddSingleton<ExternalDataProvider.Cache.IExternalDataCacheService, ExternalDataProvider.Cache.ExternalDataCacheService>();
 
 							_ = services.AddSingleton<YahooRepository>();
 							_ = services.AddSingleton<CoinGeckoRepository>();

@@ -1,30 +1,28 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
-	public class GhostfolioSymbolMatcherTests : IDisposable
-   {
+	public class GhostfolioSymbolMatcherTests
+	{
 		private readonly Mock<IApplicationSettings> _settingsMock;
 		private readonly Mock<IApiWrapper> _apiWrapperMock;
-		private readonly MemoryCache _memoryCache;
 		private readonly Mock<ILogger<GhostfolioSymbolMatcher>> _loggerMock;
 		private readonly GhostfolioSymbolMatcher _symbolMatcher;
 		private readonly ConfigurationInstance _configInstance;
-		private bool _disposed;
+		private readonly DummyExternalDataCacheService externalDataCacheService = new();
 
 		public GhostfolioSymbolMatcherTests()
-       {
+		{
 			_settingsMock = new Mock<IApplicationSettings>();
 			_apiWrapperMock = new Mock<IApiWrapper>();
-			_memoryCache = new MemoryCache(new MemoryCacheOptions());
 			_loggerMock = new Mock<ILogger<GhostfolioSymbolMatcher>>();
 
 			// Create real configuration objects instead of mocking
@@ -33,68 +31,53 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				Settings = new Settings { DataProviderPreference = "YAHOO,COINGECKO", PrimaryCurrency = "EUR" }
 			};
 
-			_settingsMock.Setup(x => x.ConfigurationInstance).Returns(_configInstance);
+			_ = _settingsMock.Setup(x => x.ConfigurationInstance).Returns(_configInstance);
 
-			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposed && disposing)
-			{
-				_memoryCache.Dispose();
-				_disposed = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
+			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object, _loggerMock.Object, externalDataCacheService);
 		}
 
 		[Fact]
 		public void DataSource_ShouldReturnGhostfolio()
 		{
 			// Act
-			var result = _symbolMatcher.DataSource;
+			string result = _symbolMatcher.DataSource;
 
 			// Assert
-			result.Should().Be(Datasource.GHOSTFOLIO);
+			_ = result.Should().Be(Datasource.GHOSTFOLIO);
 		}
 
 		[Fact]
-        public async Task Constructor_ShouldThrowArgumentNullException_WhenSettingsIsNull()
+		public async Task Constructor_ShouldThrowArgumentNullException_WhenSettingsIsNull()
 		{
 			// Act & Assert
-			await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object)));
+			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object, _loggerMock.Object, externalDataCacheService)));
 		}
 
 		[Fact]
-     public async Task Constructor_ShouldThrowArgumentNullException_WhenApiWrapperIsNull()
+		public async Task Constructor_ShouldThrowArgumentNullException_WhenApiWrapperIsNull()
 		{
 			// Act & Assert
-			await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(_settingsMock.Object, null!, _memoryCache, _loggerMock.Object)));
+			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(_settingsMock.Object, null!, _loggerMock.Object, externalDataCacheService)));
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldReturnNull_WhenSymbolIdentifiersIsNull()
 		{
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(null!);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(null!);
 
 			// Assert
-			result.Should().BeNull();
+			_ = result.Should().BeNull();
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldReturnNull_WhenSymbolIdentifiersIsEmpty()
 		{
 			// Act
-			var result = await _symbolMatcher.MatchSymbol([]);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol([]);
 
 			// Assert
-			result.Should().BeNull();
+			_ = result.Should().BeNull();
 		}
 
 
@@ -107,17 +90,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// CreateGeneric is the guard that prevents invalid identifiers from ever reaching
 			// MatchSymbol. Callers that pass null/empty/whitespace receive null back, which
 			// is filtered out before the matcher is invoked.
-			var result = PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, identifier, null);
+			PartialSymbolIdentifier? result = PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, identifier, null);
 
-			result.Should().BeNull();
+			_ = result.Should().BeNull();
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldReturnCachedResult_WhenSymbolIsCached()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
-			var expectedSymbol = new SymbolProfile
+			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
+			SymbolProfile expectedSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -128,13 +111,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Cache the symbol first
-			_memoryCache.Set("AAPL", expectedSymbol);
+			externalDataCacheService.Set("AAPL", expectedSymbol);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().Be(expectedSymbol);
+			_ = result.Should().Be(expectedSymbol);
 			_apiWrapperMock.Verify(x => x.GetSymbolProfile(It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
 		}
 
@@ -142,8 +125,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldReturnSymbol_WhenFoundByApiWrapper()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
-			var expectedSymbol = new SymbolProfile
+			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
+			SymbolProfile expectedSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -153,15 +136,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
 				.ReturnsAsync([expectedSymbol]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("AAPL");
+			_ = result.Should().NotBeNull();
+			_ = result!.Symbol.Should().Be("AAPL");
 			_apiWrapperMock.Verify(x => x.GetSymbolProfile("AAPL", false), Times.Once);
 		}
 
@@ -169,12 +152,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldHandleCryptocurrency_AddingUSDSuffix()
 		{
 			// Arrange
-			var symbolIdentifiers = new[]
+			PartialSymbolIdentifier[] symbolIdentifiers = new[]
 			{
 				new PartialSymbolIdentifier(IdentifierType.Ticker, "BTC", null, [], [AssetSubClass.CryptoCurrency])
 			};
 
-			var cryptoSymbol = new SymbolProfile
+			SymbolProfile cryptoSymbol = new()
 			{
 				Symbol = "BTCUSD",
 				Name = "Bitcoin",
@@ -185,19 +168,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Setup mocks for all possible calls the crypto logic makes
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTC", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("BTC", false))
 				.ReturnsAsync([]);
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTCUSD", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("BTCUSD", false))
 				.ReturnsAsync([cryptoSymbol]);
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("bitcoin", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("bitcoin", false))
 				.ReturnsAsync([]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("BTC-USD"); // Should be fixed by FixYahooCrypto method
+			_ = result.Should().NotBeNull();
+			_ = result!.Symbol.Should().Be("BTC-USD"); // Should be fixed by FixYahooCrypto method
 			_apiWrapperMock.Verify(x => x.GetSymbolProfile("BTC", false), Times.AtLeastOnce);
 			_apiWrapperMock.Verify(x => x.GetSymbolProfile("BTCUSD", false), Times.AtLeastOnce);
 		}
@@ -206,33 +189,28 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldCacheNullResult_WhenNoSymbolFound()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "UNKNOWN", null)! };
+			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "UNKNOWN", null)! };
 
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile(It.IsAny<string>(), false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile(It.IsAny<string>(), false))
 				.ReturnsAsync([]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().BeNull();
-
-			// Verify cached
-			var cachedResult = _memoryCache.TryGetValue("UNKNOWN", out var cachedValue);
-			cachedResult.Should().BeTrue();
-			cachedValue.Should().BeNull();
+			_ = result.Should().BeNull();
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldFilterByAllowedAssetClasses()
 		{
 			// Arrange
-			var symbolIdentifiers = new[]
+			PartialSymbolIdentifier[] symbolIdentifiers = new[]
 			{
 				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [AssetClass.FixedIncome], []) // Only bonds allowed
 			};
 
-			var stockSymbol = new SymbolProfile
+			SymbolProfile stockSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -242,26 +220,26 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
 				.ReturnsAsync([stockSymbol]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().BeNull(); // Should be filtered out
+			_ = result.Should().BeNull(); // Should be filtered out
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldFilterByAllowedAssetSubClasses()
 		{
 			// Arrange
-			var symbolIdentifiers = new[]
+			PartialSymbolIdentifier[] symbolIdentifiers = new[]
 			{
 				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], [AssetSubClass.Bond]) // Only bonds allowed
 			};
 
-			var stockSymbol = new SymbolProfile
+			SymbolProfile stockSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -271,22 +249,22 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock // This is a stock, not a bond
 			};
 
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
 				.ReturnsAsync([stockSymbol]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().BeNull(); // Should be filtered out
+			_ = result.Should().BeNull(); // Should be filtered out
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldRetryApiCall_WhenInitialCallReturnsEmpty()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
-			var expectedSymbol = new SymbolProfile
+			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
+			SymbolProfile expectedSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -297,7 +275,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Setup to return empty first 4 times, then return symbol on 5th call
-			_apiWrapperMock.SetupSequence(x => x.GetSymbolProfile("AAPL", false))
+			_ = _apiWrapperMock.SetupSequence(x => x.GetSymbolProfile("AAPL", false))
 				.ReturnsAsync([])
 				.ReturnsAsync([])
 				.ReturnsAsync([])
@@ -305,11 +283,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				.ReturnsAsync([expectedSymbol]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("AAPL");
+			_ = result.Should().NotBeNull();
+			_ = result!.Symbol.Should().Be("AAPL");
 			_apiWrapperMock.Verify(x => x.GetSymbolProfile("AAPL", false), Times.Exactly(5));
 		}
 
@@ -317,9 +295,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldPreferExactMatch_OverFuzzyMatch()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
+			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
-			var exactMatch = new SymbolProfile
+			SymbolProfile exactMatch = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -329,7 +307,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			var fuzzyMatch = new SymbolProfile
+			SymbolProfile fuzzyMatch = new()
 			{
 				Symbol = "APPL",
 				Name = "Apple Computer",
@@ -339,24 +317,24 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
 				.ReturnsAsync([fuzzyMatch, exactMatch]); // Return fuzzy match first
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("AAPL"); // Should prefer exact match
+			_ = result.Should().NotBeNull();
+			_ = result!.Symbol.Should().Be("AAPL"); // Should prefer exact match
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldPreferExpectedCurrency()
 		{
 			// Arrange - This test verifies that well-known currencies are preferred
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
+			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
-			var usdSymbol = new SymbolProfile
+			SymbolProfile usdSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -366,7 +344,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			var nonWellKnownSymbol = new SymbolProfile
+			SymbolProfile nonWellKnownSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -376,32 +354,32 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
 				.ReturnsAsync([nonWellKnownSymbol, usdSymbol]); // Return non-well-known first
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Currency.Symbol.Should().Be("USD"); // Should prefer well-known currency
+			_ = result.Should().NotBeNull();
+			_ = result!.Currency.Symbol.Should().Be("USD"); // Should prefer well-known currency
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldPreferDataSourceByConfiguration()
 		{
 			// Arrange - Create a new symbol matcher with different preferences
-			var configInstance = new ConfigurationInstance
+			ConfigurationInstance configInstance = new()
 			{
 				Settings = new Settings { DataProviderPreference = "COINGECKO,YAHOO", PrimaryCurrency = "EUR" }
 			};
-			var settingsMock = new Mock<IApplicationSettings>();
-			settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
-         var symbolMatcher = new GhostfolioSymbolMatcher(settingsMock.Object, _apiWrapperMock.Object, _memoryCache, _loggerMock.Object);
+			Mock<IApplicationSettings> settingsMock = new();
+			_ = settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+			GhostfolioSymbolMatcher symbolMatcher = new(settingsMock.Object, _apiWrapperMock.Object, _loggerMock.Object, externalDataCacheService);
 
-			var symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
+			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
-			var yahooSymbol = new SymbolProfile
+			SymbolProfile yahooSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -411,7 +389,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			var coingeckoSymbol = new SymbolProfile
+			SymbolProfile coingeckoSymbol = new()
 			{
 				Symbol = "AAPL",
 				Name = "Apple Inc.",
@@ -421,27 +399,27 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				AssetSubClass = AssetSubClass.Stock
 			};
 
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
 				.ReturnsAsync([yahooSymbol, coingeckoSymbol]);
 
 			// Act
-			var result = await symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.DataSource.Should().Be(Datasource.GHOSTFOLIO + "_" + Datasource.COINGECKO); // Should prefer COINGECKO based on config
+			_ = result.Should().NotBeNull();
+			_ = result!.DataSource.Should().Be(Datasource.GHOSTFOLIO + "_" + Datasource.COINGECKO); // Should prefer COINGECKO based on config
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldFixYahooCryptoSymbol()
 		{
 			// Arrange
-			var symbolIdentifiers = new[]
+			PartialSymbolIdentifier[] symbolIdentifiers = new[]
 			{
 				new PartialSymbolIdentifier(IdentifierType.Ticker, "BTC", null, [], [AssetSubClass.CryptoCurrency])
 			};
 
-			var yahooCryptoSymbol = new SymbolProfile
+			SymbolProfile yahooCryptoSymbol = new()
 			{
 				Symbol = "BTCUSD", // 6 characters, should be fixed to BTC-USD
 				Name = "Bitcoin",
@@ -452,31 +430,31 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Setup mocks for all possible calls
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTC", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("BTC", false))
 				.ReturnsAsync([]);
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTCUSD", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("BTCUSD", false))
 				.ReturnsAsync([yahooCryptoSymbol]);
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("bitcoin", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("bitcoin", false))
 				.ReturnsAsync([]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Symbol.Should().Be("BTC-USD");
+			_ = result.Should().NotBeNull();
+			_ = result!.Symbol.Should().Be("BTC-USD");
 		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldHandleCryptocurrencyWithDashes()
 		{
 			// Arrange
-			var symbolIdentifiers = new[]
+			PartialSymbolIdentifier[] symbolIdentifiers = new[]
 			{
 				new PartialSymbolIdentifier(IdentifierType.Ticker, "WBTC", null, [], [AssetSubClass.CryptoCurrency])
 			};
 
-			var cryptoSymbol = new SymbolProfile
+			SymbolProfile cryptoSymbol = new()
 			{
 				Symbol = "WBTC",
 				Name = "Wrapped Bitcoin",
@@ -487,15 +465,30 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Setup mocks for exact matches
-			_apiWrapperMock.Setup(x => x.GetSymbolProfile("WBTC", false))
+			_ = _apiWrapperMock.Setup(x => x.GetSymbolProfile("WBTC", false))
 				.ReturnsAsync([cryptoSymbol]);
 
 			// Act
-			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
+			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
 
 			// Assert
-			result.Should().NotBeNull();
-					result!.Symbol.Should().Be("WBTC");
-					}
-				}
-			}
+			_ = result.Should().NotBeNull();
+			_ = result!.Symbol.Should().Be("WBTC");
+		}
+	}
+
+	internal class DummyExternalDataCacheService : IExternalDataCacheService
+	{
+		private readonly Dictionary<string, SymbolProfile?> _memoryCache = [];
+
+		public async Task<T?> GetOrAddAsync<T, TDataType>(string cacheKey, TDataType dataType, Func<Task<T>> factory, TimeSpan expiration) where TDataType : Enum
+		{
+			return _memoryCache.TryGetValue(cacheKey, out SymbolProfile? cachedValue) ? (T?)(object?)cachedValue : await factory();
+		}
+
+		public void Set(string key, SymbolProfile? value)
+		{
+			_memoryCache[key] = value;
+		}
+	}
+}
