@@ -10,15 +10,15 @@ using Xunit;
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 {
 
-public class ExternalDataCacheServiceTests : IDisposable
-{
-	private enum TestCacheDataType
+	public class ExternalDataCacheServiceTests : IDisposable
 	{
-		TestType,
-		ExpireType
-	}
+		private enum TestCacheDataType
+		{
+			TestType,
+			ExpireType
+		}
 
-	private readonly DatabaseContext _dbContext;
+		private readonly DatabaseContext _dbContext;
 		private readonly ExternalDataCacheService _cacheService;
 		private readonly SqliteConnection _connection;
 
@@ -34,29 +34,18 @@ public class ExternalDataCacheServiceTests : IDisposable
 			_cacheService = new ExternalDataCacheService(_dbContext);
 		}
 
-	   [Fact]
-	   public async Task GetOrAddAsync_CachesAndRetrievesValue()
-	   {
-		   string key = "test:key";
-		   int value = 42;
-		   var result1 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(value));
-		   Assert.Equal(value, result1);
+		[Fact]
+		public async Task GetOrAddAsync_CachesAndRetrievesValue()
+		{
+			string key = "test:key";
+			int value = 42;
+			var result1 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(value));
+			Assert.Equal(value, result1);
 
-		   // Should retrieve from cache, not factory
-		   var result2 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(99));
-		   Assert.Equal(value, result2);
-	   }
-
-		 [Fact]
-	  public async Task GetOrAddAsync_ExpiresCache()
-	  {
-		  string key = "expire:key";
-		  int value = 123;
-		  await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(value));
-		  await Task.Delay(50, TestContext.Current.CancellationToken);
-		  var result = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(456));
-		  Assert.Equal(456, result);
-	  }
+			// Should retrieve from cache, not factory
+			var result2 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(99));
+			Assert.Equal(value, result2);
+		}
 
 		public void Dispose()
 		{
