@@ -40,11 +40,11 @@ namespace GhostfolioSidekick.Activities
 				// Load existing holdings to potentially reuse their IDs
 				List<Holding> existingHoldings = await databaseContext.Holdings.ToListAsync();
 				Queue<Holding> availableHoldings = new(existingHoldings);
-				List<Holding> usedHoldings = new();
+				List<Holding> usedHoldings = [];
 				Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap = new(new PartialSymbolIdentifierComparer());
-				Dictionary<string, Holding> symbolProfileMap = new(); // Track holdings by symbol+datasource
+				Dictionary<string, Holding> symbolProfileMap = []; // Track holdings by symbol+datasource
 
-				List<IList<PartialSymbolIdentifier>> validPartialIdentifiers = new();
+				List<IList<PartialSymbolIdentifier>> validPartialIdentifiers = [];
 				foreach (IActivityWithPartialIdentifier activity in activities.OfType<IActivityWithPartialIdentifier>())
 				{
 					List<PartialSymbolIdentifier> partialIdentifiers = activity.PartialSymbolIdentifiers;
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.Activities
 					.ToList();
 				// Tracks the single authoritative SymbolProfile instance per {Symbol|DataSource} key within this context,
 				// preventing EF from tracking two different C# objects for the same composite key.
-				Dictionary<string, SymbolProfile> resolvedProfilesMap = new();
+				Dictionary<string, SymbolProfile> resolvedProfilesMap = [];
 				foreach (IList<PartialSymbolIdentifier> partialIdentifiers in partialIdentifiersList)
 				{
 					IList<PartialSymbolIdentifier> ids = GetIds(partialIdentifiers);
@@ -97,12 +97,12 @@ namespace GhostfolioSidekick.Activities
 
 		private async Task MatchOtherMatchers(ILogger logger, DatabaseContext databaseContext, List<Holding> usedHoldings)
 		{
-			Dictionary<string, SymbolProfile> resolvedProfilesMap = new();
+			Dictionary<string, SymbolProfile> resolvedProfilesMap = [];
 			foreach (Holding holding in usedHoldings)
 			{
 				foreach (ISymbolMatcher? symbolMatcher in symbolMatchers.Where(x => !x.AllowedForDeterminingHolding))
 				{
-					var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", holding.PartialSymbolIdentifiers)}";
+					string cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", holding.PartialSymbolIdentifiers)}";
 					if (!memoryCache.TryGetValue<(string Symbol, string DataSource)>(cacheKey, out (string Symbol, string DataSource) symbolProfileKey))
 					{
 						PartialSymbolIdentifier[] orderedIdentifiers = holding.PartialSymbolIdentifiers
@@ -167,6 +167,7 @@ namespace GhostfolioSidekick.Activities
 			List<Holding> existingHoldings = await databaseContext.Holdings
 				.Include(h => h.SymbolProfiles)
 				.Include(h => h.Activities)
+				.AsSplitQuery()
 				.ToListAsync();
 
 			// Reset all existing holdings to a clean state
@@ -190,10 +191,10 @@ namespace GhostfolioSidekick.Activities
 		List<Holding> usedHoldings,
 		IList<PartialSymbolIdentifier> partialIdentifiers)
 		{
-			var found = false;
+			bool found = false;
 			foreach (ISymbolMatcher? symbolMatcher in symbolMatchers.Where(x => x.AllowedForDeterminingHolding))
 			{
-				var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
+				string cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
 				if (!memoryCache.TryGetValue<(string Symbol, string DataSource)>(cacheKey, out (string Symbol, string DataSource) symbolProfileKey))
 				{
 					SymbolProfile? symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
@@ -243,7 +244,7 @@ namespace GhostfolioSidekick.Activities
 
 				found = true;
 
-				var symbolKey = $"{resolvedProfile.Symbol}|{resolvedProfile.DataSource}";
+				string symbolKey = $"{resolvedProfile.Symbol}|{resolvedProfile.DataSource}";
 
 				// First check if we already have a holding for this specific partial identifier
 				if (FindHolding(partialIdentifierMap, partialIdentifiers, out Holding? existingHolding) && existingHolding != null)
@@ -339,7 +340,7 @@ namespace GhostfolioSidekick.Activities
 
 		private IList<PartialSymbolIdentifier> GetIds(IList<PartialSymbolIdentifier> partialSymbolIdentifiers)
 		{
-			List<PartialSymbolIdentifier> ids = new();
+			List<PartialSymbolIdentifier> ids = [];
 			foreach (PartialSymbolIdentifier partialIdentifier in partialSymbolIdentifiers)
 			{
 				ids.Add(partialIdentifier);
