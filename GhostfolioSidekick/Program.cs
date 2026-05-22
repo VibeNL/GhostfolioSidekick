@@ -90,9 +90,9 @@ namespace GhostfolioSidekick
 								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
-							_ = services.AddDbContextFactory<DatabaseContext>(options =>
+							_ = services.AddDbContextFactory<DatabaseContext>((sp, options) =>
 							{
-								IApplicationSettings? settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+								IApplicationSettings? settings = sp.GetService<IApplicationSettings>();
 								var dbPath = settings?.DatabaseFilePath;
 								_ = options.UseSqlite($"Data Source={dbPath}");
 								_ = options.UseLazyLoadingProxies();
