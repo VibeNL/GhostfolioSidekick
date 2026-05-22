@@ -9,21 +9,21 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 {
 	public class ExternalDataCacheService(DatabaseContext dbContext) : IExternalDataCacheService
 	{
-
 		/// <summary>
 		/// Gets a cached value or adds it if not present. Removes expired and duplicate entries.
 		/// </summary>
-		public async Task<T?> GetOrAddAsync<T, TDataType>(string cacheKey, TDataType dataType, Func<Task<T>> factory, TimeSpan expiration) where TDataType : Enum
+		public async Task<T?> GetOrAddAsync<T>(Source source, TypeOfData dataType, string cacheKey, Func<Task<T>> factory, TimeSpan expiration)
 		{
 			DateTime now = DateTime.UtcNow;
 
 			// Remove all expired cache entries before proceeding
 			_ = await dbContext.ExternalDataCacheEntries.Where(e => e.ExpiresAt <= now).ExecuteDeleteAsync();
 
+			string combinedKey = $"{source}:{dataType}:{cacheKey}";
+
 			// Try to get a valid (not expired) cache entry
-			string dataTypeString = $"{typeof(TDataType).FullName}.{dataType}";
 			ExternalDataCacheEntry? entry = await dbContext.ExternalDataCacheEntries
-				.Where(e => e.CacheKey == cacheKey && e.DataType == dataTypeString && e.ExpiresAt > now)
+				.Where(e => e.Key == combinedKey && e.ExpiresAt > now)
 				.FirstOrDefaultAsync();
 
 			if (entry != null)
@@ -61,15 +61,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 			DateTime expiresAt = now.Add(expiration);
 			ExternalDataCacheEntry newEntry = new()
 			{
-				CacheKey = cacheKey,
-				DataType = dataTypeString,
+				Key = combinedKey,
 				DataJson = compressed,
 				CreatedAt = now,
 				ExpiresAt = expiresAt
 			};
 
 			// Remove old entries for this key/type
-			dbContext.ExternalDataCacheEntries.RemoveRange(dbContext.ExternalDataCacheEntries.Where(e => e.CacheKey == cacheKey && e.DataType == dataTypeString));
+			dbContext.ExternalDataCacheEntries.RemoveRange(dbContext.ExternalDataCacheEntries.Where(e => e.Key == combinedKey));
 			_ = dbContext.ExternalDataCacheEntries.Add(newEntry);
 			_ = await dbContext.SaveChangesAsync();
 

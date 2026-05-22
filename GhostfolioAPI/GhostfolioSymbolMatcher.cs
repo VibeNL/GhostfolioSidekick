@@ -45,12 +45,13 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					return null;
 				}
 
-				string cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier));
+				string cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier).Order());
 				return string.IsNullOrWhiteSpace(cacheKey)
 				? null
-				: await cacheService.GetOrAddAsync<SymbolProfile, GhostfolioCacheDataType>(
-				cacheKey,
-				GhostfolioCacheDataType.SymbolProfile,
+				: await cacheService.GetOrAddAsync<SymbolProfile>(
+					Source.Ghostfolio,
+					TypeOfData.SymbolProfile,					
+					cacheKey,
 				async () =>
 				{
 					AsyncRetryPolicy retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);

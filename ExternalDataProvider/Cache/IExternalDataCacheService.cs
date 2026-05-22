@@ -2,6 +2,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 {
 	public interface IExternalDataCacheService
 	{
-		Task<T?> GetOrAddAsync<T, TDataType>(string cacheKey, TDataType dataType, Func<Task<T>> factory, TimeSpan expiration) where TDataType : Enum;
+		Task<T?> GetOrAddAsync<T>(Source source, TypeOfData dataType, string cacheKey, Func<Task<T>> factory, TimeSpan expiration);
 	}
 }

@@ -22,35 +22,6 @@ namespace GhostfolioSidekick.Database.Migrations
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
 
-            modelBuilder.Entity("GhostfolioSidekick.Database.Cache.ExternalDataCacheEntry", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CacheKey")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<byte[]>("DataJson")
-                        .IsRequired()
-                        .HasColumnType("BLOB");
-
-                    b.Property<string>("DataType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ExternalDataCacheEntries");
-                });
-
             modelBuilder.Entity("GhostfolioSidekick.Database.TypeConfigurations.PartialSymbolIdentifierActivity", b =>
                 {
                     b.Property<long>("Id")
@@ -69,7 +40,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("PartialSymbolIdentifierId");
 
-                    b.ToTable("PartialSymbolIdentifierActivity");
+                    b.ToTable("PartialSymbolIdentifierActivity", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
@@ -159,7 +130,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Platforms");
+                    b.ToTable("Platforms", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Activity", b =>
@@ -391,7 +362,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
 
-                    b.ToTable("Dividends");
+                    b.ToTable("Dividends", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
@@ -579,7 +550,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UpcomingDividendTimelineEntries");
+                    b.ToTable("UpcomingDividendTimelineEntries", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.CurrencyExchangeProfile", b =>

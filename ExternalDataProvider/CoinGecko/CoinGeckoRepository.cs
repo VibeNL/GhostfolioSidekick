@@ -37,8 +37,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return null;
 			}
 
-			string cacheKey = $"coingecko:symbol:{id.Identifier}";
-			return await cacheService.GetOrAddAsync<SymbolProfile, CoinGeckoCacheDataType>(cacheKey, CoinGeckoCacheDataType.SymbolProfile, async () =>
+			string cacheKey = $"{id.Identifier}";
+			return await cacheService.GetOrAddAsync<SymbolProfile>(Source.CoinGecko, TypeOfData.SymbolProfile, cacheKey, async () =>
 			{
 				AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
 				return (await retryPolicy.ExecuteAsync(async () =>
@@ -72,8 +72,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
-			string cacheKey = $"coingecko:marketdata:{symbol.Symbol}:{fromDate:yyyyMMdd}";
-			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync<IEnumerable<MarketData>, CoinGeckoCacheDataType>(cacheKey, CoinGeckoCacheDataType.MarketData, async () =>
+			string cacheKey = $"{symbol.Symbol}:{fromDate:yyyyMMdd}";
+			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(Source.CoinGecko, TypeOfData.MarketData, cacheKey, async () =>
 			{
 				CoinGeckoAsset? coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
 				if (coinGeckoAsset == null)
@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 										return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
 									});
 
-				List<MarketData> list = new();
+				List<MarketData> list = [];
 				foreach (CoinGeckoOhlc? candle in ((longRange?.Data) ?? []).Union(shortRange?.Data ?? []))
 				{
 					MarketData item = new(
@@ -145,7 +145,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return null;
 			}
 
-			List<CoinGeckoAsset> list = new();
+			List<CoinGeckoAsset> list = [];
 			foreach (CoinGeckoAsset asset in coinGeckoAssets.Data)
 			{
 				CoinGeckoAsset cachedCoinGeckoAsset = new()
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 		private static bool IsKnown(CoinGeckoAsset x)
 		{
-			var fullName = CryptoMapper.Instance.GetFullname(x.Symbol) ?? string.Empty;
+			string fullName = CryptoMapper.Instance.GetFullname(x.Symbol) ?? string.Empty;
 			return x.Name.Equals(fullName, StringComparison.InvariantCultureIgnoreCase);
 		}
 	}

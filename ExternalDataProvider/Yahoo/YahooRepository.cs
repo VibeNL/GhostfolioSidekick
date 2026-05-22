@@ -49,10 +49,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-			string cacheKey = $"yahoo:symbol:{id.Identifier}";
-			return await cacheService.GetOrAddAsync<SymbolProfile, YahooCacheDataType>(cacheKey, YahooCacheDataType.SymbolProfile, async () =>
+			string cacheKey = $"{id.Identifier}";
+			return await cacheService.GetOrAddAsync<SymbolProfile>(Source.Yahoo, TypeOfData.SymbolProfile, cacheKey, async () =>
 			{
-				AsyncRetryPolicy retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
+				AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
 				return (await retryPolicy.ExecuteAsync(async () =>
 				{
 					List<SearchResult> searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
@@ -109,8 +109,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
-			string cacheKey = $"yahoo:marketdata:{symbol.Symbol}:{fromDate:yyyyMMdd}";
-			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync<IEnumerable<MarketData>, YahooCacheDataType>(cacheKey, YahooCacheDataType.MarketData, async () =>
+			string cacheKey = $"{symbol.Symbol}:{fromDate:yyyyMMdd}";
+			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(Source.Yahoo, TypeOfData.MarketData, cacheKey, async () =>
 			{
 				return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
 			}, TimeSpan.FromDays(1));

@@ -36,8 +36,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				return [];
 			}
 
-			string cacheKey = $"dividendmax:dividends:{symbol.Symbol}";
-			return await cacheService.GetOrAddAsync<IList<Dividend>, DividendMaxCacheDataType>(cacheKey, DividendMaxCacheDataType.Dividends, async () =>
+			string cacheKey = $"{symbol.Symbol}";
+			return await cacheService.GetOrAddAsync<IList<Dividend>>(Source.DividendMax, TypeOfData.Dividends, cacheKey, async () =>
 			{
 				string? page = await GetDividendPageHtml(symbol.WebsiteUrl!);
 				if (string.IsNullOrWhiteSpace(page))
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 					return [];
 				}
 
-				var dividends = ParseDividendsFromHtml(page);
+				List<Dividend> dividends = ParseDividendsFromHtml(page);
 
 				// Group per ex-dividend date and sum
 				dividends = [.. dividends
@@ -76,21 +76,21 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			var doc = new HtmlDocument();
 			doc.LoadHtml(html);
 
-			var table = doc.DocumentNode.SelectSingleNode(TableSelector);
+			HtmlNode table = doc.DocumentNode.SelectSingleNode(TableSelector);
 			if (table == null)
 			{
 				return result;
 			}
 
-			var rows = table.SelectNodes(TableRowsSelector);
+			HtmlNodeCollection rows = table.SelectNodes(TableRowsSelector);
 			if (rows == null)
 			{
 				return result;
 			}
 
-			foreach (var row in rows)
+			foreach (HtmlNode row in rows)
 			{
-				var dividend = ParseDividendRow(row);
+				Dividend? dividend = ParseDividendRow(row);
 				if (dividend != null)
 				{
 					result.Add(dividend);
@@ -102,28 +102,28 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 		private static Dividend? ParseDividendRow(HtmlNode row)
 		{
-			var cells = row.SelectNodes("td");
+			HtmlNodeCollection cells = row.SelectNodes("td");
 			if (cells == null || cells.Count < 9)
 			{
 				return null;
 			}
 
-			var dividendData = ExtractDividendData(cells);
+			(string ExDivDateStr, string PayDateStr, string DeclAmountStr, string CurrencyStr, string Type) dividendData = ExtractDividendData(cells);
 			if (!IsValidDividendData(dividendData))
 			{
 				return null;
 			}
 
-			var exDivDate = ParseDate(dividendData.ExDivDateStr);
+			DateTime? exDivDate = ParseDate(dividendData.ExDivDateStr);
 			if (!exDivDate.HasValue)
 			{
 				return null;
 			}
 
-			var payDate = ParseDate(dividendData.PayDateStr) ?? exDivDate.Value;
+			DateTime payDate = ParseDate(dividendData.PayDateStr) ?? exDivDate.Value;
 			decimal amount = ParseDecimal(dividendData.DeclAmountStr);
 			var currency = Currency.GetCurrency(dividendData.CurrencyStr);
-			var type = ParseType(dividendData.Type);
+			DividendType type = ParseType(dividendData.Type);
 
 			return new Dividend
 			{
@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 		private static DateTime? ParseDate(string dateStr)
 		{
-			return DateTime.TryParse(dateStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : null;
+			return DateTime.TryParse(dateStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date) ? date : null;
 		}
 
 		// Parse strings like 8500sen, 125¢ and 23.5c

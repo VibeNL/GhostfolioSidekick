@@ -9,10 +9,7 @@ namespace GhostfolioSidekick.Database.Cache
 		public long Id { get; set; }
 
 		[Required]
-		public string CacheKey { get; set; } = null!;
-
-		[Required]
-		public string DataType { get; set; } = null!; // e.g. "MarketData", "SymbolProfile", "Dividend"
+		public string Key { get; set; } = null!;
 
 		[Required]
 		[Column(TypeName = "BLOB")]
