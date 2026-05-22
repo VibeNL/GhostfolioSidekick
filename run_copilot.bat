@@ -1,47 +1,24 @@
 @echo off
-title GitHub Copilot Standalone CLI - Gemma 4 E4B (128K Context)
+title Copilot CLI + LM Studio Fix
 cls
 
-echo =======================================================
-echo   CONFIGURING ENVIRONMENT FOR STANDALONE COPILOT CLI
-echo   HARDWARE: NVIDIA RTX 5080 (16GB VRAM)
-echo =======================================================
+echo ================================
+echo   FIXED COPILOT CONFIG
+echo ================================
 echo.
 
-:: 1. Activeer offline BYOK-modus
 set COPILOT_OFFLINE=true
-
-:: 2. Koppel de API-server van LM Studio
 set COPILOT_PROVIDER_BASE_URL=http://localhost:1234/v1
-
-:: 3. De modelnaam (Zorg dat dit exact matcht met LM Studio)
 set COPILOT_MODEL=qwen3-coder-30b-a3b-instruct
 
-:: 4. DE OPLOSSING: Handmatige override voor de onbekende catalogus-fout
-set COPILOT_PROVIDER_MAX_PROMPT_TOKENS=12288
-set COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=8192
+:: IMPORTANT FIX (prevents 18K+ prompts)
+set COPILOT_DISABLE_WORKSPACE_CONTEXT=true
 
-:: 5. Context- en limietvariabelen voor de LLM-backend
-set COPILOT_CONTEXT_LENGTH=12288
-set COPILOT_MAX_TOKENS=8192
-set LLM_MAX_TOKENS=8192
+:: SAFE LIMITS (these are advisory only)
+set COPILOT_PROVIDER_MAX_PROMPT_TOKENS=12000
+set COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=1024
 
-:: 6. CUDA-optimalisaties voor jouw RTX 5080
-set CUDA_VISIBLE_DEVICES=0
-set GGML_CUDA_FORCE_MMQ=1
-
-echo [+] Environment Variables Registered Successfully!
-echo     - Endpoint: %COPILOT_PROVIDER_BASE_URL%
-echo     - Catalog Overrides: Enabled (128K Prompt / 8K Output)
-echo.
-echo =======================================================
-echo   LAUNCHING COPILOT STANDALONE CLI...
-echo =======================================================
-echo.
-
-:: Start de standalone copilot tool op via call
+echo [+] Starting Copilot CLI...
 call copilot --banner
 
-echo.
-echo [+] Copilot sessie beëindigd.
 cmd /k
