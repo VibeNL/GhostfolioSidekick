@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					bestMatch ??= searchResults[0];
 					return await CreateSymbolProfileFromMatch(bestMatch);
 				}))!;
-			}, TimeSpan.FromDays(1));
+			});
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(Source.Yahoo, TypeOfData.MarketData, cacheKey, async () =>
 			{
 				return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
-			}, TimeSpan.FromDays(1));
+			});
 			return result ?? [];
 		}
 

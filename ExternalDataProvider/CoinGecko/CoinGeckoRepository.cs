@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 					};
 					return symbolProfile;
 				}))!;
-			}, TimeSpan.FromDays(1));
+			});
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 				IEnumerable<MarketData> x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);
 				return x;
-			}, TimeSpan.FromDays(1));
+			});
 			return result ?? [];
 		}
 

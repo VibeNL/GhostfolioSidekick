@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				   })];
 
 				return dividends;
-			}, TimeSpan.FromDays(1)) ?? [];
+			}) ?? [];
 		}
 
 		private async Task<string?> GetDividendPageHtml(string pageUrl)

@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				? null
 				: await cacheService.GetOrAddAsync<SymbolProfile>(
 					Source.Ghostfolio,
-					TypeOfData.SymbolProfile,					
+					TypeOfData.SymbolProfile,
 					cacheKey,
 				async () =>
 				{
@@ -84,9 +84,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						}
 						return null;
 					}))!;
-				},
-				TimeSpan.FromDays(1)
-			)!;
+				})!;
 			}
 			catch
 			{

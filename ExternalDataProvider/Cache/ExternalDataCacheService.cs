@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 		/// <summary>
 		/// Gets a cached value or adds it if not present. Removes expired and duplicate entries.
 		/// </summary>
-		public async Task<T?> GetOrAddAsync<T>(Source source, TypeOfData dataType, string cacheKey, Func<Task<T>> factory, TimeSpan expiration)
+		public async Task<T?> GetOrAddAsync<T>(Source source, TypeOfData dataType, string cacheKey, Func<Task<T>> factory)
 		{
 			DateTime now = DateTime.UtcNow;
 
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 				compressed = ms.ToArray();
 			}
 
-			DateTime expiresAt = now.Add(expiration);
+			DateTime expiresAt = now.Add(DetermineExpirationLength(dataType));
 			ExternalDataCacheEntry newEntry = new()
 			{
 				Key = combinedKey,
@@ -74,5 +74,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 
 			return value;
 		}
+
+		private static TimeSpan DetermineExpirationLength(TypeOfData dataType) => dataType switch
+		{
+			TypeOfData.SymbolProfile => TimeSpan.FromDays(1),
+			TypeOfData.MarketData => TimeSpan.FromMinutes(30),
+			TypeOfData.Dividends => TimeSpan.FromDays(1),
+			_ => throw new NotImplementedException(),
+		};
 	}
 }

@@ -39,11 +39,11 @@ public class ExternalDataCacheServiceTests : IDisposable
 	   {
 		   string key = "test:key";
 		   int value = 42;
-		   var result1 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(value), TimeSpan.FromMinutes(5));
+		   var result1 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(value));
 		   Assert.Equal(value, result1);
 
 		   // Should retrieve from cache, not factory
-		   var result2 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(99), TimeSpan.FromMinutes(5));
+		   var result2 = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(99));
 		   Assert.Equal(value, result2);
 	   }
 
@@ -52,9 +52,9 @@ public class ExternalDataCacheServiceTests : IDisposable
 	  {
 		  string key = "expire:key";
 		  int value = 123;
-		  await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(value), TimeSpan.FromMilliseconds(10));
+		  await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(value));
 		  await Task.Delay(50, TestContext.Current.CancellationToken);
-		  var result = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(456), TimeSpan.FromMinutes(5));
+		  var result = await _cacheService.GetOrAddAsync<int>(Source.Yahoo, TypeOfData.SymbolProfile, key, () => Task.FromResult(456));
 		  Assert.Equal(456, result);
 	  }
 
