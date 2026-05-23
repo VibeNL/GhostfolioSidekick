@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 				compressed = ms.ToArray();
 			}
 
-			DateTime expiresAt = now.Add(DetermineExpirationLength(dataType));
+			DateTime expiresAt = now.Add(DetermineExpirationLength(cacheKey.DataType));
 			ExternalDataCacheEntry newEntry = new()
 			{
 				Key = combinedKey,
