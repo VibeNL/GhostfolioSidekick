@@ -481,9 +481,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 	{
 		private readonly Dictionary<string, SymbolProfile?> _memoryCache = [];
 
-		public async Task<T?> GetOrAddAsync<T>(Source source, TypeOfData dataType, string cacheKey, Func<Task<T>> factory)
+		public async Task<T?> GetOrAddAsync<T>(CacheKey cacheKey, Func<Task<T>> factory)
 		{
-			return _memoryCache.TryGetValue(cacheKey, out SymbolProfile? cachedValue) ? (T?)(object?)cachedValue : await factory();
+			return _memoryCache.TryGetValue(cacheKey.Key, out SymbolProfile? cachedValue) ? (T?)(object?)cachedValue : await factory();
 		}
 
 		public void Set(string key, SymbolProfile? value)

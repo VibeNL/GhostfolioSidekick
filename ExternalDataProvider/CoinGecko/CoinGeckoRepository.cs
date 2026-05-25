@@ -37,8 +37,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return null;
 			}
 
-			string cacheKey = $"{id.Identifier}";
-			return await cacheService.GetOrAddAsync<SymbolProfile>(Source.CoinGecko, TypeOfData.SymbolProfile, cacheKey, async () =>
+			return await cacheService.GetOrAddAsync<SymbolProfile>(CacheKey.CreateSymbolProfile(Source.CoinGecko, id.Identifier), async () =>
 			{
 				AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
 				return (await retryPolicy.ExecuteAsync(async () =>
@@ -72,8 +71,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
-			string cacheKey = $"{symbol.Symbol}:{fromDate:yyyyMMdd}";
-			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(Source.CoinGecko, TypeOfData.MarketData, cacheKey, async () =>
+			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(CacheKey.CreateMarketData(Source.CoinGecko, fromDate, DateOnly.MaxValue, symbol.Symbol), async () =>
 			{
 				CoinGeckoAsset? coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
 				if (coinGeckoAsset == null)

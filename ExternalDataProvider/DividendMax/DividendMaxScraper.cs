@@ -36,8 +36,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				return [];
 			}
 
-			string cacheKey = $"{symbol.Symbol}";
-			return await cacheService.GetOrAddAsync<IList<Dividend>>(Source.DividendMax, TypeOfData.Dividends, cacheKey, async () =>
+			return await cacheService.GetOrAddAsync<IList<Dividend>>(CacheKey.CreateDividend(Source.DividendMax, symbol.Symbol), async () =>
 			{
 				string? page = await GetDividendPageHtml(symbol.WebsiteUrl!);
 				if (string.IsNullOrWhiteSpace(page))

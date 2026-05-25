@@ -12,14 +12,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 		/// <summary>
 		/// Gets a cached value or adds it if not present. Removes expired and duplicate entries.
 		/// </summary>
-		public async Task<T?> GetOrAddAsync<T>(Source source, TypeOfData dataType, string cacheKey, Func<Task<T>> factory)
+		public async Task<T?> GetOrAddAsync<T>(CacheKey cacheKey, Func<Task<T>> factory)
 		{
 			DateTime now = DateTime.UtcNow;
 
 			// Remove all expired cache entries before proceeding
 			_ = await dbContext.ExternalDataCacheEntries.Where(e => e.ExpiresAt <= now).ExecuteDeleteAsync();
 
-			string combinedKey = $"{source}:{dataType}:{cacheKey}";
+			string combinedKey = cacheKey.GetCombinedKey();
 
 			// Try to get a valid (not expired) cache entry
 			ExternalDataCacheEntry? entry = await dbContext.ExternalDataCacheEntries
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 				compressed = ms.ToArray();
 			}
 
-			DateTime expiresAt = now.Add(DetermineExpirationLength(dataType));
+			DateTime expiresAt = now.Add(DetermineExpirationLength(cacheKey.DataType));
 			ExternalDataCacheEntry newEntry = new()
 			{
 				Key = combinedKey,

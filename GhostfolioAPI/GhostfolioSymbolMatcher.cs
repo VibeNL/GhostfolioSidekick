@@ -49,9 +49,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				return string.IsNullOrWhiteSpace(cacheKey)
 				? null
 				: await cacheService.GetOrAddAsync<SymbolProfile>(
-					Source.Ghostfolio,
-					TypeOfData.SymbolProfile,
-					cacheKey,
+					CacheKey.CreateSymbolProfile(Source.Ghostfolio, cacheKey),
 				async () =>
 				{
 					AsyncRetryPolicy retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
