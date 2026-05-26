@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.Activities
 			Dictionary<string, SymbolProfile> resolvedProfilesMap = [];
 			foreach (Holding holding in usedHoldings)
 			{
-				foreach (ISymbolMatcher? symbolMatcher in symbolMatchers.Where(x => !x.AllowedForDeterminingHolding))
+				foreach (ISymbolMatcher symbolMatcher in symbolMatchers.Where(x => !x.AllowedForDeterminingHolding))
 				{
 					string cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", holding.PartialSymbolIdentifiers)}";
 					if (!memoryCache.TryGetValue<(string Symbol, string DataSource)>(cacheKey, out (string Symbol, string DataSource) symbolProfileKey))
