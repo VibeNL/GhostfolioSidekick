@@ -192,7 +192,7 @@ namespace GhostfolioSidekick.Activities
 			IList<PartialSymbolIdentifier> partialIdentifiers)
 		{
 			bool found = false;
-			foreach (ISymbolMatcher? symbolMatcher in symbolMatchers.Where(x => x.AllowedForDeterminingHolding))
+			foreach (ISymbolMatcher symbolMatcher in symbolMatchers.Where(x => x.AllowedForDeterminingHolding))
 			{
 				string cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
 				if (!memoryCache.TryGetValue<(string Symbol, string DataSource)>(cacheKey, out (string Symbol, string DataSource) symbolProfileKey))

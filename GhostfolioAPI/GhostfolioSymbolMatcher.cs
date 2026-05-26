@@ -57,8 +57,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					{
 						foreach (PartialSymbolIdentifier identifier in symbolIdentifiers)
 						{
-							List<string> ids = new()
-							{ identifier.Identifier };
+							List<string> ids = [identifier.Identifier];
 
 							if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
 							{
@@ -93,9 +92,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		private async Task<SymbolProfile?> FindByDataProvider(IEnumerable<string> ids, Currency? expectedCurrency, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass, bool includeIndexes)
 		{
 			List<string> identifiers = ids.ToList();
-			List<SymbolProfile> allAssets = new();
+			List<SymbolProfile> allAssets = [];
 
-			foreach (string? identifier in identifiers)
+			foreach (string identifier in identifiers)
 			{
 				for (int i = 0; i < 5; i++) // Bug Ghostfolio, sometimes it just returns 0 items.
 				{
