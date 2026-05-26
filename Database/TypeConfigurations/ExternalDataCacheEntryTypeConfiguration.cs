@@ -20,9 +20,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(e => e.ExpiresAt)
 				.IsRequired();
 
-			builder.HasIndex(e => e.Key).HasDatabaseName("IX_ExternalDataCacheEntry_Key");
-
-
+			builder.HasIndex(e => e.Key).IsUnique().HasDatabaseName("IX_ExternalDataCacheEntry_Key");
+			builder.HasIndex(e => e.ExpiresAt).HasDatabaseName("IX_ExternalDataCacheEntry_ExpiresAt");
 		}
 	}
 }

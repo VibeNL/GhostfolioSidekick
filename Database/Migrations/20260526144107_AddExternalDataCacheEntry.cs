@@ -28,9 +28,15 @@ namespace GhostfolioSidekick.Database.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ExternalDataCacheEntry_ExpiresAt",
+                table: "ExternalDataCacheEntries",
+                column: "ExpiresAt");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ExternalDataCacheEntry_Key",
                 table: "ExternalDataCacheEntries",
-                column: "Key");
+                column: "Key",
+                unique: true);
         }
 
         /// <inheritdoc />

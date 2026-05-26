@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20260522092054_AddExternalDataCacheEntry")]
+    [Migration("20260526144107_AddExternalDataCacheEntry")]
     partial class AddExternalDataCacheEntry
     {
         /// <inheritdoc />
@@ -47,7 +47,11 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_ExternalDataCacheEntry_ExpiresAt");
+
                     b.HasIndex("Key")
+                        .IsUnique()
                         .HasDatabaseName("IX_ExternalDataCacheEntry_Key");
 
                     b.ToTable("ExternalDataCacheEntries", (string)null);

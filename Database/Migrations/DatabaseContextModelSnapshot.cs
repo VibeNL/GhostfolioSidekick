@@ -44,7 +44,11 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_ExternalDataCacheEntry_ExpiresAt");
+
                     b.HasIndex("Key")
+                        .IsUnique()
                         .HasDatabaseName("IX_ExternalDataCacheEntry_Key");
 
                     b.ToTable("ExternalDataCacheEntries", (string)null);
