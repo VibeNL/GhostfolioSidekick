@@ -171,7 +171,7 @@ namespace GhostfolioSidekick.Activities
 				.ToListAsync();
 
 			// Reset all existing holdings to a clean state
-			foreach (Holding? holding in existingHoldings)
+			foreach (Holding holding in existingHoldings)
 			{
 				holding.SymbolProfiles.Clear();
 				holding.PartialSymbolIdentifiers.Clear();
