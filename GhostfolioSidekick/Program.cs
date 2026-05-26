@@ -147,7 +147,7 @@ namespace GhostfolioSidekick
 		{
 			IEnumerable<Type> types = typeof(T).Assembly.GetTypes()
 				.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
-			foreach (Type? type in types)
+			foreach (Type type in types)
 			{
 				_ = services.AddScoped(typeof(T), type);
 			}
