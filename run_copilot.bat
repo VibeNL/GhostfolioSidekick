@@ -11,6 +11,9 @@ set COPILOT_OFFLINE=true
 set COPILOT_PROVIDER_BASE_URL=http://localhost:1234/v1
 set COPILOT_MODEL=gemma-4-e4b-it
 
+set COPILOT_PROVIDER_MAX_PROMPT_TOKENS=131072
+set COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=65536
+
 echo [+] Starting Copilot CLI...
 call copilot --banner
 
