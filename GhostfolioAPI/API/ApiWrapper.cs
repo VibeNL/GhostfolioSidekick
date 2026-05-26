@@ -15,10 +15,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			ILogger<ApiWrapper> logger,
 			ICurrencyExchange currencyExchange) : IApiWrapper
 	{
-		private const string LegacyOrderEndpoint = "api/v1/order";
-		private const string SingularActivityEndpoint = "api/v1/activity";
 		private const string ActivitiesEndpoint = "api/v1/activities";
-		private string resolvedActivitiesEndpoint = LegacyOrderEndpoint;
 
 		public async Task CreateAccount(Model.Accounts.Account account)
 		{
@@ -475,62 +472,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private async Task<string?> DoRestGetActivities()
 		{
-			return await ExecuteAgainstActivitiesEndpoint(async endpoint => await restCall.DoRestGet(endpoint));
+			return await restCall.DoRestGet(ActivitiesEndpoint);
 		}
 
 		private async Task DoRestPostActivity(string body)
 		{
-			_ = await ExecuteAgainstActivitiesEndpoint(async endpoint => await restCall.DoRestPost(endpoint, body));
+			_ = await restCall.DoRestPost(ActivitiesEndpoint, body);
 		}
 
 		private async Task DoRestDeleteActivity(string activityId)
 		{
-			_ = await ExecuteAgainstActivitiesEndpoint(async endpoint => await restCall.DoRestDelete($"{endpoint}/{activityId}"));
-		}
-
-		private async Task<T> ExecuteAgainstActivitiesEndpoint<T>(Func<string, Task<T>> action)
-		{
-			Exception? lastException = null;
-			var endpoints = GetActivitiesEndpointsToTry();
-
-			foreach (string endpoint in endpoints)
-			{
-				try
-				{
-					T result = await action(endpoint);
-					if (!string.Equals(resolvedActivitiesEndpoint, endpoint, StringComparison.OrdinalIgnoreCase))
-					{
-						logger.LogInformation("Ghostfolio endpoint changed from {PreviousEndpoint} to {ResolvedEndpoint}", resolvedActivitiesEndpoint, endpoint);
-						resolvedActivitiesEndpoint = endpoint;
-					}
-
-					return result;
-				}
-				catch (NotSupportedException ex) when (IsNotFound(ex))
-				{
-					lastException = ex;
-				}
-			}
-
-			throw lastException ?? new NotSupportedException("Could not resolve a working Ghostfolio activities endpoint.");
-		}
-
-		private string[] GetActivitiesEndpointsToTry()
-		{
-			return new[]
-			{
-				resolvedActivitiesEndpoint,
-				LegacyOrderEndpoint,
-				SingularActivityEndpoint,
-				ActivitiesEndpoint,
-			}
-			.Distinct(StringComparer.OrdinalIgnoreCase)
-			.ToArray();
-		}
-
-		private static bool IsNotFound(NotSupportedException ex)
-		{
-			return ex.Message.Contains("[NotFound]", StringComparison.OrdinalIgnoreCase);
+			_ = await restCall.DoRestDelete($"{ActivitiesEndpoint}/{activityId}");
 		}
 
 		private static Task<string> ConvertToBody(Activity activity)
