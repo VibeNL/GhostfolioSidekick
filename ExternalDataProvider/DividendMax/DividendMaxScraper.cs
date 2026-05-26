@@ -75,13 +75,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			var doc = new HtmlDocument();
 			doc.LoadHtml(html);
 
-			HtmlNode table = doc.DocumentNode.SelectSingleNode(TableSelector);
+			HtmlNode? table = doc.DocumentNode.SelectSingleNode(TableSelector);
 			if (table == null)
 			{
 				return result;
 			}
 
-			HtmlNodeCollection rows = table.SelectNodes(TableRowsSelector);
+			HtmlNodeCollection? rows = table.SelectNodes(TableRowsSelector);
 			if (rows == null)
 			{
 				return result;
