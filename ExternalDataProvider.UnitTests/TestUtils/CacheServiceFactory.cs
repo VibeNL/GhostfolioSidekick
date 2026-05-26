@@ -14,9 +14,18 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils
 			var options = new DbContextOptionsBuilder<DatabaseContext>()
 				.UseSqlite(connection)
 				.Options;
-			var dbContext = new DatabaseContext(options);
-			dbContext.Database.EnsureCreated();
-			return new ExternalDataCacheService(dbContext);
+			using (var ctx = new DatabaseContext(options))
+			{
+				ctx.Database.EnsureCreated();
+			}
+
+			var factory = new InMemoryDbContextFactory(options);
+			return new ExternalDataCacheService(factory);
+		}
+
+		private sealed class InMemoryDbContextFactory(DbContextOptions<DatabaseContext> options) : IDbContextFactory<DatabaseContext>
+		{
+			public DatabaseContext CreateDbContext() => new(options);
 		}
 	}
 }

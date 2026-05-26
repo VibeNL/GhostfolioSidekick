@@ -18,7 +18,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 			ExpireType
 		}
 
-		private readonly DatabaseContext _dbContext;
 		private readonly ExternalDataCacheService _cacheService;
 		private readonly SqliteConnection _connection;
 
@@ -29,9 +28,18 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 			var options = new DbContextOptionsBuilder<DatabaseContext>()
 				.UseSqlite(_connection)
 				.Options;
-			_dbContext = new DatabaseContext(options);
-			_dbContext.Database.EnsureCreated();
-			_cacheService = new ExternalDataCacheService(_dbContext);
+			using (var ctx = new DatabaseContext(options))
+			{
+				ctx.Database.EnsureCreated();
+			}
+
+			var factory = new TestDbContextFactory(options);
+			_cacheService = new ExternalDataCacheService(factory);
+		}
+
+		private sealed class TestDbContextFactory(DbContextOptions<DatabaseContext> options) : IDbContextFactory<DatabaseContext>
+		{
+			public DatabaseContext CreateDbContext() => new(options);
 		}
 
 		[Fact]
@@ -48,7 +56,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 
 		public void Dispose()
 		{
-			_dbContext.Dispose();
 			_connection.Dispose();
 		}
 	}

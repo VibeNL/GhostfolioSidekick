@@ -7,13 +7,15 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Cache
 {
-	public class ExternalDataCacheService(DatabaseContext dbContext) : IExternalDataCacheService
+	public class ExternalDataCacheService(IDbContextFactory<DatabaseContext> dbContextFactory) : IExternalDataCacheService
 	{
 		/// <summary>
 		/// Gets a cached value or adds it if not present. Removes expired and duplicate entries.
 		/// </summary>
 		public async Task<T?> GetOrAddAsync<T>(CacheKey cacheKey, Func<Task<T>> factory)
 		{
+			await using DatabaseContext dbContext = await dbContextFactory.CreateDbContextAsync();
+
 			DateTime now = DateTime.UtcNow;
 
 			// Remove all expired cache entries before proceeding
