@@ -101,7 +101,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 		private static Dividend? ParseDividendRow(HtmlNode row)
 		{
-			HtmlNodeCollection cells = row.SelectNodes("td");
+			HtmlNodeCollection? cells = row.SelectNodes("td");
 			if (cells == null || cells.Count < 9)
 			{
 				return null;
