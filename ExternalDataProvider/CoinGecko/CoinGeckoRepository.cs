@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 									});
 
 				List<MarketData> list = [];
-				foreach (CoinGeckoOhlc? candle in ((longRange?.Data) ?? []).Union(shortRange?.Data ?? []))
+				foreach (CoinGeckoOhlc candle in ((longRange?.Data) ?? []).Union(shortRange?.Data ?? []))
 				{
 					MarketData item = new(
 									Currency.USD,
