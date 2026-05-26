@@ -182,14 +182,14 @@ namespace GhostfolioSidekick.Activities
 		}
 
 		private async Task CreateOrReuseHolding(
-		ILogger logger,
-		DatabaseContext databaseContext,
-		Dictionary<string, SymbolProfile> resolvedProfilesMap,
-		Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
-		Dictionary<string, Holding> symbolProfileMap,
-		Queue<Holding> availableHoldings,
-		List<Holding> usedHoldings,
-		IList<PartialSymbolIdentifier> partialIdentifiers)
+			ILogger logger,
+			DatabaseContext databaseContext,
+			Dictionary<string, SymbolProfile> resolvedProfilesMap,
+			Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
+			Dictionary<string, Holding> symbolProfileMap,
+			Queue<Holding> availableHoldings,
+			List<Holding> usedHoldings,
+			IList<PartialSymbolIdentifier> partialIdentifiers)
 		{
 			bool found = false;
 			foreach (ISymbolMatcher? symbolMatcher in symbolMatchers.Where(x => x.AllowedForDeterminingHolding))
