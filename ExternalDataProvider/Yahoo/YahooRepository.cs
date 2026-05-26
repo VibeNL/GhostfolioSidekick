@@ -150,7 +150,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			{
 				IReadOnlyList<SplitTick> history = await YahooFinanceApi.Yahoo.GetSplitsAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today);
 
-				foreach (SplitTick? candle in history)
+				foreach (SplitTick candle in history)
 				{
 					var item = new StockSplit(Date: DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
 					list.Add(item);
