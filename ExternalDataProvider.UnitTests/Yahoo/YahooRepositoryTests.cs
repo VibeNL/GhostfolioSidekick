@@ -208,5 +208,37 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			Assert.NotNull(result);
 			Assert.Equal("LLOY.L", result.Symbol);
 		}
+
+		[Fact]
+		public void ResolveExpectedCurrency_ShouldDefaultToEur_WhenNoCurrencyProvided()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], [])
+			};
+
+			// Act
+			Currency result = YahooRepository.ResolveExpectedCurrency(identifiers);
+
+			// Assert
+			Assert.Equal(Currency.EUR, result);
+		}
+
+		[Fact]
+		public void ResolveExpectedCurrency_ShouldUseProvidedCurrency_WhenAvailable()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", Currency.USD, [], [])
+			};
+
+			// Act
+			Currency result = YahooRepository.ResolveExpectedCurrency(identifiers);
+
+			// Assert
+			Assert.Equal(Currency.USD, result);
+		}
 	}
 }

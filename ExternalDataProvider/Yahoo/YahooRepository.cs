@@ -74,10 +74,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 						return null;
 					}
 
-					Currency? expectedCurrency = symbolIdentifiers
-						.Where(i => i.Currency != null)
-						.Select(i => i.Currency)
-						.FirstOrDefault();
+					Currency expectedCurrency = ResolveExpectedCurrency(symbolIdentifiers);
 					var symbolCurrencies = new Dictionary<string, Currency?>(StringComparer.OrdinalIgnoreCase);
 					foreach (SearchResult result in searchResults)
 					{
@@ -117,8 +114,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 								.Where(v => !string.IsNullOrWhiteSpace(v)))
 							.Distinct(StringComparer.OrdinalIgnoreCase)
 							.ToArray();
+
 						bestMatch = searchResults
-							.OrderByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(
+							.OrderByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
+							.ThenByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(
 								identifierValues,
 								[
 									r.Symbol,
@@ -126,7 +125,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 									r.ShortName ?? string.Empty,
 									SymbolNameCleaner.CleanSymbolName(r.ShortName ?? string.Empty),
 								]))
-							.ThenByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
 							.First();
 					}
 
@@ -393,6 +391,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			(Currency? expectedSource, _) = expectedCurrency.GetSourceCurrency();
 
 			return actualSource == expectedSource ? 1 : 0;
+		}
+
+		internal static Currency ResolveExpectedCurrency(IEnumerable<PartialSymbolIdentifier> symbolIdentifiers)
+		{
+			return symbolIdentifiers
+				.Where(i => i.Currency != null)
+				.Select(i => i.Currency)
+				.FirstOrDefault() ?? Currency.EUR;
 		}
 
 		private async Task<Currency?> GetActualCurrencyAsync(string symbolName)
