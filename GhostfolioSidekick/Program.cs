@@ -1,6 +1,9 @@
 using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Options;
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Requests;
+using Flurl.Http;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
@@ -22,6 +25,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RestSharp;
@@ -105,6 +109,8 @@ namespace GhostfolioSidekick
 							// Register ExternalDataCacheService for caching external data provider requests
 							_ = services.AddSingleton<ExternalDataProvider.Cache.IExternalDataCacheService, ExternalDataProvider.Cache.ExternalDataCacheService>();
 
+							AddHooksToCacheExternalServices(services);
+
 							_ = services.AddSingleton<YahooRepository>();
 							_ = services.AddSingleton<CoinGeckoRepository>();
 							_ = services.AddSingleton<GhostfolioSymbolMatcher>();
@@ -143,14 +149,68 @@ namespace GhostfolioSidekick
 						});
 		}
 
-		private static void RegisterAllWithInterface<T>(IServiceCollection services)
+		private static void AddHooksToCacheExternalServices(IServiceCollection services)
 		{
-			IEnumerable<Type> types = typeof(T).Assembly.GetTypes()
-				.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
-			foreach (Type type in types)
+			// Configure HttpClient with caching handler for external data providers (CoinGecko, DividendMax)
+			_ = services.AddTransient<HttpCachingHandler>();
+			_ = services.ConfigureAll<HttpClientFactoryOptions>(options =>
 			{
-				_ = services.AddScoped(typeof(T), type);
+				options.HttpMessageHandlerBuilderActions.Add(builder =>
+				{
+					// Only add caching handler if not already present
+					if (!builder.AdditionalHandlers.Any(h => h is HttpCachingHandler))
+					{
+						IServiceProvider serviceProvider = builder.Services;
+						builder.AdditionalHandlers.Add(new HttpCachingHandler(serviceProvider));
+					}
+				});
+			});
+
+			// Yahoo uses Flurl for its internal HTTP calls, configure Flurl to use caching
+			FlurlHttp.Configure(settings =>
+			{
+				settings.HttpClientFactory = new InternalCacheHttpFactory(services);
+					});
+				}
+
+				private static void RegisterAllWithInterface<T>(IServiceCollection services)
+				{
+					IEnumerable<Type> types = typeof(T).Assembly.GetTypes()
+						.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
+					foreach (Type type in types)
+					{
+						_ = services.AddScoped(typeof(T), type);
+					}
+				}
 			}
-		}
-	}
+
+			internal class InternalCacheHttpFactory : Flurl.Http.Configuration.IHttpClientFactory
+			{
+				private readonly IServiceCollection services;
+				private readonly Flurl.Http.Configuration.IHttpClientFactory defaultFactory;
+
+				public InternalCacheHttpFactory(IServiceCollection services)
+				{
+					this.services = services;
+					this.defaultFactory = new Flurl.Http.Configuration.DefaultHttpClientFactory();
+				}
+
+				public HttpClient CreateHttpClient(HttpMessageHandler handler)
+				{
+					// Wrap the handler with our caching handler
+					IServiceProvider? serviceProvider = services.BuildServiceProvider();
+					HttpCachingHandler cachingHandler = new(serviceProvider)
+					{
+						InnerHandler = handler
+					};
+
+					return new HttpClient(cachingHandler, disposeHandler: false);
+				}
+
+				public HttpMessageHandler CreateMessageHandler()
+				{
+					// Use default message handler creation
+					return defaultFactory.CreateMessageHandler();
+				}
+			}
 }
