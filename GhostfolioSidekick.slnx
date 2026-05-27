@@ -13,9 +13,9 @@
     <File Path=".github/workflows/docker-publish.yml" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
+    <File Path="docker-compose.yml" />
     <File Path="Dockerfile" />
     <File Path="README.md" />
-    <File Path="supervisord.conf" />
   </Folder>
   <Folder Name="/Tools/">
     <Project Path="Tools/AnonymisePDF.UnitTests/AnonymisePDF.UnitTests.csproj" />
@@ -56,6 +56,10 @@
   <Project Path="Parsers/Parsers.csproj" />
   <Project Path="PerformanceCalculations.UnitTests/PerformanceCalculations.UnitTests.csproj" />
   <Project Path="PerformanceCalculations/PerformanceCalculations.csproj" Id="0b580fa1-6bb3-4a5c-916f-4114a8eb1613" />
+  
   <Project Path="Utilities.UnitTests/Utilities.UnitTests.csproj" Id="d63ffd56-5427-4bf3-bbed-1fc0749edac2" />
   <Project Path="Utilities/Utilities.csproj" Id="abb38f68-e7de-4a74-80cb-14779b5217b1" />
+  <Folder Name="/Docker/">
+    <Project Path="ProcessHost/ProcessHost.csproj" />
+  </Folder>
 </Solution>
