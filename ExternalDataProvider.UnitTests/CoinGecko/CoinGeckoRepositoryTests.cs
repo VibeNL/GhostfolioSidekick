@@ -9,6 +9,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
+using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 {
@@ -18,12 +19,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 		private readonly CoinGeckoRepository repository;
 		private readonly Mock<ICoinGeckoRestClient> restClientMock;
 
-		public CoinGeckoRepositoryTests()
-		{
-			restClientMock = new Mock<ICoinGeckoRestClient>();
-			loggerMock = new Mock<ILogger<CoinGeckoRepository>>();
-			repository = new CoinGeckoRepository(loggerMock.Object, new MemoryCache(new MemoryCacheOptions()), restClientMock.Object);
-		}
+	   public CoinGeckoRepositoryTests()
+	   {
+		   restClientMock = new Mock<ICoinGeckoRestClient>();
+		   loggerMock = new Mock<ILogger<CoinGeckoRepository>>();
+		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
+		   repository = new CoinGeckoRepository(loggerMock.Object, new MemoryCache(new MemoryCacheOptions()), restClientMock.Object, cacheService);
+	   }
 
 		[Fact]
 		public void DataSource_ShouldReturn_Coingecko()

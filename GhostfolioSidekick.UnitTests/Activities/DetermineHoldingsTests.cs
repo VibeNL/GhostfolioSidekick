@@ -281,39 +281,42 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatcherMock.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.AtLeast(1));
 		}
 
-		[Fact]
-		public async Task DoWork_ShouldUseExistingSymbolProfile_WhenFoundInDatabase()
-		{
-			// Arrange
-			var dbContextMock = new Mock<DatabaseContext>();
-			var activities = new List<Activity>
-			{
-				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "EXISTING_SYMBOL", null)!] }
-			};
-			var holdings = new List<Holding>();
-			var existingSymbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "EXISTING_SYMBOL", 
-				DataSource = "TestSource",
-				Currency = Currency.USD,
-				Name = "Existing Symbol"
-			};
+	   [Fact]
+	   public async Task DoWork_ShouldUseExistingSymbolProfile_WhenFoundInDatabase()
+	   {
+		   // Arrange
+		   var dbContextMock = new Mock<DatabaseContext>();
+		   var activities = new List<Activity>
+		   {
+			   new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "EXISTING_SYMBOL", null)!] }
+		   };
+		   var holdings = new List<Holding>();
+		   var existingSymbolProfile = new SymbolProfile 
+		   { 
+			   Symbol = "EXISTING_SYMBOL", 
+			   DataSource = "TestSource",
+			   Currency = Currency.USD,
+			   Name = "Existing Symbol"
+		   };
 
-			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
-			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
-			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([existingSymbolProfile]);
-			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
+		   dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
+		   dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+		   dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([existingSymbolProfile]);
+		   _dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
-			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()))
-				.ReturnsAsync(new SymbolProfile { Symbol = "EXISTING_SYMBOL", DataSource = "TestSource" });
+		   _symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()))
+			   .ReturnsAsync(new SymbolProfile { Symbol = "EXISTING_SYMBOL", DataSource = "TestSource" });
 
-			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+		   // Act
+		   await _determineHoldings.DoWork(_loggerMock.Object);
 
-			// Assert
-         // The code should attempt to use the existing symbol profile from the database
-			dbContextMock.Verify(db => db.SymbolProfiles.FindAsync("EXISTING_SYMBOL", "TestSource"), Times.AtLeastOnce());
-		}
+		   // Assert
+		   // The code should use the existing symbol profile from the database (preloaded)
+		   // So we check that the SymbolProfiles DbSet was enumerated (preload) and that the holding was created with the correct profile
+		   dbContextMock.Verify(db => db.SymbolProfiles, Times.AtLeastOnce());
+		   // There should be a holding added with the correct symbol profile
+		   dbContextMock.Verify(db => db.Holdings.Add(It.Is<Holding>(h => h.SymbolProfiles.Any(sp => sp.Symbol == "EXISTING_SYMBOL" && sp.DataSource == "TestSource"))), Times.Once);
+	   }
 
 		[Fact]
 		public async Task DoWork_ShouldHandleMultipleSymbolMatchers()

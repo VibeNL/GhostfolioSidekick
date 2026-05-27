@@ -76,11 +76,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account1, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account2, holding, DateTime.Now.AddDays(-2), 5, 110)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -118,11 +118,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding1, DateTime.Now.AddDays(-1), 10, 100),
 				CreateBuyActivity(account, holding2, DateTime.Now.AddDays(-2), 5, 200)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -158,12 +158,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -201,11 +201,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding1, DateTime.Now.AddDays(-1), 10, 100, "BUY-001", "Apple purchase"),
 				CreateSellActivity(account, holding2, DateTime.Now.AddDays(-2), 5, 110, "SELL-001", "Microsoft sale")
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -242,12 +242,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-3), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-2), 50)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -283,7 +283,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new();
+			List<Activity> activities = [];
 			for (int i = 0; i < 15; i++)
 			{
 				activities.Add(CreateBuyActivity(account, holding, DateTime.Now.AddDays(-i), 10, 100, $"TXN-{i:D3}"));
@@ -325,13 +325,13 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-3), 3, 120),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-4), 25)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -378,8 +378,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			buyActivity.Fees.Add(new Money(Currency.USD, 5));
 			buyActivity.Taxes.Add(new Money(Currency.USD, 10));
 
-			List<Activity> activities = new()
-			{ buyActivity };
+			List<Activity> activities = [buyActivity];
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			TransactionQueryParameters parameters = new()
@@ -417,14 +416,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50),
 				CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000),
 				CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -462,11 +461,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-5), 10, 100), // Inside range
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-35), 5, 110) // Outside range
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -509,8 +508,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var dividendActivity = CreateDividendActivity(account, holding, DateTime.Now.AddDays(-2), 50);
 			dividendActivity.Fees.Add(new Money(Currency.USD, 1));
 
-			List<Activity> activities = new()
-			{ sellActivity, dividendActivity };
+			List<Activity> activities = [sellActivity, dividendActivity];
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			TransactionQueryParameters parameters = new()
@@ -550,11 +548,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Arrange
 			var account = CreateTestAccount("Test Account");
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateCashDepositActivity(account, DateTime.Now.AddDays(-1), 1000),
 				CreateInterestActivity(account, DateTime.Now.AddDays(-2), 25)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -633,10 +631,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("UNKNOWN", null); // Null name
 			var holding = CreateTestHolding(symbolProfile);
 
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -678,8 +676,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				.Where(t => activityBaseType.IsAssignableFrom(t) && !t.IsAbstract)
 				.ToList();
 
-			List<Activity> activities = new();
-			List<string> typeNames = new();
+			List<Activity> activities = [];
+			List<string> typeNames = [];
 
 			foreach (var type in activityTypes)
 			{
@@ -733,12 +731,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile2 = CreateTestSymbolProfile("MSFT", "Microsoft");
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account1, holding1, DateTime.Now.AddDays(-1), 10, 100, "TXN-001", "Apple buy"),
 				CreateSellActivity(account2, holding2, DateTime.Now.AddDays(-2), 5, 200, "TXN-002", "Microsoft sell"),
 				CreateDividendActivity(account1, holding1, DateTime.Now.AddDays(-3), 50, "TXN-003", "Dividend Apple")
-			};
+			];
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 			TransactionQueryParameters parameters = new()
 			{
@@ -765,12 +763,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			List<Activity> activities = new()
-			{
+			List<Activity> activities =
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
-			};
+			];
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 			TransactionQueryParameters parameters = new()
 			{

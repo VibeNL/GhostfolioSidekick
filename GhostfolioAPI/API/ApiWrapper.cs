@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			ILogger<ApiWrapper> logger,
 			ICurrencyExchange currencyExchange) : IApiWrapper
 	{
+		private const string ActivitiesEndpoint = "api/v1/activities";
+
 		public async Task CreateAccount(Model.Accounts.Account account)
 		{
 			var o = new JObject
@@ -109,7 +111,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			var rawAccounts = await GetAllAccounts();
 			var rawAccount = rawAccounts.SingleOrDefault(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException("Account not found");
-			var content = await restCall.DoRestGet($"api/v1/order");
+			var content = await DoRestGetActivities();
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
 			existingActivities = [.. existingActivities.Where(x => x.AccountId == rawAccount.Id)];
@@ -125,7 +127,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
 		{
-			var content = await restCall.DoRestGet($"api/v1/order");
+			var content = await DoRestGetActivities();
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
 			// fixup
@@ -452,8 +454,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return;
 			}
 
-			var url = $"api/v1/order";
-			await restCall.DoRestPost(url, await ConvertToBody(activity));
+			await DoRestPostActivity(await ConvertToBody(activity));
 
 			logger.LogInformation("Added transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
 		}
@@ -465,8 +466,23 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Deletion failed, no Id");
 			}
 
-			await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
+			await DoRestDeleteActivity(activity.Id);
 			logger.LogInformation("Deleted transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
+		}
+
+		private async Task<string?> DoRestGetActivities()
+		{
+			return await restCall.DoRestGet(ActivitiesEndpoint);
+		}
+
+		private async Task DoRestPostActivity(string body)
+		{
+			_ = await restCall.DoRestPost(ActivitiesEndpoint, body);
+		}
+
+		private async Task DoRestDeleteActivity(string activityId)
+		{
+			_ = await restCall.DoRestDelete($"{ActivitiesEndpoint}/{activityId}");
 		}
 
 		private static Task<string> ConvertToBody(Activity activity)
