@@ -124,8 +124,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], []),
-				new PartialSymbolIdentifier(IdentifierType.Name, "APPLE", null, [], [])
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", Currency.USD, [AssetClass.Equity], [AssetSubClass.Stock]),
+				new PartialSymbolIdentifier(IdentifierType.Name, "Apple Inc.", Currency.USD, [AssetClass.Equity], [AssetSubClass.Stock])
 			};
 
 			// Act

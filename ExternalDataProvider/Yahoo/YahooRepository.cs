@@ -81,52 +81,39 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 						symbolCurrencies[result.Symbol] = await GetActualCurrencyAsync(result.Symbol);
 					}
 
-					SearchResult? bestMatch = null;
-					foreach (PartialSymbolIdentifier identifier in symbolIdentifiers)
-					{
-						var cleanedIdentifier = SymbolNameCleaner.CleanTickerSymbol(identifier.Identifier);
-						var exactMatches = searchResults
-							.Where(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase)
-								 || SymbolNameCleaner.CleanTickerSymbol(r.Symbol).Equals(cleanedIdentifier, StringComparison.OrdinalIgnoreCase))
-							.ToList();
-						if (exactMatches.Count == 0)
-						{
-							continue;
-						}
+					var identifierValues = symbolIdentifiers
+						.Select(i => i.Identifier)
+						.Where(v => !string.IsNullOrWhiteSpace(v))
+						.Concat(symbolIdentifiers
+							.Select(i => SymbolNameCleaner.CleanTickerSymbol(i.Identifier))
+							.Where(v => !string.IsNullOrWhiteSpace(v)))
+						.Distinct(StringComparer.OrdinalIgnoreCase)
+						.ToArray();
 
-						// Prefer a result whose symbol exactly matches the raw identifier (score 2),
-						// then one that only matches after ticker cleaning (score 1), then use
-						// currency as the final tiebreaker.
-						bestMatch = exactMatches
-							.OrderByDescending(r => r.Symbol.Equals(identifier.Identifier, StringComparison.OrdinalIgnoreCase) ? 2 : 1)
-							.ThenByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
-							.First();
-						break;
-					}
+					var allowedClasses = symbolIdentifiers
+							.SelectMany(i => i.AllowedAssetClasses ?? [])
+							.ToHashSet();
+					var filteredResults = allowedClasses.Count > 0
+						? searchResults.Where(r => allowedClasses.Contains(ParseQuoteType(r.Type))).ToList()
+						: searchResults;
+					var candidates = filteredResults.Count > 0 ? filteredResults : searchResults;
 
-					if (bestMatch == null)
-					{
-						var identifierValues = symbolIdentifiers
-							.Select(i => i.Identifier)
-							.Where(v => !string.IsNullOrWhiteSpace(v))
-							.Concat(symbolIdentifiers
-								.Select(i => SymbolNameCleaner.CleanTickerSymbol(i.Identifier))
-								.Where(v => !string.IsNullOrWhiteSpace(v)))
-							.Distinct(StringComparer.OrdinalIgnoreCase)
-							.ToArray();
-
-						bestMatch = searchResults
-							.OrderByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
-							.ThenByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(
-								identifierValues,
-								[
-									r.Symbol,
+					var bestMatch = candidates
+						.OrderByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
+						.ThenByDescending(r => identifierValues.Any(v =>
+							string.Equals(v, r.Symbol, StringComparison.OrdinalIgnoreCase)) ? 1 : 0)
+						.ThenByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(
+							identifierValues,
+							[
+								r.Symbol,
 									SymbolNameCleaner.CleanTickerSymbol(r.Symbol),
 									r.ShortName ?? string.Empty,
 									SymbolNameCleaner.CleanSymbolName(r.ShortName ?? string.Empty),
-								]))
-							.First();
-					}
+									r.LongName ?? string.Empty,
+									SymbolNameCleaner.CleanSymbolName(r.LongName ?? string.Empty),
+							]))
+						.ThenByDescending(r => GetExchangeSuffixScore(r, expectedCurrency))
+						.First();
 
 					return await CreateSymbolProfileFromMatch(bestMatch);
 				}))!;
@@ -391,6 +378,17 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			(Currency? expectedSource, _) = expectedCurrency.GetSourceCurrency();
 
 			return actualSource == expectedSource ? 1 : 0;
+		}
+
+		private static int GetExchangeSuffixScore(SearchResult result, Currency? expectedCurrency)
+		{
+			if (expectedCurrency == null || expectedCurrency == Currency.USD)
+			{
+				return 0;
+			}
+
+			// Prefer symbols with an exchange suffix (e.g. ASML.AS) when currency is non-USD
+			return result.Symbol.Contains('.') ? 1 : 0;
 		}
 
 		internal static Currency ResolveExpectedCurrency(IEnumerable<PartialSymbolIdentifier> symbolIdentifiers)
