@@ -296,7 +296,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var activities = new List<Activity> { CreateTestActivity("account1", testSymbol) };
 
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = rawAccounts }));
-			SetupRestCall("api/v1/order", JsonConvert.SerializeObject(new ActivityList { Activities = [.. activities] }));
+			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(new ActivityList { Activities = [.. activities] }));
 
 			// Set up the symbol profiles response to include the symbol that will be looked up
 			var marketDataResponse = new MarketDataList
@@ -338,7 +338,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var activities = new List<Activity>();
 
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = rawAccounts }));
-			SetupRestCall("api/v1/order", JsonConvert.SerializeObject(new ActivityList { Activities = [.. activities] }));
+			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(new ActivityList { Activities = [.. activities] }));
 
 			// Act
 			var result = await _apiWrapper.GetActivitiesByAccount(account);
@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var accountName = "TestAccount";
 			var symbol = CreateTestSymbolProfile(identifier);
 			var contractActivities = new ActivityList { Activities = [CreateTestActivity("a", symbol)] };
-			SetupRestCall("api/v1/order", JsonConvert.SerializeObject(contractActivities));
+			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(contractActivities));
 			SetupRestCall("api/v1/admin/market-data/", string.Empty);
 			var accounts = new List<Account> { new() { Name = accountName, Currency = "EUR", Id = "a" } };
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
@@ -394,7 +394,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var contractActivities = new ActivityList { Activities = [] };
-			SetupRestCall("api/v1/order", JsonConvert.SerializeObject(contractActivities));
+			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(contractActivities));
 			SetupRestCall("api/v1/admin/market-data/", string.Empty);
 			var accounts = new List<Account>();
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));

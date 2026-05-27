@@ -35,6 +35,7 @@ namespace GhostfolioSidekick.Performance
 				   .Include(h => h.SymbolProfiles)
 				   .Include(h => h.Activities.Where(a => a is DividendActivity))
 				   .Include(h => h.CalculatedSnapshots)
+				   .AsSplitQuery()
 				   .ToListAsync();
 
 			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync();

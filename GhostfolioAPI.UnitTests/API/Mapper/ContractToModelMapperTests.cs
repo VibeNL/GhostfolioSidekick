@@ -107,8 +107,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -136,8 +135,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile, fee: 10.50m, feeCurrency: "USD");
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -159,8 +157,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.SELL, symbolProfile, quantity: 50, unitPrice: 110.25m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -183,8 +180,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.SELL, symbolProfile, fee: 5.25m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -205,8 +201,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.DIVIDEND, symbolProfile, unitPrice: 2.50m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -230,8 +225,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.DIVIDEND, symbolProfile, fee: 0.25m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -252,8 +246,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.INTEREST, symbolProfile, unitPrice: 15.75m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -275,8 +268,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.FEE, symbolProfile, unitPrice: 5.00m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -298,8 +290,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.ITEM, symbolProfile, unitPrice: 1000.00m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -322,8 +313,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.LIABILITY, symbolProfile, unitPrice: 500.00m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -346,8 +336,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity((ActivityType)999, symbolProfile); // Invalid activity type
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act & Assert
 			var exception = Assert.Throws<NotSupportedException>(() =>
@@ -364,7 +353,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
-			List<SymbolProfile> symbols = new(); // Empty symbol list
+			List<SymbolProfile> symbols = []; // Empty symbol list
 
 			// Act & Assert
 			var exception = Assert.Throws<ArgumentException>(() =>
@@ -383,8 +372,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
 			contractActivity.ReferenceCode = null;
 			contractActivity.Id = "TEST-ID-123";
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -403,8 +391,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile);
 			contractActivity.ReferenceCode = null;
 			contractActivity.Id = null;
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -423,8 +410,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "USD");
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile, fee: 15.00m, feeCurrency: "EUR");
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -445,8 +431,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(ActivityType.BUY, symbolProfile, fee: 0.00m);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -466,8 +451,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "USD");
 			var contractActivity = CreateTestContractActivity(ActivityType.SELL, symbolProfile, fee: 5.00m, feeCurrency: null);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
@@ -495,8 +479,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var account = CreateTestAccount();
 			var symbolProfile = CreateTestSymbolProfile();
 			var contractActivity = CreateTestContractActivity(activityType, symbolProfile);
-			List<SymbolProfile> symbols = new()
-			{ symbolProfile };
+			List<SymbolProfile> symbols = [symbolProfile];
 
 			// Act
 			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);

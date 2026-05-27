@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
+using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 {
@@ -16,11 +17,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
 		private readonly YahooRepository _repository;
 
-		public YahooRepositoryTests()
-		{
-			_loggerMock = new Mock<ILogger<YahooRepository>>();
-			_repository = new YahooRepository(_loggerMock.Object);
-		}
+	   public YahooRepositoryTests()
+	   {
+		   _loggerMock = new Mock<ILogger<YahooRepository>>();
+		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
+		   _repository = new YahooRepository(_loggerMock.Object, cacheService);
+	   }
 
 		[Fact]
 		public async Task GetStockMarketData_ShouldIncludeCurrentPriceIfNotPresent()
@@ -122,8 +124,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Arrange
 			var identifiers = new[]
 			{
-				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], []),
-				new PartialSymbolIdentifier(IdentifierType.Name, "APPLE", null, [], [])
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", Currency.USD, [AssetClass.Equity], [AssetSubClass.Stock]),
+				new PartialSymbolIdentifier(IdentifierType.Name, "Apple Inc.", Currency.USD, [AssetClass.Equity], [AssetSubClass.Stock])
 			};
 
 			// Act
@@ -205,6 +207,38 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Assert
 			Assert.NotNull(result);
 			Assert.Equal("LLOY.L", result.Symbol);
+		}
+
+		[Fact]
+		public void ResolveExpectedCurrency_ShouldDefaultToEur_WhenNoCurrencyProvided()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], [])
+			};
+
+			// Act
+			Currency result = YahooRepository.ResolveExpectedCurrency(identifiers);
+
+			// Assert
+			Assert.Equal(Currency.EUR, result);
+		}
+
+		[Fact]
+		public void ResolveExpectedCurrency_ShouldUseProvidedCurrency_WhenAvailable()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", Currency.USD, [], [])
+			};
+
+			// Act
+			Currency result = YahooRepository.ResolveExpectedCurrency(identifiers);
+
+			// Assert
+			Assert.Equal(Currency.USD, result);
 		}
 	}
 }

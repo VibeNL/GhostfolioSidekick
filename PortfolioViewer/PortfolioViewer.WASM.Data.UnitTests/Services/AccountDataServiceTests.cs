@@ -43,12 +43,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var platform = CreateTestPlatform("Test Platform");
-			List<Account> accounts = new()
-			{
+			List<Account> accounts =
+			[
 				CreateTestAccount("Charlie Account", 3, platform),
 				CreateTestAccount("Alpha Account", 1, platform),
 				CreateTestAccount("Beta Account", 2, platform)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
@@ -83,10 +83,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var platform = CreateTestPlatform("Investment Platform");
-			List<Account> accounts = new()
-			{
+			List<Account> accounts =
+			[
 				CreateTestAccount("Test Account", 1, platform)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
@@ -110,8 +110,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Arrange
 			var platform = CreateTestPlatform("Test Platform");
 			var account = CreateTestAccount("Test Account", 42, platform);
-			List<Account> accounts = new()
-			{ account };
+			List<Account> accounts = [account];
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
 			// Act
@@ -147,12 +146,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var platform = CreateTestPlatform("Test Platform");
-			List<Account> accounts = new()
-			{
+			List<Account> accounts =
+			[
 				CreateTestAccount("Zulu Account", 3, platform),
 				CreateTestAccount("Alpha Account", 1, platform),
 				CreateTestAccount("Beta Account", 2, platform)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
@@ -181,8 +180,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			var accountWithoutSymbol = CreateTestAccount("Account without AAPL", 2, platform);
 
-			List<Account> accounts = new()
-			{ accountWithSymbol, accountWithoutSymbol };
+			List<Account> accounts = [accountWithSymbol, accountWithoutSymbol];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
@@ -200,11 +198,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var platform = CreateTestPlatform("Test Platform");
-			List<Account> accounts = new()
-			{
+			List<Account> accounts =
+			[
 				CreateTestAccount("Account 1", 1, platform),
 				CreateTestAccount("Account 2", 2, platform)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
@@ -221,11 +219,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var platform = CreateTestPlatform("Test Platform");
-			List<Account> accounts = new()
-			{
+			List<Account> accounts =
+			[
 				CreateTestAccount("Account 1", 1, platform),
 				CreateTestAccount("Account 2", 2, platform)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
@@ -241,7 +239,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetAccountsAsync_WithCancellationToken_ShouldPassTokenToDatabase()
 		{
 			// Arrange
-			List<Account> accounts = new();
+			List<Account> accounts = [];
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(accounts);
 
 			// Act
@@ -263,17 +261,17 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly endDate = new(2023, 1, 31);
 			var accountId = 1;
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(startDate, accountId, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate.AddDays(1), accountId, 1100m, 850m)
-			};
+			];
 
-			List<Balance> balances = new()
-			{
+			List<Balance> balances =
+			[
 				CreateBalance(startDate, accountId, 200m),
 				CreateBalance(startDate.AddDays(1), accountId, 250m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -312,12 +310,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly endDate = new(2023, 1, 31);
 			var accountId = 1;
 
-			List<CalculatedSnapshot> snapshots = new(); // No snapshot data
+			List<CalculatedSnapshot> snapshots = []; // No snapshot data
 
-			List<Balance> balances = new()
-			{
+			List<Balance> balances =
+			[
 				CreateBalance(startDate, accountId, 200m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -345,17 +343,17 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly startDate = new(2023, 1, 1);
 			DateOnly endDate = new(2023, 1, 31);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(startDate, 1, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate, 2, 2000m, 1600m)
-			};
+			];
 
-			List<Balance> balances = new()
-			{
+			List<Balance> balances =
+			[
 				CreateBalance(startDate, 1, 200m),
 				CreateBalance(startDate, 2, 400m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -377,21 +375,21 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly startDate = new(2023, 1, 1);
 			DateOnly endDate = new(2023, 1, 3);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(startDate.AddDays(1), 2, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate, 1, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate.AddDays(1), 1, 1000m, 800m),
 				CreateCalculatedSnapshot(startDate, 2, 1000m, 800m)
-			};
+			];
 
-			List<Balance> balances = new()
-			{
+			List<Balance> balances =
+			[
 				CreateBalance(startDate.AddDays(1), 2, 200m),
 				CreateBalance(startDate, 1, 200m),
 				CreateBalance(startDate.AddDays(1), 1, 200m),
 				CreateBalance(startDate, 2, 200m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -465,15 +463,15 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var expectedCurrency = Currency.EUR;
 			_ = _mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(expectedCurrency);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(startDate, accountId, 1000m, 800m)
-			};
+			];
 
-			List<Balance> balances = new()
-			{
+			List<Balance> balances =
+			[
 				CreateBalance(startDate, accountId, 200m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -503,14 +501,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly firstDataDate = new(2023, 2, 21);
 			var accountId = 1;
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(firstDataDate, accountId, 500m, 400m)
-			};
-			List<Balance> balances = new()
-			{
+			];
+			List<Balance> balances =
+			[
 				CreateBalance(firstDataDate, accountId, 100m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -536,16 +534,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly lastDataDate = new(2023, 2, 27);
 			var accountId = 1;
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(rangeStart, accountId, 400m, 350m),
 				CreateCalculatedSnapshot(lastDataDate, accountId, 600m, 500m)
-			};
-			List<Balance> balances = new()
-			{
+			];
+			List<Balance> balances =
+			[
 				CreateBalance(rangeStart, accountId, 50m),
 				CreateBalance(lastDataDate, accountId, 80m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -578,14 +576,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly rangeEnd = new(2023, 1, 5);
 			var accountId = 1;
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(lastActivityDate, accountId, 750m, 600m)
-			};
-			List<Balance> balances = new()
-			{
+			];
+			List<Balance> balances =
+			[
 				CreateBalance(lastActivityDate, accountId, 120m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -614,16 +612,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly endDate = new(2023, 1, 7);
 			var accountId = 1;
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(startDate, accountId, 1000m, 900m),
 				CreateCalculatedSnapshot(startDate.AddDays(4), accountId, 1200m, 1100m)
-			};
-			List<Balance> balances = new()
-			{
+			];
+			List<Balance> balances =
+			[
 				CreateBalance(startDate, accountId, 100m),
 				CreateBalance(startDate.AddDays(4), accountId, 150m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
 			_ = _mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
@@ -672,12 +670,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account = CreateTestAccount("Test Account", 1, platform);
 			var holding = CreateTestHolding(CreateTestSymbolProfile("TEST"));
 
-			List<BuyActivity> activities = new()
-			{
+			List<BuyActivity> activities =
+			[
 				CreateTestActivity(holding, 1, new DateTime(2023, 1, 1)),
 				CreateTestActivity(holding, 1, expectedMinDate.ToDateTime(TimeOnly.MinValue)),
 				CreateTestActivity(holding, 1, new DateTime(2022, 6, 15))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -708,10 +706,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var platform = CreateTestPlatform("Test Platform");
 			var account = CreateTestAccount("Test Account", 1, platform);
 			var holding = CreateTestHolding(CreateTestSymbolProfile("TEST"));
-			List<BuyActivity> activities = new()
-			{
+			List<BuyActivity> activities =
+			[
 				CreateTestActivity(holding, 1, new DateTime(2023, 1, 1))
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
@@ -730,13 +728,13 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetSymbolProfilesAsync_WithoutAccountFilter_ShouldReturnAllSymbolsOrderedBySymbol()
 		{
 			// Arrange
-			List<SymbolProfile> symbolProfiles = new()
-			{
+			List<SymbolProfile> symbolProfiles =
+			[
 				CreateTestSymbolProfile("ZULU"),
 				CreateTestSymbolProfile("AAPL"),
 				CreateTestSymbolProfile("MSFT"),
 				CreateTestSymbolProfile("BETA")
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(symbolProfiles);
 
@@ -773,8 +771,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			holding2.Activities.Add(activity2);
 			holding3.Activities.Add(activity3);
 
-			List<Holding> holdings = new()
-			{ holding1, holding2, holding3 };
+			List<Holding> holdings = [holding1, holding2, holding3];
 
 			_ = _mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 
@@ -794,7 +791,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange
 			var accountId = 999; // Non-existent account
-			List<Holding> holdings = new();
+			List<Holding> holdings = [];
 
 			_ = _mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 
@@ -854,8 +851,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			holdingA.Activities.Add(activityA);
 			holdingM.Activities.Add(activityM);
 
-			List<Holding> holdings = new()
-			{ holdingZ, holdingA, holdingM };
+			List<Holding> holdings = [holdingZ, holdingA, holdingM];
 
 			_ = _mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
 
@@ -878,8 +874,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public async Task GetTaxReportAsync_WhenCacheIsValid_ShouldReturnCachedResultWithoutHittingDatabase()
 		{
 			// Arrange
-			List<TaxReportRow> cached = new()
-			{
+			List<TaxReportRow> cached =
+			[
 				new TaxReportRow
 				{
 					Year = 2023,
@@ -890,7 +886,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 					CashBalance = new Money(Currency.USD, 1m),
 					TotalValue = new Money(Currency.USD, 1000m)
 				}
-			};
+			];
 
 			_ = _mockTaxReportCacheService.Setup(x => x.IsValid).Returns(true);
 			_ = _mockTaxReportCacheService.Setup(x => x.CachedResult).Returns(cached);
@@ -956,11 +952,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly jan1 = new(2023, 1, 1);
 			DateOnly dec31 = new(2023, 12, 31);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
 				CreateCalculatedSnapshot(dec31, 1, 1500m, 1400m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -985,14 +981,14 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account = CreateTestAccount("Broker A", 1);
 			DateOnly jan1 = new(2023, 1, 1);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m)
-			};
-			List<Balance> balances = new()
-			{
+			];
+			List<Balance> balances =
+			[
 				CreateBalance(jan1, 1, 250m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1018,16 +1014,16 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly jan1 = new(2023, 1, 1);
 			DateOnly dec31 = new(2023, 12, 31);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
 				CreateCalculatedSnapshot(dec31, 1, 1500m, 1400m)
-			};
-			List<Balance> balances = new()
-			{
+			];
+			List<Balance> balances =
+			[
 				CreateBalance(dec31Prior, 1, 500m), // prior-year balance, no Jan 1 balance exists
 				CreateBalance(dec31, 1, 600m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1049,11 +1045,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly jan1 = new(2023, 1, 1);
 			DateOnly dec29 = new(2023, 12, 29);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
 				CreateCalculatedSnapshot(dec29, 1, 1400m, 1300m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1075,11 +1071,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account2 = CreateTestAccount("Broker B", 2);
 			DateOnly jan1 = new(2023, 1, 1);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
 				CreateCalculatedSnapshot(jan1, 2, 2000m, 1800m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account1, account2 });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1104,10 +1100,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account = CreateTestAccount("My Named Account", 42);
 			DateOnly jan1 = new(2023, 1, 1);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 42, 1000m, 900m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1126,10 +1122,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		{
 			// Arrange - snapshot references accountId 99 which has no Account record
 			DateOnly jan1 = new(2023, 1, 1);
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 99, 1000m, 900m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account>());
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1152,13 +1148,13 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly jan1 = new(2023, 1, 1);
 			DateOnly dec31 = new(2023, 12, 31);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(dec31, 1, 1000m, 900m),
 				CreateCalculatedSnapshot(dec31, 2, 500m, 450m),
 				CreateCalculatedSnapshot(jan1, 1, 800m, 700m),
 				CreateCalculatedSnapshot(jan1, 2, 400m, 350m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account1, account2 });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1186,11 +1182,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			DateOnly today = DateOnly.FromDateTime(DateTime.Today);
 			DateOnly jan1 = new(today.Year, 1, 1);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m),
 				CreateCalculatedSnapshot(today, 1, 1200m, 1100m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
@@ -1213,10 +1209,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account = CreateTestAccount("Cash Account", 1);
 			DateOnly jan1 = new(2023, 1, 1);
 
-			List<Balance> balances = new()
-			{
+			List<Balance> balances =
+			[
 				CreateBalance(jan1, 1, 5000m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
@@ -1244,10 +1240,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var account = CreateTestAccount("Broker A", 1);
 			DateOnly jan1 = new(2023, 1, 1);
 
-			List<CalculatedSnapshot> snapshots = new()
-			{
+			List<CalculatedSnapshot> snapshots =
+			[
 				CreateCalculatedSnapshot(jan1, 1, 1000m, 900m)
-			};
+			];
 
 			_ = _mockDatabaseContext.Setup(x => x.Accounts).ReturnsDbSet(new List<Account> { account });
 			_ = _mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
