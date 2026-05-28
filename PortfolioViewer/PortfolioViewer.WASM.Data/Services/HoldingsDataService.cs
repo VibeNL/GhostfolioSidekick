@@ -85,6 +85,32 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.OrderBy(x => x.Date)
 				.ToListAsync(cancellationToken);
 
+			// Load balance records up to endDate, filtered by account
+			var balanceRecords = await databaseContext.Balances
+				.Where(b => (accountId == null || accountId == 0 || b.AccountId == accountId) && b.Date <= endDate)
+				.OrderBy(b => b.AccountId).ThenBy(b => b.Date)
+				.Select(b => new { b.Date, b.AccountId, Amount = b.Money.Amount })
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			// Group balance records by account for forward-filling
+			var balancesByAccount = balanceRecords
+				.GroupBy(b => b.AccountId)
+				.ToDictionary(g => g.Key, g => g.OrderBy(b => b.Date).ToList());
+
+			// Forward-fill balance per account and sum for each snapshot date
+			foreach (var point in snapShots)
+			{
+				decimal totalBalance = 0;
+				foreach (var (_, balances) in balancesByAccount)
+				{
+					var latestBalance = balances.LastOrDefault(b => b.Date <= point.Date);
+					if (latestBalance != null)
+						totalBalance += latestBalance.Amount;
+				}
+				point.Balance = totalBalance;
+			}
+
 			return snapShots;
 		}
 
