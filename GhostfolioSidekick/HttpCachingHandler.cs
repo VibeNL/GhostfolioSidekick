@@ -11,12 +11,12 @@ namespace GhostfolioSidekick
 	/// </summary>
 	internal class HttpCachingHandler : DelegatingHandler
 	{
-		private static readonly string[] KnownHosts =
-		[
-			"coingecko.com",
-			"yahoo.com",
-			"dividendmax.com",
-		];
+		private const string Coingecko = "coingecko.com";
+
+		private static readonly string[] IgnoreUrlsPartials = [
+			"https://fc.yahoo.com/",
+			"test/getcrumb"
+			];
 
 		// URLs containing these segments are considered market data (short-lived cache).
 		private static readonly string[] MarketDataSegments =
@@ -44,14 +44,16 @@ namespace GhostfolioSidekick
 			}
 
 			string? url = request.RequestUri?.ToString();
-			if (string.IsNullOrWhiteSpace(url) || !IsKnownHost(url))
+			bool ignorePartial = IgnoreUrlsPartials.Any(partial => url?.Contains(partial, StringComparison.OrdinalIgnoreCase) == true);
+
+			if (string.IsNullOrWhiteSpace(url) || ignorePartial)
 			{
 				return await base.SendAsync(request, cancellationToken);
 			}
 
 			TimeSpan expiry = IsMarketDataUrl(url) ? MarketDataExpiry : DefaultExpiry;
 			bool cachNotFound = IsCoinGeckoUrl(url);
-
+			
 			CachedHttpResponse? cachedResponse = await cacheService.GetOrAddAsync<CachedHttpResponse?>(url, expiry, async () =>
 			{
 				HttpResponseMessage result = await base.SendAsync(request, cancellationToken);
@@ -88,12 +90,7 @@ namespace GhostfolioSidekick
 
 			return BuildResponseFromCache(cachedResponse);
 		}
-
-		private static bool IsKnownHost(string url)
-		{
-			return KnownHosts.Any(host => url.Contains(host, StringComparison.OrdinalIgnoreCase));
-		}
-
+		
 		private static bool IsMarketDataUrl(string url)
 		{
 			return MarketDataSegments.Any(segment => url.Contains(segment, StringComparison.OrdinalIgnoreCase));
@@ -101,7 +98,7 @@ namespace GhostfolioSidekick
 
 		private static bool IsCoinGeckoUrl(string url)
 		{
-			return url.Contains("coingecko.com", StringComparison.OrdinalIgnoreCase);
+			return url.Contains(Coingecko, StringComparison.OrdinalIgnoreCase);
 		}
 
 		private static HttpResponseMessage BuildResponseFromCache(CachedHttpResponse cached)
