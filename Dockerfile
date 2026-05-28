@@ -94,6 +94,11 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS final
 
 WORKDIR /app
 
+# Create a writable data directory for SQLite owned by the non-root app user
+USER root
+RUN mkdir -p /data && chown app:app /data
+USER app
+
 # ProcessHost entry point
 COPY --from=publish-host /app/publish-host ./
 
@@ -112,9 +117,12 @@ COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
 ENV ASPNETCORE_URLS="http://+:80;https://+:443"
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
 ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
+ENV DATABASE_PATH=/data
 
 EXPOSE 80
 EXPOSE 443
+
+VOLUME ["/data"]
 
 # Chiseled images run as non-root user "app" by default
 USER app
