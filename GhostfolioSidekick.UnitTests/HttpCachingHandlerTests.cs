@@ -119,10 +119,10 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		// ------------------------------------------------------------------
-		// 404 response is cached to avoid endless retries.
+		// 404 response from CoinGecko is cached for 24 hours to avoid endless retries.
 		// ------------------------------------------------------------------
 		[Fact]
-		public async Task NotFoundResponse_IsCached()
+		public async Task NotFoundResponse_CoinGecko_IsCached()
 		{
 			SetupCacheMissAndStore();
 			SetupInnerHandler(HttpStatusCode.NotFound, "not found");
@@ -135,6 +135,40 @@ namespace GhostfolioSidekick.UnitTests
 			_cacheMock.Verify(
 				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
 				Times.Once);
+		}
+
+		// ------------------------------------------------------------------
+		// 404 response from non-CoinGecko hosts is NOT cached.
+		// ------------------------------------------------------------------
+		[Theory]
+		[InlineData("https://query1.finance.yahoo.com/v7/finance/quote?symbols=INVALID")]
+		[InlineData("https://www.dividendmax.com/en/stock/nonexistent-company")]
+		public async Task NotFoundResponse_NonCoinGecko_IsNotCached_AndInnerCalledTwice(string url)
+		{
+			int innerCallCount = 0;
+			_innerHandlerMock
+				.Protected()
+				.Setup<Task<HttpResponseMessage>>(
+					"SendAsync",
+					ItExpr.IsAny<HttpRequestMessage>(),
+					ItExpr.IsAny<CancellationToken>())
+				.ReturnsAsync(() =>
+				{
+					innerCallCount++;
+					return new HttpResponseMessage(HttpStatusCode.NotFound)
+					{
+						Content = new StringContent("not found")
+					};
+				});
+
+			_cacheMock
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory()!);
+
+			HttpResponseMessage response = await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
+
+			Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+			Assert.Equal(2, innerCallCount);
 		}
 
 		// ------------------------------------------------------------------

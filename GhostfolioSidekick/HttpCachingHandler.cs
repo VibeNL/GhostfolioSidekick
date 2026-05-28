@@ -50,21 +50,33 @@ namespace GhostfolioSidekick
 			}
 
 			TimeSpan expiry = IsMarketDataUrl(url) ? MarketDataExpiry : DefaultExpiry;
+			bool cachNotFound = IsCoinGeckoUrl(url);
 
 			CachedHttpResponse? cachedResponse = await cacheService.GetOrAddAsync<CachedHttpResponse?>(url, expiry, async () =>
 			{
 				HttpResponseMessage result = await base.SendAsync(request, cancellationToken);
+
+				if (result.StatusCode == HttpStatusCode.NotFound && cachNotFound)
+				{
+					string content = await result.Content.ReadAsStringAsync(cancellationToken);
+					return new CachedHttpResponse
+					{
+						StatusCode = result.StatusCode,
+						Content = content,
+						ContentType = result.Content.Headers.ContentType?.ToString()
+					};
+				}
 
 				if (!result.IsSuccessStatusCode)
 				{
 					return null;
 				}
 
-				string content = await result.Content.ReadAsStringAsync(cancellationToken);
+				string successContent = await result.Content.ReadAsStringAsync(cancellationToken);
 				return new CachedHttpResponse
 				{
 					StatusCode = result.StatusCode,
-					Content = content,
+					Content = successContent,
 					ContentType = result.Content.Headers.ContentType?.ToString()
 				};
 			});
@@ -85,6 +97,11 @@ namespace GhostfolioSidekick
 		private static bool IsMarketDataUrl(string url)
 		{
 			return MarketDataSegments.Any(segment => url.Contains(segment, StringComparison.OrdinalIgnoreCase));
+		}
+
+		private static bool IsCoinGeckoUrl(string url)
+		{
+			return url.Contains("coingecko.com", StringComparison.OrdinalIgnoreCase);
 		}
 
 		private static HttpResponseMessage BuildResponseFromCache(CachedHttpResponse cached)
