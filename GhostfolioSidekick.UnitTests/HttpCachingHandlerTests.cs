@@ -35,8 +35,8 @@ namespace GhostfolioSidekick.UnitTests
 		private void SetupCacheMissAndStore()
 		{
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Returns<CacheKey, Func<Task<CachedHttpResponse?>>>((_, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
 		}
 
 		// ------------------------------------------------------------------
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.UnitTests
 		private void SetupCacheHit(CachedHttpResponse cached)
 		{
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
 				.ReturnsAsync(cached);
 		}
 
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
+				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
 				Times.Never);
 		}
 
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
+				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
 				Times.Never);
 		}
 
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
+				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
 				Times.Once);
 		}
 
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
+				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
 				Times.Once);
 		}
 
@@ -143,8 +143,6 @@ namespace GhostfolioSidekick.UnitTests
 		[Fact]
 		public async Task ServerErrorResponse_IsNotCached_AndInnerCalledTwice()
 		{
-			// First call: cache miss, factory runs, inner returns 500 → not cached → null returned
-			// Handler then falls back to calling inner directly for the second send.
 			int innerCallCount = 0;
 			_innerHandlerMock
 				.Protected()
@@ -161,16 +159,14 @@ namespace GhostfolioSidekick.UnitTests
 					};
 				});
 
-			// Cache always runs the factory (miss), and factory returns null (500 → not stored).
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Returns<CacheKey, Func<Task<CachedHttpResponse?>>>((_, factory) => factory()!);
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory()!);
 
 			HttpResponseMessage response = await _httpClient.GetAsync(
 				"https://api.coingecko.com/api/v3/coins/bitcoin",
 				TestContext.Current.CancellationToken);
 
-			// The handler falls back to a direct inner call when cache returns null.
 			Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 			Assert.Equal(2, innerCallCount);
 		}
@@ -205,118 +201,69 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		// ------------------------------------------------------------------
-		// CoinGecko coin URL resolves to SymbolProfile cache key.
+		// Market data URLs get a short (30-minute) expiry.
 		// ------------------------------------------------------------------
 		[Theory]
-		[InlineData("https://api.coingecko.com/api/v3/coins/bitcoin")]
-		[InlineData("https://api.coingecko.com/api/v3/coins/ethereum?localization=false")]
-		public async Task CoinGeckoCoinUrl_UsesSymbolProfileKey(string url)
+		[InlineData("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365")]
+		[InlineData("https://query1.finance.yahoo.com/v8/finance/chart/AAPL?period1=1609459200&period2=1640995200&interval=1d")]
+		public async Task MarketDataUrl_UsesShortExpiry(string url)
 		{
-			CacheKey? capturedKey = null;
+			TimeSpan? capturedExpiry = null;
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<CacheKey, Func<Task<CachedHttpResponse?>>>((key, _) => capturedKey = key)
-				.Returns<CacheKey, Func<Task<CachedHttpResponse?>>>((_, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, expiry, _2) => capturedExpiry = expiry)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
 
 			SetupInnerHandler(HttpStatusCode.OK, "{}");
 
 			await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 
-			Assert.NotNull(capturedKey);
-			Assert.Equal(Source.CoinGecko, capturedKey!.Source);
-			Assert.Equal(TypeOfData.SymbolProfile, capturedKey.DataType);
+			Assert.NotNull(capturedExpiry);
+			Assert.Equal(TimeSpan.FromMinutes(30), capturedExpiry);
 		}
 
 		// ------------------------------------------------------------------
-		// Yahoo chart URL with period params resolves to MarketData cache key.
+		// Non-market-data URLs get a long (1-day) expiry.
 		// ------------------------------------------------------------------
-		[Fact]
-		public async Task YahooChartUrl_WithPeriods_UsesMarketDataKey()
+		[Theory]
+		[InlineData("https://api.coingecko.com/api/v3/coins/bitcoin")]
+		[InlineData("https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL")]
+		[InlineData("https://www.dividendmax.com/en/stock/apple-inc-dividends")]
+		public async Task NonMarketDataUrl_UsesLongExpiry(string url)
 		{
-			CacheKey? capturedKey = null;
+			TimeSpan? capturedExpiry = null;
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<CacheKey, Func<Task<CachedHttpResponse?>>>((key, _) => capturedKey = key)
-				.Returns<CacheKey, Func<Task<CachedHttpResponse?>>>((_, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, expiry, _2) => capturedExpiry = expiry)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
 
 			SetupInnerHandler(HttpStatusCode.OK, "{}");
 
-			await _httpClient.GetAsync(
-				"https://query1.finance.yahoo.com/v8/finance/chart/AAPL?period1=1609459200&period2=1640995200&interval=1d",
-				TestContext.Current.CancellationToken);
+			await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 
-			Assert.NotNull(capturedKey);
-			Assert.Equal(Source.Yahoo, capturedKey!.Source);
-			Assert.Equal(TypeOfData.MarketData, capturedKey.DataType);
+			Assert.NotNull(capturedExpiry);
+			Assert.Equal(TimeSpan.FromDays(1), capturedExpiry);
 		}
 
 		// ------------------------------------------------------------------
-		// Yahoo chart URL without period params resolves to SymbolProfile key.
+		// The raw URL is used as the cache key.
 		// ------------------------------------------------------------------
 		[Fact]
-		public async Task YahooChartUrl_WithoutPeriods_UsesSymbolProfileKey()
+		public async Task CacheKey_IsRawUrl()
 		{
-			CacheKey? capturedKey = null;
+			string? capturedKey = null;
+			const string requestUrl = "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false";
+
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<CacheKey, Func<Task<CachedHttpResponse?>>>((key, _) => capturedKey = key)
-				.Returns<CacheKey, Func<Task<CachedHttpResponse?>>>((_, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((key, _, _2) => capturedKey = key)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
 
 			SetupInnerHandler(HttpStatusCode.OK, "{}");
 
-			await _httpClient.GetAsync(
-				"https://query1.finance.yahoo.com/v8/finance/chart/AAPL?interval=1d",
-				TestContext.Current.CancellationToken);
+			await _httpClient.GetAsync(requestUrl, TestContext.Current.CancellationToken);
 
-			Assert.NotNull(capturedKey);
-			Assert.Equal(Source.Yahoo, capturedKey!.Source);
-			Assert.Equal(TypeOfData.SymbolProfile, capturedKey.DataType);
-		}
-
-		// ------------------------------------------------------------------
-		// Yahoo quote URL resolves to SymbolProfile cache key.
-		// ------------------------------------------------------------------
-		[Fact]
-		public async Task YahooQuoteUrl_UsesSymbolProfileKey()
-		{
-			CacheKey? capturedKey = null;
-			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<CacheKey, Func<Task<CachedHttpResponse?>>>((key, _) => capturedKey = key)
-				.Returns<CacheKey, Func<Task<CachedHttpResponse?>>>((_, factory) => factory());
-
-			SetupInnerHandler(HttpStatusCode.OK, "{}");
-
-			await _httpClient.GetAsync(
-				"https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL",
-				TestContext.Current.CancellationToken);
-
-			Assert.NotNull(capturedKey);
-			Assert.Equal(Source.Yahoo, capturedKey!.Source);
-			Assert.Equal(TypeOfData.SymbolProfile, capturedKey.DataType);
-		}
-
-		// ------------------------------------------------------------------
-		// DividendMax URL resolves to Dividends cache key.
-		// ------------------------------------------------------------------
-		[Fact]
-		public async Task DividendMaxUrl_UsesDividendsKey()
-		{
-			CacheKey? capturedKey = null;
-			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<CacheKey>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<CacheKey, Func<Task<CachedHttpResponse?>>>((key, _) => capturedKey = key)
-				.Returns<CacheKey, Func<Task<CachedHttpResponse?>>>((_, factory) => factory());
-
-			SetupInnerHandler(HttpStatusCode.OK, "<html/>");
-
-			await _httpClient.GetAsync(
-				"https://www.dividendmax.com/en/stock/apple-inc-dividends",
-				TestContext.Current.CancellationToken);
-
-			Assert.NotNull(capturedKey);
-			Assert.Equal(Source.DividendMax, capturedKey!.Source);
-			Assert.Equal(TypeOfData.Dividends, capturedKey.DataType);
+			Assert.Equal(requestUrl, capturedKey);
 		}
 	}
 }
