@@ -70,48 +70,80 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			CancellationToken cancellationToken = default)
 		{
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-			var snapShots = await databaseContext.CalculatedSnapshots
-					.Where(x => (accountId == null || accountId == 0 || x.AccountId == accountId) &&
-								x.Date >= startDate &&
-								x.Date <= endDate)
-				.Where(x => x.Holding != null && x.Holding.SymbolProfiles.Any())
-				.GroupBy(x => x.Date)
-				.Select(g => new PortfolioValueHistoryPoint
+
+				// Load snapshot aggregates for the date range
+				var snapshotPoints = await databaseContext.CalculatedSnapshots
+						.Where(x => (accountId == null || accountId == 0 || x.AccountId == accountId) &&
+									x.Date >= startDate &&
+									x.Date <= endDate)
+					.Where(x => x.Holding != null && x.Holding.SymbolProfiles.Any())
+					.GroupBy(x => x.Date)
+					.Select(g => new { Date = g.Key, Value = g.Sum(x => x.TotalValue), Invested = g.Sum(x => x.TotalInvested) })
+					.AsNoTracking()
+					.ToListAsync(cancellationToken);
+
+				// Load balance records up to endDate (pre-range records needed for forward-fill initial value).
+				// Group by (AccountId, Date) in SQL to get one canonical row per account per day.
+				var balanceRecords = await databaseContext.Balances
+					.Where(b => (accountId == null || accountId == 0 || b.AccountId == accountId) && b.Date <= endDate)
+					.GroupBy(b => new { b.Date, b.AccountId })
+					.Select(g => new { g.Key.Date, g.Key.AccountId, Amount = g.Min(x => x.Money.Amount) })
+					.AsNoTracking()
+					.ToListAsync(cancellationToken);
+
+				// Group balance records by account for forward-filling
+				var balancesByAccount = balanceRecords
+					.GroupBy(b => b.AccountId)
+					.ToDictionary(g => g.Key, g => g.OrderBy(b => b.Date).ToList());
+
+				// Build the union of all dates: snapshot dates + balance dates within [startDate, endDate]
+				var balanceDatesInRange = balanceRecords
+					.Where(b => b.Date >= startDate)
+					.Select(b => b.Date);
+
+				var allDates = snapshotPoints
+					.Select(s => s.Date)
+					.Union(balanceDatesInRange)
+					.OrderBy(d => d)
+					.ToList();
+
+				// Index snapshot points for O(1) lookup
+				var snapshotByDate = snapshotPoints.ToDictionary(s => s.Date);
+
+				// Build result: for each date, use snapshot values if available, otherwise forward-fill from the last snapshot
+				var result = new List<PortfolioValueHistoryPoint>(allDates.Count);
+				decimal lastValue = 0;
+				decimal lastInvested = 0;
+
+				foreach (var date in allDates)
 				{
-					Date = g.Key,
-					Value = g.Sum(x => x.TotalValue),
-					Invested = g.Sum(x => x.TotalInvested)
-				})
-				.OrderBy(x => x.Date)
-				.ToListAsync(cancellationToken);
+					if (snapshotByDate.TryGetValue(date, out var snap))
+					{
+						lastValue = snap.Value;
+						lastInvested = snap.Invested;
+					}
 
-			// Load balance records up to endDate, filtered by account
-			var balanceRecords = await databaseContext.Balances
-				.Where(b => (accountId == null || accountId == 0 || b.AccountId == accountId) && b.Date <= endDate)
-				.OrderBy(b => b.AccountId).ThenBy(b => b.Date)
-				.Select(b => new { b.Date, b.AccountId, Amount = b.Money.Amount })
-				.AsNoTracking()
-				.ToListAsync(cancellationToken);
+					// Forward-fill balance: for each account, take the last known balance on or before this date
+					decimal totalBalance = 0;
+					foreach (var (_, balances) in balancesByAccount)
+					{
+						var latestBalance = balances.LastOrDefault(b => b.Date <= date);
+						if (latestBalance != null)
+						{
+							totalBalance += latestBalance.Amount;
+						}
+					}
 
-			// Group balance records by account for forward-filling
-			var balancesByAccount = balanceRecords
-				.GroupBy(b => b.AccountId)
-				.ToDictionary(g => g.Key, g => g.OrderBy(b => b.Date).ToList());
-
-			// Forward-fill balance per account and sum for each snapshot date
-			foreach (var point in snapShots)
-			{
-				decimal totalBalance = 0;
-				foreach (var (_, balances) in balancesByAccount)
-				{
-					var latestBalance = balances.LastOrDefault(b => b.Date <= point.Date);
-					if (latestBalance != null)
-						totalBalance += latestBalance.Amount;
+					result.Add(new PortfolioValueHistoryPoint
+					{
+						Date = date,
+						Value = lastValue,
+						Invested = lastInvested,
+						Balance = totalBalance
+					});
 				}
-				point.Balance = totalBalance;
-			}
 
-			return snapShots;
+				return result;
 		}
 
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(int? accountId, CancellationToken cancellationToken)
