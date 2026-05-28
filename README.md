@@ -200,13 +200,19 @@ ghostfoliosidekick:
 		- GHOSTFOLIO_ACCESTOKEN=abc
 		- FILEIMPORTER_PATH=/var/lib/data
 		- CONFIGURATIONFILE_PATH=/var/lib/data/config.json
+		- DATABASE_PATH=/data
 	restart: always
 	volumes:
-		- /volume1/docker/ghostfolio/sidekick:/var/lib/data:r
+		- /volume1/docker/ghostfolio/sidekick:/var/lib/data:ro
+		- /volume1/docker/ghostfolio/sidekick/db:/data
 	depends_on:
 	ghostfolio:
 		condition: service_started
 ```
+
+> **Note:** The `/data` volume must be writable — it stores the SQLite database (`ghostfolio.db`).
+> The file importer path can be mounted read-only (`:ro`) since the application only reads import files from it.
+> If `DATABASE_PATH` is not set, the database is placed in the `FILEIMPORTER_PATH` folder, which requires that mount to be writable.
 
 ### Settings
 | Envs |Description  |
@@ -214,7 +220,7 @@ ghostfoliosidekick:
 |**GHOSTFOLIO_URL**  | The endpoint for your ghostfolio instance.   |
 |**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
 |**FILEIMPORTER_PATH**  | The path to the files (see [Import Path]) |
-|**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named 'ghostfolio.db'. In case this variable is not specified, it will be placed in the **FILEIMPORTER_PATH** folder |
+|**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named `ghostfolio.db`. Defaults to `/data` in the official Docker image. If not specified and `FILEIMPORTER_PATH` is set, the database is placed there (that volume must then be writable). |
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 
