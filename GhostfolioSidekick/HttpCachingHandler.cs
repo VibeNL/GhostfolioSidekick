@@ -42,7 +42,7 @@ namespace GhostfolioSidekick
 				HttpResponseMessage result = await base.SendAsync(request, cancellationToken);
 
 				// Cache successful responses and 404s (to avoid endless retries for missing resources)
-				if (!result.IsSuccessStatusCode && result.StatusCode != System.Net.HttpStatusCode.NotFound)
+				if (!result.IsSuccessStatusCode)
 				{
 					return null;
 				}

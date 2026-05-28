@@ -47,6 +47,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 
 			// Generate new value and cache it
 			T? value = await factory();
+
+			// Do not cache null results (e.g. transient failures such as auth errors)
+			if (value is null)
+			{
+				return value;
+			}
+
 			string dataJson = JsonSerializer.Serialize(value);
 			byte[] compressed;
 			using (MemoryStream ms = new())
