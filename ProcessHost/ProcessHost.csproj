@@ -11,4 +11,10 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>GhostfolioSidekick.ProcessHost.UnitTests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 </Project>
