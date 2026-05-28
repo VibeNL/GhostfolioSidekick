@@ -1,8 +1,6 @@
 using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Options;
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Requests;
 using Flurl.Http;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
@@ -170,47 +168,40 @@ namespace GhostfolioSidekick
 			FlurlHttp.Configure(settings =>
 			{
 				settings.HttpClientFactory = new InternalCacheHttpFactory(services);
-					});
-				}
+			});
+		}
 
-				private static void RegisterAllWithInterface<T>(IServiceCollection services)
-				{
-					IEnumerable<Type> types = typeof(T).Assembly.GetTypes()
-						.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
-					foreach (Type type in types)
-					{
-						_ = services.AddScoped(typeof(T), type);
-					}
-				}
-			}
-
-			internal class InternalCacheHttpFactory : Flurl.Http.Configuration.IHttpClientFactory
+		private static void RegisterAllWithInterface<T>(IServiceCollection services)
+		{
+			IEnumerable<Type> types = typeof(T).Assembly.GetTypes()
+				.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
+			foreach (Type type in types)
 			{
-				private readonly IServiceCollection services;
-				private readonly Flurl.Http.Configuration.IHttpClientFactory defaultFactory;
-
-				public InternalCacheHttpFactory(IServiceCollection services)
-				{
-					this.services = services;
-					this.defaultFactory = new Flurl.Http.Configuration.DefaultHttpClientFactory();
-				}
-
-				public HttpClient CreateHttpClient(HttpMessageHandler handler)
-				{
-					// Wrap the handler with our caching handler
-					IServiceProvider? serviceProvider = services.BuildServiceProvider();
-					HttpCachingHandler cachingHandler = new(serviceProvider)
-					{
-						InnerHandler = handler
-					};
-
-					return new HttpClient(cachingHandler, disposeHandler: false);
-				}
-
-				public HttpMessageHandler CreateMessageHandler()
-				{
-					// Use default message handler creation
-					return defaultFactory.CreateMessageHandler();
-				}
+				_ = services.AddScoped(typeof(T), type);
 			}
+		}
+	}
+
+	internal class InternalCacheHttpFactory(IServiceCollection services) : Flurl.Http.Configuration.IHttpClientFactory
+	{
+		private readonly Flurl.Http.Configuration.DefaultHttpClientFactory defaultFactory = new();
+
+		public HttpClient CreateHttpClient(HttpMessageHandler handler)
+		{
+			// Wrap the handler with our caching handler
+			IServiceProvider? serviceProvider = services.BuildServiceProvider();
+			HttpCachingHandler cachingHandler = new(serviceProvider)
+			{
+				InnerHandler = handler
+			};
+
+			return new HttpClient(cachingHandler, disposeHandler: false);
+		}
+
+		public HttpMessageHandler CreateMessageHandler()
+		{
+			// Use default message handler creation
+			return defaultFactory.CreateMessageHandler();
+		}
+	}
 }
