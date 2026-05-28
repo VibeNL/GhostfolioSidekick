@@ -26,16 +26,23 @@ internal sealed class ChildProcessService : BackgroundService
 		{
 			_logger.LogInformation("Starting child process: dotnet {DllPath}", _dllPath);
 
-			using var process = new Process
-			{
-				StartInfo = new ProcessStartInfo
+			// Use the absolute path to the dotnet host to avoid PATH-based binary hijacking (S4036).
+				// DOTNET_HOST_PATH is set by the .NET runtime to the full path of the executing dotnet binary.
+				var dotnetExe = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH")
+					?? throw new InvalidOperationException("DOTNET_HOST_PATH environment variable is not set.");
+
+				var startInfo = new ProcessStartInfo
 				{
-					FileName = "dotnet",
+					FileName = dotnetExe,
 					Arguments = _dllPath,
 					UseShellExecute = false,
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
-				},
+				};
+
+			using var process = new Process
+			{
+				StartInfo = startInfo,
 				EnableRaisingEvents = true,
 			};
 
