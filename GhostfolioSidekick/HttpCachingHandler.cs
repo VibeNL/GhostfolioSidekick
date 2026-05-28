@@ -57,22 +57,31 @@ namespace GhostfolioSidekick
 				};
 			});
 
-			// If cache returned null (e.g., transient failure), execute without caching
-			if (cachedResponse == null)
-			{
-				return await base.SendAsync(request, cancellationToken);
+				// If cache returned null (e.g., transient failure), execute without caching
+				if (cachedResponse == null)
+				{
+					return await base.SendAsync(request, cancellationToken);
+				}
+
+				// Reconstruct the response from cached data
+				return BuildResponseFromCache(cachedResponse);
 			}
 
-			// Reconstruct the response from cached data
-			HttpResponseMessage response = new(cachedResponse.StatusCode)
+			// Strip any parameters (e.g. "text/plain; charset=utf-8" → "text/plain") because
+			// StringContent's mediaType parameter only accepts the bare media-type token.
+			private static HttpResponseMessage BuildResponseFromCache(CachedHttpResponse cached)
 			{
-				Content = new StringContent(cachedResponse.Content, Encoding.UTF8, cachedResponse.ContentType ?? "application/json")
-			};
+				string mediaType = (cached.ContentType ?? "application/json")
+					.Split(';')[0]
+					.Trim();
 
-			return response;
-		}
+				return new HttpResponseMessage(cached.StatusCode)
+				{
+					Content = new StringContent(cached.Content, Encoding.UTF8, mediaType)
+				};
+			}
 
-		private static bool TryDetermineCacheKey(HttpRequestMessage request, out CacheKey? cacheKey)
+			private static bool TryDetermineCacheKey(HttpRequestMessage request, out CacheKey? cacheKey)
 		{
 			cacheKey = null;
 			string? url = request.RequestUri?.ToString();
