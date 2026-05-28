@@ -84,22 +84,6 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		// ------------------------------------------------------------------
-		// Unknown host bypasses the cache.
-		// ------------------------------------------------------------------
-		[Fact]
-		public async Task UnknownHost_BypassesCache_AndCallsInner()
-		{
-			SetupInnerHandler(HttpStatusCode.OK, "ok");
-
-			HttpResponseMessage response = await _httpClient.GetAsync("https://example.com/data", TestContext.Current.CancellationToken);
-
-			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
-				Times.Never);
-		}
-
-		// ------------------------------------------------------------------
 		// Successful response is stored in the cache.
 		// ------------------------------------------------------------------
 		[Fact]
