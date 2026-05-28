@@ -41,8 +41,8 @@ namespace GhostfolioSidekick
 			{
 				HttpResponseMessage result = await base.SendAsync(request, cancellationToken);
 
-				// Only cache successful responses
-				if (!result.IsSuccessStatusCode)
+				// Cache successful responses and 404s (to avoid endless retries for missing resources)
+				if (!result.IsSuccessStatusCode && result.StatusCode != System.Net.HttpStatusCode.NotFound)
 				{
 					return null;
 				}
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick
 				};
 			});
 
-			// If cache returned null (e.g., failed request), execute without caching
+			// If cache returned null (e.g., transient failure), execute without caching
 			if (cachedResponse == null)
 			{
 				return await base.SendAsync(request, cancellationToken);
