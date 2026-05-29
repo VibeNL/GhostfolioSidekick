@@ -37,7 +37,12 @@ namespace GhostfolioSidekick
 		private static async Task Main()
 		{
 			IHostBuilder hostBuilder = CreateHostBuilder();
-			await hostBuilder.RunConsoleAsync();
+			using IHost host = hostBuilder.Build();
+			FlurlHttp.Configure(settings =>
+			{
+				settings.HttpClientFactory = new InternalCacheHttpFactory(host.Services);
+			});
+			await host.RunAsync();
 		}
 
 		internal static IHostBuilder CreateHostBuilder()
@@ -163,12 +168,6 @@ namespace GhostfolioSidekick
 					}
 				});
 			});
-
-			// Yahoo uses Flurl for its internal HTTP calls, configure Flurl to use caching
-			FlurlHttp.Configure(settings =>
-			{
-				settings.HttpClientFactory = new InternalCacheHttpFactory(services);
-			});
 		}
 
 		private static void RegisterAllWithInterface<T>(IServiceCollection services)
@@ -182,14 +181,13 @@ namespace GhostfolioSidekick
 		}
 	}
 
-	internal class InternalCacheHttpFactory(IServiceCollection services) : Flurl.Http.Configuration.IHttpClientFactory
+	internal class InternalCacheHttpFactory(IServiceProvider serviceProvider) : Flurl.Http.Configuration.IHttpClientFactory
 	{
 		private readonly Flurl.Http.Configuration.DefaultHttpClientFactory defaultFactory = new();
 
 		public HttpClient CreateHttpClient(HttpMessageHandler handler)
 		{
 			// Wrap the handler with our caching handler
-			IServiceProvider? serviceProvider = services.BuildServiceProvider();
 			HttpCachingHandler cachingHandler = new(serviceProvider)
 			{
 				InnerHandler = handler
