@@ -163,8 +163,7 @@ namespace GhostfolioSidekick
 					// Only add caching handler if not already present
 					if (!builder.AdditionalHandlers.Any(h => h is HttpCachingHandler))
 					{
-						IServiceProvider serviceProvider = builder.Services;
-						builder.AdditionalHandlers.Add(new HttpCachingHandler(serviceProvider));
+						builder.AdditionalHandlers.Add(builder.Services.GetRequiredService<HttpCachingHandler>());
 					}
 				});
 			});
