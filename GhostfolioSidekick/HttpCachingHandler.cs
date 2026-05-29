@@ -24,6 +24,19 @@ namespace GhostfolioSidekick
 			"key", "x-api-key", "crumb"
 		};
 
+		// Only cache responses whose media type starts with one of these prefixes.
+		// Binary, image, audio, video, and compressed payloads are excluded.
+		private static readonly string[] CacheableMediaTypePrefixes =
+		[
+			"text/",
+			"application/json",
+			"application/xml",
+			"application/atom+xml",
+			"application/rss+xml",
+			"application/xhtml+xml",
+			"application/ld+json",
+		];
+
 		private static readonly string[] IgnoreUrlsPartials = [
 			"https://fc.yahoo.com/",
 			"test/getcrumb"
@@ -75,25 +88,38 @@ namespace GhostfolioSidekick
 				HttpResponseMessage live = await base.SendAsync(request, cancellationToken);
 
 				if (live.StatusCode == HttpStatusCode.NotFound && cachNotFound)
-				{
-					string content = await live.Content.ReadAsStringAsync(cancellationToken);
-					HttpStatusCode statusCode = live.StatusCode;
-					string? contentType = live.Content.Headers.ContentType?.ToString();
-					live.Dispose();
-					return new CachedHttpResponse
 					{
-						StatusCode = statusCode,
-						Content = content,
-						ContentType = contentType
-					};
-				}
+						if (!IsCacheableContentType(live.Content.Headers.ContentType?.MediaType))
+						{
+							uncachedResponse = live;
+							return null;
+						}
 
-				if (!live.IsSuccessStatusCode)
-				{
-					// Keep the response alive so the caller can return it as-is.
-					uncachedResponse = live;
-					return null;
-				}
+						string content = await live.Content.ReadAsStringAsync(cancellationToken);
+						HttpStatusCode statusCode = live.StatusCode;
+						string? contentType = live.Content.Headers.ContentType?.ToString();
+						live.Dispose();
+						return new CachedHttpResponse
+						{
+							StatusCode = statusCode,
+							Content = content,
+							ContentType = contentType
+						};
+					}
+
+					if (!live.IsSuccessStatusCode)
+					{
+						// Keep the response alive so the caller can return it as-is.
+						uncachedResponse = live;
+						return null;
+					}
+
+					if (!IsCacheableContentType(live.Content.Headers.ContentType?.MediaType))
+					{
+						// Non-text payloads are passed through without caching.
+						uncachedResponse = live;
+						return null;
+					}
 
 				string successContent = await live.Content.ReadAsStringAsync(cancellationToken);
 				HttpStatusCode successStatus = live.StatusCode;
@@ -126,6 +152,22 @@ namespace GhostfolioSidekick
 		}
 
 		/// <summary>
+		/// Returns <see langword="true"/> when <paramref name="mediaType"/> is a text-like
+		/// type that can be safely round-tripped through a <see cref="string"/> cache.
+		/// A <see langword="null"/> or unrecognised media type is treated as non-cacheable.
+		/// </summary>
+		internal static bool IsCacheableContentType(string? mediaType)
+		{
+			if (string.IsNullOrWhiteSpace(mediaType))
+			{
+				return false;
+			}
+
+			return CacheableMediaTypePrefixes.Any(prefix =>
+				mediaType.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+		}
+
+		/// <summary>
 		/// Returns a cache-safe key for <paramref name="url"/> by removing any query-string
 		/// parameters whose names appear in <see cref="SensitiveParams"/>.
 		/// </summary>
@@ -155,13 +197,28 @@ namespace GhostfolioSidekick
 
 		private static HttpResponseMessage BuildResponseFromCache(CachedHttpResponse cached)
 		{
-			string mediaType = (cached.ContentType ?? "application/json")
-				.Split(';')[0]
-				.Trim();
+			string fullContentType = cached.ContentType ?? "application/json";
+
+			// Parse via the BCL type to correctly extract media type and charset.
+			Encoding encoding = Encoding.UTF8;
+			string mediaType = fullContentType.Split(';')[0].Trim();
+
+			if (System.Net.Http.Headers.MediaTypeHeaderValue.TryParse(fullContentType, out var parsed) &&
+				!string.IsNullOrWhiteSpace(parsed.CharSet))
+			{
+				try
+				{
+					encoding = Encoding.GetEncoding(parsed.CharSet);
+				}
+				catch (Exception ex) when (ex is ArgumentException or NotSupportedException)
+				{
+					// Unknown or unavailable charset – fall back to UTF-8.
+				}
+			}
 
 			return new HttpResponseMessage(cached.StatusCode)
 			{
-				Content = new StringContent(cached.Content, Encoding.UTF8, mediaType)
+				Content = new StringContent(cached.Content, encoding, mediaType)
 			};
 		}
 	}
