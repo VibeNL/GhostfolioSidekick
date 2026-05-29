@@ -63,6 +63,65 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return snapShots;
 		}
 
+		public async Task<Dictionary<string, List<HoldingPriceHistoryPoint>>> GetHoldingPriceHistoryBulkAsync(
+			IEnumerable<string> symbols,
+			DateOnly startDate,
+			DateOnly endDate,
+			CancellationToken cancellationToken = default)
+		{
+			var symbolList = symbols.ToList();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+			// Single query fetching snapshots for all requested symbols at once
+			var rawSnapShots = await databaseContext.Holdings
+				.Where(x => x.SymbolProfiles.Any(sp => symbolList.Contains(sp.Symbol)))
+				.Select(x => new
+				{
+					Symbol = x.SymbolProfiles
+						.Where(sp => symbolList.Contains(sp.Symbol))
+						.OrderBy(sp => Datasource.GetPriority(sp.DataSource))
+						.Select(sp => sp.Symbol)
+						.FirstOrDefault(),
+					Snapshots = x.CalculatedSnapshots
+						.Where(s => s.Date >= startDate && s.Date <= endDate)
+				})
+				.Where(x => x.Symbol != null)
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			var result = new Dictionary<string, List<HoldingPriceHistoryPoint>>();
+
+			foreach (var holding in rawSnapShots)
+			{
+				if (holding.Symbol == null) continue;
+
+				var byDate = holding.Snapshots
+					.GroupBy(s => s.Date)
+					.Select(g =>
+					{
+						var totalQuantity = g.Sum(x => x.Quantity);
+						return new HoldingPriceHistoryPoint
+						{
+							Date = g.Key,
+							Price = g.Min(x => x.CurrentUnitPrice),
+							AveragePrice = totalQuantity == 0 ? 0 : g.Sum(y => y.AverageCostPrice * y.Quantity) / totalQuantity,
+						};
+					})
+					.ToList();
+
+				result[holding.Symbol] = byDate;
+			}
+
+			// Ensure every requested symbol has an entry (empty list if no data)
+			foreach (var symbol in symbolList)
+			{
+				if (!result.ContainsKey(symbol))
+					result[symbol] = [];
+			}
+
+			return result;
+		}
+
 		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
 			DateOnly startDate,
 			DateOnly endDate,
