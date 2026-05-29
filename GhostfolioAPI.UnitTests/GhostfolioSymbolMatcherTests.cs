@@ -486,6 +486,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			return _memoryCache.TryGetValue(cacheKey.Key, out SymbolProfile? cachedValue) ? (T?)(object?)cachedValue : await factory();
 		}
 
+		public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T>> factory)
+		{
+			return await factory();
+		}
+
 		public void Set(string key, SymbolProfile? value)
 		{
 			_memoryCache[key] = value;
