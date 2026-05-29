@@ -103,19 +103,36 @@ public class Program
 		builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 
 		builder.Services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
-		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
-		builder.Services.AddScoped<IAccountDataService, AccountDataService>();
-		builder.Services.AddScoped<ITransactionService, TransactionService>();
-		builder.Services.AddSingleton<ITaxReportCacheService, TaxReportCacheService>();
+		builder.Services.AddSingleton<IDataSourceService, DataSourceService>();
 
-		// Data Issues Service
-		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();
+		// Holdings
+		builder.Services.AddKeyedScoped<IHoldingsDataService, HoldingsDataService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IHoldingsDataService, ApiHoldingsDataService>(DataSourceKeys.Api);
+		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataServiceProxy>();
+
+		// Accounts
+		builder.Services.AddSingleton<ITaxReportCacheService, TaxReportCacheService>();
+		builder.Services.AddKeyedScoped<IAccountDataService, AccountDataService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IAccountDataService, ApiAccountDataService>(DataSourceKeys.Api);
+		builder.Services.AddScoped<IAccountDataService, AccountDataServiceProxy>();
+
+		// Transactions
+		builder.Services.AddKeyedScoped<ITransactionService, TransactionService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<ITransactionService, ApiTransactionService>(DataSourceKeys.Api);
+		builder.Services.AddScoped<ITransactionService, TransactionServiceProxy>();
+
+		// Data Issues
+		builder.Services.AddKeyedScoped<IDataIssuesService, DataIssuesService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IDataIssuesService, ApiDataIssuesService>(DataSourceKeys.Api);
+		builder.Services.AddScoped<IDataIssuesService, DataIssuesServiceProxy>();
 
 		// Holding Identifier Mapping Service
 		builder.Services.AddScoped<IHoldingIdentifierMappingService, HoldingIdentifierMappingService>();
 
-		// Register UpcomingDividendsService for DI
-		builder.Services.AddScoped<IUpcomingDividendsService, UpcomingDividendsService>();
+		// Upcoming Dividends
+		builder.Services.AddKeyedScoped<IUpcomingDividendsService, UpcomingDividendsService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IUpcomingDividendsService, ApiUpcomingDividendsService>(DataSourceKeys.Api);
+		builder.Services.AddScoped<IUpcomingDividendsService, UpcomingDividendsServiceProxy>();
 
 		var app = builder.Build();
 
