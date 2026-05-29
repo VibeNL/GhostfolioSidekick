@@ -122,12 +122,13 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		// ------------------------------------------------------------------
-		// 404 response from non-CoinGecko hosts is NOT cached.
+		// 404 response from non-CoinGecko hosts is NOT cached; the original
+		// live response is returned directly (inner handler called exactly once).
 		// ------------------------------------------------------------------
 		[Theory]
 		[InlineData("https://query1.finance.yahoo.com/v7/finance/quote?symbols=INVALID")]
 		[InlineData("https://www.dividendmax.com/en/stock/nonexistent-company")]
-		public async Task NotFoundResponse_NonCoinGecko_IsNotCached_AndInnerCalledTwice(string url)
+		public async Task NotFoundResponse_NonCoinGecko_IsNotCached_AndInnerCalledOnce(string url)
 		{
 			int innerCallCount = 0;
 			_innerHandlerMock
@@ -152,14 +153,15 @@ namespace GhostfolioSidekick.UnitTests
 			HttpResponseMessage response = await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 
 			Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-			Assert.Equal(2, innerCallCount);
+			Assert.Equal(1, innerCallCount);
 		}
 
 		// ------------------------------------------------------------------
-		// 500 / transient errors are NOT cached – inner handler re-called.
+		// 500 / transient errors are NOT cached; the original live response is
+		// returned directly (inner handler called exactly once).
 		// ------------------------------------------------------------------
 		[Fact]
-		public async Task ServerErrorResponse_IsNotCached_AndInnerCalledTwice()
+		public async Task ServerErrorResponse_IsNotCached_AndInnerCalledOnce()
 		{
 			int innerCallCount = 0;
 			_innerHandlerMock
@@ -186,7 +188,7 @@ namespace GhostfolioSidekick.UnitTests
 				TestContext.Current.CancellationToken);
 
 			Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-			Assert.Equal(2, innerCallCount);
+			Assert.Equal(1, innerCallCount);
 		}
 
 		// ------------------------------------------------------------------
@@ -264,10 +266,29 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		// ------------------------------------------------------------------
-		// The raw URL is used as the cache key.
+		// The cache key strips known credential parameters from the URL.
 		// ------------------------------------------------------------------
 		[Fact]
-		public async Task CacheKey_IsRawUrl()
+		public async Task CacheKey_StripsCredentialParameters()
+		{
+			string? capturedKey = null;
+			const string requestUrl = "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&apikey=SECRET123";
+			const string expectedKey = "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false";
+
+			_cacheMock
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((key, _, _2) => capturedKey = key)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
+
+			SetupInnerHandler(HttpStatusCode.OK, "{}");
+
+			await _httpClient.GetAsync(requestUrl, TestContext.Current.CancellationToken);
+
+			Assert.Equal(expectedKey, capturedKey);
+		}
+
+		[Fact]
+		public async Task CacheKey_WithNoCredentialParameters_IsUnchanged()
 		{
 			string? capturedKey = null;
 			const string requestUrl = "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false";
@@ -282,6 +303,28 @@ namespace GhostfolioSidekick.UnitTests
 			await _httpClient.GetAsync(requestUrl, TestContext.Current.CancellationToken);
 
 			Assert.Equal(requestUrl, capturedKey);
+		}
+
+		// ------------------------------------------------------------------
+		// BuildCacheKey unit tests (no HTTP involved).
+		// ------------------------------------------------------------------
+		[Theory]
+		[InlineData(
+			"https://example.com/data?symbol=AAPL&apikey=SECRET",
+			"https://example.com/data?symbol=AAPL")]
+		[InlineData(
+			"https://example.com/data?token=abc&symbol=AAPL&access_token=xyz",
+			"https://example.com/data?symbol=AAPL")]
+		[InlineData(
+			"https://example.com/data?apikey=SECRET",
+			"https://example.com/data")]
+		[InlineData(
+			"https://example.com/data?symbol=AAPL",
+			"https://example.com/data?symbol=AAPL")]
+		public void BuildCacheKey_RemovesSensitiveParams(string input, string expected)
+		{
+			string result = HttpCachingHandler.BuildCacheKey(input);
+			Assert.Equal(expected, result);
 		}
 	}
 }

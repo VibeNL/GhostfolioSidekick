@@ -2,16 +2,27 @@ using GhostfolioSidekick.ExternalDataProvider.Cache;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text;
+using System.Web;
 
 namespace GhostfolioSidekick
 {
 	/// <summary>
 	/// HTTP message handler that caches GET responses from known external data providers.
-	/// Uses the raw request URL as the cache key.
+	/// The cache key is derived from the request URL with sensitive query parameters
+	/// (e.g. API keys, tokens) stripped out so they are never persisted in the database.
 	/// </summary>
 	internal class HttpCachingHandler : DelegatingHandler
 	{
 		private const string Coingecko = "coingecko.com";
+
+		// Query-string parameter names that may carry credentials and must not be cached.
+		private static readonly HashSet<string> SensitiveParams = new(StringComparer.OrdinalIgnoreCase)
+		{
+			"apikey", "api_key", "api-key",
+			"token", "access_token", "auth_token",
+			"secret", "client_secret",
+			"key", "x-api-key", "crumb"
+		};
 
 		private static readonly string[] IgnoreUrlsPartials = [
 			"https://fc.yahoo.com/",
@@ -53,42 +64,52 @@ namespace GhostfolioSidekick
 
 			TimeSpan expiry = IsMarketDataUrl(url) ? MarketDataExpiry : DefaultExpiry;
 			bool cachNotFound = IsCoinGeckoUrl(url);
-			HttpResponseMessage? liveResponse = null;
-			
-			CachedHttpResponse? cachedResponse = await cacheService.GetOrAddAsync<CachedHttpResponse?>(url, expiry, async () =>
-			{
-				liveResponse = await base.SendAsync(request, cancellationToken);
 
-				if (liveResponse.StatusCode == HttpStatusCode.NotFound && cachNotFound)
+			// Captures the live response when it is not cacheable, so we can return it
+			// directly without re-sending the same HttpRequestMessage a second time.
+			HttpResponseMessage? uncachedResponse = null;
+
+			string cacheKey = BuildCacheKey(url);
+			CachedHttpResponse? cachedResponse = await cacheService.GetOrAddAsync<CachedHttpResponse?>(cacheKey, expiry, async () =>
+			{
+				HttpResponseMessage live = await base.SendAsync(request, cancellationToken);
+
+				if (live.StatusCode == HttpStatusCode.NotFound && cachNotFound)
 				{
-					string content = await liveResponse.Content.ReadAsStringAsync(cancellationToken);
-					liveResponse.Dispose();
+					string content = await live.Content.ReadAsStringAsync(cancellationToken);
+					HttpStatusCode statusCode = live.StatusCode;
+					string? contentType = live.Content.Headers.ContentType?.ToString();
+					live.Dispose();
 					return new CachedHttpResponse
 					{
-						StatusCode = liveResponse.StatusCode,
+						StatusCode = statusCode,
 						Content = content,
-						ContentType = liveResponse.Content.Headers.ContentType?.ToString()
+						ContentType = contentType
 					};
 				}
 
-				if (!liveResponse.IsSuccessStatusCode)
+				if (!live.IsSuccessStatusCode)
 				{
+					// Keep the response alive so the caller can return it as-is.
+					uncachedResponse = live;
 					return null;
 				}
 
-				string successContent = await liveResponse.Content.ReadAsStringAsync(cancellationToken);
-				liveResponse.Dispose();
+				string successContent = await live.Content.ReadAsStringAsync(cancellationToken);
+				HttpStatusCode successStatus = live.StatusCode;
+				string? successContentType = live.Content.Headers.ContentType?.ToString();
+				live.Dispose();
 				return new CachedHttpResponse
 				{
-					StatusCode = liveResponse.StatusCode,
+					StatusCode = successStatus,
 					Content = successContent,
-					ContentType = liveResponse.Content.Headers.ContentType?.ToString()
+					ContentType = successContentType
 				};
 			});
 
 			if (cachedResponse == null)
 			{
-				return liveResponse ?? throw new InvalidOperationException("The HTTP response was not available.");
+				return uncachedResponse ?? throw new InvalidOperationException("The HTTP response was not available.");
 			}
 
 			return BuildResponseFromCache(cachedResponse);
@@ -102,6 +123,34 @@ namespace GhostfolioSidekick
 		private static bool IsCoinGeckoUrl(string url)
 		{
 			return url.Contains(Coingecko, StringComparison.OrdinalIgnoreCase);
+		}
+
+		/// <summary>
+		/// Returns a cache-safe key for <paramref name="url"/> by removing any query-string
+		/// parameters whose names appear in <see cref="SensitiveParams"/>.
+		/// </summary>
+		internal static string BuildCacheKey(string url)
+		{
+			if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri))
+			{
+				return url;
+			}
+
+			var query = HttpUtility.ParseQueryString(uri.Query);
+			string[] sensitiveKeys = [.. query.AllKeys.Where(k => k != null && SensitiveParams.Contains(k!))!];
+
+			if (sensitiveKeys.Length == 0)
+			{
+				return url;
+			}
+
+			foreach (string key in sensitiveKeys)
+			{
+				query.Remove(key);
+			}
+
+			string sanitizedQuery = query.Count > 0 ? "?" + query.ToString() : string.Empty;
+			return new UriBuilder(uri) { Query = sanitizedQuery }.Uri.ToString();
 		}
 
 		private static HttpResponseMessage BuildResponseFromCache(CachedHttpResponse cached)
