@@ -44,6 +44,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			CancellationToken cancellationToken = default);
 
 		/// <summary>
+		/// Loads price history for multiple holdings in a single query (more efficient than calling GetHoldingPriceHistoryAsync per symbol)
+		/// </summary>
+		/// <param name="symbols">Symbols to fetch history for</param>
+		/// <param name="startDate">Start date for the price history</param>
+		/// <param name="endDate">End date for the price history</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>Dictionary keyed by symbol, each containing a list of price history points</returns>
+		Task<Dictionary<string, List<HoldingPriceHistoryPoint>>> GetHoldingPriceHistoryBulkAsync(
+			IEnumerable<string> symbols,
+			DateOnly startDate,
+			DateOnly endDate,
+			CancellationToken cancellationToken = default);
+
+		/// <summary>
 		/// Loads the portfolio value history (time series)
 		/// </summary>
 		/// <param name="targetCurrency">Currency to convert values to</param>
