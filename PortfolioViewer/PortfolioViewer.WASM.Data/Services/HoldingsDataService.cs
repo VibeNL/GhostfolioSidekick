@@ -83,11 +83,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					.ToListAsync(cancellationToken);
 
 				// Load balance records up to endDate (pre-range records needed for forward-fill initial value).
-				var balanceRecords = await databaseContext.Balances
-					.AsNoTracking()
-					.Where(b => (accountId == null || accountId == 0 || b.AccountId == accountId) && b.Date <= endDate)
-					.Select(b => new { b.Date, b.AccountId, Amount = b.Money.Amount })
-					.ToListAsync(cancellationToken);
+					var primaryCurrency = (await serverConfigurationService.GetPrimaryCurrencyAsync()).Symbol;
+					var balanceRecords = await databaseContext.Balances
+						.AsNoTracking()
+						.Where(b => (accountId == null || accountId == 0 || b.AccountId == accountId) && b.Date <= endDate && b.Money.Currency.Symbol == primaryCurrency)
+						.Select(b => new { b.Date, b.AccountId, Amount = b.Money.Amount })
+						.ToListAsync(cancellationToken);
 
 				// Group balance records by account for forward-filling
 				var balancesByAccount = balanceRecords
