@@ -103,19 +103,36 @@ public class Program
 		builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 
 		builder.Services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
-		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
-		builder.Services.AddScoped<IAccountDataService, AccountDataService>();
-		builder.Services.AddScoped<ITransactionService, TransactionService>();
-		builder.Services.AddSingleton<ITaxReportCacheService, TaxReportCacheService>();
+		builder.Services.AddSingleton<IDataSourceService, DataSourceService>();
 
-		// Data Issues Service
-		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();
+		// Holdings
+		builder.Services.AddScoped<HoldingsDataService>();
+		builder.Services.AddScoped<ApiHoldingsDataService>();
+		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataServiceProxy>();
+
+		// Accounts
+		builder.Services.AddSingleton<ITaxReportCacheService, TaxReportCacheService>();
+		builder.Services.AddScoped<AccountDataService>();
+		builder.Services.AddScoped<ApiAccountDataService>();
+		builder.Services.AddScoped<IAccountDataService, AccountDataServiceProxy>();
+
+		// Transactions
+		builder.Services.AddScoped<TransactionService>();
+		builder.Services.AddScoped<ApiTransactionService>();
+		builder.Services.AddScoped<ITransactionService, TransactionServiceProxy>();
+
+		// Data Issues
+		builder.Services.AddScoped<DataIssuesService>();
+		builder.Services.AddScoped<ApiDataIssuesService>();
+		builder.Services.AddScoped<IDataIssuesService, DataIssuesServiceProxy>();
 
 		// Holding Identifier Mapping Service
 		builder.Services.AddScoped<IHoldingIdentifierMappingService, HoldingIdentifierMappingService>();
 
-		// Register UpcomingDividendsService for DI
-		builder.Services.AddScoped<IUpcomingDividendsService, UpcomingDividendsService>();
+		// Upcoming Dividends
+		builder.Services.AddScoped<UpcomingDividendsService>();
+		builder.Services.AddScoped<ApiUpcomingDividendsService>();
+		builder.Services.AddScoped<IUpcomingDividendsService, UpcomingDividendsServiceProxy>();
 
 		var app = builder.Build();
 
