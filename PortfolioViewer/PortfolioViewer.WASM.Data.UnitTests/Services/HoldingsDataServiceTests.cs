@@ -26,6 +26,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			// Setup default primary currency
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.USD);
+			_mockServerConfigurationService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
 			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
 			dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
@@ -712,6 +713,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Arrange
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.EUR);
+			_mockServerConfigurationService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.EUR);
 
 			var holding = CreateTestHolding("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshot(1, testDate);
