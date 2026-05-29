@@ -102,32 +102,34 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			var holdings = HoldingsData.Where(h => h.Quantity > 0 && h.CurrentValue.Amount > 0).ToList();
 
-			// Fetch all price histories in parallel for better performance
-			var tasks = holdings.Select(async holding =>
+			// Collect all symbols and fetch price history in a single bulk query
+			var symbols = holdings
+				.Select(h => h.Symbols.FirstOrDefault() ?? string.Empty)
+				.Where(s => !string.IsNullOrEmpty(s))
+				.Distinct()
+				.ToList();
+
+			var priceHistoryBySymbol = await HoldingsDataService.GetHoldingPriceHistoryBulkAsync(
+				symbols, StartDate, EndDate);
+
+			var timeRangePerformances = new List<HoldingTimeRangePerformance>();
+			foreach (var holding in holdings)
 			{
 				try
 				{
 					var symbol = holding.Symbols.FirstOrDefault() ?? string.Empty;
-					var priceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-						symbol,
-						StartDate,
-						EndDate
-					);
-					if (priceHistory.Count == 0)
-					{
-						return null;
-					}
+					if (string.IsNullOrEmpty(symbol)) continue;
+
+					if (!priceHistoryBySymbol.TryGetValue(symbol, out var priceHistory) || priceHistory.Count == 0)
+						continue;
 
 					var startPricePoint = priceHistory.OrderBy(p => p.Date).First();
 					var endPricePoint = priceHistory.OrderByDescending(p => p.Date).First();
-					if (startPricePoint == null || endPricePoint == null || startPricePoint.Price <= 0)
-					{
-						return null;
-					}
+					if (startPricePoint.Price <= 0) continue;
 
 					var currency = holding.CurrentPrice.Currency;
 					var percentageChange = (endPricePoint.Price - startPricePoint.Price) / startPricePoint.Price;
-					return new HoldingTimeRangePerformance
+					timeRangePerformances.Add(new HoldingTimeRangePerformance
 					{
 						Symbol = symbol,
 						Name = holding.Name,
@@ -137,17 +139,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 						AbsoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price),
 						CurrentValue = holding.CurrentValue,
 						Quantity = holding.Quantity
-					};
+					});
 				}
 				catch (Exception ex)
 				{
 					System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbols.FirstOrDefault() ?? string.Empty}: {ex.Message}");
-					return null;
 				}
-			});
-
-			var results = await Task.WhenAll(tasks);
-			var timeRangePerformances = results.Where(r => r != null).Cast<HoldingTimeRangePerformance>().ToList();
+			}
 
 			TopRisers = [.. timeRangePerformances
 				.Where(h => h.PercentageChange > 0)
