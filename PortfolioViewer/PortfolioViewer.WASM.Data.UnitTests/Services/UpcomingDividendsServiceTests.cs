@@ -14,7 +14,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
     public class UpcomingDividendsServiceTests
     {
         [Fact]
-        public async Task GetUpcomingDividendsAsync_ReturnsExpectedDividends()
+        public async Task GetDividendsAsync_ReturnsExpectedDividends()
         {
             // Arrange
             var timelineEntry = new UpcomingDividendTimelineEntry
@@ -50,7 +50,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
 
             // Act
-            var result = await service.GetUpcomingDividendsAsync();
+            var result = await service.GetDividendsAsync();
 
             // Assert
             Assert.Single(result);
@@ -68,7 +68,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
         }
 
         [Fact]
-        public async Task GetUpcomingDividendsAsync_WithCurrencyConversion_ReturnsConvertedAmounts()
+        public async Task GetDividendsAsync_WithCurrencyConversion_ReturnsConvertedAmounts()
         {
             // Arrange
             var timelineEntry = new UpcomingDividendTimelineEntry
@@ -104,7 +104,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
 
             // Act
-            var result = await service.GetUpcomingDividendsAsync();
+            var result = await service.GetDividendsAsync();
 
             // Assert
             Assert.Single(result);
@@ -119,6 +119,63 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             Assert.Equal(0, div.DividendPerShare);
             Assert.Null(div.DividendPerSharePrimaryCurrency);
             Assert.Equal(0, div.Quantity);
+        }
+
+        [Fact]
+        public async Task GetDividendsAsync_WithDateFilter_ExcludesDividendsOutsideRange()
+        {
+            // Arrange
+            var entryInRange = new UpcomingDividendTimelineEntry
+            {
+                Id = Guid.NewGuid(),
+                HoldingId = 1,
+                ExpectedDate = DateOnly.FromDateTime(DateTime.Today),
+                Amount = 50.0m,
+                Currency = new Currency { Symbol = "USD" },
+                AmountPrimaryCurrency = 50.0m,
+                DividendType = DividendType.Cash,
+                DividendState = DividendState.Declared
+            };
+
+            var entryOutOfRange = new UpcomingDividendTimelineEntry
+            {
+                Id = Guid.NewGuid(),
+                HoldingId = 2,
+                ExpectedDate = DateOnly.FromDateTime(DateTime.Today.AddDays(60)),
+                Amount = 75.0m,
+                Currency = new Currency { Symbol = "USD" },
+                AmountPrimaryCurrency = 75.0m,
+                DividendType = DividendType.Cash,
+                DividendState = DividendState.Declared
+            };
+
+            var holding1 = new Holding { Id = 1, SymbolProfiles = [], CalculatedSnapshots = [] };
+            var holding2 = new Holding { Id = 2, SymbolProfiles = [], CalculatedSnapshots = [] };
+
+            var mockContext = new Mock<DatabaseContext>();
+            mockContext.Setup(x => x.UpcomingDividendTimelineEntries)
+                .ReturnsDbSet(new List<UpcomingDividendTimelineEntry> { entryInRange, entryOutOfRange });
+            mockContext.Setup(x => x.Holdings)
+                .ReturnsDbSet(new List<Holding> { holding1, holding2 });
+
+            var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+            mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockContext.Object);
+
+            var mockConfigService = new Mock<IServerConfigurationService>();
+            mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
+
+            var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
+
+            var startDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
+            var endDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30));
+
+            // Act
+            var result = await service.GetDividendsAsync(startDate, endDate);
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal(50.0m, result[0].Amount);
         }
     }
 }

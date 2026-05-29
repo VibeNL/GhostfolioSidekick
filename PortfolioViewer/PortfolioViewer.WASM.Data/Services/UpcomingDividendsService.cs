@@ -6,23 +6,33 @@ using Microsoft.EntityFrameworkCore;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	/// <summary>
-	/// Service for retrieving upcoming dividends for portfolio holdings.
+	/// Service for retrieving dividends for portfolio holdings.
 	/// </summary>
 	public class UpcomingDividendsService(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
 		IServerConfigurationService serverConfigurationService) : IUpcomingDividendsService
 	{
 		/// <summary>
-		/// Retrieves upcoming dividends for all portfolio holdings.
+		/// Retrieves dividends for all portfolio holdings, optionally filtered by date range.
 		/// </summary>
-		public async Task<List<UpcomingDividendModel>> GetUpcomingDividendsAsync()
+		public async Task<List<UpcomingDividendModel>> GetDividendsAsync(DateOnly? startDate = null, DateOnly? endDate = null)
 		{
 			await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
 
-			var entries = await db.UpcomingDividendTimelineEntries
-				.AsNoTracking()
-				.ToListAsync();
+			var query = db.UpcomingDividendTimelineEntries.AsNoTracking();
+
+			if (startDate.HasValue)
+			{
+				query = query.Where(e => e.ExpectedDate >= startDate.Value);
+			}
+
+			if (endDate.HasValue)
+			{
+				query = query.Where(e => e.ExpectedDate <= endDate.Value);
+			}
+
+			var entries = await query.ToListAsync();
 
 			if (entries.Count == 0)
 			{
