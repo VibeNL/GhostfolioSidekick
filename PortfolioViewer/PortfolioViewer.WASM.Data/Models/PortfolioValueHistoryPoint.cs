@@ -7,5 +7,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		public decimal Value { get; set; }
 
 		public decimal Invested { get; set; }
+
+		public decimal Balance { get; set; }
 	}
 }
