@@ -153,7 +153,7 @@
                                     </tbody>
 							@if (TimeSeriesDisplayData.Count > 0)
 							{
-								@{ var latest = TimeSeriesDisplayData.MaxBy(d => d.Date)!; }
+								var latest = TimeSeriesDisplayData.MaxBy(d => d.Date)!;
 								<tfoot class="table-light">
 									<tr>
 										<th>Latest (@latest.Date.ToString("yyyy-MM-dd"))</th>
