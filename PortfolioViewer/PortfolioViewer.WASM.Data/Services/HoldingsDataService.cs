@@ -83,12 +83,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					.ToListAsync(cancellationToken);
 
 				// Load balance records up to endDate (pre-range records needed for forward-fill initial value).
-				// Group by (AccountId, Date) in SQL to get one canonical row per account per day.
 				var balanceRecords = await databaseContext.Balances
-					.Where(b => (accountId == null || accountId == 0 || b.AccountId == accountId) && b.Date <= endDate)
-					.GroupBy(b => new { b.Date, b.AccountId })
-					.Select(g => new { g.Key.Date, g.Key.AccountId, Amount = g.Min(x => x.Money.Amount) })
 					.AsNoTracking()
+					.Where(b => (accountId == null || accountId == 0 || b.AccountId == accountId) && b.Date <= endDate)
+					.Select(b => new { b.Date, b.AccountId, Amount = b.Money.Amount })
 					.ToListAsync(cancellationToken);
 
 				// Group balance records by account for forward-filling
