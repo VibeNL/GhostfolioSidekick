@@ -53,39 +53,42 @@ namespace GhostfolioSidekick
 
 			TimeSpan expiry = IsMarketDataUrl(url) ? MarketDataExpiry : DefaultExpiry;
 			bool cachNotFound = IsCoinGeckoUrl(url);
+			HttpResponseMessage? liveResponse = null;
 			
 			CachedHttpResponse? cachedResponse = await cacheService.GetOrAddAsync<CachedHttpResponse?>(url, expiry, async () =>
 			{
-				HttpResponseMessage result = await base.SendAsync(request, cancellationToken);
+				liveResponse = await base.SendAsync(request, cancellationToken);
 
-				if (result.StatusCode == HttpStatusCode.NotFound && cachNotFound)
+				if (liveResponse.StatusCode == HttpStatusCode.NotFound && cachNotFound)
 				{
-					string content = await result.Content.ReadAsStringAsync(cancellationToken);
+					string content = await liveResponse.Content.ReadAsStringAsync(cancellationToken);
+					liveResponse.Dispose();
 					return new CachedHttpResponse
 					{
-						StatusCode = result.StatusCode,
+						StatusCode = liveResponse.StatusCode,
 						Content = content,
-						ContentType = result.Content.Headers.ContentType?.ToString()
+						ContentType = liveResponse.Content.Headers.ContentType?.ToString()
 					};
 				}
 
-				if (!result.IsSuccessStatusCode)
+				if (!liveResponse.IsSuccessStatusCode)
 				{
 					return null;
 				}
 
-				string successContent = await result.Content.ReadAsStringAsync(cancellationToken);
+				string successContent = await liveResponse.Content.ReadAsStringAsync(cancellationToken);
+				liveResponse.Dispose();
 				return new CachedHttpResponse
 				{
-					StatusCode = result.StatusCode,
+					StatusCode = liveResponse.StatusCode,
 					Content = successContent,
-					ContentType = result.Content.Headers.ContentType?.ToString()
+					ContentType = liveResponse.Content.Headers.ContentType?.ToString()
 				};
 			});
 
 			if (cachedResponse == null)
 			{
-				return await base.SendAsync(request, cancellationToken);
+				return liveResponse ?? throw new InvalidOperationException("The HTTP response was not available.");
 			}
 
 			return BuildResponseFromCache(cachedResponse);
