@@ -151,27 +151,28 @@
                                             </tr>
                                         }
                                     </tbody>
-                                    @if (TimeSeriesDisplayData.Count > 0)
-                                    {
-                                        <tfoot class="table-light">
-                                            <tr>
-                                                <th>Latest (@TimeSeriesDisplayData.Last().Date.ToString("yyyy-MM-dd"))</th>
-                                                <th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalValue)" /></th>
-                                                <th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalInvested)" /></th>
-                                                <th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().Balance)" /></th>
-                                                <th class="text-end">
-                                                    <span class="@(TimeSeriesDisplayData.Last().GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().GainLoss)" />
-                                                    </span>
-                                                </th>
-                                                <th class="text-end">
-                                                    <span class="@(TimeSeriesDisplayData.Last().GainLossPercentage >= 0 ? "text-success" : "text-danger")">
-                                                        @TimeSeriesDisplayData.Last().GainLossPercentage.ToString("P2")
-                                                    </span>
-                                                </th>
-                                            </tr>
-                                        </tfoot>
-                                    }
+							@if (TimeSeriesDisplayData.Count > 0)
+							{
+								@{ var latest = TimeSeriesDisplayData.MaxBy(d => d.Date)!; }
+								<tfoot class="table-light">
+									<tr>
+										<th>Latest (@latest.Date.ToString("yyyy-MM-dd"))</th>
+										<th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.TotalValue)" /></th>
+										<th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.TotalInvested)" /></th>
+										<th class="text-end"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)" /></th>
+										<th class="text-end">
+											<span class="@(latest.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+												<PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)" />
+											</span>
+										</th>
+										<th class="text-end">
+											<span class="@(latest.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+												@latest.GainLossPercentage.ToString("P2")
+											</span>
+										</th>
+									</tr>
+								</tfoot>
+							}
                                 </table>
                             </div>
                         }
