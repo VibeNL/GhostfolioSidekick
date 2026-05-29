@@ -14,19 +14,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 
 		// Determine which filters to show based on current page
 		private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowAccountFilters || ShouldShowSymbolFilter || ShouldShowTransactionTypeFilter || ShouldShowSearchFilter;
-		private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage || IsAccountsPage || IsDividendsPage);
-		private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage || IsHoldingsPage);
+		private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage || IsAccountsPage || IsDividendsPage || IsTopMoversPage);
+		private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage || IsHoldingsPage || IsTopMoversPage);
 		private bool ShouldShowSymbolFilter => CurrentPageSupportsFilters && IsTransactionsPage;
 		private bool ShouldShowTransactionTypeFilter => CurrentPageSupportsFilters && IsTransactionsPage;
 		private bool ShouldShowSearchFilter => CurrentPageSupportsFilters && IsTransactionsPage;
 
-		private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage || IsTransactionsPage || IsAccountsPage || IsDividendsPage;
+		private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage || IsTransactionsPage || IsAccountsPage || IsDividendsPage || IsTopMoversPage;
 		private bool IsTimeSeriesPage => Navigation.Uri.Contains("/portfolio-timeseries");
 		private bool IsHoldingDetailPage => Navigation.Uri.Contains("/holding/");
 		private bool IsHoldingsPage => Navigation.Uri.Contains("/holdings");
 		private bool IsTransactionsPage => Navigation.Uri.Contains("/transactions");
 		private bool IsAccountsPage => Navigation.Uri.Contains("/accounts");
 		private bool IsDividendsPage => Navigation.Uri.Contains("/dividends");
+		private bool IsTopMoversPage => Navigation.Uri.Contains("/top-movers");
 
 		// Get transaction types for filtering
 		private List<string>? TransactionTypes => IsTransactionsPage ? _cachedTransactionTypes : null;
