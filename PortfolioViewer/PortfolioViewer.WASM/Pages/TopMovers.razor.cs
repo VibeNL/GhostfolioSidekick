@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		protected override async Task OnParametersSetAsync()
 		{
-			if (_previousFilterState == null || HasFilterStateChanged())
+			if (_previousFilterState == null || !FilterState.IsEqual(_previousFilterState))
 			{
 				if (_previousFilterState != null)
 				{
@@ -49,17 +49,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					FilterState.PropertyChanged += OnFilterStateChanged;
 				}
-				_previousFilterState = FilterState;
+				_previousFilterState = new(FilterState);
 				await LoadMoversAsync();
 			}
-		}
-
-		private bool HasFilterStateChanged()
-		{
-			if (_previousFilterState == null) return true;
-			return _previousFilterState.StartDate != FilterState.StartDate ||
-				   _previousFilterState.EndDate != FilterState.EndDate ||
-				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
@@ -108,46 +100,55 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task PrepareRisersAndLosers()
 		{
-			var timeRangePerformances = new List<HoldingTimeRangePerformance>();
-			foreach (var holding in HoldingsData.Where(h => h.Quantity > 0 && h.CurrentValue.Amount > 0))
+			var holdings = HoldingsData.Where(h => h.Quantity > 0 && h.CurrentValue.Amount > 0).ToList();
+
+			// Fetch all price histories in parallel for better performance
+			var tasks = holdings.Select(async holding =>
 			{
 				try
 				{
+					var symbol = holding.Symbols.FirstOrDefault() ?? string.Empty;
 					var priceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-                       holding.Symbols.FirstOrDefault() ?? string.Empty,
+						symbol,
 						StartDate,
 						EndDate
 					);
-					if (priceHistory.Count != 0)
+					if (priceHistory.Count == 0)
 					{
-						var startPricePoint = priceHistory.OrderBy(p => p.Date).First();
-						var endPricePoint = priceHistory.OrderByDescending(p => p.Date).First();
-						if (startPricePoint != null && endPricePoint != null && startPricePoint.Price > 0)
-						{
-							var currency = holding.CurrentPrice.Currency;
-							var startPrice = new Money(currency, startPricePoint.Price);
-							var endPrice = new Money(currency, endPricePoint.Price);
-							var percentageChange = (endPricePoint.Price - startPricePoint.Price) / startPricePoint.Price;
-							var absoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price);
-							timeRangePerformances.Add(new HoldingTimeRangePerformance
-							{
-                               Symbol = holding.Symbols.FirstOrDefault() ?? string.Empty,
-								Name = holding.Name,
-								StartPrice = startPrice,
-								EndPrice = endPrice,
-								PercentageChange = percentageChange,
-								AbsoluteChange = absoluteChange,
-								CurrentValue = holding.CurrentValue,
-								Quantity = holding.Quantity
-							});
-						}
+						return null;
 					}
+
+					var startPricePoint = priceHistory.OrderBy(p => p.Date).First();
+					var endPricePoint = priceHistory.OrderByDescending(p => p.Date).First();
+					if (startPricePoint == null || endPricePoint == null || startPricePoint.Price <= 0)
+					{
+						return null;
+					}
+
+					var currency = holding.CurrentPrice.Currency;
+					var percentageChange = (endPricePoint.Price - startPricePoint.Price) / startPricePoint.Price;
+					return new HoldingTimeRangePerformance
+					{
+						Symbol = symbol,
+						Name = holding.Name,
+						StartPrice = new Money(currency, startPricePoint.Price),
+						EndPrice = new Money(currency, endPricePoint.Price),
+						PercentageChange = percentageChange,
+						AbsoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price),
+						CurrentValue = holding.CurrentValue,
+						Quantity = holding.Quantity
+					};
 				}
 				catch (Exception ex)
 				{
-                   System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbols.FirstOrDefault() ?? string.Empty}: {ex.Message}");
+					System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbols.FirstOrDefault() ?? string.Empty}: {ex.Message}");
+					return null;
 				}
-			}
+			});
+
+			var results = await Task.WhenAll(tasks);
+			var timeRangePerformances = results.Where(r => r != null).Cast<HoldingTimeRangePerformance>().ToList();
+
 			TopRisers = [.. timeRangePerformances
 				.Where(h => h.PercentageChange > 0)
 				.OrderByDescending(h => h.PercentageChange)
