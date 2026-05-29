@@ -12,7 +12,15 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 		/// <summary>
 		/// Gets a cached value or adds it if not present. Removes expired and duplicate entries.
 		/// </summary>
-		public async Task<T?> GetOrAddAsync<T>(CacheKey cacheKey, Func<Task<T>> factory)
+		public Task<T?> GetOrAddAsync<T>(CacheKey cacheKey, Func<Task<T>> factory)
+		{
+			return GetOrAddAsync<T>(cacheKey.GetCombinedKey(), DetermineExpirationLength(cacheKey.DataType), factory);
+		}
+
+		/// <summary>
+		/// Gets a cached value or adds it if not present using a raw string key and explicit expiry.
+		/// </summary>
+		public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T>> factory)
 		{
 			await using DatabaseContext dbContext = await dbContextFactory.CreateDbContextAsync();
 
@@ -21,11 +29,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 			// Remove all expired cache entries before proceeding
 			_ = await dbContext.ExternalDataCacheEntries.Where(e => e.ExpiresAt <= now).ExecuteDeleteAsync();
 
-			string combinedKey = cacheKey.GetCombinedKey();
-
 			// Try to get a valid (not expired) cache entry
 			ExternalDataCacheEntry? entry = await dbContext.ExternalDataCacheEntries
-				.Where(e => e.Key == combinedKey && e.ExpiresAt > now)
+				.Where(e => e.Key == key && e.ExpiresAt > now)
 				.FirstOrDefaultAsync();
 
 			if (entry != null)
@@ -47,6 +53,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 
 			// Generate new value and cache it
 			T? value = await factory();
+
+			// Do not cache null results (e.g. transient failures such as auth errors)
+			if (value is null)
+			{
+				return value;
+			}
+
 			string dataJson = JsonSerializer.Serialize(value);
 			byte[] compressed;
 			using (MemoryStream ms = new())
@@ -60,17 +73,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 				compressed = ms.ToArray();
 			}
 
-			DateTime expiresAt = now.Add(DetermineExpirationLength(cacheKey.DataType));
 			ExternalDataCacheEntry newEntry = new()
 			{
-				Key = combinedKey,
+				Key = key,
 				DataJson = compressed,
 				CreatedAt = now,
-				ExpiresAt = expiresAt
+				ExpiresAt = now.Add(expiry)
 			};
 
-			// Remove old entries for this key/type
-			dbContext.ExternalDataCacheEntries.RemoveRange(dbContext.ExternalDataCacheEntries.Where(e => e.Key == combinedKey));
+			// Remove old entries for this key
+			dbContext.ExternalDataCacheEntries.RemoveRange(dbContext.ExternalDataCacheEntries.Where(e => e.Key == key));
 			_ = dbContext.ExternalDataCacheEntries.Add(newEntry);
 			_ = await dbContext.SaveChangesAsync();
 

@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
@@ -518,6 +519,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId, CancellationToken.None);
@@ -549,6 +551,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, null, CancellationToken.None);
@@ -577,6 +580,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 0, CancellationToken.None);
@@ -602,6 +606,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId, CancellationToken.None);
@@ -627,6 +632,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, CancellationToken.None);
@@ -647,6 +653,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var endDate = new DateOnly(2023, 1, 31);
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, CancellationToken.None);
@@ -664,6 +671,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var endDate = new DateOnly(2023, 1, 31);
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(new List<Balance>());
 
 			// Act
 			await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, 1, CancellationToken.None);
@@ -747,6 +755,82 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result.Should().NotBeNull();
 			result.Should().HaveCount(1);
 			result[0].Price.Should().Be(0); // Should handle null CurrentUnitPrice
+		}
+
+		[Fact]
+		public async Task GetPortfolioValueHistoryAsync_WithBalanceOnlyDate_ShouldAppearInOutput()
+		{
+			// Arrange: snapshot on Jan 1, balance change on Jan 3 (no snapshot that day), snapshot again on Jan 5
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
+			var accountId = 1;
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateTestCalculatedSnapshot(accountId, startDate, 10, 100, 110, 1000, 1100),
+				CreateTestCalculatedSnapshot(accountId, startDate.AddDays(4), 10, 100, 120, 1000, 1200)
+			};
+
+			var balances = new List<Balance>
+			{
+				new Balance(startDate, new Money(Currency.USD, 500)) { AccountId = accountId },
+				new Balance(startDate.AddDays(2), new Money(Currency.USD, 750)) { AccountId = accountId }
+			};
+
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId, CancellationToken.None);
+
+			// Assert: three distinct dates — Jan 1 (snapshot), Jan 3 (balance-only), Jan 5 (snapshot)
+			result.Should().NotBeNull();
+			result.Should().HaveCount(3);
+
+			var jan1 = result[0];
+			jan1.Date.Should().Be(startDate);
+			jan1.Value.Should().Be(1100);
+			jan1.Balance.Should().Be(500);
+
+			var jan3 = result[1];
+			jan3.Date.Should().Be(startDate.AddDays(2));
+			jan3.Value.Should().Be(1100); // forward-filled from Jan 1 snapshot
+			jan3.Balance.Should().Be(750);
+
+			var jan5 = result[2];
+			jan5.Date.Should().Be(startDate.AddDays(4));
+			jan5.Value.Should().Be(1200);
+			jan5.Balance.Should().Be(750); // forward-filled from Jan 3 balance
+		}
+
+		[Fact]
+		public async Task GetPortfolioValueHistoryAsync_WithBalanceBeforeStartDate_ShouldForwardFillIntoRange()
+		{
+			// Arrange: balance record before startDate should still be forward-filled into the chart range
+			var startDate = new DateOnly(2023, 1, 5);
+			var endDate = new DateOnly(2023, 1, 31);
+			var accountId = 1;
+
+			var snapshots = new List<CalculatedSnapshot>
+			{
+				CreateTestCalculatedSnapshot(accountId, startDate, 10, 100, 110, 1000, 1100)
+			};
+
+			var balances = new List<Balance>
+			{
+				new Balance(new DateOnly(2023, 1, 1), new Money(Currency.USD, 300)) { AccountId = accountId }
+			};
+
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(snapshots);
+			_mockDatabaseContext.Setup(x => x.Balances).ReturnsDbSet(balances);
+
+			// Act
+			var result = await _holdingsDataService.GetPortfolioValueHistoryAsync(startDate, endDate, accountId, CancellationToken.None);
+
+			// Assert: the pre-range balance is forward-filled onto Jan 5
+			result.Should().HaveCount(1);
+			result[0].Date.Should().Be(startDate);
+			result[0].Balance.Should().Be(300);
 		}
 
 		private static int _holdingIdCounter = 0;
