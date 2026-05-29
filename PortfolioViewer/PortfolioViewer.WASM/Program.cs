@@ -106,32 +106,32 @@ public class Program
 		builder.Services.AddSingleton<IDataSourceService, DataSourceService>();
 
 		// Holdings
-		builder.Services.AddScoped<HoldingsDataService>();
-		builder.Services.AddScoped<ApiHoldingsDataService>();
+		builder.Services.AddKeyedScoped<IHoldingsDataService, HoldingsDataService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IHoldingsDataService, ApiHoldingsDataService>(DataSourceKeys.Api);
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataServiceProxy>();
 
 		// Accounts
 		builder.Services.AddSingleton<ITaxReportCacheService, TaxReportCacheService>();
-		builder.Services.AddScoped<AccountDataService>();
-		builder.Services.AddScoped<ApiAccountDataService>();
+		builder.Services.AddKeyedScoped<IAccountDataService, AccountDataService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IAccountDataService, ApiAccountDataService>(DataSourceKeys.Api);
 		builder.Services.AddScoped<IAccountDataService, AccountDataServiceProxy>();
 
 		// Transactions
-		builder.Services.AddScoped<TransactionService>();
-		builder.Services.AddScoped<ApiTransactionService>();
+		builder.Services.AddKeyedScoped<ITransactionService, TransactionService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<ITransactionService, ApiTransactionService>(DataSourceKeys.Api);
 		builder.Services.AddScoped<ITransactionService, TransactionServiceProxy>();
 
 		// Data Issues
-		builder.Services.AddScoped<DataIssuesService>();
-		builder.Services.AddScoped<ApiDataIssuesService>();
+		builder.Services.AddKeyedScoped<IDataIssuesService, DataIssuesService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IDataIssuesService, ApiDataIssuesService>(DataSourceKeys.Api);
 		builder.Services.AddScoped<IDataIssuesService, DataIssuesServiceProxy>();
 
 		// Holding Identifier Mapping Service
 		builder.Services.AddScoped<IHoldingIdentifierMappingService, HoldingIdentifierMappingService>();
 
 		// Upcoming Dividends
-		builder.Services.AddScoped<UpcomingDividendsService>();
-		builder.Services.AddScoped<ApiUpcomingDividendsService>();
+		builder.Services.AddKeyedScoped<IUpcomingDividendsService, UpcomingDividendsService>(DataSourceKeys.Local);
+		builder.Services.AddKeyedScoped<IUpcomingDividendsService, ApiUpcomingDividendsService>(DataSourceKeys.Api);
 		builder.Services.AddScoped<IUpcomingDividendsService, UpcomingDividendsServiceProxy>();
 
 		var app = builder.Build();

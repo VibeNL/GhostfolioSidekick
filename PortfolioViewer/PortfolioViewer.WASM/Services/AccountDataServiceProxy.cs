@@ -1,16 +1,17 @@
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
 	/// <summary>
-	/// Delegates to either <see cref="AccountDataService"/> (local DB) or
-	/// <see cref="ApiAccountDataService"/> (server API) based on <see cref="IDataSourceService.UseApiDirectly"/>.
+	/// Delegates to either the local-DB or API-backed <see cref="IAccountDataService"/> based on
+	/// <see cref="IDataSourceService.UseApiDirectly"/>.
 	/// </summary>
 	public class AccountDataServiceProxy(
-		AccountDataService localService,
-		ApiAccountDataService apiService,
+		[FromKeyedServices(DataSourceKeys.Local)] IAccountDataService localService,
+		[FromKeyedServices(DataSourceKeys.Api)] IAccountDataService apiService,
 		IDataSourceService dataSourceService) : IAccountDataService
 	{
 		private IAccountDataService Active =>

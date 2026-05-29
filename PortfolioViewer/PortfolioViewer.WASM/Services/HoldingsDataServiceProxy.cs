@@ -1,15 +1,16 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
 	/// <summary>
-	/// Delegates to either <see cref="HoldingsDataService"/> (local DB) or
-	/// <see cref="ApiHoldingsDataService"/> (server API) based on <see cref="IDataSourceService.UseApiDirectly"/>.
+	/// Delegates to either the local-DB or API-backed <see cref="IHoldingsDataService"/> based on
+	/// <see cref="IDataSourceService.UseApiDirectly"/>.
 	/// </summary>
 	public class HoldingsDataServiceProxy(
-		HoldingsDataService localService,
-		ApiHoldingsDataService apiService,
+		[FromKeyedServices(DataSourceKeys.Local)] IHoldingsDataService localService,
+		[FromKeyedServices(DataSourceKeys.Api)] IHoldingsDataService apiService,
 		IDataSourceService dataSourceService) : IHoldingsDataService
 	{
 		private IHoldingsDataService Active =>

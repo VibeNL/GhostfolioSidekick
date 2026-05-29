@@ -1,15 +1,16 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
 	/// <summary>
-	/// Delegates to either <see cref="TransactionService"/> (local DB) or
-	/// <see cref="ApiTransactionService"/> (server API) based on <see cref="IDataSourceService.UseApiDirectly"/>.
+	/// Delegates to either the local-DB or API-backed <see cref="ITransactionService"/> based on
+	/// <see cref="IDataSourceService.UseApiDirectly"/>.
 	/// </summary>
 	public class TransactionServiceProxy(
-		TransactionService localService,
-		ApiTransactionService apiService,
+		[FromKeyedServices(DataSourceKeys.Local)] ITransactionService localService,
+		[FromKeyedServices(DataSourceKeys.Api)] ITransactionService apiService,
 		IDataSourceService dataSourceService) : ITransactionService
 	{
 		private ITransactionService Active =>
