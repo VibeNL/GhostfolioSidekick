@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.AI.Agents
 		{
 			var sb = new StringBuilder();
 			sb.AppendLine("You are ResearchAgent AI — a smart financial assistant.");
-			sb.AppendLine($"Today is {DateTime.Now:yyyy-MM-dd}.");
+			sb.AppendLine($"Today is {DateTime.UtcNow:yyyy-MM-dd}.");
 			sb.AppendLine("You may call functions if needed.");
 			sb.AppendLine("You can make multiple related function calls to gather comprehensive information.");
 			sb.AppendLine("When you get function results, you should analyze them and provide a helpful summary.");

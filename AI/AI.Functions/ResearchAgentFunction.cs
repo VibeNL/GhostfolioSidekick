@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.AI.Functions
 				int i = 0;
 				foreach (var result in searchResult.Take(3))
 				{
-					agentLogger.StartFunction($"{nameof(MultiStepResearch)} Summerizing search result {aspect} {++i}");
+					agentLogger.StartFunction($"{nameof(MultiStepResearch)} Summarizing search result {aspect} {++i}");
 					var sanitizedContent = SanitizeText(result.Content ?? string.Empty);
 					var synthesisPrompt = TruncatePrompt($"Synthesize the following research result into a concise summary. {sanitizedContent}", modelInfo.MaxTokens);
 					var chatResult = await chatService.GetResponseAsync(synthesisPrompt);

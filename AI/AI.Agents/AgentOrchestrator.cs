@@ -3,6 +3,7 @@ using GhostfolioSidekick.AI.Functions;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.AI.Agents
@@ -17,13 +18,11 @@ namespace GhostfolioSidekick.AI.Agents
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
-			chatClient = (ICustomChatClient)serviceProvider.GetService(typeof(ICustomChatClient))!;
+			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
 
-			var researchAgent = ResearchAgent.Create(chatClient, serviceProvider);
-
-			var searchService = (GoogleSearchService)serviceProvider.GetService(typeof(GoogleSearchService))!;
-			var agentLogger = (AgentLogger)serviceProvider.GetService(typeof(AgentLogger))!;
-			var modelInfo = (ModelInfo)serviceProvider.GetService(typeof(ModelInfo))!;
+			var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
+			var agentLogger = serviceProvider.GetRequiredService<AgentLogger>();
+			var modelInfo = serviceProvider.GetRequiredService<ModelInfo>();
 			var researchFunction = new ResearchAgentFunction(searchService, chatClient, modelInfo, agentLogger);
 			var researchTool = AIFunctionFactory.Create(researchFunction.MultiStepResearch, "multi_step_research");
 
@@ -33,7 +32,7 @@ namespace GhostfolioSidekick.AI.Agents
 			this.logger = logger;
 		}
 
-		public async Task<IReadOnlyCollection<ChatMessage>> History()
+		public IReadOnlyCollection<ChatMessage> History()
 		{
 			if (session == null)
 			{

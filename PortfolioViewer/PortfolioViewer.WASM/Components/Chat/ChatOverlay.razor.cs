@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				}
 
 				memory.Clear();
-				memory.AddRange(await orchestrator.History());
+					memory.AddRange(orchestrator.History());
 
 				IsBotTyping = false;
 				streamingAuthor = string.Empty;
@@ -210,10 +210,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 		}
 
-		public async void Dispose()
+		public void Dispose()
 		{
-			// Release wake lock on disposal
-			await ReleaseWakeLock();
+			// Release wake lock on disposal — fire-and-forget is intentional here as Dispose cannot be async
+			if (wakeLockActive)
+			{
+				_ = JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
+				wakeLockActive = false;
+			}
 
 			// Unsubscribe from AgentLogger event
 			agentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;
