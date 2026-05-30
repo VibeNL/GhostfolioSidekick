@@ -74,6 +74,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private async Task LoadDividendsAsync()
 		{
 			isLoading = true;
+			StateHasChanged();
+
+			await Task.Yield();
+
 			dividends = await DividendsService.GetDividendsAsync(FilterState?.StartDate, FilterState?.EndDate);
 			BuildChart();
 			isLoading = false;
