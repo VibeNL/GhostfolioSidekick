@@ -1,4 +1,7 @@
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -21,6 +24,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject] private HttpClient Http { get; set; } = default!;
 
+		[Inject] private IHoldingsDataService HoldingsDataService { get; set; } = default!;
+
+		[Inject] private IAccountDataService AccountDataService { get; set; } = default!;
+
+		[Inject] private IUpcomingDividendsService UpcomingDividendsService { get; set; } = default!;
+
 		private IJSObjectReference? mermaidmodule;
 		private Timer? refreshTimer;
 		private Timer? versionCheckTimer;
@@ -42,6 +51,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private bool IsLoading = true;
 		private bool IsReloading;
+
+		// Dashboard KPI data
+		private List<HoldingDisplayModel> Holdings { get; set; } = [];
+		private List<UpcomingDividendModel> UpcomingDividends { get; set; } = [];
+		private decimal TotalPortfolioValue { get; set; }
+		private decimal TotalInvested { get; set; }
+		private decimal TotalGainLoss { get; set; }
+		private decimal TotalGainLossPercentage { get; set; }
+		private string PortfolioCurrency { get; set; } = string.Empty;
+		private HoldingDisplayModel? BestPerformer { get; set; }
+		private HoldingDisplayModel? WorstPerformer { get; set; }
+		private int HoldingCount { get; set; }
+		private bool HasDashboardData { get; set; }
 
 		private async Task RefreshPage()
 		{
@@ -91,6 +113,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var now = DateTime.Now;
 				await SyncTrackingService.SetLastSyncTimeAsync(now);
 				LastSyncTime = now;
+
+				// Reload dashboard KPIs after sync
+				await LoadDashboardDataAsync();
 
 				_isError = false;
 			}
@@ -211,6 +236,47 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return daysSince <= 7 ? "Quick Sync" : "Start Sync";
 		}
 
+		private async Task LoadDashboardDataAsync()
+		{
+			try
+			{
+				Holdings = await HoldingsDataService.GetHoldingsAsync();
+				if (Holdings.Count > 0)
+				{
+					HasDashboardData = true;
+					HoldingCount = Holdings.Count;
+					PortfolioCurrency = Holdings[0].Currency;
+					TotalPortfolioValue = Holdings.Sum(h => h.CurrentValue.Amount);
+					TotalInvested = Holdings.Sum(h => h.AveragePrice.Amount * h.Quantity);
+					TotalGainLoss = TotalPortfolioValue - TotalInvested;
+					TotalGainLossPercentage = TotalInvested == 0 ? 0 : TotalGainLoss / TotalInvested * 100;
+					BestPerformer = Holdings.OrderByDescending(h => h.GainLossPercentage).FirstOrDefault();
+					WorstPerformer = Holdings.OrderBy(h => h.GainLossPercentage).FirstOrDefault();
+				}
+				else
+				{
+					HasDashboardData = false;
+				}
+			}
+			catch
+			{
+				HasDashboardData = false;
+			}
+
+			try
+			{
+				UpcomingDividends = (await UpcomingDividendsService.GetUpcomingDividendsAsync())
+					.Where(d => d.ExDate >= DateOnly.FromDateTime(DateTime.Today))
+					.OrderBy(d => d.ExDate)
+					.Take(5)
+					.ToList();
+			}
+			catch
+			{
+				UpcomingDividends = [];
+			}
+		}
+
 		protected override async Task OnInitializedAsync()
 		{
 			// Load version info
@@ -229,6 +295,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			// Load the last sync time when the component initializes
 			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
+
+			// Load dashboard KPI data
+			await LoadDashboardDataAsync();
 
 			refreshTimer = new Timer(async _ =>
 			{
