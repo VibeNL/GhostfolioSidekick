@@ -13,7 +13,12 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			var services = new ServiceCollection();
 
 			services.AddSingleton(new ModelInfo { MaxTokens = 4096, Name = "123" });
-			services.AddSingleton(Mock.Of<ICustomChatClient>());
+
+			var clonedClient = new Mock<ICustomChatClient>();
+			clonedClient.SetupProperty(x => x.ChatMode);
+			var mockClient = new Mock<ICustomChatClient>();
+			mockClient.Setup(x => x.Clone()).Returns(clonedClient.Object);
+			services.AddSingleton(mockClient.Object);
 
 			services.AddAgents();
 			var provider = services.BuildServiceProvider();

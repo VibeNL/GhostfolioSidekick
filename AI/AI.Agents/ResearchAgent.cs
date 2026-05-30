@@ -1,16 +1,17 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 using System.Text;
 
 namespace GhostfolioSidekick.AI.Agents
 {
 	public static class ResearchAgent
 	{
+		public const string AgentName = "ResearchAgent";
+		public const string AgentDescription = "A researcher that can access real-time data on the internet. Also can query recent financial news and perform multi-step research.";
+
 		private static string GetSystemPrompt()
 		{
 			var sb = new StringBuilder();
@@ -23,36 +24,23 @@ namespace GhostfolioSidekick.AI.Agents
 			return sb.ToString();
 		}
 
-		public static ChatCompletionAgent Create(ICustomChatClient webChatClient, IServiceProvider serviceProvider)
+		public static ChatClientAgent Create(ICustomChatClient webChatClient, IServiceProvider serviceProvider)
 		{
-			string researchAgent = GetSystemPrompt();
-			IKernelBuilder functionCallingBuilder = Kernel.CreateBuilder();
-			functionCallingBuilder.Services.AddScoped((s) =>
-			{
-				var client = webChatClient.Clone();
-				client.ChatMode = ChatMode.FunctionCalling;
-				return client.AsChatCompletionService();
-			});
-			var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
-			var agentlogger = serviceProvider.GetRequiredService<AgentLogger>();
-			var modelInfo = serviceProvider.GetRequiredService<ModelInfo>();
-			var functionCallingkernel = functionCallingBuilder.Build();
-			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(searchService, webChatClient.AsChatCompletionService(), modelInfo, agentlogger));
+			var cloned = webChatClient.Clone();
+			cloned.ChatMode = ChatMode.FunctionCalling;
 
-			var agent = new ChatCompletionAgent
-			{
-				Name = "ResearchAgent",
-				Instructions = researchAgent,
-				InstructionsRole = AuthorRole.System,
-				Kernel = functionCallingkernel,
-				Description = "A researcher that can access real-time data on the internet. Also can query recent financial news and perform multi-step research.",
-				Arguments = new KernelArguments(new PromptExecutionSettings()
-				{
-					FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-				})
-			};
+			var searchService = (GoogleSearchService)serviceProvider.GetService(typeof(GoogleSearchService))!;
+			var agentLogger = (AgentLogger)serviceProvider.GetService(typeof(AgentLogger))!;
+			var modelInfo = (ModelInfo)serviceProvider.GetService(typeof(ModelInfo))!;
 
-			return agent;
+			var researchFunction = new ResearchAgentFunction(searchService, cloned, modelInfo, agentLogger);
+			var tool = AIFunctionFactory.Create(researchFunction.MultiStepResearch, "multi_step_research");
+
+			return cloned.AsAIAgent(
+				instructions: GetSystemPrompt(),
+				name: AgentName,
+				description: AgentDescription,
+				tools: [tool]);
 		}
 	}
 }

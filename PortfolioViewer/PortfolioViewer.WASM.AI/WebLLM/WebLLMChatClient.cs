@@ -2,7 +2,6 @@ using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using Microsoft.SemanticKernel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -118,12 +117,12 @@ Format function calls like this:
 
 		private static ChatMessage CreateFunctionPromptMessage(ChatOptions options)
 		{
-			var functions = options.Tools!.OfType<KernelFunction>().ToList();
+			var functions = options.Tools!.OfType<AIFunction>().ToList();
 			var functionDefinitions = BuildFunctionDefinitions(functions);
 			return new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionDefinitions));
 		}
 
-		private static string BuildFunctionDefinitions(List<KernelFunction> functions)
+		private static string BuildFunctionDefinitions(List<AIFunction> functions)
 		{
 			var functionDefinitions = new StringBuilder();
 			foreach (var function in functions)
@@ -132,11 +131,15 @@ Format function calls like this:
 				functionDefinitions.AppendLine($"  Description: {function.Description ?? function.Name}");
 				functionDefinitions.AppendLine("  Parameters:");
 
-				foreach (var param in function.Metadata.Parameters)
+				var schema = function.JsonSchema;
+				if (schema.TryGetProperty("properties", out var props))
 				{
-					var paramDesc = param.Description ?? param.Name;
-					var paramType = param.ParameterType?.Name ?? "string";
-					functionDefinitions.AppendLine($"    - {param.Name} ({paramType}): {paramDesc}");
+					foreach (var prop in props.EnumerateObject())
+					{
+						var paramType = prop.Value.TryGetProperty("type", out var t) ? t.GetString() ?? "string" : "string";
+						var paramDesc = prop.Value.TryGetProperty("description", out var d) ? d.GetString() ?? prop.Name : prop.Name;
+						functionDefinitions.AppendLine($"    - {prop.Name} ({paramType}): {paramDesc}");
+					}
 				}
 				functionDefinitions.AppendLine();
 			}
@@ -440,7 +443,7 @@ Format function calls like this:
 
 		private async Task<string> CallToolAsync(ChatOptions options, string name, IDictionary<string, object?>? arguments)
 		{
-			var tool = options.Tools?.OfType<KernelFunction>()
+			var tool = options.Tools?.OfType<AIFunction>()
 				.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
 			if (tool == null)
@@ -449,20 +452,10 @@ Format function calls like this:
 				return $"Tool '{name}' not found.";
 			}
 
-			// Convert arguments to KernelArguments
-			var kernelArgs = new KernelArguments();
-			if (arguments != null)
-			{
-				foreach (var arg in arguments)
-				{
-					kernelArgs[arg.Key] = arg.Value;
-				}
-			}
-
-			// Call the tool (function)
 			try
 			{
-				var result = await tool.InvokeAsync(kernelArgs);
+				var aiArgs = arguments != null ? new AIFunctionArguments(arguments) : null;
+				var result = await tool.InvokeAsync(aiArgs);
 				var output = result?.ToString() ?? "[Function returned null]";
 				logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
 				return output;

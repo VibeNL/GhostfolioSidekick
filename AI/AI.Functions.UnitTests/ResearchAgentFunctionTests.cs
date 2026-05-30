@@ -1,8 +1,7 @@
 using Moq;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using GhostfolioSidekick.AI.Common;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel;
+using Microsoft.Extensions.AI;
 
 namespace GhostfolioSidekick.AI.Functions.UnitTests
 {
@@ -28,28 +27,23 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 			Assert.Equal(expected, result);
 		}
 
-		private class TestChatCompletionService : IChatCompletionService
+		private class TestChatClient : IChatClient
 		{
-			public IReadOnlyDictionary<string, object?> Attributes => new Dictionary<string, object?>();
+			public ChatClientMetadata Metadata => new("test", null, null);
 
-			public Task<IReadOnlyList<ChatMessageContent>> GetChatMessageContentsAsync(ChatHistory chatHistory, PromptExecutionSettings? executionSettings = null, Kernel? kernel = null, CancellationToken cancellationToken = default)
+			public Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default)
 			{
-				return Task.FromResult<IReadOnlyList<ChatMessageContent>>(
-					new List<ChatMessageContent> { new(AuthorRole.Assistant, "summary") }
-				);
+				var response = new ChatResponse([new ChatMessage(ChatRole.Assistant, "summary")]);
+				return Task.FromResult(response);
 			}
 
-			public IAsyncEnumerable<StreamingChatMessageContent> GetStreamingChatMessageContentsAsync(ChatHistory chatHistory, PromptExecutionSettings? executionSettings = null, Kernel? kernel = null, CancellationToken cancellationToken = default)
+			public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default)
 			{
-				return GetEmptyAsyncEnumerable();
+				return AsyncEnumerable.Empty<ChatResponseUpdate>();
 			}
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-			private static async IAsyncEnumerable<StreamingChatMessageContent> GetEmptyAsyncEnumerable()
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-			{
-				yield break;
-			}
+			public object? GetService(Type serviceType, object? serviceKey = null) => null;
+			public void Dispose() { }
 		}
 
 		[Fact]
@@ -69,8 +63,7 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 				.ReturnsAsync(searchResults);
 			var modelInfo = new ModelInfo { Name = "test-model", MaxTokens = 1000 };
 
-
-			var chatService = new TestChatCompletionService();
+			var chatService = new TestChatClient();
 			var function = new ResearchAgentFunction(searchServiceMock.Object, chatService, modelInfo, loggerMock.Object);
 			var topic = "TestTopic";
 			var aspects = new[] { "Aspect1", "Aspect2" };

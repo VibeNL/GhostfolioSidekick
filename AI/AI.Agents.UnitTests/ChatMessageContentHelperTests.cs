@@ -1,5 +1,5 @@
 using GhostfolioSidekick.AI.Common;
-using Microsoft.SemanticKernel;
+using Microsoft.Extensions.AI;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
 {
@@ -22,41 +22,41 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		}
 
 		[Fact]
-		public void ToDisplayText_ChatMessageContent_RemovesThinkTagsAndReturnsText()
+		public void ToDisplayText_ChatMessage_RemovesThinkTagsAndReturnsText()
 		{
-			var message = new ChatMessageContent { Content = "Hi <think>internal</think> there!" };
+			var message = new ChatMessage(ChatRole.Assistant, "Hi <think>internal</think> there!");
 			var result = ChatMessageContentHelper.ToDisplayText(message);
 			Assert.Equal("Hi there!", result);
 		}
 
 		[Fact]
-		public void ToDisplayText_ChatMessageContent_Null_ReturnsEmptyString()
+		public void ToDisplayText_ChatMessage_Null_ReturnsEmptyString()
 		{
-			ChatMessageContent? message = null;
+			ChatMessage? message = null;
 			var result = ChatMessageContentHelper.ToDisplayText(message!);
 			Assert.Equal(string.Empty, result);
 		}
 
 		[Fact]
-		public void ToThinkText_ChatMessageContent_ReturnsThinkText()
+		public void ToThinkText_ChatMessage_ReturnsThinkText()
 		{
-			var message = new ChatMessageContent { Content = "Visible <think>hidden</think> text" };
+			var message = new ChatMessage(ChatRole.Assistant, "Visible <think>hidden</think> text");
 			var result = ChatMessageContentHelper.ToThinkText(message);
 			Assert.Equal("hidden", result);
 		}
 
 		[Fact]
-		public void ToThinkText_ChatMessageContent_NoThinkTag_ReturnsEmptyString()
+		public void ToThinkText_ChatMessage_NoThinkTag_ReturnsEmptyString()
 		{
-			var message = new ChatMessageContent { Content = "Visible text only" };
+			var message = new ChatMessage(ChatRole.Assistant, "Visible text only");
 			var result = ChatMessageContentHelper.ToThinkText(message);
 			Assert.Equal(string.Empty, result);
 		}
 
 		[Fact]
-		public void ToThinkText_ChatMessageContent_Null_ReturnsEmptyString()
+		public void ToThinkText_ChatMessage_Null_ReturnsEmptyString()
 		{
-			ChatMessageContent? message = null;
+			ChatMessage? message = null;
 			var result = ChatMessageContentHelper.ToThinkText(message!);
 			Assert.Equal(string.Empty, result);
 		}

@@ -1,8 +1,6 @@
 using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Agents.AI;
 using Moq;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
@@ -18,7 +16,6 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		{
 			_mockWebChatClient = new Mock<ICustomChatClient>();
 
-			// Use the constructor with GoogleSearchContext to avoid optional parameters
 			var context = new GoogleSearchContext
 			{
 				HttpClient = new HttpClient(),
@@ -28,46 +25,31 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			_googleSearchService = new GoogleSearchService(context);
 			_agentLogger = new AgentLogger();
 
-			// Create a test service provider that avoids the GetRequiredService extension method
 			_serviceProvider = new TestServiceProvider();
 			_serviceProvider.AddService(_googleSearchService);
 			_serviceProvider.AddService(_agentLogger);
 			_serviceProvider.AddService(new ModelInfo { MaxTokens = 4096, Name = "123" });
 
-			// Setup the web chat client clone behavior
 			var clonedClient = new Mock<ICustomChatClient>();
 			clonedClient.SetupProperty(x => x.ChatMode);
 			_mockWebChatClient.Setup(x => x.Clone()).Returns(clonedClient.Object);
 		}
 
 		[Fact]
-		public void Create_ShouldReturnChatCompletionAgent()
+		public void Create_ShouldReturnChatClientAgent()
 		{
 			// Act
 			var agent = ResearchAgent.Create(_mockWebChatClient.Object, _serviceProvider);
 
 			// Assert
 			Assert.NotNull(agent);
-			Assert.IsType<ChatCompletionAgent>(agent);
+			Assert.IsType<ChatClientAgent>(agent);
 			Assert.Equal("ResearchAgent", agent.Name);
 			Assert.Contains("ResearchAgent AI", agent.Instructions);
 			Assert.Contains("smart financial assistant", agent.Instructions);
-			Assert.Equal(AuthorRole.System, agent.InstructionsRole);
-			Assert.NotNull(agent.Kernel);
 			Assert.NotNull(agent.Description);
 			Assert.Contains("researcher", agent.Description);
 			Assert.Contains("real-time data", agent.Description);
-		}
-
-		[Fact]
-		public void Create_ShouldSetupKernelWithPlugins()
-		{
-			// Act
-			var agent = ResearchAgent.Create(_mockWebChatClient.Object, _serviceProvider);
-
-			// Assert
-			Assert.NotNull(agent.Kernel);
-			Assert.True(agent.Kernel.Plugins.Count > 0);
 		}
 
 		[Fact]
@@ -82,17 +64,6 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		}
 
 		[Fact]
-		public void Create_ShouldSetupFunctionChoiceBehavior()
-		{
-			// Act
-			var agent = ResearchAgent.Create(_mockWebChatClient.Object, _serviceProvider);
-
-			// Assert
-			Assert.NotNull(agent.Arguments);
-			Assert.IsType<KernelArguments>(agent.Arguments);
-		}
-
-		[Fact]
 		public void Create_ShouldConfigureAgentWithCorrectDescription()
 		{
 			// Act
@@ -100,21 +71,6 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 
 			// Assert
 			Assert.Equal("A researcher that can access real-time data on the internet. Also can query recent financial news and perform multi-step research.", agent.Description);
-		}
-
-		[Fact]
-		public void Create_ShouldAddResearchAgentFunctionToKernel()
-		{
-			// Act
-			var agent = ResearchAgent.Create(_mockWebChatClient.Object, _serviceProvider);
-
-			// Assert
-			Assert.NotNull(agent.Kernel);
-			Assert.True(agent.Kernel.Plugins.Count > 0);
-
-			// Verify that the kernel has plugins (ResearchAgentFunction was added)
-			var hasPlugins = agent.Kernel.Plugins.Count != 0;
-			Assert.True(hasPlugins);
 		}
 	}
 
