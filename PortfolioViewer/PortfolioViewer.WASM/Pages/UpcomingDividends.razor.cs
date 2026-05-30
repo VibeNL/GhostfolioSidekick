@@ -34,6 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (FilterState != null)
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
+				_previousFilterState = FilterState;
 			}
 
 			await LoadDividendsAsync();
