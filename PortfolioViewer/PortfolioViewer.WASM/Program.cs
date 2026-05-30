@@ -77,6 +77,7 @@ public class Program
 		////builder.Services.AddApiChatClient();
 
 		builder.Services.AddAgents();
+		builder.Services.AddPortfolioTools();
 
 		// Register ServerConfigurationService for DI
 		builder.Services.AddSingleton<IServerConfigurationService, ServerConfigurationService>();

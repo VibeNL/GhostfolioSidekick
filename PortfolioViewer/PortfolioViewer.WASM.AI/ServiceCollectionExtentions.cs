@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Api;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 				s.GetRequiredService<HttpClient>(),
 				s.GetRequiredService<ILogger<ApiChatClient>>()
 			));
+		}
+
+		public static void AddPortfolioTools(this IServiceCollection services)
+		{
+			services.AddSingleton<IAgentToolProvider, PortfolioAgentToolProvider>();
 		}
 	}
 }

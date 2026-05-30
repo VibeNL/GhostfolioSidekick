@@ -20,6 +20,7 @@
 	  <ProjectReference Include="..\..\AI\AI.Common\AI.Common.csproj" />
 	  <ProjectReference Include="..\..\Database\Database.csproj" />
 	  <ProjectReference Include="..\..\ExternalDataProvider\ExternalDataProvider.csproj" />
+	  <ProjectReference Include="..\PortfolioViewer.WASM.Data\PortfolioViewer.WASM.Data.csproj" />
 	</ItemGroup>
 	
 </Project>
