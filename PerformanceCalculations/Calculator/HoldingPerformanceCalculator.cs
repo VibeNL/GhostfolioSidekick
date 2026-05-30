@@ -96,14 +96,25 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					.Where(md => md.Close != 0)
 					.ToList();
 
+				// Ensure exchange rates are preloaded into cache before looping
+				await currencyExchange.PreloadAllExchangeRates();
+
 				// Group market data by symbol profile
 				foreach (var group in filteredMarketData.GroupBy(x => new { x.Symbol, x.DataSource }))
 				{
 					Dictionary<DateOnly, decimal> marketDataDict = [];
 					foreach (var x in group)
 					{
-						Money converted = await currencyExchange.ConvertMoney(new Money(x.Currency, x.Close), currency, x.Date);
-						marketDataDict[x.Date] = converted.Amount;
+						// Skip conversion if the market data is already in the target currency
+						if (x.Currency == currency)
+						{
+							marketDataDict[x.Date] = x.Close;
+						}
+						else
+						{
+							Money converted = await currencyExchange.ConvertMoney(new Money(x.Currency, x.Close), currency, x.Date);
+							marketDataDict[x.Date] = converted.Amount;
+						}
 					}
 
 					allMarketData[(group.Key.Symbol, group.Key.DataSource)] = marketDataDict;
@@ -188,7 +199,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 			CalculatedSnapshot previousSnapshot = new(Guid.NewGuid(), accountId, minDate.AddDays(-1), 0, targetCurrency, 0, 0, 0, 0);
 
-			// Use pre-loaded market data instead of querying database
+			// Use pre-loaded market data (already in target currency) instead of querying database
 			Dictionary<DateOnly, decimal> marketData = new(dayCount);
 			foreach (SymbolProfile symbolProfile in symbolProfiles)
 			{
@@ -225,15 +236,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					currencyExchange
 				).ConfigureAwait(false);
 
+				// marketData values are already in target currency — no conversion needed
 				decimal marketPrice = marketData.TryGetValue(date, out decimal closePrice) ? closePrice : lastKnownMarketPrice;
 				lastKnownMarketPrice = marketPrice;
-				Money marketPriceMoney = new(targetCurrency, marketPrice);
-				Money marketPriceConverted = await currencyExchange.ConvertMoney(
-					marketPriceMoney,
-						targetCurrency,
-					date).ConfigureAwait(false);
-				snapshot.CurrentUnitPrice = marketPriceConverted.Amount;
-				snapshot.TotalValue = marketPriceConverted.Amount * snapshot.Quantity;
+				snapshot.CurrentUnitPrice = marketPrice;
+				snapshot.TotalValue = marketPrice * snapshot.Quantity;
 
 				snapshots.Add(snapshot);
 				previousSnapshot = snapshot;
