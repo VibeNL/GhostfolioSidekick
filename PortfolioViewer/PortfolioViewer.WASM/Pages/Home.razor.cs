@@ -1,4 +1,5 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -20,6 +21,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject] private IVersionService VersionService { get; set; } = default!;
 
 		[Inject] private HttpClient Http { get; set; } = default!;
+
+		[Inject] private IHoldingsDataService HoldingsDataService { get; set; } = default!;
+
+		[Inject] private IUpcomingDividendsService UpcomingDividendsService { get; set; } = default!;
 
 		private IJSObjectReference? mermaidmodule;
 		private Timer? refreshTimer;
@@ -43,11 +48,62 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool IsLoading = true;
 		private bool IsReloading;
 
+		// Portfolio summary
+		private bool IsSummaryLoading;
+		private decimal TotalValue;
+		private decimal TotalInvested;
+		private decimal TotalGainLoss;
+		private decimal TotalGainLossPercentage;
+		private int HoldingsCount;
+		private int UpcomingDividendsCount;
+		private string SummaryCurrency = string.Empty;
+
 		private async Task RefreshPage()
 		{
 			IsReloading = true;
 			StateHasChanged();
 			await JSRuntime.InvokeVoidAsync("forceBlazorReload");
+		}
+
+		private async Task LoadPortfolioSummaryAsync()
+		{
+			IsSummaryLoading = true;
+			StateHasChanged();
+
+			try
+			{
+				var holdings = await HoldingsDataService.GetHoldingsAsync();
+				HoldingsCount = holdings.Count;
+
+				if (holdings.Count > 0)
+				{
+					TotalValue = holdings.Sum(h => h.CurrentValue.Amount);
+					TotalInvested = holdings.Sum(h => h.AveragePrice.Amount * h.Quantity);
+					TotalGainLoss = holdings.Sum(h => h.GainLoss.Amount);
+					SummaryCurrency = holdings.First().CurrentValue.Currency.Symbol;
+					TotalGainLossPercentage = TotalInvested > 0 ? TotalGainLoss / TotalInvested * 100m : 0m;
+				}
+				else
+				{
+					TotalValue = 0;
+					TotalInvested = 0;
+					TotalGainLoss = 0;
+					TotalGainLossPercentage = 0;
+					SummaryCurrency = string.Empty;
+				}
+
+				var dividends = await UpcomingDividendsService.GetUpcomingDividendsAsync();
+				UpcomingDividendsCount = dividends.Count;
+			}
+			catch
+			{
+				// Silently ignore summary errors – data may not be available yet
+			}
+			finally
+			{
+				IsSummaryLoading = false;
+				StateHasChanged();
+			}
 		}
 
 		private async Task StartFullSync()
@@ -93,6 +149,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				LastSyncTime = now;
 
 				_isError = false;
+
+				// Reload portfolio summary after sync
+				await LoadPortfolioSummaryAsync();
 			}
 			catch (Exception ex)
 			{
@@ -229,6 +288,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			// Load the last sync time when the component initializes
 			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
+
+			if (LastSyncTime.HasValue)
+			{
+				await LoadPortfolioSummaryAsync();
+			}
 
 			refreshTimer = new Timer(async _ =>
 			{

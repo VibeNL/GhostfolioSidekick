@@ -1,6 +1,7 @@
 @page "/"
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.Model
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @attribute [Authorize]
 
 
@@ -15,11 +16,131 @@
 }
 else
 {
-    <PageTitle>Home</PageTitle>
+    <PageTitle>Dashboard</PageTitle>
 
-    <h1>Start page</h1>
+    <h1><i class="bi bi-speedometer2 me-2"></i>Portfolio Dashboard</h1>
 
-    <p>Before use, please sync the data with a copy of the server</p>
+    <!-- Portfolio KPI Summary Cards -->
+    @if (LastSyncTime.HasValue)
+    {
+        <div class="row g-3 mb-4">
+            @if (IsSummaryLoading)
+            {
+                <div class="col-12 text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                        <span class="visually-hidden">Loading summary...</span>
+                    </div>
+                    <span class="text-muted">Loading portfolio summary...</span>
+                </div>
+            }
+            else
+            {
+                <!-- Total Value -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card h-100 border-primary shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                                    <i class="bi bi-wallet2 text-primary fs-5"></i>
+                                </div>
+                                <span class="text-muted small fw-semibold text-uppercase">Total Value</span>
+                            </div>
+                            <div class="h4 mb-0 fw-bold">
+                                <PrivacyValue Value="@($"{SummaryCurrency} {TotalValue:N2}")" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Invested -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card h-100 border-info shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle bg-info bg-opacity-10 p-2 me-3">
+                                    <i class="bi bi-cash-stack text-info fs-5"></i>
+                                </div>
+                                <span class="text-muted small fw-semibold text-uppercase">Total Invested</span>
+                            </div>
+                            <div class="h4 mb-0 fw-bold">
+                                <PrivacyValue Value="@($"{SummaryCurrency} {TotalInvested:N2}")" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gain / Loss -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card h-100 @(TotalGainLoss >= 0 ? "border-success" : "border-danger") shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle @(TotalGainLoss >= 0 ? "bg-success" : "bg-danger") bg-opacity-10 p-2 me-3">
+                                    <i class="bi @(TotalGainLoss >= 0 ? "bi-graph-up-arrow text-success" : "bi-graph-down-arrow text-danger") fs-5"></i>
+                                </div>
+                                <span class="text-muted small fw-semibold text-uppercase">Total Gain / Loss</span>
+                            </div>
+                            <div class="h4 mb-0 fw-bold @(TotalGainLoss >= 0 ? "text-success" : "text-danger")">
+                                <PrivacyValue Value="@($"{(TotalGainLoss >= 0 ? "+" : "")}{SummaryCurrency} {TotalGainLoss:N2}")" />
+                            </div>
+                            <div class="small @(TotalGainLoss >= 0 ? "text-success" : "text-danger")">
+                                <PrivacyValue Value="@($"{(TotalGainLossPercentage >= 0 ? "+" : "")}{TotalGainLossPercentage:N2}%")" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Holdings & Dividends -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card h-100 border-warning shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-3">
+                                    <i class="bi bi-pie-chart text-warning fs-5"></i>
+                                </div>
+                                <span class="text-muted small fw-semibold text-uppercase">Holdings</span>
+                            </div>
+                            <div class="h4 mb-0 fw-bold">@HoldingsCount</div>
+                            @if (UpcomingDividendsCount > 0)
+                            {
+                                <div class="small text-muted mt-1">
+                                    <a href="/dividends" class="text-decoration-none">
+                                        <i class="bi bi-cash-coin me-1 text-success"></i>@UpcomingDividendsCount upcoming dividend@(UpcomingDividendsCount != 1 ? "s" : "")
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Quick Links -->
+        <div class="row g-2 mb-4">
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/holdings" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pie-chart me-1"></i>Holdings
+                    </a>
+                    <a href="/portfolio-timeseries" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-bar-chart-line me-1"></i>Performance
+                    </a>
+                    <a href="/top-movers" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-lightning-charge me-1"></i>Top Movers
+                    </a>
+                    <a href="/dividends" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-cash-coin me-1"></i>Dividends
+                    </a>
+                    <a href="/transactions" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-list-ul me-1"></i>Transactions
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <hr />
+
+    <h5 class="text-muted mb-3"><i class="bi bi-arrow-repeat me-2"></i>Data Sync</h5>
 
     <!-- Migration Warning Section -->
     @if (MigrationStatus != null && MigrationStatus.PendingMigrations.Count > 0)
