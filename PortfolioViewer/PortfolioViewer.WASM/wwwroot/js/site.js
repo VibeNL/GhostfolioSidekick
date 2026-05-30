@@ -32,3 +32,18 @@ const forceBlazorReload = () => __awaiter(void 0, void 0, void 0, function* () {
     globalThis.location.reload();
 });
 globalThis.forceBlazorReload = forceBlazorReload;
+
+// CSV download helper - triggers a browser file download with the given CSV content
+function downloadCsv(filename, csvContent) {
+    const bom = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+globalThis.downloadCsv = downloadCsv;
