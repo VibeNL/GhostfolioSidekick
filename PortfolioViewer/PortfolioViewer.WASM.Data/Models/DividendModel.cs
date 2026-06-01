@@ -1,6 +1,6 @@
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 {
-    public class UpcomingDividendModel
+    public class DividendModel
     {
         public string Symbol { get; set; } = string.Empty;
         public string CompanyName { get; set; } = string.Empty;

@@ -9,10 +9,10 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
-	public partial class UpcomingDividends : ComponentBase, IDisposable
+	public partial class Dividends : ComponentBase, IDisposable
 	{
 		[Inject]
-		private IUpcomingDividendsService DividendsService { get; set; } = default!;
+		private IDividendsService DividendsService { get; set; } = default!;
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[CascadingParameter]
 		private FilterState? FilterState { get; set; }
 
-		protected List<UpcomingDividendModel>? dividends;
+		protected List<DividendModel>? dividends;
 		protected bool isLoading = true;
 
 		protected IList<ITrace> chartData = [];
@@ -153,9 +153,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			chartConfig = new Config { Responsive = true };
 		}
 
-		private UpcomingDividendModel? selectedDividend;
+		private DividendModel? selectedDividend;
 
-		private void ShowDetails(UpcomingDividendModel div)
+		private void ShowDetails(DividendModel div)
 		{
 			selectedDividend = div;
 		}

@@ -5,13 +5,12 @@ using Moq.EntityFrameworkCore;
 using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Market;
-using SymbolProfile = GhostfolioSidekick.Model.Symbols.SymbolProfile;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 
 namespace PortfolioViewer.WASM.Data.UnitTests.Services
 {
-    public class UpcomingDividendsServiceTests
+    public class DividendsServiceTests
     {
         [Fact]
         public async Task GetDividendsAsync_ReturnsExpectedDividends()
@@ -47,7 +46,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             var mockConfigService = new Mock<IServerConfigurationService>();
             mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
-            var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
+            var service = new DividendsService(mockFactory.Object, mockConfigService.Object);
 
             // Act
             var result = await service.GetDividendsAsync();
@@ -101,7 +100,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             var mockConfigService = new Mock<IServerConfigurationService>();
             mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
-            var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
+            var service = new DividendsService(mockFactory.Object, mockConfigService.Object);
 
             // Act
             var result = await service.GetDividendsAsync();
@@ -165,7 +164,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
             var mockConfigService = new Mock<IServerConfigurationService>();
             mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
 
-            var service = new UpcomingDividendsService(mockFactory.Object, mockConfigService.Object);
+            var service = new DividendsService(mockFactory.Object, mockConfigService.Object);
 
             var startDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
             var endDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30));

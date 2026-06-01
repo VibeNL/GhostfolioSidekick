@@ -8,14 +8,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 	/// <summary>
 	/// Service for retrieving dividends for portfolio holdings.
 	/// </summary>
-	public class UpcomingDividendsService(
+	public class DividendsService(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
-		IServerConfigurationService serverConfigurationService) : IUpcomingDividendsService
+		IServerConfigurationService serverConfigurationService) : IDividendsService
 	{
 		/// <summary>
 		/// Retrieves dividends for all portfolio holdings, optionally filtered by date range.
 		/// </summary>
-		public async Task<List<UpcomingDividendModel>> GetDividendsAsync(DateOnly? startDate = null, DateOnly? endDate = null)
+		public async Task<List<DividendModel>> GetDividendsAsync(DateOnly? startDate = null, DateOnly? endDate = null)
 		{
 			await using var db = await dbContextFactory.CreateDbContextAsync();
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				holdingData.TryGetValue(entry.HoldingId, out var holding);
 				var quantity = holding?.LatestQuantity ?? 0m;
-				return new UpcomingDividendModel
+				return new DividendModel
 				{
 					Symbol = holding?.Symbol ?? entry.HoldingId.ToString(),
 					CompanyName = holding?.Name ?? string.Empty,
