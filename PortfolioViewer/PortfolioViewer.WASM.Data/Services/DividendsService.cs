@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				query = query.Where(e => e.ExpectedDate >= startDate.Value);
 			}
 
-			if (endDate.HasValue)
+			if (endDate.HasValue && endDate.Value < DateOnly.FromDateTime(DateTime.Today))
 			{
 				query = query.Where(e => e.ExpectedDate <= endDate.Value);
 			}
