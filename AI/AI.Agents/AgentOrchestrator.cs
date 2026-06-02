@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.AI.Agents
 			var toolProviders = (serviceProvider.GetService(typeof(IEnumerable<IAgentToolProvider>)) as IEnumerable<IAgentToolProvider>)
 				?.ToList() ?? [];
 			var allTools = new List<AITool> { researchTool };
-			
+
 			foreach (var provider in toolProviders)
 			{
 				allTools.AddRange(provider.GetTools());
@@ -136,6 +136,11 @@ namespace GhostfolioSidekick.AI.Agents
 		public Task InitializeAsync(Progress<InitializeProgress> progress)
 		{
 			return chatClient.InitializeAsync(progress);
+		}
+
+		public void ClearMemory()
+		{
+			session = null;
 		}
 	}
 }

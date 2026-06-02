@@ -101,11 +101,17 @@
 				</div>
 
 				<!-- Submit button -->
-				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+				<div style="padding: 12px; border-top: 1px solid #e5e7eb; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
 					<button id="send-button" @onclick="StreamPromptRequest"
 							style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;"
 							disabled="@IsBotTyping">
 						Send
+					</button>
+					<button id="clear-button" @onclick="ClearChat"
+							style="background-color: #ef4444; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;"
+							disabled="@IsBotTyping"
+							title="Clear chat and start over">
+						🗑 Clear
 					</button>
 					@if (!string.IsNullOrWhiteSpace(CurrentAgentName))
 					{

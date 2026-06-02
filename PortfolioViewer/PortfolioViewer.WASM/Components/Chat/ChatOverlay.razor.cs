@@ -44,6 +44,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			agentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
 		}
 
+		private void ClearChat()
+		{
+			memory.Clear();
+			orchestrator.ClearMemory();
+			CurrentMessage = string.Empty;
+		}
+
 		private async Task ToggleChat()
 		{
 			IsOpen = !IsOpen;
