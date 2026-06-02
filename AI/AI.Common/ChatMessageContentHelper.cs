@@ -16,8 +16,7 @@ namespace GhostfolioSidekick.AI.Common
 				return string.Empty;
 			}
 
-			var text = ThinkTagRegEx().Replace(message, string.Empty);
-			return WhitespaceRegEx().Replace(text, " ").Trim();
+			return WhitespaceRegEx().Replace(message, " ").Trim();
 		}
 
 		public static string ToThinkText(this ChatMessage message)
@@ -27,21 +26,11 @@ namespace GhostfolioSidekick.AI.Common
 				return string.Empty;
 			}
 
-			var match = ThinkTagCaptureRegEx().Match(message.Text ?? string.Empty);
+			var text = message.AdditionalProperties?["tool_call"]?.ToString();
 
-			if (!match.Success)
-			{
-				return string.Empty;
-			}
+			return ToDisplayText(text ?? string.Empty);
 
-			return match.Groups[1].Value;
 		}
-
-		[System.Text.RegularExpressions.GeneratedRegex(@"<think>.*?</think>", System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
-		private static partial System.Text.RegularExpressions.Regex ThinkTagRegEx();
-
-		[System.Text.RegularExpressions.GeneratedRegex(@"<think>(.*?)</think>", System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
-		private static partial System.Text.RegularExpressions.Regex ThinkTagCaptureRegEx();
 
 		[System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
 		private static partial System.Text.RegularExpressions.Regex WhitespaceRegEx();

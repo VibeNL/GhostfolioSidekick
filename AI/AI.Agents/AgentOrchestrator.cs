@@ -52,12 +52,45 @@ namespace GhostfolioSidekick.AI.Agents
 				return [];
 			}
 
+			FixupMemory();
+
 			if (session.TryGetInMemoryChatHistory(out var chatHistory))
 			{
 				return chatHistory.Where(x => x.Text != null).ToList();
 			}
 
 			return [];
+		}
+
+		private void FixupMemory()
+		{
+			if (session == null)
+			{
+				return;
+			}
+
+			List<ChatMessage> cleanedChatHistory = [];
+			if (session.TryGetInMemoryChatHistory(out var chatHistory))
+			{
+				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
+				List<ChatMessage> lastToolCall = [];
+				foreach (var message in chatHistory)
+				{
+					if (message.Role == ChatRole.Tool)
+					{
+						lastToolCall.Add(message);
+					}
+					else
+					{
+						message.AdditionalProperties ??= [];
+						message.AdditionalProperties?.Add("tool_call", string.Join(", ", lastToolCall.Select(tc => tc.Text ?? string.Empty)));
+						lastToolCall.Clear();
+						cleanedChatHistory.Add(message);
+					}
+				}
+			}
+
+			session.SetInMemoryChatHistory(cleanedChatHistory);
 		}
 
 		public async IAsyncEnumerable<AgentResponseUpdate> AskQuestion(string input)
