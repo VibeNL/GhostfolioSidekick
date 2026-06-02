@@ -8,80 +8,79 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.AI.Agents
 {
-[ExcludeFromCodeCoverage]
-public class AgentOrchestrator
-{
-private readonly ChatClientAgent mainAgent;
-private readonly AgentLogger logger;
-private readonly ICustomChatClient chatClient;
-private AgentSession? session;
+	[ExcludeFromCodeCoverage]
+	public class AgentOrchestrator
+	{
+		private readonly ChatClientAgent mainAgent;
+		private readonly AgentLogger logger;
+		private readonly ICustomChatClient chatClient;
+		private AgentSession? session;
 
-public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
-{
-chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
+		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
+		{
+			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
 
-var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
-var agentLogger = serviceProvider.GetRequiredService<AgentLogger>();
-var modelInfo = serviceProvider.GetRequiredService<ModelInfo>();
-var researchFunction = new ResearchAgentFunction(searchService, chatClient, modelInfo, agentLogger);
-var researchTool = AIFunctionFactory.Create(researchFunction.MultiStepResearch, "multi_step_research");
+			var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
+			var agentLogger = serviceProvider.GetRequiredService<AgentLogger>();
+			var modelInfo = serviceProvider.GetRequiredService<ModelInfo>();
+			var researchFunction = new ResearchAgentFunction(searchService, chatClient, modelInfo, agentLogger);
+			var researchTool = AIFunctionFactory.Create(researchFunction.MultiStepResearch, "multi_step_research");
 
-var toolProviders = (serviceProvider.GetService(typeof(IEnumerable<IAgentToolProvider>)) as IEnumerable<IAgentToolProvider>)
-	?.ToList() ?? [];
-var allTools = new List<AITool> { researchTool };
-var companions = new List<(string Name, string Description)>
-{
-(ResearchAgent.AgentName, ResearchAgent.AgentDescription)
-};
+			var toolProviders = (serviceProvider.GetService(typeof(IEnumerable<IAgentToolProvider>)) as IEnumerable<IAgentToolProvider>)
+				?.ToList() ?? [];
+			var allTools = new List<AITool> { researchTool };
+			var companions = new List<(string Name, string Description)>
+			{
+				(ResearchAgent.AgentName, ResearchAgent.AgentDescription)
+			};
 
-foreach (var provider in toolProviders)
-{
-allTools.AddRange(provider.GetTools());
-companions.Add((provider.ProviderName, provider.ProviderDescription));
-}
+			foreach (var provider in toolProviders)
+			{
+				allTools.AddRange(provider.GetTools());
+				companions.Add((provider.ProviderName, provider.ProviderDescription));
+			}
 
-mainAgent = GhostfolioSidekick.Create(chatClient, companions, allTools);
+			mainAgent = GhostfolioSidekick.Create(chatClient, companions, allTools);
 
-this.logger = logger;
-}
+			this.logger = logger;
+		}
 
-public IReadOnlyCollection<ChatMessage> History()
-{
-if (session == null)
-{
-return [];
-}
+		public IReadOnlyCollection<ChatMessage> History()
+		{
+			if (session == null)
+			{
+				return [];
+			}
 
-var chatHistory = session.GetService<IList<ChatMessage>>();
-if (chatHistory == null)
-{
-return [];
-}
+			if (session.TryGetInMemoryChatHistory(out var chatHistory))
+			{
+				return chatHistory.Where(x => x.Text != null).ToList();
+			}
 
-return chatHistory.Where(x => x.Text != null).ToList();
-}
+			return [];
+		}
 
-public async IAsyncEnumerable<AgentResponseUpdate> AskQuestion(string input)
-{
-logger.StartAgent(mainAgent.Name ?? "<????>");
+		public async IAsyncEnumerable<AgentResponseUpdate> AskQuestion(string input)
+		{
+			logger.StartAgent(mainAgent.Name ?? "<????>");
 
-if (session == null)
-{
-session = await mainAgent.CreateSessionAsync();
-}
+			if (session == null)
+			{
+				session = await mainAgent.CreateSessionAsync();
+			}
 
-await foreach (var update in mainAgent.RunStreamingAsync(input, session))
-{
-logger.StartAgent(update.AuthorName ?? mainAgent.Name ?? string.Empty);
-yield return update;
-}
+			await foreach (var update in mainAgent.RunStreamingAsync(input, session))
+			{
+				logger.StartAgent(update.AuthorName ?? mainAgent.Name ?? string.Empty);
+				yield return update;
+			}
 
-logger.StartAgent(string.Empty);
-}
+			logger.StartAgent(string.Empty);
+		}
 
-public Task InitializeAsync(Progress<InitializeProgress> progress)
-{
-return chatClient.InitializeAsync(progress);
-}
-}
+		public Task InitializeAsync(Progress<InitializeProgress> progress)
+		{
+			return chatClient.InitializeAsync(progress);
+		}
+	}
 }

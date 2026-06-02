@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				}
 
 				memory.Clear();
-					memory.AddRange(orchestrator.History());
+				memory.AddRange(orchestrator.History());
 
 				IsBotTyping = false;
 				streamingAuthor = string.Empty;
