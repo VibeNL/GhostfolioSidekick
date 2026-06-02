@@ -75,5 +75,27 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			Assert.NotNull(history);
 			Assert.Empty(history);
 		}
+
+		// Test service provider that implements IServiceProvider without using extension methods
+		public class TestServiceProvider : IServiceProvider
+		{
+			private readonly Dictionary<Type, object> _services = [];
+
+			public void AddService<T>(T service) where T : class
+			{
+				_services[typeof(T)] = service;
+			}
+
+			public object? GetService(Type serviceType)
+			{
+				return _services.TryGetValue(serviceType, out var service) ? service : null;
+			}
+
+			public T GetRequiredService<T>() where T : class
+			{
+				var service = GetService(typeof(T));
+				return service as T ?? throw new InvalidOperationException($"Service of type {typeof(T)} not found.");
+			}
+		}
 	}
 }

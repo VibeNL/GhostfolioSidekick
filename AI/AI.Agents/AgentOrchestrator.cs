@@ -29,18 +29,13 @@ namespace GhostfolioSidekick.AI.Agents
 			var toolProviders = (serviceProvider.GetService(typeof(IEnumerable<IAgentToolProvider>)) as IEnumerable<IAgentToolProvider>)
 				?.ToList() ?? [];
 			var allTools = new List<AITool> { researchTool };
-			var companions = new List<(string Name, string Description)>
-			{
-				(ResearchAgent.AgentName, ResearchAgent.AgentDescription)
-			};
-
+			
 			foreach (var provider in toolProviders)
 			{
 				allTools.AddRange(provider.GetTools());
-				companions.Add((provider.ProviderName, provider.ProviderDescription));
 			}
 
-			mainAgent = GhostfolioSidekick.Create(chatClient, companions, allTools);
+			mainAgent = GhostfolioSidekick.Create(chatClient, allTools);
 
 			this.logger = logger;
 		}
