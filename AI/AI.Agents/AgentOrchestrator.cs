@@ -1,6 +1,4 @@
 using GhostfolioSidekick.AI.Common;
-using GhostfolioSidekick.AI.Functions;
-using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,15 +18,9 @@ namespace GhostfolioSidekick.AI.Agents
 		{
 			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
 
-			var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
-			var agentLogger = serviceProvider.GetRequiredService<AgentLogger>();
-			var modelInfo = serviceProvider.GetRequiredService<ModelInfo>();
-			var researchFunction = new ResearchAgentFunction(searchService, chatClient, modelInfo, agentLogger);
-			var researchTool = AIFunctionFactory.Create(researchFunction.MultiStepResearch, "multi_step_research");
-
 			var toolProviders = (serviceProvider.GetService(typeof(IEnumerable<IAgentToolProvider>)) as IEnumerable<IAgentToolProvider>)
 				?.ToList() ?? [];
-			var allTools = new List<AITool> { researchTool };
+			var allTools = new List<AITool>();
 
 			foreach (var provider in toolProviders)
 			{
