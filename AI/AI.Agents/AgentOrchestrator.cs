@@ -73,18 +73,28 @@ namespace GhostfolioSidekick.AI.Agents
 			if (session.TryGetInMemoryChatHistory(out var chatHistory))
 			{
 				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
-				List<ChatMessage> lastToolCall = [];
+				List<ChatMessage> toolsCalls = [];
 				foreach (var message in chatHistory)
 				{
 					if (message.Role == ChatRole.Tool)
 					{
-						lastToolCall.Add(message);
+						toolsCalls.Add(message);
 					}
 					else
 					{
 						message.AdditionalProperties ??= [];
-						message.AdditionalProperties?.Add("tool_call", string.Join(", ", lastToolCall.Select(tc => tc.Text ?? string.Empty)));
-						lastToolCall.Clear();
+
+						if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
+						{
+							message.AdditionalProperties.TryAdd("tool_call", "");
+						}
+
+						if (toolsCalls.Any())
+						{
+							message.AdditionalProperties["tool_call"] = string.Join(", ", toolsCalls.Select(tc => tc.Text ?? string.Empty));
+							toolsCalls.Clear();
+						}
+						
 						cleanedChatHistory.Add(message);
 					}
 				}
