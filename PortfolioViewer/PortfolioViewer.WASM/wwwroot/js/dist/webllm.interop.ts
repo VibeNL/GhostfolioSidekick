@@ -44,14 +44,13 @@ export class WebLLMInterop {
             throw new Error("Engine is not initialized.");
         }
 
-        // Chunks is an AsyncGenerator object
-        const chunks = await this.engine.chat.completions.create({
+        const chunks = this.engine.chat.completions.create({
             messages,
             temperature: 0,
             seed: 42,
             model: modelId,
-            tool_choice: "auto",
-            tools: [],
+			tool_choice: "auto",
+			tools: undefined,
             stream: true, // Enable streaming
             stream_options: { include_usage: true },
             extra_body: {

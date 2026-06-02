@@ -131,24 +131,26 @@ Format function calls like this:
 		private static string BuildFunctionDefinitions(List<AIFunction> functions)
 		{
 			var functionDefinitions = new StringBuilder();
-			foreach (var function in functions)
+			
+			foreach (var aiFunction in functions)
 			{
-				functionDefinitions.AppendLine($"- {function.Name}");
-				functionDefinitions.AppendLine($"  Description: {function.Description ?? function.Name}");
-				functionDefinitions.AppendLine("  Parameters:");
-
-				var schema = function.JsonSchema;
-				if (schema.TryGetProperty("properties", out var props))
+				// Combine the framework properties into a single payload
+				var completeRepresentation = new
 				{
-					foreach (var prop in props.EnumerateObject())
-					{
-						var paramType = prop.Value.TryGetProperty("type", out var t) ? t.GetString() ?? "string" : "string";
-						var paramDesc = prop.Value.TryGetProperty("description", out var d) ? d.GetString() ?? prop.Name : prop.Name;
-						functionDefinitions.AppendLine($"    - {prop.Name} ({paramType}): {paramDesc}");
-					}
-				}
-				functionDefinitions.AppendLine();
+					name = aiFunction.Name,
+					description = aiFunction.Description,
+					parameters = aiFunction.JsonSchema // Already a validated JsonElement
+				};
+
+				// Serialize the entire structure to JSON
+				string fullJsonSpec = JsonSerializer.Serialize(completeRepresentation, new JsonSerializerOptions
+				{
+					WriteIndented = true
+				});
+
+				functionDefinitions.AppendLine(fullJsonSpec);
 			}
+
 			return functionDefinitions.ToString();
 		}
 
@@ -160,7 +162,9 @@ Format function calls like this:
 				await (await GetModule()).InvokeVoidAsync(
 					"completeStreamWebLLM",
 					InteropInstance.ConvertMessage(convertedMessages),
-					model
+					model,
+					ChatMode == ChatMode.ChatWithThinking,
+					null
 				);
 			}, cancellationToken);
 		}
