@@ -33,7 +33,7 @@ export class WebLLMInterop {
         });
     }
     // Stream completion
-    completeStream(messages, modelId, enableThinking, tools) {
+    completeStream(messages, modelId) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
             var _d;
@@ -47,11 +47,11 @@ export class WebLLMInterop {
                 seed: 42,
                 model: modelId,
                 tool_choice: "auto",
-                tools: tools,
+                tools: [],
                 stream: true, // Enable streaming
                 stream_options: { include_usage: true },
                 extra_body: {
-                    enable_thinking: enableThinking,
+                    enable_thinking: true, // always include thinking in the response
                 },
             });
             try {
@@ -81,8 +81,8 @@ export function initializeWebLLM(selectedModels, dotnet) {
         yield webLLMInteropInstance.initialize(selectedModels, dotnet);
     });
 }
-export function completeStreamWebLLM(messages, modelId, enableThinking, tools) {
+export function completeStreamWebLLM(messages, modelId) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield webLLMInteropInstance.completeStream(messages, modelId, enableThinking, JSON.parse(tools));
+        yield webLLMInteropInstance.completeStream(messages, modelId);
     });
 }

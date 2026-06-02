@@ -160,9 +160,7 @@ Format function calls like this:
 				await (await GetModule()).InvokeVoidAsync(
 					"completeStreamWebLLM",
 					InteropInstance.ConvertMessage(convertedMessages),
-					model,
-					ChatMode == ChatMode.ChatWithThinking,
-					null
+					model
 				);
 			}, cancellationToken);
 		}

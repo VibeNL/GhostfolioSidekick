@@ -39,7 +39,7 @@ export class WebLLMInterop {
     }
 
     // Stream completion
-    public async completeStream(messages: Message[], modelId: string, enableThinking: boolean, tools: Array<webllm.ChatCompletionTool>): Promise<void> {
+    public async completeStream(messages: Message[], modelId: string): Promise<void> {
         if (!this.engine) {
             throw new Error("Engine is not initialized.");
         }
@@ -51,11 +51,11 @@ export class WebLLMInterop {
             seed: 42,
             model: modelId,
             tool_choice: "auto",
-            tools: tools,
+            tools: [],
             stream: true, // Enable streaming
             stream_options: { include_usage: true },
             extra_body: {
-                enable_thinking: enableThinking,
+				enable_thinking: true, // always include thinking in the response
             },
         });
 
@@ -76,9 +76,7 @@ export async function initializeWebLLM(selectedModels: string[], dotnet: DotNetI
 
 export async function completeStreamWebLLM(
     messages: Message[],
-    modelId: string,
-    enableThinking: boolean,
-    tools: string
+    modelId: string
 ): Promise<void> {
-    await webLLMInteropInstance.completeStream(messages, modelId, enableThinking, JSON.parse(tools));
+    await webLLMInteropInstance.completeStream(messages, modelId);
 }
