@@ -82,6 +82,11 @@ namespace GhostfolioSidekick.AI.Agents
 					}
 					else
 					{
+						if (message.Role == ChatRole.User)
+						{
+							message.AuthorName = "User";
+						}
+
 						message.AdditionalProperties ??= [];
 
 						if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
@@ -97,7 +102,7 @@ namespace GhostfolioSidekick.AI.Agents
 
 						// Remove <think>content</think> tags from the message text, as they are only used for formatting in the UI and can be confusing when displayed as-is.
 						message.Contents =
-							message.Contents.Select(content =>
+							[.. message.Contents.Select(content =>
 							{
 								if (content is TextContent textContent)
 								{
@@ -105,7 +110,7 @@ namespace GhostfolioSidekick.AI.Agents
 								}
 
 								return content;
-							}).ToList();
+							})];
 
 						cleanedChatHistory.Add(message);
 					}
