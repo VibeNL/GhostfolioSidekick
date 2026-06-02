@@ -76,7 +76,7 @@ Format function calls like this:
 
 			StartStreamingAsync(convertedMessages, cancellationToken);
 
-			await foreach (var update in ProcessStreamingResponseAsync(options, cancellationToken))
+			await foreach (var update in ProcessStreamingResponseAsync(messages, options, cancellationToken))
 			{
 				yield return update;
 			}
@@ -171,6 +171,7 @@ Format function calls like this:
 		}
 
 		private async IAsyncEnumerable<ChatResponseUpdate> ProcessStreamingResponseAsync(
+			IEnumerable<ChatMessage> originalMessages,
 			ChatOptions? options,
 			[EnumeratorCancellation] CancellationToken cancellationToken)
 		{
@@ -187,18 +188,22 @@ Format function calls like this:
 
 				if (response.IsStreamComplete)
 				{
-					await foreach (var finalUpdate in HandleStreamComplete(options, totalTextBuilder))
+					await foreach (var finalUpdate in HandleStreamComplete(originalMessages, options, totalTextBuilder, cancellationToken))
 					{
 						yield return finalUpdate;
 					}
 					yield break;
 				}
 
+				// Suppress raw tool-call JSON tokens — only emit when not in tool-calling mode
 				var content = ExtractContentFromResponse(response);
 				if (content != null)
 				{
 					totalTextBuilder.Append(content);
-					yield return CreateResponseUpdate(options, content);
+					if (!HasTools(options))
+					{
+						yield return CreateResponseUpdate(options, content);
+					}
 				}
 			}
 		}
@@ -211,8 +216,10 @@ Format function calls like this:
 		}
 
 		private async IAsyncEnumerable<ChatResponseUpdate> HandleStreamComplete(
+			IEnumerable<ChatMessage> originalMessages,
 			ChatOptions? options,
-			StringBuilder totalTextBuilder)
+			StringBuilder totalTextBuilder,
+			[EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			if (!HasTools(options) || totalTextBuilder.Length == 0)
 			{
@@ -220,28 +227,34 @@ Format function calls like this:
 			}
 
 			var totalText = totalTextBuilder.ToString();
-			if (TryParseToolCalls(totalText, out var toolCalls))
+			if (!TryParseToolCalls(totalText, out var toolCalls))
 			{
-				await foreach (var update in ExecuteToolCallsAsync(options!, toolCalls))
-				{
-					yield return update;
-				}
+				// Model responded with prose instead of a tool call — emit as-is
+				yield return new ChatResponseUpdate(ChatRole.Assistant, ChatMessageContentHelper.ToDisplayText(totalText).Trim());
+				yield break;
 			}
-			else
-			{
-				var content = ChatMessageContentHelper.ToDisplayText(totalText).Trim();
-				yield return new ChatResponseUpdate(ChatRole.Assistant, content);
-			}
-		}
 
-		private async IAsyncEnumerable<ChatResponseUpdate> ExecuteToolCallsAsync(
-			ChatOptions options,
-			List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
-		{
+			// Execute every tool and collect results
+			var toolResults = new List<string>();
 			foreach (var toolCall in toolCalls)
 			{
-				var output = await CallToolAsync(options, toolCall.Name, toolCall.Arguments);
-				yield return new ChatResponseUpdate(ChatRole.Assistant, output);
+				var output = await CallToolAsync(options!, toolCall.Name, toolCall.Arguments);
+				toolResults.Add(output);
+			}
+
+			// Build synthesis conversation:
+			// - original history (user question + prior assistant turns)
+			// - a single User message that contains all tool results, asking the model to synthesize
+			var combinedResults = string.Join("\n\n", toolResults);
+			var synthesisMessages = new List<ChatMessage>(originalMessages)
+			{
+				new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{combinedResults}\n\nPlease answer the original question using this data."),
+			};
+
+			// Second LLM call — no tools, so the model produces a natural language response
+			await foreach (var update in GetStreamingResponseAsync(synthesisMessages, options: null, cancellationToken))
+			{
+				yield return update;
 			}
 		}
 
