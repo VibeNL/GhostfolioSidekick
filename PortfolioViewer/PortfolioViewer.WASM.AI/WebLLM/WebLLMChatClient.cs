@@ -102,6 +102,12 @@ Format function calls like this:
 				.Select(RemoveThink)
 				.ToList();
 
+			if (!string.IsNullOrWhiteSpace(options?.Instructions) &&
+				!convertedMessages.Any(m => m.Role == ChatRole.System))
+			{
+				convertedMessages.Insert(0, new ChatMessage(ChatRole.System, options!.Instructions));
+			}
+
 			if (ShouldAddFunctionPrompt(options))
 			{
 				convertedMessages.Add(CreateFunctionPromptMessage(options!));
@@ -110,9 +116,9 @@ Format function calls like this:
 			return convertedMessages;
 		}
 
-		private bool ShouldAddFunctionPrompt(ChatOptions? options)
+		private static bool ShouldAddFunctionPrompt(ChatOptions? options)
 		{
-			return ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true;
+			return options?.Tools?.Any() == true;
 		}
 
 		private static ChatMessage CreateFunctionPromptMessage(ChatOptions options)
