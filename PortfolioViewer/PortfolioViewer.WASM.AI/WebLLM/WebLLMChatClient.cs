@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 	[method: System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 	public partial class WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds) : ICustomChatClient
 	{
-		private InteropInstance? interopInstance;
+		private InteropInstance interopInstance = new();
 
 		private IJSObjectReference? module;
 
@@ -402,7 +402,7 @@ Format function calls like this:
 		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
 			// Call the `initialize` function in the JavaScript module
-			interopInstance = new(OnProgress);
+			interopInstance.SetProgressReporter(OnProgress);
 			await (await GetModule()).InvokeVoidAsync(
 				"initializeWebLLM",
 				modelIds.Select(x => x.Value).Distinct(),

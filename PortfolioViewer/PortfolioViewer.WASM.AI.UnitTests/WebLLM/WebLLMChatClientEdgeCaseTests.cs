@@ -349,7 +349,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 		private void InitializeInteropInstance()
 		{
-			var testInterop = new InteropInstance(new Mock<IProgress<InitializeProgress>>().Object);
+			var testInterop = new InteropInstance();
+			testInterop.SetProgressReporter(new Mock<IProgress<InitializeProgress>>().Object);
 			var interopField = typeof(WebLLMChatClient).GetField("interopInstance",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			interopField!.SetValue(_client, testInterop);
