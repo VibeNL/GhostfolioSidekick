@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.AI.Agents
 			{
 				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
 				List<ChatMessage> toolsCalls = [];
-				foreach (var message in chatHistory)
+				foreach (var message in chatHistory.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
 				{
 					if (message.Role == ChatRole.Tool)
 					{
@@ -89,12 +89,24 @@ namespace GhostfolioSidekick.AI.Agents
 							message.AdditionalProperties.TryAdd("tool_call", "");
 						}
 
-						if (toolsCalls.Any())
+						if (toolsCalls.Count != 0)
 						{
 							message.AdditionalProperties["tool_call"] = string.Join(", ", toolsCalls.Select(tc => tc.Text ?? string.Empty));
 							toolsCalls.Clear();
 						}
-						
+
+						// Remove <think>content</think> tags from the message text, as they are only used for formatting in the UI and can be confusing when displayed as-is.
+						message.Contents =
+							message.Contents.Select(content =>
+							{
+								if (content is TextContent textContent)
+								{
+									textContent.Text = System.Text.RegularExpressions.Regex.Replace(textContent.Text?.ToString() ?? string.Empty, @"<think>(.*?)</think>", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromMinutes(1));
+								}
+
+								return content;
+							}).ToList();
+
 						cleanedChatHistory.Add(message);
 					}
 				}
