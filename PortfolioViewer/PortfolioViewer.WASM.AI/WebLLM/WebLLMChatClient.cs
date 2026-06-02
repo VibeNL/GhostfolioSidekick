@@ -5,6 +5,7 @@ using Microsoft.JSInterop;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
@@ -94,7 +95,7 @@ Format function calls like this:
 			return messages.Count == 0;
 		}
 
-		private List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
+		private static List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
 		{
 			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
 			var convertedMessages = list
@@ -131,7 +132,7 @@ Format function calls like this:
 		private static string BuildFunctionDefinitions(List<AIFunction> functions)
 		{
 			var functionDefinitions = new StringBuilder();
-			
+
 			foreach (var aiFunction in functions)
 			{
 				// Combine the framework properties into a single payload
@@ -219,7 +220,7 @@ Format function calls like this:
 			}
 
 			var totalText = totalTextBuilder.ToString();
-			if (TryParseToolCalls(ChatMessageContentHelper.ToDisplayText(totalText), out var toolCalls))
+			if (TryParseToolCalls(totalText, out var toolCalls))
 			{
 				await foreach (var update in ExecuteToolCallsAsync(options!, toolCalls))
 				{
@@ -265,6 +266,10 @@ Format function calls like this:
 			return options?.Tools?.Any() ?? false;
 		}
 
+		private static readonly Regex ThinkTagRegex = ThinkRegex();
+
+		private static readonly Regex JsonObjectRegex = JsonRegex();
+
 		private bool TryParseToolCalls(string content, out List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
 		{
 			toolCalls = [];
@@ -274,7 +279,28 @@ Format function calls like this:
 				return false;
 			}
 
-			content = content.Trim('\'');
+			// Strip <think>...</think> blocks produced by reasoning models
+			content = ThinkTagRegex.Replace(content, string.Empty);
+
+			// Strip surrounding backtick code fences (e.g. ```json ... ```)
+			content = content.Trim('`').Trim();
+
+			// Remove optional language hint after opening fence (e.g. "json\n")
+			if (content.StartsWith("json", StringComparison.OrdinalIgnoreCase))
+			{
+				content = content["json".Length..].TrimStart();
+			}
+
+			content = content.Trim('\'').Trim();
+
+			// Extract the first JSON object from the text in case there is surrounding prose
+			var jsonMatch = JsonObjectRegex.Match(content);
+			if (!jsonMatch.Success)
+			{
+				return false;
+			}
+
+			content = jsonMatch.Value;
 
 			try
 			{
@@ -479,5 +505,11 @@ Format function calls like this:
 		{
 			GC.SuppressFinalize(this);
 		}
+
+		[GeneratedRegexAttribute(@"<think>.*?</think>", RegexOptions.IgnoreCase | RegexOptions.Singleline, "en-NL")]
+		private static partial Regex ThinkRegex();
+
+		[GeneratedRegex(@"\{[\s\S]*\}", RegexOptions.Singleline)]
+		private static partial Regex JsonRegex();
 	}
 }
