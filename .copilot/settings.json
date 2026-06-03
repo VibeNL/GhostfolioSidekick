@@ -1,0 +1,27 @@
+{
+  "workspace": {
+    "enabled": true,
+    "root": "auto",
+    "autoIndex": true
+  },
+
+  "context": {
+    "mode": "selective",
+    "maxFiles": 10,
+    "maxFileSizeLines": 5012,
+    "historyLimit": 3,
+    "preferRecentFiles": true
+  },
+
+  "tools": {
+    "shell": true,
+    "search": true,
+    "read": true
+  },
+
+  "behavior": {
+    "searchFirst": true,
+    "askBeforeFileAccess": true,
+    "strictContext": true
+  }
+}

@@ -33,42 +33,46 @@ export class WebLLMInterop {
         });
     }
     // Stream completion
-    completeStream(messages, modelId, enableThinking, tools) {
+    completeStream(messages, modelId) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
             var _d;
             if (!this.engine) {
                 throw new Error("Engine is not initialized.");
             }
-            // Chunks is an AsyncGenerator object
-            const chunks = yield this.engine.chat.completions.create({
-                messages,
-                temperature: 0,
-                seed: 42,
-                model: modelId,
-                tool_choice: "auto",
-                tools: tools,
-                stream: true, // Enable streaming
-                stream_options: { include_usage: true },
-                extra_body: {
-                    enable_thinking: enableThinking,
-                },
-            });
             try {
-                for (var _e = true, chunks_1 = __asyncValues(chunks), chunks_1_1; chunks_1_1 = yield chunks_1.next(), _a = chunks_1_1.done, !_a; _e = true) {
-                    _c = chunks_1_1.value;
-                    _e = false;
-                    const chunk = _c;
-                    // Assuming chunk is of type Chunk (define below if needed)
-                    yield ((_d = this.dotnetInstance) === null || _d === void 0 ? void 0 : _d.invokeMethodAsync("ReceiveChunkCompletion", chunk));
+                const chunks = yield this.engine.chat.completions.create({
+                    messages,
+                    temperature: 0,
+                    seed: 42,
+                    model: modelId,
+                    tool_choice: "auto",
+                    tools: undefined,
+                    stream: true, // Enable streaming
+                    stream_options: { include_usage: true },
+                    extra_body: {
+                        enable_thinking: true, // always include thinking in the response
+                    },
+                });
+                try {
+                    for (var _e = true, chunks_1 = __asyncValues(chunks), chunks_1_1; chunks_1_1 = yield chunks_1.next(), _a = chunks_1_1.done, !_a; _e = true) {
+                        _c = chunks_1_1.value;
+                        _e = false;
+                        const chunk = _c;
+                        // Assuming chunk is of type Chunk (define below if needed)
+                        yield ((_d = this.dotnetInstance) === null || _d === void 0 ? void 0 : _d.invokeMethodAsync("ReceiveChunkCompletion", chunk));
+                    }
+                }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (!_e && !_a && (_b = chunks_1.return)) yield _b.call(chunks_1);
+                    }
+                    finally { if (e_1) throw e_1.error; }
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (!_e && !_a && (_b = chunks_1.return)) yield _b.call(chunks_1);
-                }
-                finally { if (e_1) throw e_1.error; }
+            catch (error) {
+                console.error("Error during streaming completion:", error);
             }
         });
     }
@@ -81,8 +85,8 @@ export function initializeWebLLM(selectedModels, dotnet) {
         yield webLLMInteropInstance.initialize(selectedModels, dotnet);
     });
 }
-export function completeStreamWebLLM(messages, modelId, enableThinking, tools) {
+export function completeStreamWebLLM(messages, modelId) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield webLLMInteropInstance.completeStream(messages, modelId, enableThinking, JSON.parse(tools));
+        yield webLLMInteropInstance.completeStream(messages, modelId);
     });
 }

@@ -16,7 +16,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public InteropInstanceTests()
 		{
 			_mockProgress = new Mock<IProgress<InitializeProgress>>();
-			_interopInstance = new InteropInstance(_mockProgress.Object);
+			_interopInstance = new InteropInstance();
+			_interopInstance.SetProgressReporter(_mockProgress.Object);
 		}
 
 		[Fact]
