@@ -250,7 +250,7 @@ else
                                     <small class="text-muted">@(BestPerformer.Symbols?.FirstOrDefault() ?? string.Empty)</small>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold text-success fs-5">+@BestPerformer.GainLossPercentage.ToString("N2")%</div>
+                                    <div class="fw-bold text-success fs-5">+@((BestPerformer.GainLossPercentage * 100).ToString("N2"))%</div>
                                     <small class="text-muted"><PrivacyValue Value="@($"{BestPerformer.CurrentValue.Amount:N2} {BestPerformer.Currency}")" /></small>
                                 </div>
                             </div>
@@ -280,7 +280,7 @@ else
                                     <small class="text-muted">@(WorstPerformer.Symbols?.FirstOrDefault() ?? string.Empty)</small>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold text-danger fs-5">@WorstPerformer.GainLossPercentage.ToString("N2")%</div>
+                                    <div class="fw-bold text-danger fs-5">@((WorstPerformer.GainLossPercentage * 100).ToString("N2"))%</div>
                                     <small class="text-muted"><PrivacyValue Value="@($"{WorstPerformer.CurrentValue.Amount:N2} {WorstPerformer.Currency}")" /></small>
                                 </div>
                             </div>
@@ -321,13 +321,13 @@ else
                                     <td class="fw-semibold">@holding.Name</td>
                                     <td><span class="badge bg-secondary">@(holding.Symbols?.FirstOrDefault() ?? "-")</span></td>
                                     <td class="text-end"><PrivacyValue Value="@($"{holding.CurrentValue.Amount:N2} {holding.Currency}")" /></td>
-                                    <td class="text-end @rowGainClass fw-semibold">@rowGainSign@holding.GainLossPercentage.ToString("N2")%</td>
+                                    <td class="text-end @rowGainClass fw-semibold">@rowGainSign@((holding.GainLossPercentage * 100).ToString("N2"))%</td>
                                     <td class="text-end">
                                         <div class="d-flex align-items-center justify-content-end gap-2">
                                             <div class="progress flex-grow-1" style="height:6px; max-width:60px;">
-                                                <div class="progress-bar bg-primary" style="width:@((int)Math.Min(holding.Weight, 100))%;"></div>
-                                            </div>
-                                            <small>@holding.Weight.ToString("N1")%</small>
+                                                <div class="progress-bar bg-primary" style="width:@((int)Math.Min(holding.Weight * 100, 100))%;"></div>
+                                                            </div>
+                                                            <small>@((holding.Weight * 100).ToString("N1"))%</small>
                                         </div>
                                     </td>
                                 </tr>
