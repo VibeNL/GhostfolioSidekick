@@ -59,13 +59,13 @@ namespace PortfolioViewer.WASM.UITests
 				await loginPage.WaitForSuccessfulLoginAsync();
 				await homePage.WaitForPageLoadAsync();
 
-			var isSyncButtonEnabled = await homePage.IsSyncButtonEnabledAsync();
-			Assert.True(isSyncButtonEnabled, "Sync button should be enabled before starting sync");
+				var isSyncButtonEnabled = await homePage.IsSyncButtonEnabledAsync();
+				Assert.True(isSyncButtonEnabled, "Sync button should be enabled before starting sync");
 
-			await homePage.ClickSyncButtonAsync();
+				await homePage.ClickSyncButtonAsync();
 
-			var isSyncInProgress = await homePage.IsSyncInProgressAsync();
-			Assert.True(isSyncInProgress, "Sync should be in progress after clicking sync button");
+				var isSyncInProgress = await homePage.IsSyncInProgressAsync();
+				Assert.True(isSyncInProgress, "Sync should be in progress after clicking sync button");
 
 				await homePage.WaitForSyncToCompleteAsync(timeout: 120000);
 
