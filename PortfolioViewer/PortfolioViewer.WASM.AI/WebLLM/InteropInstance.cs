@@ -1,15 +1,20 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
 using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
-	public class InteropInstance(IProgress<InitializeProgress> progress)
+	public class InteropInstance()
 	{
-		private readonly IProgress<InitializeProgress> _progress = progress;
+		private IProgress<InitializeProgress>? _progress;
 
 		public ConcurrentQueue<WebLLMCompletion> WebLLMCompletions { get; init; } = new();
+
+		public void SetProgressReporter(IProgress<InitializeProgress> progress)
+		{
+			_progress = progress ?? throw new ArgumentNullException(nameof(progress));
+		}
 
 		[JSInvokable]
 		public void ReportProgress(InitProgressReport progress)
@@ -23,7 +28,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				progressPercent = 1.0;
 			}
 
-			_progress.Report(new InitializeProgress(progressPercent, progress.Text));
+			_progress?.Report(new InitializeProgress(progressPercent, progress.Text));
 		}
 
 		[JSInvokable]

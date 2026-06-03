@@ -43,42 +43,47 @@ For example:
   * Export2023.csv
 
 ### Configuration File
-A single json file csv file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio.
+A single json file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio.
 Also allows the following symbol settings
   - Setting Trackinsight on symbols
   - Adding / Updating Manual symbols 
 
-```
+```json
 {
     "settings" : {
-		"performance.primarycurrency": "USD", // default "EUR"
-		"dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
-		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
-	},
-	"platforms":[
-		{ "name": "De Giro", "url":"https://www.degiro.nl/" }
-	],
-	"accounts":[
-		{ "name": "De Giro", "currency":"EUR", "platform":"De Giro", "sync-activities": true, "sync-balance": false } // sync-activities is true by default, sync-balance is true by default
-	],
-	"mappings":[
-		{ "type":"currency", "source":"GBX", "target":"GBp"},
-		{ "type":"symbol", "source":"USDC", "target":"usd-coin"},
-		{ "type":"symbol", "source":"BTC", "target":"bitcoin"}
-	],
-	"symbols":[
-		{ "symbol": "VDUC.L", "trackinsight": "VUSC" },
-		{ "symbol": "VFEM.L", "trackinsight": "VDEM" },
-		{ "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
-		{ "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY", "scraperConfiguration":{ "url": "<url>", "selector":"<selector>", "locale":"<locale>"} } }
-	],
-	"benchmarks":[
-		{ "symbol": "^AEX" },
-		{ "symbol": "^SPX" },
-	]
+        "performance.primarycurrency": "USD",
+        "dataprovider.preference.order": "COINGECKO;YAHOO",
+        "delete.unused.symbols": false
+    },
+    "platforms":[
+        { "name": "De Giro", "url":"https://www.degiro.nl/" }
+    ],
+    "accounts":[
+        { "name": "De Giro", "currency":"EUR", "platform":"De Giro", "sync-activities": true, "sync-balance": false }
+    ],
+    "mappings":[
+        { "type":"currency", "source":"GBX", "target":"GBp"},
+        { "type":"symbol", "source":"USDC", "target":"usd-coin"},
+        { "type":"symbol", "source":"BTC", "target":"bitcoin"}
+    ],
+    "symbols":[
+        { "symbol": "VDUC.L", "trackinsight": "VUSC" },
+        { "symbol": "VFEM.L", "trackinsight": "VDEM" },
+        { "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
+        { "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY" } }
+    ],
+    "benchmarks":[
+        { "symbol": "^AEX" },
+        { "symbol": "^SPX" }
+    ]
 }
-
 ```
+
+> **Notes:**
+> - `performance.primarycurrency`: default is `"EUR"`
+> - `dataprovider.preference.order`: default is `"YAHOO,COINGECKO"`
+> - `delete.unused.symbols`: default is `true`. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
+> - `sync-activities` is `true` by default; `sync-balance` is `true` by default.
 
 #### Settings
 
@@ -105,7 +110,7 @@ Fields are identical to the UI
 Add a symbol as a benchmark
 
 #### Mappings
-Change an identifier from the imported files to be compatible with Ghostfolio (for example certain symbols may not be found by Ghostfolio, so we can substituting the identifier with one that is recognized). 
+Change an identifier from the imported files to be compatible with Ghostfolio (for example, certain symbols may not be found by Ghostfolio, so we can substitute the identifier with one that is recognized)
 
 | Fieldname | Type | Description |
 |--|--|--|
@@ -139,15 +144,19 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Platform | Source of the files | Documentation |
 |--|--|--|
 | Bitvavo (Broker) | Export of transaction history | |
-| Bunq (Bank) | Export CSV (Semicolom delimited) | |
+| Bunq (Bank) | Export CSV (Semicolon delimited) | |
+| Centraal Beheer (Broker) | Export of transaction history (CSV, Semicolon delimited) | |
 | Coinbase (Broker) | Export of transaction history | |
-| De Giro | Export of account history (Language dependend, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
+| De Giro | Export of account history (Language dependent, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
 | Generic importer | See below | |
+| Gold Republic | Account Statement export (PDF) | |
+| MacroTrends | Historical data CSV export | |
 | Nexo (Broker) | Export of transaction history | |
-| NIBC (Bank) | Export CSV (Semicolom delimited) | |
+| NIBC (Bank) | Export CSV (Semicolon delimited) | |
 | Scalable Capital (Prime only) | The CSV files export via the transaction view | |
-| Trading Republic | CSV transaction export (recommended) or monthly statements and individual invoices (PDF, legacy) | [Documentation](./Documentation/Parsers/TradeRepublic.md) |
+| Trade Republic | CSV transaction export (recommended) or monthly statements and individual invoices (PDF, legacy) | [Documentation](./Documentation/Parsers/TradeRepublic.md) |
 | Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
+| Trine | Export of transaction history (CSV) | |
 
 #### Generic import format
 Beside the supported exchanges and brokers there is also a generic format. 
@@ -214,7 +223,7 @@ ghostfoliosidekick:
 |**GHOSTFOLIO_URL**  | The endpoint for your ghostfolio instance.   |
 |**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
 |**FILEIMPORTER_PATH**  | The path to the files (see [Import Path]) |
-|**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named 'ghostfolio.db'. In case this variable is not specified, it will be placed in the **FILEIMPORTER_PATH** folder |
+|**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named 'ghostfolio.db'. In case this variable is not specified, it will be placed in the **FILEIMPORTER_PATH**. |
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 

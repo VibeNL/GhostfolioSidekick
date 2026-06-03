@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Functions;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,8 @@ namespace GhostfolioSidekick.AI.Agents
 				// Return the service with the context
 				return new GoogleSearchService(context);
 			});
+
+			services.AddSingleton<IAgentToolProvider, ResearchAgentToolProvider>();
 		}
 	}
 }

@@ -1,12 +1,12 @@
-﻿using Microsoft.SemanticKernel;
+using Microsoft.Extensions.AI;
 
 namespace GhostfolioSidekick.AI.Common
 {
 	public static partial class ChatMessageContentHelper
 	{
-		public static string ToDisplayText(this ChatMessageContent message)
+		public static string ToDisplayText(this ChatMessage message)
 		{
-			return ToDisplayText(message?.Content) ?? string.Empty;
+			return ToDisplayText(message?.Text) ?? string.Empty;
 		}
 
 		public static string ToDisplayText(this string? message)
@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.AI.Common
 			return text;
 		}
 
-		public static string ToThinkText(this ChatMessageContent message)
+		public static string ToThinkText(this ChatMessage message)
 		{
 			if (message == null)
 			{
@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.AI.Common
 			}
 
 			var match = System.Text.RegularExpressions.Regex.Match(
-				message.Content ?? string.Empty,
+				message.Text ?? string.Empty,
 				@"<think>(.*?)</think>",
 				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase,
 				TimeSpan.FromMinutes(1));
