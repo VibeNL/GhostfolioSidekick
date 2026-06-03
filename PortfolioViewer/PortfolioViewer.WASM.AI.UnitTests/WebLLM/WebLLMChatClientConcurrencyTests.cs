@@ -28,7 +28,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void WebLLMCompletions_Queue_ShouldBeConcurrentQueue()
 		{
 			// This verifies that the InteropInstance uses a thread-safe queue
-			var interop = new InteropInstance(new Mock<IProgress<InitializeProgress>>().Object);
+			var interop = new InteropInstance();
+			interop.SetProgressReporter(new Mock<IProgress<InitializeProgress>>().Object);
 			Assert.IsType<System.Collections.Concurrent.ConcurrentQueue<WebLLMCompletion>>(interop.WebLLMCompletions);
 		}
 

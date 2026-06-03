@@ -233,7 +233,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void Clone_ShouldPreserveInteropInstance()
 		{
 			// Arrange - Use reflection to set an interop instance
-			var interopInstance = new InteropInstance(new Mock<IProgress<InitializeProgress>>().Object);
+			var interopInstance = new InteropInstance();
+			interopInstance.SetProgressReporter(new Mock<IProgress<InitializeProgress>>().Object);
 			var interopField = typeof(WebLLMChatClient).GetField("interopInstance",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			interopField!.SetValue(_client, interopInstance);
