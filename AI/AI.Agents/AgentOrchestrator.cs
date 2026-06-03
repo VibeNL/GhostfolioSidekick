@@ -1,10 +1,7 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.Agents.Chat;
-using Microsoft.SemanticKernel.ChatCompletion;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.AI.Agents
@@ -12,126 +9,104 @@ namespace GhostfolioSidekick.AI.Agents
 	[ExcludeFromCodeCoverage]
 	public class AgentOrchestrator
 	{
-		private const string SafeParameterNames = "history";
-		private readonly Agent defaultAgent;
-		private readonly List<Agent> agents;
-		private readonly AgentGroupChat groupChat;
+		private readonly ChatClientAgent mainAgent;
 		private readonly AgentLogger logger;
 		private readonly ICustomChatClient chatClient;
+		private AgentSession? session;
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
-			IKernelBuilder builder = Kernel.CreateBuilder();
 			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
-			builder.Services.AddSingleton((s) => chatClient.AsChatCompletionService());
 
-			var kernel = builder.Build();
+			var toolProviders = (serviceProvider.GetService(typeof(IEnumerable<IAgentToolProvider>)) as IEnumerable<IAgentToolProvider>)
+				?.ToList() ?? [];
+			var allTools = new List<AITool>();
 
-			var researchAgent = ResearchAgent.Create(chatClient, serviceProvider);
-			defaultAgent = GhostfolioSidekick.Create(chatClient, [researchAgent]);
-
-			agents = [
-				defaultAgent,
-				researchAgent
-			];
-
-			// Define a kernel function for the selection strategy
-			KernelFunction rawSelectionFunction =
-				AgentGroupChat.CreatePromptFunctionForStrategy(
-					$$$"""
-						Determine which participant takes the next turn in a conversation based on the the most recent participant.
-						State only the name of the participant to take the next turn.
-						No participant should take more than one turn in a row.
-						When the input from the User is required, please select User
-						
-						Choose only from these participants:
-						- User
-						{{{string.Join(Environment.NewLine, agents.Select(x => $"{x.Name}:{x.Description}"))}}}
-
-						History:
-						{{$history}}
-						""",
-					safeParameterNames: SafeParameterNames);
-			var selectionFunction = WrapWithLogging(rawSelectionFunction, "SelectionStrategy");
-
-			// Define the selection strategy
-			KernelFunctionSelectionStrategy selectionStrategy =
-			  new(selectionFunction, kernel)
-			  {
-				  // Always start with the writer agent.
-				  InitialAgent = defaultAgent,
-				  // Parse the function response.
-				  ResultParser = DetermineNextAgentWithLogger,
-				  // The prompt variable name for the history argument.
-				  HistoryVariableName = SafeParameterNames,
-				  // Save tokens by not including the entire history in the prompt
-				  HistoryReducer = new ChatHistoryTruncationReducer(3),
-			  };
-
-			KernelFunction rawTerminationFunction =
-				AgentGroupChat.CreatePromptFunctionForStrategy(
-					$$$"""
-					Determine if the conversation has ended. Then respond with 'User' 
-					In case another agent should take the next turn, respond with the name of that agent.
-
-					History:
-					{{$history}}
-					""",
-					safeParameterNames: SafeParameterNames);
-			var terminationFunction = WrapWithLogging(rawTerminationFunction, "TerminationStrategy");
-
-			// Define the termination strategy
-			KernelFunctionTerminationStrategy terminationStrategy =
-			  new(terminationFunction, kernel)
-			  {
-				  // Only the reviewer may give approval.
-				  Agents = [defaultAgent],
-				  // Parse the function response.
-				  ResultParser = DetermineTermination,
-				  // The prompt variable name for the history argument.
-				  HistoryVariableName = SafeParameterNames,
-				  // Save tokens by not including the entire history in the prompt
-				  HistoryReducer = new ChatHistoryTruncationReducer(1),
-				  // Limit total number of turns no matter what
-				  MaximumIterations = 10,
-				  AutomaticReset = true,
-			  };
-
-			groupChat = new AgentGroupChat([.. agents])
+			foreach (var provider in toolProviders)
 			{
-				ExecutionSettings = new AgentGroupChatSettings
-				{
-					TerminationStrategy = terminationStrategy,
-					SelectionStrategy = selectionStrategy
-				},
-				//LoggerFactory = logger,				
-			};
+				allTools.AddRange(provider.GetTools());
+			}
+
+			mainAgent = GhostfolioSidekick.Create(chatClient, allTools);
 
 			this.logger = logger;
 		}
 
-		public async Task<IReadOnlyCollection<ChatMessageContent>> History()
+		public IReadOnlyCollection<ChatMessage> History()
 		{
-			// With the following code to manually collect the messages into a list:
-			var messages = new List<ChatMessageContent>();
-			await foreach (var message in groupChat.GetChatMessagesAsync())
+			if (session == null)
 			{
-				messages.Add(message);
+				return [];
 			}
 
-			return messages.AsEnumerable().Reverse().Where(x => x.Content != null).ToList();
+			FixupMemory();
+
+			if (session.TryGetInMemoryChatHistory(out var chatHistory))
+			{
+				return chatHistory.Where(x => x.Text != null).ToList();
+			}
+
+			return [];
 		}
 
-		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
+		private void FixupMemory()
 		{
-			logger.StartAgent(defaultAgent?.Name ?? "<????>");
-			groupChat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
-
-			// Run the group chat
-			var result = groupChat.InvokeStreamingAsync();
-
-			await foreach (var update in result)
+			if (session == null)
 			{
+				return;
+			}
+
+			List<ChatMessage> cleanedChatHistory = [];
+			if (session.TryGetInMemoryChatHistory(out var chatHistory))
+			{
+				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
+				List<ChatMessage> toolsCalls = [];
+				foreach (var message in chatHistory.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
+				{
+					if (message.Role == ChatRole.Tool)
+					{
+						toolsCalls.Add(message);
+					}
+					else
+					{
+						if (message.Role == ChatRole.User)
+						{
+							message.AuthorName = "User";
+						}
+
+						message.AdditionalProperties ??= [];
+
+						if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
+						{
+							message.AdditionalProperties.TryAdd("tool_call", "");
+						}
+
+						if (toolsCalls.Count != 0)
+						{
+							message.AdditionalProperties["tool_call"] = string.Join(", ", toolsCalls.Select(tc => tc.Text ?? string.Empty));
+							toolsCalls.Clear();
+						}
+
+						cleanedChatHistory.Add(message);
+					}
+				}
+			}
+
+			session.SetInMemoryChatHistory(cleanedChatHistory);
+		}
+
+		public async IAsyncEnumerable<AgentResponseUpdate> AskQuestion(string input)
+		{
+			logger.StartAgent(mainAgent.Name ?? "<????>");
+
+			if (session == null)
+			{
+				session = await mainAgent.CreateSessionAsync();
+			}
+
+			await foreach (var update in mainAgent.RunStreamingAsync(input, session))
+			{
+				logger.StartAgent(update.AuthorName ?? mainAgent.Name ?? string.Empty);
 				yield return update;
 			}
 
@@ -143,41 +118,9 @@ namespace GhostfolioSidekick.AI.Agents
 			return chatClient.InitializeAsync(progress);
 		}
 
-		private static bool DetermineTermination(FunctionResult result)
+		public void ClearMemory()
 		{
-			_ = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
-			return result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false;
-		}
-
-		private string DetermineNextAgentWithLogger(FunctionResult result)
-		{
-			var nextAgent = DetermineNextAgent(result);
-			logger.StartAgent(nextAgent);
-			return nextAgent;
-		}
-
-		private string DetermineNextAgent(FunctionResult result)
-		{
-			var value = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
-			var splitted = value?.Split(' ');
-			var lastWord = splitted?.LastOrDefault()?.Trim();
-
-			if (lastWord != null && agents.Exists(x => string.Equals(x.Name, lastWord, StringComparison.InvariantCultureIgnoreCase)))
-			{
-				return lastWord;
-			}
-
-			return defaultAgent.Name ?? throw new NotSupportedException();
-		}
-
-		private KernelFunction WrapWithLogging(KernelFunction originalFunction, string name)
-		{
-			return KernelFunctionFactory.CreateFromMethod(async (Kernel kernel, KernelArguments args) =>
-			{
-				logger.StartAgent(name);
-				var result = await originalFunction.InvokeAsync(kernel, args);
-				return result;
-			});
+			session = null;
 		}
 	}
 }

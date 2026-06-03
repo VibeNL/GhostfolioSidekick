@@ -1,7 +1,6 @@
 using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Moq;
-using System.Reflection;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
 {
@@ -30,15 +29,11 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			_serviceProvider.AddService(_google_search_service);
 			_serviceProvider.AddService(_agentLogger);
 			_serviceProvider.AddService(new ModelInfo { MaxTokens = 4096, Name = "123" });
-			// Register the mock web chat client so AgentOrchestrator can resolve it
 			_serviceProvider.AddService(_mockWebChatClient.Object);
 
 			var clonedClient = new Mock<ICustomChatClient>();
 			clonedClient.SetupProperty(x => x.ChatMode);
 			_mockWebChatClient.Setup(x => x.Clone()).Returns(clonedClient.Object);
-
-			// Make sure ServiceProvider.GetRequiredService is available via extension in tests
-			// (TestServiceProvider implements GetRequiredService used by code under test)
 		}
 
 		[Fact]
@@ -49,79 +44,6 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 
 			// Assert
 			Assert.NotNull(orchestrator);
-		}
-
-		[Fact]
-		public async Task History_ShouldContainAddedUserMessage()
-		{
-			// Arrange
-			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
-
-			// Use reflection to get the private groupChat field
-			var field = typeof(AgentOrchestrator).GetField("groupChat", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(field);
-			var groupChat = field!.GetValue(orchestrator);
-			Assert.NotNull(groupChat);
-
-			// Call AddChatMessage on the groupChat instance
-			var addMethod = groupChat!.GetType().GetMethod("AddChatMessage", BindingFlags.Public | BindingFlags.Instance);
-			Assert.NotNull(addMethod);
-
-			// Create a ChatMessageContent instance via reflection to avoid compile-time dependency
-			var paramType = addMethod!.GetParameters()[0].ParameterType;
-
-			// Find a constructor with (something, string) signature
-			var ctor = paramType.GetConstructors().FirstOrDefault(c =>
-			{
-				var ps = c.GetParameters();
-				return ps.Length == 2 && ps[1].ParameterType == typeof(string);
-			});
-
-			object chatMessageInstance;
-			if (ctor != null)
-			{
-				var roleType = ctor.GetParameters()[0].ParameterType;
-				object roleValue;
-				if (roleType.IsEnum)
-				{
-					roleValue = Enum.GetValues(roleType).GetValue(0)!;
-				}
-				else if (roleType == typeof(int))
-				{
-					roleValue = 0;
-				}
-				else
-				{
-					roleValue = Activator.CreateInstance(roleType)!;
-				}
-
-				chatMessageInstance = ctor.Invoke([roleValue, "Hello from test"])!;
-			}
-			else
-			{
-				// As a fallback try parameterless constructor and set properties
-				chatMessageInstance = Activator.CreateInstance(paramType)!;
-				var contentProp = paramType.GetProperty("Content");
-				if (contentProp != null && contentProp.CanWrite)
-				{
-					contentProp.SetValue(chatMessageInstance, "Hello from test");
-				}
-			}
-
-			// Set AuthorName if available
-			var authorNameProp = paramType.GetProperty("AuthorName");
-			if (authorNameProp != null && authorNameProp.CanWrite)
-			{
-				authorNameProp.SetValue(chatMessageInstance, "User");
-			}
-
-			addMethod.Invoke(groupChat, [chatMessageInstance]);
-
-			// Act
-			var history = await orchestrator.History();
-
-			// Assert
-			Assert.Contains(history, m => (m.Content ?? string.Empty).Contains("Hello from test"));
 		}
 
 		[Fact]
@@ -138,6 +60,42 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 
 			await using var enumerator = asyncEnumerable.GetAsyncEnumerator(CancellationToken.None);
 			// Do not call MoveNextAsync to avoid invoking downstream services. We just ensure enumerator can be acquired and disposed.
+		}
+
+		[Fact]
+		public void History_ShouldReturnEmptyCollection_WhenNoConversation()
+		{
+			// Arrange
+			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
+
+			// Act
+			var history = orchestrator.History();
+
+			// Assert
+			Assert.NotNull(history);
+			Assert.Empty(history);
+		}
+
+		// Test service provider that implements IServiceProvider without using extension methods
+		public class TestServiceProvider : IServiceProvider
+		{
+			private readonly Dictionary<Type, object> _services = [];
+
+			public void AddService<T>(T service) where T : class
+			{
+				_services[typeof(T)] = service;
+			}
+
+			public object? GetService(Type serviceType)
+			{
+				return _services.TryGetValue(serviceType, out var service) ? service : null;
+			}
+
+			public T GetRequiredService<T>() where T : class
+			{
+				var service = GetService(typeof(T));
+				return service as T ?? throw new InvalidOperationException($"Service of type {typeof(T)} not found.");
+			}
 		}
 	}
 }

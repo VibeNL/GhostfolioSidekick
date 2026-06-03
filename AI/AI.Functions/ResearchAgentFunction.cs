@@ -1,7 +1,6 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Extensions.AI;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 
@@ -9,11 +8,10 @@ namespace GhostfolioSidekick.AI.Functions
 {
 	public partial class ResearchAgentFunction(
 		IGoogleSearchService searchService,
-		IChatCompletionService chatService,
+		IChatClient chatService,
 		ModelInfo modelInfo,
 		AgentLogger agentLogger)
 	{
-		[KernelFunction("multi_step_research")]
 		[Description("Perform multi-step research on a topic by making multiple queries and synthesizing the results")]
 		public async Task<string> MultiStepResearch(
 			[Description("The topic to research")] string topic,
@@ -30,27 +28,27 @@ namespace GhostfolioSidekick.AI.Functions
 				int i = 0;
 				foreach (var result in searchResult.Take(3))
 				{
-					agentLogger.StartFunction($"{nameof(MultiStepResearch)} Summerizing search result {aspect} {++i}");
+					agentLogger.StartFunction($"{nameof(MultiStepResearch)} Summarizing search result {aspect} {++i}");
 					var sanitizedContent = SanitizeText(result.Content ?? string.Empty);
 					var synthesisPrompt = TruncatePrompt($"Synthesize the following research result into a concise summary. {sanitizedContent}", modelInfo.MaxTokens);
-					var chatResult = await chatService.GetChatMessageContentsAsync(synthesisPrompt);
-					perResultSummaries.Add(string.Join(Environment.NewLine, chatResult.Select(x => x.Content)));
+					var chatResult = await chatService.GetResponseAsync(synthesisPrompt);
+					perResultSummaries.Add(chatResult.Text);
 				}
 
 				// Synthesize aspect summary from per-result summaries
 				agentLogger.StartFunction($"{nameof(MultiStepResearch)} Synthesizing aspect summary for: {aspect}");
 
 				var aspectSynthesisPrompt = TruncatePrompt($"Synthesize the following summaries for aspect '{aspect}' into a concise aspect summary.\n{string.Join(Environment.NewLine, perResultSummaries)}", modelInfo.MaxTokens);
-				var aspectChatResult = await chatService.GetChatMessageContentsAsync(aspectSynthesisPrompt);
-				aspectSummaries.Add(string.Join(Environment.NewLine, aspectChatResult.Select(x => x.Content)));
+				var aspectChatResult = await chatService.GetResponseAsync(aspectSynthesisPrompt);
+				aspectSummaries.Add(aspectChatResult.Text);
 			}
 
 			// Synthesize the aspect summaries into a final summary
 			agentLogger.StartFunction($"{nameof(MultiStepResearch)} Synthesizing final summary");
 
 			var finalPrompt = TruncatePrompt($"Synthesize the following aspect summaries into a concise overall summary.\n{string.Join(Environment.NewLine, aspectSummaries)}", modelInfo.MaxTokens);
-			var finalChatResult = await chatService.GetChatMessageContentsAsync(finalPrompt);
-			return string.Join(Environment.NewLine, finalChatResult.Select(x => x.Content));
+			var finalChatResult = await chatService.GetResponseAsync(finalPrompt);
+			return finalChatResult.Text;
 		}
 
 		internal static string SanitizeText(string input)
