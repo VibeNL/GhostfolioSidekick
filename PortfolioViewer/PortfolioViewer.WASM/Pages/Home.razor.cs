@@ -250,8 +250,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					TotalInvested = Holdings.Sum(h => h.AveragePrice.Amount * h.Quantity);
 					TotalGainLoss = TotalPortfolioValue - TotalInvested;
 					TotalGainLossPercentage = TotalInvested == 0 ? 0 : TotalGainLoss / TotalInvested * 100;
-					BestPerformer = Holdings.OrderByDescending(h => h.GainLossPercentage).FirstOrDefault();
-					WorstPerformer = Holdings.OrderBy(h => h.GainLossPercentage).FirstOrDefault();
+					BestPerformer = Holdings.OrderByDescending(h => h.GainLossPercentage).First();
+					WorstPerformer = Holdings.OrderBy(h => h.GainLossPercentage).First();
 				}
 				else
 				{
@@ -265,11 +265,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			try
 			{
-				UpcomingDividends = (await UpcomingDividendsService.GetUpcomingDividendsAsync())
-					.Where(d => d.ExDate >= DateOnly.FromDateTime(DateTime.Today))
-					.OrderBy(d => d.ExDate)
-					.Take(5)
-					.ToList();
+				UpcomingDividends = [.. (await UpcomingDividendsService.GetUpcomingDividendsAsync())
+					.Where(d => 
+						d.ExDate < DateOnly.FromDateTime(DateTime.Today) &&
+						d.PaymentDate >= DateOnly.FromDateTime(DateTime.Today))
+					.OrderBy(d => d.PaymentDate)];
 			}
 			catch
 			{
