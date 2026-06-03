@@ -12,8 +12,6 @@ namespace GhostfolioSidekick.Performance
 		IDbContextFactory<DatabaseContext> dbContextFactory,
 		IApplicationSettings applicationSettings) : IScheduledWork
 	{
-		private const int SaveBatchSize = 10;
-
 		public TaskPriority Priority => TaskPriority.PerformanceCalculations;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
@@ -49,6 +47,7 @@ namespace GhostfolioSidekick.Performance
 			int processedHoldings = 0;
 
 			logger.LogInformation("Total holdings to process: {Total}", totalHoldings);
+
 
 			// Reuse a single DbContext across holdings and batch saves every SaveBatchSize holdings
 			using var batchDbContext = await dbContextFactory.CreateDbContextAsync();
@@ -92,8 +91,6 @@ namespace GhostfolioSidekick.Performance
 				processedHoldings++;
 				logger.LogInformation("Processed {Processed}/{Total} holdings", processedHoldings, totalHoldings);
 
-				// Flush every SaveBatchSize holdings or on the last one
-				bool isLastHolding = i == holdingIds.Count - 1;
 				try
 				{
 					await batchDbContext.SaveChangesAsync();
