@@ -67,6 +67,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				.Distinct()
 				.ToList();
 
+			// Ensure exchange rates are preloaded into cache before looping
+			await currencyExchange.PreloadAllExchangeRates();
+
 			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, decimal>> allMarketData = [];
 
 			if (symbolProfileKeys.Count != 0)
@@ -95,9 +98,6 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					.Where(md => symbolProfileKeys.Any(sp => sp.Symbol == md.Symbol && sp.DataSource == md.DataSource))
 					.Where(md => md.Close != 0)
 					.ToList();
-
-				// Ensure exchange rates are preloaded into cache before looping
-				await currencyExchange.PreloadAllExchangeRates();
 
 				// Group market data by symbol profile
 				foreach (var group in filteredMarketData.GroupBy(x => new { x.Symbol, x.DataSource }))
