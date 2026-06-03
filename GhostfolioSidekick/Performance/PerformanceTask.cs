@@ -49,11 +49,10 @@ namespace GhostfolioSidekick.Performance
 			logger.LogInformation("Total holdings to process: {Total}", totalHoldings);
 
 
-			// Reuse a single DbContext across holdings and batch saves every SaveBatchSize holdings
-			using var batchDbContext = await dbContextFactory.CreateDbContextAsync();
-
 			for (int i = 0; i < holdingIds.Count; i++)
 			{
+				using var batchDbContext = await dbContextFactory.CreateDbContextAsync();
+
 				var holdingId = holdingIds[i];
 				try
 				{
@@ -80,12 +79,6 @@ namespace GhostfolioSidekick.Performance
 				catch (Exception ex)
 				{
 					logger.LogError(ex, "Error calculating performance for holding {HoldingId}", holdingId);
-
-					// Detach any tracked entities that may be in a bad state to allow the batch to continue
-					foreach (var entry in batchDbContext.ChangeTracker.Entries().ToList())
-					{
-						entry.State = EntityState.Detached;
-					}
 				}
 
 				processedHoldings++;
@@ -98,10 +91,6 @@ namespace GhostfolioSidekick.Performance
 				catch (Exception ex)
 				{
 					logger.LogError(ex, "Error saving calculated snapshots batch (up to holding {HoldingId})", holdingId);
-				}
-				finally
-				{
-					batchDbContext.ChangeTracker.Clear();
 				}
 			}
 
