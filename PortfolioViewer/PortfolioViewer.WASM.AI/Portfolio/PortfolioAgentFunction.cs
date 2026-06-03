@@ -181,14 +181,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 		{
 			var sb = new StringBuilder();
 			sb.AppendLine($"{header}:");
-			sb.AppendLine($"  {"Name",-22} {"Symbol",-8} {"Value",10} {"Qty",8} {"G/L%",7} {"Weight",7} {"Sector",-14}");
+			sb.AppendLine("| Name | Symbol | Value | Qty | G/L% | Weight | Sector |");
+			sb.AppendLine("| --- | --- | ---: | ---: | ---: | ---: | --- |");
 
 			foreach (var h in holdings)
 			{
-				var symbol = h.Symbols.FirstOrDefault() ?? "-";
-				var glPct = $"{h.GainLossPercentage:+N1;-N1}%";
-				var weight = $"{h.Weight:N1}%";
-				sb.AppendLine($"  {h.Name,-22} {symbol,-8} {h.CurrentValue.Amount,10:N0} {h.Quantity,8:N2} {glPct,7} {weight,7} {h.Sector,-14}");
+				var name = h.Name.Replace("|", "\\|", StringComparison.Ordinal);
+				var symbol = (h.Symbols.FirstOrDefault() ?? "-").Replace("|", "\\|", StringComparison.Ordinal);
+				var sector = string.IsNullOrWhiteSpace(h.Sector)
+					? "-"
+					: h.Sector.Replace("|", "\\|", StringComparison.Ordinal);
+				sb.AppendLine($"| {name} | {symbol} | {h.CurrentValue.Amount:N0} | {h.Quantity:N2} | {h.GainLossPercentage:N1}% | {h.Weight:N1}% | {sector} |");
 			}
 
 			return sb.ToString();

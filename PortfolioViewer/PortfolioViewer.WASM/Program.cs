@@ -71,11 +71,7 @@ public class Program
 			options.UseLazyLoadingProxies();
 		});
 
-		// Register Chat clients - prefer WebLLM by default
 		builder.Services.AddWebChatClient();
-		// Also register ApiChatClient if needed (registers ICustomChatClient implementation)
-		////builder.Services.AddApiChatClient();
-
 		builder.Services.AddAgents();
 		builder.Services.AddPortfolioTools();
 
