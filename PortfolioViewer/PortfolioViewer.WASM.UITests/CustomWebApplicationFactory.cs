@@ -255,8 +255,8 @@ namespace PortfolioViewer.WASM.UITests
 				// Create some test activities
 				// Use fixed dates for deterministic test behavior
 				DateTime baseDate = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-				List<GhostfolioSidekick.Model.Activities.Activity> activities = new()
-				{
+				List<GhostfolioSidekick.Model.Activities.Activity> activities =
+				[
 			new CashDepositActivity(
 				testAccount,
 				null,
@@ -300,7 +300,7 @@ namespace PortfolioViewer.WASM.UITests
 				"DIV-001",
 				null,
 				"Dividend payment")
-			};
+			];
 
 				dbContext.Activities.AddRange(activities);
 				_ = dbContext.SaveChanges();

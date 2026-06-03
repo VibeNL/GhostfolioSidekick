@@ -154,6 +154,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				var totalValue = new Money(targetCurrency, point.Value);
 				var totalInvested = new Money(targetCurrency, point.Invested);
+				var balance = new Money(targetCurrency, point.Balance);
 				var gainLoss = totalValue.Subtract(totalInvested);
 				var gainLossPercentage = totalInvested.Amount == 0 ? 0 : gainLoss.Amount / totalInvested.Amount;
 
@@ -162,6 +163,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Date = point.Date,
 					TotalValue = totalValue,
 					TotalInvested = totalInvested,
+					Balance = balance,
 					GainLoss = gainLoss,
 					GainLossPercentage = gainLossPercentage
 				});
@@ -182,10 +184,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			List<object> valueList = [];
 			List<object> investedList = [];
+			List<object> balanceList = [];
 			foreach (var p in TimeSeriesData)
 			{
 				valueList.Add(p.Value);
 				investedList.Add(p.Invested);
+				balanceList.Add(p.Balance);
 			}
 
 			var valueTrace = new Scatter
@@ -206,8 +210,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#28a745", Width = 2 },
 				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 6 }
 			};
+			var balanceTrace = new Scatter
+			{
+				X = TimeSeriesData.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+				Y = balanceList,
+				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+				Name = "Cash Balance",
+				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#fd7e14", Width = 2 },
+				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#fd7e14", Size = 6 }
+			};
 
-			plotData = [valueTrace, investedTrace];
+			plotData = [valueTrace, investedTrace, balanceTrace];
 			var primaryCurrency = ServerConfigurationService?.PrimaryCurrency;
 			plotLayout = new Plotly.Blazor.Layout
 			{
@@ -258,6 +271,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					TimeSeriesDisplayData = sortAscending
 						? [.. TimeSeriesDisplayData.OrderBy(d => d.TotalInvested.Amount)]
 						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.TotalInvested.Amount)];
+					break;
+				case "Balance":
+					TimeSeriesDisplayData = sortAscending
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.Balance.Amount)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.Balance.Amount)];
 					break;
 				case "GainLoss":
 					TimeSeriesDisplayData = sortAscending

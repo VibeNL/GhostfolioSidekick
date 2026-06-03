@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Database.Cache;
 using GhostfolioSidekick.Model;
 // Do not import Model.Performance to avoid ambiguity
 using GhostfolioSidekick.Model.Accounts;
@@ -7,6 +8,7 @@ using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 using System.Reflection;
 
 namespace GhostfolioSidekick.Database
@@ -18,6 +20,8 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<Platform> Platforms { get; set; }
 
 		public virtual DbSet<Account> Accounts { get; set; }
+
+		public virtual DbSet<ExternalDataCacheEntry> ExternalDataCacheEntries { get; set; }
 
 		public virtual DbSet<Balance> Balances { get; set; }
 
@@ -58,8 +62,8 @@ namespace GhostfolioSidekick.Database
 		{
 			if (!optionsBuilder.IsConfigured)
 			{
-               optionsBuilder.UseLazyLoadingProxies();
-			   optionsBuilder.UseSqlite($"Data Source={DbFileName}");
+				_ = optionsBuilder.UseLazyLoadingProxies();
+				_ = optionsBuilder.UseSqlite($"Data Source={DbFileName}");
 			}
 
 			base.OnConfiguring(optionsBuilder);
@@ -67,20 +71,20 @@ namespace GhostfolioSidekick.Database
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+			_ = modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
 
 		protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
 		{
 			base.ConfigureConventions(configurationBuilder);
-			configurationBuilder.DefaultTypeMapping<decimal>(builder => builder.HasPrecision(18, 8));
+			_ = configurationBuilder.DefaultTypeMapping<decimal>(builder => builder.HasPrecision(18, 8));
 		}
 
 		public Task ExecutePragma(string pragmaCommand)
 		{
-			var connection = Database.GetDbConnection();
+			DbConnection connection = Database.GetDbConnection();
 			connection.Open();
-			using var command = connection.CreateCommand();
+			using DbCommand command = connection.CreateCommand();
 			command.CommandText = pragmaCommand;
 			return command.ExecuteNonQueryAsync();
 		}
@@ -97,14 +101,14 @@ namespace GhostfolioSidekick.Database
 
 		public async Task<List<Dictionary<string, object?>>> ExecuteDynamicQuery(string sql)
 		{
-			await using var command = Database.GetDbConnection().CreateCommand();
+			await using DbCommand command = Database.GetDbConnection().CreateCommand();
 			command.CommandText = sql;
 
 			await Database.OpenConnectionAsync();
 
 			var result = new List<Dictionary<string, object?>>();
 
-			await using var reader = await command.ExecuteReaderAsync();
+			await using DbDataReader reader = await command.ExecuteReaderAsync();
 			while (await reader.ReadAsync())
 			{
 				var row = new Dictionary<string, object?>();
