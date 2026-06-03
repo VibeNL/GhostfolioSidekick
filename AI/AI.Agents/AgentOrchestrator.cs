@@ -88,16 +88,16 @@ namespace GhostfolioSidekick.AI.Agents
 						}
 
 						// Remove <think>content</think> tags from the message text, as they are only used for formatting in the UI and can be confusing when displayed as-is.
-						message.Contents =
-							[.. message.Contents.Select(content =>
-							{
-								if (content is TextContent textContent)
-								{
-									textContent.Text = System.Text.RegularExpressions.Regex.Replace(textContent.Text?.ToString() ?? string.Empty, @"<think>(.*?)</think>", "", System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromMinutes(1));
-								}
+						//message.Contents =
+						//	[.. message.Contents.Select(content =>
+						//	{
+						//		if (content is TextContent textContent)
+						//		{
+						//			textContent.Text = System.Text.RegularExpressions.Regex.Replace(textContent.Text?.ToString() ?? string.Empty, @"<think>(.*?)</think>", "", System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromMinutes(1));
+						//		}
 
-								return content;
-							})];
+						//		return content;
+						//	})];
 
 						cleanedChatHistory.Add(message);
 					}

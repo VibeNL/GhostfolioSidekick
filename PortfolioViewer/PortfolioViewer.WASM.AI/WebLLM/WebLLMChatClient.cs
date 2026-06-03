@@ -15,6 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private InteropInstance interopInstance = new();
 
 		private IJSObjectReference? module;
+		private static readonly JsonSerializerOptions options = new() { WriteIndented = true };
 
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
@@ -144,10 +145,7 @@ Format function calls like this:
 				};
 
 				// Serialize the entire structure to JSON
-				string fullJsonSpec = JsonSerializer.Serialize(completeRepresentation, new JsonSerializerOptions
-				{
-					WriteIndented = true
-				});
+				string fullJsonSpec = JsonSerializer.Serialize(completeRepresentation, options);
 
 				functionDefinitions.AppendLine(fullJsonSpec);
 			}

@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 
 		private class TestChatClient : IChatClient
 		{
-			public ChatClientMetadata Metadata => new("test", null, null);
+			public static ChatClientMetadata Metadata => new("test", null, null);
 
 			public Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default)
 			{

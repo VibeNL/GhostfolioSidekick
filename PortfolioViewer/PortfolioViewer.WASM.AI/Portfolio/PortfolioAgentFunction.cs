@@ -1,6 +1,7 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
+using System.Globalization;
 using System.Text;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
@@ -73,7 +74,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 
 			var totalValue = holdings.Sum(h => h.CurrentValue.Amount);
 			var totalGainLoss = holdings.Sum(h => h.GainLoss.Amount);
-			var currency = holdings.FirstOrDefault()?.Currency ?? "?";
+			var currency = holdings.First().Currency;
 			var avgGainPct = holdings.Average(h => h.GainLossPercentage);
 
 			var sb = new StringBuilder();
@@ -165,13 +166,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 				.OrderBy(p => p.Date)
 				.ToList();
 
-			if (quarters.Count > 0)
+			sb.AppendLine("  Quarterly snapshots:");
+			foreach (var q in quarters)
 			{
-				sb.AppendLine("  Quarterly snapshots:");
-				foreach (var q in quarters)
-				{
-					sb.AppendLine($"    {q.Date:yyyy-MM-dd}  {q.Value:N0}");
-				}
+				sb.AppendLine($"    {q.Date:yyyy-MM-dd}  {q.Value:N0}");
 			}
 
 			return sb.ToString();
@@ -204,7 +202,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 				return fallback;
 			}
 
-			return DateOnly.TryParseExact(input, "yyyy-MM-dd", out var parsed) ? parsed : fallback;
+			return DateOnly.TryParseExact(input, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed) ? parsed : fallback;
 		}
 	}
 }
