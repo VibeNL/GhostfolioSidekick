@@ -94,9 +94,17 @@ namespace GhostfolioSidekick.Performance
 
 				// Flush every SaveBatchSize holdings or on the last one
 				bool isLastHolding = i == holdingIds.Count - 1;
-				if ((processedHoldings % SaveBatchSize == 0) || isLastHolding)
+				try
 				{
 					await batchDbContext.SaveChangesAsync();
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Error saving calculated snapshots batch (up to holding {HoldingId})", holdingId);
+				}
+				finally
+				{
+					batchDbContext.ChangeTracker.Clear();
 				}
 			}
 
