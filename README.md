@@ -110,7 +110,7 @@ Fields are identical to the UI
 Add a symbol as a benchmark
 
 #### Mappings
-Change an identifier from the imported files to be compatible with Ghostfolio (for example certain symbols may not be found by Ghostfolio, so we can substituting the identifier with one that is recognized)
+Change an identifier from the imported files to be compatible with Ghostfolio (for example, certain symbols may not be found by Ghostfolio, so we can substitute the identifier with one that is recognized)
 
 | Fieldname | Type | Description |
 |--|--|--|
