@@ -519,7 +519,7 @@ Format function calls like this:
 			GC.SuppressFinalize(this);
 		}
 
-		[GeneratedRegexAttribute(@"<think>.*?</think>", RegexOptions.IgnoreCase | RegexOptions.Singleline, "en-NL")]
+		[GeneratedRegex(@"<think>.*?</think>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
 		private static partial Regex ThinkRegex();
 
 		[GeneratedRegex(@"\{[\s\S]*\}", RegexOptions.Singleline)]
