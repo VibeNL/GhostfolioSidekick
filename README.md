@@ -52,7 +52,7 @@ Also allows the following symbol settings
 {
     "settings" : {
         "performance.primarycurrency": "USD",
-        "dataprovider.preference.order": "COINGECKO,YAHOO",
+        "dataprovider.preference.order": "COINGECKO;YAHOO",
         "delete.unused.symbols": false
     },
     "platforms":[
