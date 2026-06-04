@@ -221,6 +221,9 @@ namespace GhostfolioSidekick.UnitTests
 			databaseContext.SaveChanges();
 			databaseContext.Tasks.Count().Should().Be(2);
 
+			// Clear the change tracker to simulate a fresh DbContext
+			databaseContext.ChangeTracker.Clear();
+
 			// Act - second startup: removed task is absent from the registered work items
 			_ = new TimedHostedService(databaseContext, loggerMock.Object,
 				new List<IScheduledWork> { currentTaskMock.Object });
