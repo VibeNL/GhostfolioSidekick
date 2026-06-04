@@ -62,9 +62,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 				}
 
+				// Remove dividends that are no longer present
 				foreach (var existing in existingDividends
-						.Where(existing => existing.DividendState != DividendState.Predicted
-										&& !gatheredLookup.ContainsKey((existing.ExDividendDate, existing.PaymentDate, existing.DividendType, existing.DividendState)))
+						.Where(existing => !gatheredLookup.ContainsKey((existing.ExDividendDate, existing.PaymentDate, existing.DividendType, existing.DividendState)))
 				)
 				{
 					symbol.Dividends.Remove(existing);

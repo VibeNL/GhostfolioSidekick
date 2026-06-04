@@ -45,8 +45,6 @@ namespace GhostfolioSidekick.Database
 
 		public virtual DbSet<Dividend> Dividends { get; set; }
 
-		public virtual DbSet<UpcomingDividendTimelineEntry> UpcomingDividendTimelineEntries { get; set; }
-
 		public DatabaseContext()
 		{
 		}

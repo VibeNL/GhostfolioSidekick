@@ -85,10 +85,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						   .ToList());
 
 			// Load all data before making changes
-			var existingPredictions = await databaseContext.Dividends
-				.Where(d => d.DividendState == DividendState.Predicted)
-				.ToListAsync();
-
 			var historicalDividends = await databaseContext.Activities
 				.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
 				.Where(a => a.Date < today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
@@ -116,7 +112,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			allConfirmedUpcoming.AddRange(confirmedUpcomingDivs);
 
 			// Replace all existing predictions with freshly computed ones
-			databaseContext.Dividends.RemoveRange(existingPredictions);
+			await databaseContext.Dividends
+				.Where(d => d.DividendState == DividendState.Predicted)
+				.ExecuteDeleteAsync();
 
 			var bySymbol = historicalDividends
 				.SelectMany(d => d.PartialSymbolIdentifiers.Select(p => new { Symbol = p.Identifier, Dividend = d }))

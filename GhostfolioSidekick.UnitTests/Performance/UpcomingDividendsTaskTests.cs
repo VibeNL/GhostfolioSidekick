@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
@@ -17,109 +18,253 @@ namespace GhostfolioSidekick.UnitTests.Performance
                 .Options;
 
         [Fact]
-        public async Task DoWork_OfficialDividends_TimelineEntryIsCreated()
+        public async Task DoWork_WithAnnouncedDividendAndQuarterlyPattern_AddsPredictedAnnouncedActivity()
         {
             using var connection = new SqliteConnection("Filename=:memory:");
             await connection.OpenAsync(TestContext.Current.CancellationToken);
             var options = CreateOptions(connection);
-            var dbContext = new DatabaseContext(options);
-            await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-            var holding = new Holding
+            await using (var setupContext = new DatabaseContext(options))
             {
-                Id = 1,
-                SymbolProfiles = [new SymbolProfile { Symbol = "TEST", Currency = Currency.USD, DataSource = "YAHOO", Name = "Test", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }],
-                CalculatedSnapshots = [new CalculatedSnapshot { Date = DateOnly.FromDateTime(DateTime.Today), Quantity = 1, Currency = Currency.USD }]
-            };
-            dbContext.Holdings.Add(holding);
-            dbContext.Dividends.Add(new Dividend
-            {
-                ExDividendDate = DateOnly.FromDateTime(DateTime.Today),
-                PaymentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
-                DividendType = DividendType.Cash,
-                DividendState = DividendState.Declared,
-                Amount = new Money(Currency.USD, 100),
-                SymbolProfileSymbol = "TEST",
-                SymbolProfileDataSource = "YAHOO"
-            });
-            await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+                await setupContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var announcedDate = today.AddDays(40);
 
-            var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-            dbFactoryMock.Setup(x => x.CreateDbContextAsync(default)).ReturnsAsync(() => new DatabaseContext(options));
+                var account = new Account("Main") { Id = 1 };
+                var symbolProfile = new SymbolProfile
+                {
+                    Symbol = "QDIV",
+                    Name = "Quarterly Dividend",
+                    Currency = Currency.USD,
+                    DataSource = "YAHOO",
+                    AssetClass = AssetClass.Equity,
+                    CountryWeight = [],
+                    SectorWeights = [],
+                    Identifiers = [],
+                    Dividends =
+                    [
+                        new Dividend
+                        {
+                            ExDividendDate = announcedDate.AddDays(-14),
+                            PaymentDate = announcedDate,
+                            DividendType = DividendType.Cash,
+                            DividendState = DividendState.Declared,
+                            Amount = new Money(Currency.USD, 0),
+                            SymbolProfileSymbol = "QDIV",
+                            SymbolProfileDataSource = "YAHOO"
+                        }
+                    ]
+                };
 
-            var currencyExchangeMock = new Mock<GhostfolioSidekick.Database.Repository.ICurrencyExchange>();
-            currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((Money m, Currency c, DateOnly d) => new Money(c, m.Amount));
+                var holding = new Holding
+                {
+                    Id = 101,
+                    SymbolProfiles = [symbolProfile],
+                    CalculatedSnapshots =
+                    [
+                        new CalculatedSnapshot { HoldingId = 101, AccountId = 1, Date = today.AddMonths(-13), Quantity = 10, Currency = Currency.USD },
+                        new CalculatedSnapshot { HoldingId = 101, AccountId = 1, Date = today.AddDays(-20), Quantity = 25, Currency = Currency.USD }
+                    ]
+                };
 
-            var settings = new Settings { PrimaryCurrency = "USD", DataProviderPreference = "YAHOO;COINGECKO" };
-            var configInstance = new ConfigurationInstance { Settings = settings };
-            var appSettingsMock = new Mock<IApplicationSettings>();
-            appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
+                setupContext.Accounts.Add(account);
+                setupContext.Holdings.Add(holding);
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var loggerMock = new Mock<ILogger>();
-            var task = new UpcomingDividendsTask(dbFactoryMock.Object, currencyExchangeMock.Object, appSettingsMock.Object);
-            await task.DoWork(loggerMock.Object);
+                setupContext.Activities.AddRange(
+                    BuildHistoricalDividend(account, holding, "QDIV", DateTime.Today.AddMonths(-12), 11m),
+                    BuildHistoricalDividend(account, holding, "QDIV", DateTime.Today.AddMonths(-9), 12m),
+                    BuildHistoricalDividend(account, holding, "QDIV", DateTime.Today.AddMonths(-6), 13m),
+                    BuildHistoricalDividend(account, holding, "QDIV", DateTime.Today.AddMonths(-3), 14m));
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
 
-            var result = dbContext.UpcomingDividendTimelineEntries.FirstOrDefault(x => x.HoldingId == 1);
-            Assert.NotNull(result);
-            Assert.Equal(100, result.Amount);
-            Assert.Equal("USD", result.Currency.Symbol);
-            Assert.Equal(DividendType.Cash, result.DividendType);
-            Assert.Equal(DividendState.Declared, result.DividendState);
+            var task = CreateTask(options, "USD");
+            await task.DoWork(new Mock<ILogger>().Object);
+
+            await using var verifyContext = new DatabaseContext(options);
+            var predictedActivities = await verifyContext.Activities
+                .OfType<DividendActivity>()
+                .Where(x => x.IsPredicted)
+                .ToListAsync(TestContext.Current.CancellationToken);
+
+            var announcedPrediction = predictedActivities
+                .FirstOrDefault(x => DateOnly.FromDateTime(x.Date) == DateOnly.FromDateTime(DateTime.Today).AddDays(40));
+
+            Assert.NotNull(announcedPrediction);
+            Assert.Contains("predicted-announced", announcedPrediction.TransactionId);
+            Assert.True(announcedPrediction.IsPredicted);
+            Assert.Equal(31.25m, announcedPrediction.Amount.Amount);
         }
 
         [Fact]
-      public async Task DoWork_PredictsFromPastDividendActivity_WhenNoOfficial()
+        public async Task DoWork_WithMonthlyPatternAndNoAnnouncements_AddsPredictedUnannouncedActivities()
         {
             using var connection = new SqliteConnection("Filename=:memory:");
             await connection.OpenAsync(TestContext.Current.CancellationToken);
             var options = CreateOptions(connection);
-            var dbContext = new DatabaseContext(options);
-            await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-            var account = new Account { Id = 1, Name = "Test Account" };
-            dbContext.Accounts.Add(account);
-            var holding = new Holding
+            DateOnly expectedFirstProjectedDate;
+            await using (var setupContext = new DatabaseContext(options))
             {
-                Id = 2,
-                SymbolProfiles = [new SymbolProfile { Symbol = "TEST2", Currency = Currency.EUR, DataSource = "YAHOO", Name = "Test2", AssetClass = AssetClass.Equity, CountryWeight = [], SectorWeights = [], Identifiers = [] }],
-                CalculatedSnapshots = [new CalculatedSnapshot { Date = DateOnly.FromDateTime(DateTime.Today), Quantity = 10, Currency = Currency.EUR }]
-            };
-            dbContext.Holdings.Add(holding);
-            await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+                await setupContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+                var today = DateOnly.FromDateTime(DateTime.Today);
 
-            var eur = Currency.GetCurrency("EUR");
-            var activities = new List<DividendActivity>
+                var account = new Account("Main") { Id = 2 };
+                var holding = new Holding
+                {
+                    Id = 102,
+                    SymbolProfiles =
+                    [
+                        new SymbolProfile
+                        {
+                            Symbol = "MDIV",
+                            Name = "Monthly Dividend",
+                            Currency = Currency.EUR,
+                            DataSource = "YAHOO",
+                            AssetClass = AssetClass.Equity,
+                            CountryWeight = [],
+                            SectorWeights = [],
+                            Identifiers = []
+                        }
+                    ],
+                    CalculatedSnapshots =
+                    [
+                        new CalculatedSnapshot { HoldingId = 102, AccountId = 2, Date = today.AddMonths(-5), Quantity = 5, Currency = Currency.EUR },
+                        new CalculatedSnapshot { HoldingId = 102, AccountId = 2, Date = today.AddDays(-15), Quantity = 20, Currency = Currency.EUR }
+                    ]
+                };
+
+                setupContext.Accounts.Add(account);
+                setupContext.Holdings.Add(holding);
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                var d1 = DateTime.Today.AddMonths(-4);
+                var d2 = DateTime.Today.AddMonths(-3);
+                var d3 = DateTime.Today.AddMonths(-2);
+                var d4 = DateTime.Today.AddMonths(-1);
+                setupContext.Activities.AddRange(
+                    BuildHistoricalDividend(account, holding, "MDIV", d1, 8m),
+                    BuildHistoricalDividend(account, holding, "MDIV", d2, 8.5m),
+                    BuildHistoricalDividend(account, holding, "MDIV", d3, 9m),
+                    BuildHistoricalDividend(account, holding, "MDIV", d4, 9.5m));
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                expectedFirstProjectedDate = DateOnly.FromDateTime(d4).AddDays(30);
+                while (expectedFirstProjectedDate < today)
+                {
+                    expectedFirstProjectedDate = expectedFirstProjectedDate.AddDays(30);
+                }
+            }
+
+            var task = CreateTask(options, "EUR");
+            await task.DoWork(new Mock<ILogger>().Object);
+
+            await using var verifyContext = new DatabaseContext(options);
+            var predictedActivities = await verifyContext.Activities
+                .OfType<DividendActivity>()
+                .Where(x => x.IsPredicted)
+                .OrderBy(x => x.Date)
+                .ToListAsync(TestContext.Current.CancellationToken);
+
+            Assert.NotEmpty(predictedActivities);
+            Assert.Contains(predictedActivities, x => x.TransactionId.Contains("predicted-unannounced"));
+            var firstProjected = predictedActivities.FirstOrDefault(x => DateOnly.FromDateTime(x.Date) == expectedFirstProjectedDate);
+            Assert.NotNull(firstProjected);
+            Assert.Equal(35m, firstProjected.Amount.Amount);
+        }
+
+        [Fact]
+        public async Task DoWork_WithInsufficientHistory_DoesNotAddPredictions()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            await connection.OpenAsync(TestContext.Current.CancellationToken);
+            var options = CreateOptions(connection);
+
+            await using (var setupContext = new DatabaseContext(options))
             {
-                new DividendActivity { Amount = new Money(eur, 50), Date = DateTime.Today.AddMonths(-3), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding },
-                new DividendActivity { Amount = new Money(eur, 60), Date = DateTime.Today.AddMonths(-6), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding },
-                new DividendActivity { Amount = new Money(eur, 70), Date = DateTime.Today.AddMonths(-9), TransactionId = Guid.NewGuid().ToString(), Account = account, Holding = holding }
-            };
-            dbContext.AddRange(activities);
-            await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+                await setupContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
+                var account = new Account("Main") { Id = 3 };
+                var holding = new Holding
+                {
+                    Id = 103,
+                    SymbolProfiles =
+                    [
+                        new SymbolProfile
+                        {
+                            Symbol = "NOPATTERN",
+                            Name = "No Pattern",
+                            Currency = Currency.USD,
+                            DataSource = "YAHOO",
+                            AssetClass = AssetClass.Equity,
+                            CountryWeight = [],
+                            SectorWeights = [],
+                            Identifiers = []
+                        }
+                    ],
+                    CalculatedSnapshots =
+                    [
+                        new CalculatedSnapshot { HoldingId = 103, AccountId = 3, Date = DateOnly.FromDateTime(DateTime.Today.AddMonths(-6)), Quantity = 10, Currency = Currency.USD }
+                    ]
+                };
+
+                setupContext.Accounts.Add(account);
+                setupContext.Holdings.Add(holding);
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                setupContext.Activities.AddRange(
+                    BuildHistoricalDividend(account, holding, "NOPATTERN", DateTime.Today.AddMonths(-4), 10m),
+                    BuildHistoricalDividend(account, holding, "NOPATTERN", DateTime.Today.AddMonths(-1), 11m));
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var task = CreateTask(options, "USD");
+            await task.DoWork(new Mock<ILogger>().Object);
+
+            await using var verifyContext = new DatabaseContext(options);
+            var predictedCount = await verifyContext.Activities
+                .OfType<DividendActivity>()
+                .CountAsync(x => x.IsPredicted, TestContext.Current.CancellationToken);
+
+            Assert.Equal(0, predictedCount);
+        }
+
+        private static UpcomingDividendsActivitiesTask CreateTask(DbContextOptions<DatabaseContext> options, string primaryCurrencySymbol)
+        {
             var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
             dbFactoryMock.Setup(x => x.CreateDbContextAsync(default)).ReturnsAsync(() => new DatabaseContext(options));
 
             var currencyExchangeMock = new Mock<GhostfolioSidekick.Database.Repository.ICurrencyExchange>();
-            currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((Money m, Currency c, DateOnly d) => new Money(c, m.Amount));
+            currencyExchangeMock
+                .Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
+                .ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(currency, money.Amount));
 
-            var settings = new Settings { PrimaryCurrency = "EUR", DataProviderPreference = "YAHOO;COINGECKO" };
+            var settings = new Settings
+            {
+                PrimaryCurrency = primaryCurrencySymbol,
+                DataProviderPreference = "YAHOO;COINGECKO"
+            };
             var configInstance = new ConfigurationInstance { Settings = settings };
             var appSettingsMock = new Mock<IApplicationSettings>();
             appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
 
-            var loggerMock = new Mock<ILogger>();
-            var task = new UpcomingDividendsTask(dbFactoryMock.Object, currencyExchangeMock.Object, appSettingsMock.Object);
-            await task.DoWork(loggerMock.Object);
+            return new UpcomingDividendsActivitiesTask(dbFactoryMock.Object, currencyExchangeMock.Object, appSettingsMock.Object);
+        }
 
-            var result = dbContext.UpcomingDividendTimelineEntries.FirstOrDefault(x => x.HoldingId == 2);
-            Assert.NotNull(result);
-            Assert.Equal("EUR", result.Currency.Symbol);
-            Assert.True(result.Amount > 0);
-            Assert.Equal(DividendType.Cash, result.DividendType);
-            Assert.Equal(DividendState.Predicted, result.DividendState);
+        private static DividendActivity BuildHistoricalDividend(Account account, Holding holding, string symbol, DateTime date, decimal amount)
+        {
+            var identifier = PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, symbol, null);
+            return new DividendActivity
+            {
+                Account = account,
+                Holding = holding,
+                Date = date,
+                Amount = new Money(Currency.USD, amount),
+                TransactionId = Guid.NewGuid().ToString(),
+                PartialSymbolIdentifiers = identifier == null ? [] : [identifier],
+                IsPredicted = false
+            };
         }
     }
 }

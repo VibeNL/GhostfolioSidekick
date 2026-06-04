@@ -30,5 +30,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public List<Money> Taxes { get; set; } = [];
 
 		public IReadOnlyList<Money> Costs => [.. Fees, .. Taxes];
+
+		public bool IsPredicted { get; set; } = false;
 	}
 }
