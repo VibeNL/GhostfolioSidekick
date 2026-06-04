@@ -1,6 +1,7 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.Api;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
@@ -22,6 +23,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 					{ ChatMode.FunctionCalling, modelid },
 				}
 			));
+
+			// Forward IChatClient to the ICustomChatClient registration so that
+			// components depending on the base interface (e.g. ResearchAgentToolProvider) resolve correctly.
+			services.AddSingleton<IChatClient>(s => s.GetRequiredService<ICustomChatClient>());
+
 			services.AddSingleton(s => new ModelInfo
 			{
 				Name = modelid,
@@ -29,12 +35,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			});
 		}
 
-		public static void AddApiChatClient(this IServiceCollection services)
+		public static void AddPortfolioTools(this IServiceCollection services)
 		{
-			services.AddSingleton<ICustomChatClient>(s => new ApiChatClient(
-				s.GetRequiredService<HttpClient>(),
-				s.GetRequiredService<ILogger<ApiChatClient>>()
-			));
+			services.AddSingleton<IAgentToolProvider, PortfolioAgentToolProvider>();
 		}
 	}
 }

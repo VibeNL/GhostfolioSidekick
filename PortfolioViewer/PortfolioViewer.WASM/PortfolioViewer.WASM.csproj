@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<NoWarn>1701;1702;SKEXP0110;SKEXP0001;CS8602</NoWarn>
+		<NoWarn>1701;1702;CS8602</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -46,7 +46,7 @@
 		<PackageReference Include="Grpc.Net.Client.Web" Version="2.80.0" />
 		<PackageReference Include="Grpc.Net.Client" Version="2.80.0" />
 		<PackageReference Include="Google.Protobuf" Version="3.35.0" />
-		<PackageReference Include="Grpc.Tools" Version="2.80.0" PrivateAssets="All" />
+		<PackageReference Include="Grpc.Tools" Version="2.81.0" PrivateAssets="All" />
 		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="10.0.8" />
 	</ItemGroup>
 

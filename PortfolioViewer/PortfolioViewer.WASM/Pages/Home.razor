@@ -3,7 +3,6 @@
 @using GhostfolioSidekick.Model
 @attribute [Authorize]
 
-
 @if (IsLoading)
 {
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 40vh;">
@@ -15,13 +14,8 @@
 }
 else
 {
-    <PageTitle>Home</PageTitle>
+    <PageTitle>Dashboard</PageTitle>
 
-    <h1>Start page</h1>
-
-    <p>Before use, please sync the data with a copy of the server</p>
-
-    <!-- Migration Warning Section -->
     @if (MigrationStatus != null && MigrationStatus.PendingMigrations.Count > 0)
     {
         <div class="alert alert-danger mb-3">
@@ -34,7 +28,6 @@ else
         </div>
     }
 
-    <!-- Version Info Section -->
     @if (IsUpdateAvailable)
     {
         <div class="alert alert-warning mb-3">
@@ -58,97 +51,281 @@ else
         </div>
     }
 
-    @if (LastSyncTime.HasValue)
-    {
-        <div class="alert alert-info mb-3">
-            <strong>Last sync:</strong> @LastSyncTime.Value.ToString("dd/MM/yyyy HH:mm:ss")
-            <small class="text-muted ms-2">(@GetTimeSinceLastSync())</small>
-            @if (!IsSyncing && GetDaysSinceLastSync() <= 7)
+    <!-- Dashboard Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3 mb-md-4 flex-wrap gap-2">
+        <div>
+            <h1 class="mb-0">
+                <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
+            </h1>
+            @if (LastSyncTime.HasValue)
             {
-                <div class="mt-2">
-                    <small class="text-info">
-                        <i class="bi bi-lightning-fill me-1"></i>
-                        Next sync will be fast (partial sync - only missing days)
-                    </small>
+                <small class="text-muted">Last updated: @LastSyncTime.Value.ToString("dd/MM/yyyy HH:mm") (@GetTimeSinceLastSync())</small>
+            }
+            else
+            {
+                <small class="text-warning"><i class="bi bi-exclamation-circle me-1"></i>No data synced yet</small>
+            }
+        </div>
+        <div class="dashboard-action-group d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
+                @if (IsSyncing)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <i class="bi bi-arrow-repeat me-2"></i>
+                }
+                @GetSyncButtonText()
+            </button>
+            @if (!IsSyncing)
+            {
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear me-1"></i>Options
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        @if (LastSyncTime.HasValue)
+                        {
+                            <li>
+                                <button class="dropdown-item" @onclick="StartFullSync">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>Force Full Sync
+                                    <small class="text-muted d-block">Download all data (slower but complete)</small>
+                                </button>
+                            </li>
+                        }
+                        <li>
+                            <button class="dropdown-item text-danger" @onclick="DeleteAllData">
+                                <i class="bi bi-trash me-2"></i>Delete All Data
+                                <small class="text-muted d-block">Remove all synced data from local database</small>
+                            </button>
+                        </li>
+                    </ul>
                 </div>
             }
+        </div>
+    </div>
+
+    @if (IsSyncing)
+    {
+        <div class="card mb-4 border-primary">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                    <strong>@CurrentAction</strong>
+                    @if (IsWakeLockActive)
+                    {
+                        <small class="text-success ms-2"><i class="bi bi-shield-fill-check me-1"></i>Screen wake lock active</small>
+                    }
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <small class="text-muted mt-1 d-block">@Progress%</small>
+            </div>
+        </div>
+    }
+
+    @if (HasDashboardData)
+    {
+        var gainClass = TotalGainLoss >= 0 ? "success" : "danger";
+        var gainSign = TotalGainLoss >= 0 ? "+" : "";
+        var dividendCount = UpcomingDividends.Count;
+        var dividendTotal = UpcomingDividends.Where(d => d.AmountPrimaryCurrency.HasValue).Sum(d => d.AmountPrimaryCurrency!.Value);
+        var dividendCurrency = UpcomingDividends.FirstOrDefault(d => !string.IsNullOrEmpty(d.PrimaryCurrency))?.PrimaryCurrency ?? PortfolioCurrency;
+
+        <div class="card compact-table-card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="mb-0"><i class="bi bi-table me-2 text-primary"></i>Portfolio Summary</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover compact-table mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="fw-normal text-muted">Total Portfolio Value</th>
+                                <td class="text-end fw-semibold"><PrivacyValue Value="@($"{TotalPortfolioValue:N2} {PortfolioCurrency}")" /></td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Total Invested</th>
+                                <td class="text-end fw-semibold"><PrivacyValue Value="@($"{TotalInvested:N2} {PortfolioCurrency}")" /></td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Total Gain / Loss</th>
+                                <td class="text-end fw-semibold text-@gainClass">
+                                    <PrivacyValue Value="@($"{gainSign}{TotalGainLoss:N2} {PortfolioCurrency}")" />
+                                    <small class="d-block">@gainSign@TotalGainLossPercentage.ToString("N2")%</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Upcoming Dividends</th>
+                                <td class="text-end fw-semibold">
+                                    @if (dividendCount > 0)
+                                    {
+                                        <PrivacyValue Value="@($"{dividendTotal:N2} {dividendCurrency}")" />
+                                        <small class="d-block text-muted">@dividendCount payment@(dividendCount != 1 ? "s" : "")</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">None scheduled</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Holdings</th>
+                                <td class="text-end fw-semibold">@HoldingCount</td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Top Performer</th>
+                                <td class="text-end fw-semibold">
+                                    @if (BestPerformer != null)
+                                    {
+                                        <span class="text-success">+@((BestPerformer.GainLossPercentage * 100).ToString("N2"))%</span>
+                                        <small class="d-block text-muted">@BestPerformer.Name</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No data available</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Worst Performer</th>
+                                <td class="text-end fw-semibold">
+                                    @if (WorstPerformer != null && WorstPerformer != BestPerformer)
+                                    {
+                                        <span class="text-danger">@((WorstPerformer.GainLossPercentage * 100).ToString("N2"))%</span>
+                                        <small class="d-block text-muted">@WorstPerformer.Name</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No data available</span>
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Top Holdings Table -->
+        <div class="card compact-table-card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between">
+                <h6 class="mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>Top Holdings by Value</h6>
+                <a href="/holdings" class="btn btn-sm btn-outline-primary">View All <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover compact-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th class="d-none d-md-table-cell">Symbol</th>
+                                <th class="text-end">Value</th>
+                                <th class="text-end">Gain / Loss</th>
+                                <th class="text-end d-none d-lg-table-cell">Weight</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var holding in Holdings.OrderByDescending(h => h.CurrentValue.Amount).Take(10))
+                            {
+                                var rowGainClass = holding.GainLossPercentage >= 0 ? "text-success" : "text-danger";
+                                var rowGainSign = holding.GainLossPercentage >= 0 ? "+" : "";
+                                <tr>
+                                    <td class="fw-semibold">@holding.Name</td>
+                                    <td class="d-none d-md-table-cell"><span class="badge bg-secondary">@(holding.Symbols?.FirstOrDefault() ?? "-")</span></td>
+                                    <td class="text-end"><PrivacyValue Value="@($"{holding.CurrentValue.Amount:N2} {holding.Currency}")" /></td>
+                                    <td class="text-end @rowGainClass fw-semibold">@rowGainSign@((holding.GainLossPercentage * 100).ToString("N2"))%</td>
+                                    <td class="text-end d-none d-lg-table-cell">
+                                        <div class="d-flex align-items-center justify-content-end gap-2">
+                                            <div class="progress flex-grow-1" style="height:6px; max-width:60px;">
+                                                <div class="progress-bar bg-primary" style="width:@((int)Math.Min(holding.Weight * 100, 100))%;"></div>
+                                                            </div>
+                                                            <small>@((holding.Weight * 100).ToString("N1"))%</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if (UpcomingDividends.Count > 0)
+        {
+            <div class="card compact-table-card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0"><i class="bi bi-calendar2-event me-2 text-warning"></i>Upcoming Dividends</h6>
+                    <a href="/dividends" class="btn btn-sm btn-outline-warning">View All <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover compact-table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Company</th>
+                                    <th class="d-none d-md-table-cell">Symbol</th>
+                                    <th class="text-end">Ex-Date</th>
+                                    <th class="text-end d-none d-lg-table-cell">Pay Date</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var div in UpcomingDividends)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@div.CompanyName</td>
+                                        <td class="d-none d-md-table-cell"><span class="badge bg-secondary">@div.Symbol</span></td>
+                                        <td class="text-end">@div.ExDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end d-none d-lg-table-cell">@div.PaymentDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end">
+                                            @if (div.AmountPrimaryCurrency.HasValue)
+                                            {
+                                                <PrivacyValue Value="@($"{div.AmountPrimaryCurrency.Value:N2} {div.PrimaryCurrency}")" />
+                                            }
+                                            else
+                                            {
+                                                <PrivacyValue Value="@($"{div.Amount:N2} {div.Currency}")" />
+                                            }
+                                            @if (div.IsPredicted)
+                                            {
+                                                <span class="badge bg-warning text-dark ms-1" title="Predicted">~</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else if (!LastSyncTime.HasValue)
+    {
+        <div class="card border-0 shadow-sm text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-cloud-download display-1 text-muted mb-3"></i>
+                <h4>Welcome to Portfolio Viewer</h4>
+                <p class="text-muted mb-4">Sync your portfolio data to see your dashboard KPIs, holdings overview, and upcoming dividends.</p>
+                <button class="btn btn-primary btn-lg" @onclick="StartSync" disabled="@IsSyncing">
+                    <i class="bi bi-arrow-repeat me-2"></i>Start Initial Sync
+                </button>
+                <div class="mt-3">
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>First sync downloads all data and may take a few minutes.</small>
+                </div>
+            </div>
         </div>
     }
     else
     {
-        <div class="alert alert-warning mb-3">
-            <strong>No sync yet:</strong> Please perform your first sync to get started.
-            <div class="mt-2">
-                <small class="text-muted">
-                    <i class="bi bi-info-circle me-1"></i>
-                    First sync downloads all data and may take longer
-                </small>
-            </div>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No holdings found in the database. Please sync your data to view the dashboard.
         </div>
     }
-
-    <!-- Sync Progress Section -->
-    <div class="mb-4">
-        <p>@CurrentAction</p>
-        @if (IsWakeLockActive)
-        {
-            <div class="mb-2">
-                <small class="text-success">
-                    <i class="bi bi-shield-fill-check me-1"></i>
-                    Screen wake lock is active - device will not sleep
-                </small>
-            </div>
-        }
-        <div class="progress">
-            <div class="progress-bar" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100">
-                @Progress%
-            </div>
-        </div>
-    </div>
-
-    <!-- Sync Buttons Section -->
-    <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
-            @if (IsSyncing)
-            {
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            }
-            else
-            {
-                <i class="bi bi-arrow-repeat me-2"></i>
-            }
-            @GetSyncButtonText()
-        </button>
-
-        @if (!IsSyncing)
-        {
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-gear me-1"></i>
-                    Options
-                </button>
-                <ul class="dropdown-menu">
-                    @if (LastSyncTime.HasValue)
-                    {
-                        <li>
-                            <button class="dropdown-item" @onclick="StartFullSync">
-                                <i class="bi bi-arrow-clockwise me-2"></i>
-                                Force Full Sync
-                                <small class="text-muted d-block">Download all data (slower but complete)</small>
-                            </button>
-                        </li>
-                    }
-                    <li>
-                        <button class="dropdown-item text-danger" @onclick="DeleteAllData">
-                            <i class="bi bi-trash me-2"></i>
-                            Delete All Data
-                            <small class="text-muted d-block">Remove all synced data from local database</small>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        }
-    </div>
 
     @if (!string.IsNullOrEmpty(_statusMessage))
     {
@@ -158,7 +335,6 @@ else
         </div>
     }
 
-    <!-- Footer Version Info (less prominent) -->
     @if (!IsUpdateAvailable && !string.IsNullOrEmpty(ClientVersion))
     {
         <footer class="text-center mt-5 mb-2 text-muted" style="font-size: 0.95em;">
@@ -174,3 +350,37 @@ else
         </footer>
     }
 }
+
+<style>
+    @@media (max-width: 767.98px)
+    {
+        .dashboard-action-group
+        {
+            width: 100%;
+        }
+
+        .dashboard-action-group > .btn,
+        .dashboard-action-group > .btn-group
+        {
+            width: 100%;
+        }
+
+        .dashboard-action-group .dropdown-toggle
+        {
+            width: 100%;
+        }
+
+        .compact-table-card .card-header
+        {
+            padding: 0.75rem;
+        }
+
+        .compact-table th,
+        .compact-table td
+        {
+            padding: 0.55rem 0.5rem;
+            font-size: 0.88rem;
+            white-space: nowrap;
+        }
+    }
+</style>
