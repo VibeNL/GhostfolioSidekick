@@ -2,6 +2,7 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Performance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -63,30 +64,16 @@ namespace GhostfolioSidekick.Performance
 					.OrderBy(a => a.Date)
 					.ToList();
 
-				if (!TryDetectPattern(historicalDividends, out var detectedPattern))
-				{
-					continue;
-				}
-
-				var lastHistoricalDividend = historicalDividends.Last();
-				var account = lastHistoricalDividend.Account;
+				var account = historicalDividends.LastOrDefault()?.Account;
 				if (account == null)
 				{
 					continue;
 				}
 
+				var lastHistoricalDividend = historicalDividends.LastOrDefault();
 				var snapshots = holding.CalculatedSnapshots
 					.OrderBy(s => s.Date)
 					.ToList();
-
-				var predictedDividendPerShare = await CalculatePredictedDividendPerShare(historicalDividends, snapshots, primaryCurrency);
-				if (predictedDividendPerShare <= 0)
-				{
-					continue;
-				}
-
-				var defaultSymbolProfile = holding.SymbolProfiles.FirstOrDefault();
-				var partialSymbolIdentifiers = BuildPartialSymbolIdentifiers(holding, lastHistoricalDividend, defaultSymbolProfile);
 
 				var occupiedDates = holding.Activities
 					.OfType<DividendActivity>()
@@ -99,6 +86,41 @@ namespace GhostfolioSidekick.Performance
 					.Where(d => d.PaymentDate >= today && d.PaymentDate <= oneYearFromNow)
 					.OrderBy(d => d.PaymentDate)
 					.ToList();
+
+				if (!TryDetectPattern(historicalDividends, out var detectedPattern))
+				{
+					createdPredictedActivities += await AddDeclaredDividendsOnly(
+						dbContext,
+						account,
+						holding,
+						snapshots,
+						announcedDividends,
+						occupiedDates,
+						primaryCurrency);
+					continue;
+				}
+
+				if (lastHistoricalDividend == null)
+				{
+					continue;
+				}
+
+				var predictedDividendPerShare = await CalculatePredictedDividendPerShare(historicalDividends, snapshots, primaryCurrency);
+				if (predictedDividendPerShare <= 0)
+				{
+					createdPredictedActivities += await AddDeclaredDividendsOnly(
+						dbContext,
+						account,
+						holding,
+						snapshots,
+						announcedDividends,
+						occupiedDates,
+						primaryCurrency);
+					continue;
+				}
+
+				var defaultSymbolProfile = holding.SymbolProfiles.FirstOrDefault();
+				var partialSymbolIdentifiers = BuildPartialSymbolIdentifiers(holding, lastHistoricalDividend, defaultSymbolProfile);
 
 				foreach (var announcedDividend in announcedDividends)
 				{
@@ -267,6 +289,56 @@ namespace GhostfolioSidekick.Performance
 				.OrderBy(s => s.Date)
 				.First()
 				.Quantity;
+		}
+
+		private async Task<int> AddDeclaredDividendsOnly(
+			DatabaseContext dbContext,
+			GhostfolioSidekick.Model.Accounts.Account account,
+			Holding holding,
+			List<CalculatedSnapshot> snapshots,
+			List<Dividend> announcedDividends,
+			List<DateOnly> occupiedDates,
+			Currency primaryCurrency)
+		{
+			var added = 0;
+			var defaultSymbolProfile = holding.SymbolProfiles.FirstOrDefault();
+			var symbolIdentifier = BuildPartialSymbolIdentifiers(
+				holding,
+				holding.Activities.OfType<DividendActivity>().OrderByDescending(x => x.Date).First(),
+				defaultSymbolProfile);
+
+			foreach (var declaredDividend in announcedDividends.Where(x => x.DividendState == DividendState.Declared))
+			{
+				if (IsDateCovered(declaredDividend.PaymentDate, occupiedDates, 1))
+				{
+					continue;
+				}
+
+				var projectedAmount = CalculateProjectedAmount(declaredDividend.Amount.Amount, snapshots, declaredDividend.PaymentDate, declaredDividend.Amount.Currency);
+				if (projectedAmount.Amount <= 0)
+				{
+					continue;
+				}
+
+				var convertedAmount = await currencyExchange.ConvertMoney(projectedAmount, primaryCurrency, declaredDividend.PaymentDate);
+
+				dbContext.Activities.Add(new DividendActivity
+				{
+					Account = account,
+					Holding = holding,
+					Date = declaredDividend.PaymentDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+					Amount = convertedAmount,
+					TransactionId = $"declared-fallback-{holding.Id}-{declaredDividend.PaymentDate:yyyyMMdd}",
+					PartialSymbolIdentifiers = [.. symbolIdentifier],
+					Description = "Declared dividend (fallback without prediction)",
+					IsPredicted = true
+				});
+
+				occupiedDates.Add(declaredDividend.PaymentDate);
+				added++;
+			}
+
+			return added;
 		}
 
 		private static List<PartialSymbolIdentifier> BuildPartialSymbolIdentifiers(

@@ -230,6 +230,77 @@ namespace GhostfolioSidekick.UnitTests.Performance
             Assert.Equal(0, predictedCount);
         }
 
+        [Fact]
+        public async Task DoWork_WithNoPatternButDeclaredDividend_AddsDeclaredFallbackActivity()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            await connection.OpenAsync(TestContext.Current.CancellationToken);
+            var options = CreateOptions(connection);
+
+            await using (var setupContext = new DatabaseContext(options))
+            {
+                await setupContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+                var today = DateOnly.FromDateTime(DateTime.Today);
+
+                var account = new Account("Main") { Id = 4 };
+                var symbolProfile = new SymbolProfile
+                {
+                    Symbol = "DECLONLY",
+                    Name = "Declared Only",
+                    Currency = Currency.USD,
+                    DataSource = "YAHOO",
+                    AssetClass = AssetClass.Equity,
+                    CountryWeight = [],
+                    SectorWeights = [],
+                    Identifiers = [],
+                    Dividends =
+                    [
+                        new Dividend
+                        {
+                            ExDividendDate = today.AddDays(20),
+                            PaymentDate = today.AddDays(30),
+                            DividendType = DividendType.Cash,
+                            DividendState = DividendState.Declared,
+                            Amount = new Money(Currency.USD, 1.5m),
+                            SymbolProfileSymbol = "DECLONLY",
+                            SymbolProfileDataSource = "YAHOO"
+                        }
+                    ]
+                };
+
+                var holding = new Holding
+                {
+                    Id = 104,
+                    SymbolProfiles = [symbolProfile],
+                    CalculatedSnapshots =
+                    [
+                        new CalculatedSnapshot { HoldingId = 104, AccountId = 4, Date = today.AddDays(-5), Quantity = 10, Currency = Currency.USD }
+                    ]
+                };
+
+                setupContext.Accounts.Add(account);
+                setupContext.Holdings.Add(holding);
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                setupContext.Activities.AddRange(
+                    BuildHistoricalDividend(account, holding, "DECLONLY", DateTime.Today.AddMonths(-4), 10m),
+                    BuildHistoricalDividend(account, holding, "DECLONLY", DateTime.Today.AddMonths(-1), 11m));
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var task = CreateTask(options, "USD");
+            await task.DoWork(new Mock<ILogger>().Object);
+
+            await using var verifyContext = new DatabaseContext(options);
+            var fallback = await verifyContext.Activities
+                .OfType<DividendActivity>()
+                .FirstOrDefaultAsync(x => x.IsPredicted && x.TransactionId.Contains("declared-fallback"), TestContext.Current.CancellationToken);
+
+            Assert.NotNull(fallback);
+            Assert.Equal(15m, fallback.Amount.Amount);
+            Assert.Contains("Declared dividend", fallback.Description);
+        }
+
         private static UpcomingDividendsActivitiesTask CreateTask(DbContextOptions<DatabaseContext> options, string primaryCurrencySymbol)
         {
             var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
