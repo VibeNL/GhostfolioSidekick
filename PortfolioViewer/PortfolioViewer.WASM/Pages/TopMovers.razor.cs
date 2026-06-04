@@ -45,10 +45,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
 				}
-				if (FilterState != null)
-				{
-					FilterState.PropertyChanged += OnFilterStateChanged;
-				}
+
+				FilterState.PropertyChanged += OnFilterStateChanged;
 				_previousFilterState = new(FilterState);
 				await LoadMoversAsync();
 			}
