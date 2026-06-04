@@ -52,7 +52,7 @@ else
     }
 
     <!-- Dashboard Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div class="d-flex align-items-center justify-content-between mb-3 mb-md-4 flex-wrap gap-2">
         <div>
             <h1 class="mb-0">
                 <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
@@ -66,7 +66,7 @@ else
                 <small class="text-warning"><i class="bi bi-exclamation-circle me-1"></i>No data synced yet</small>
             }
         </div>
-        <div class="d-flex gap-2 flex-wrap">
+        <div class="dashboard-action-group d-flex gap-2 flex-wrap">
             <button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
                 @if (IsSyncing)
                 {
@@ -128,188 +128,104 @@ else
 
     @if (HasDashboardData)
     {
-        <!-- KPI Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between">
-                            <div>
-                                <p class="text-muted small mb-1">Total Portfolio Value</p>
-                                <h3 class="mb-0 fw-bold">
-                                    <PrivacyValue Value="@($"{TotalPortfolioValue:N2} {PortfolioCurrency}")" />
-                                </h3>
-                            </div>
-                            <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                                <i class="bi bi-wallet2 text-primary fs-4"></i>
-                            </div>
-                        </div>
-                        <hr class="my-2" />
-                        <small class="text-muted">
-                            <i class="bi bi-grid me-1"></i>@HoldingCount holding@(HoldingCount != 1 ? "s" : "")
-                        </small>
-                    </div>
-                </div>
-            </div>
+        var gainClass = TotalGainLoss >= 0 ? "success" : "danger";
+        var gainSign = TotalGainLoss >= 0 ? "+" : "";
+        var dividendCount = UpcomingDividends.Count;
+        var dividendTotal = UpcomingDividends.Where(d => d.AmountPrimaryCurrency.HasValue).Sum(d => d.AmountPrimaryCurrency!.Value);
+        var dividendCurrency = UpcomingDividends.FirstOrDefault(d => !string.IsNullOrEmpty(d.PrimaryCurrency))?.PrimaryCurrency ?? PortfolioCurrency;
 
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between">
-                            <div>
-                                <p class="text-muted small mb-1">Total Invested</p>
-                                <h3 class="mb-0 fw-bold">
-                                    <PrivacyValue Value="@($"{TotalInvested:N2} {PortfolioCurrency}")" />
-                                </h3>
-                            </div>
-                            <div class="rounded-circle bg-info bg-opacity-10 p-3">
-                                <i class="bi bi-cash-stack text-info fs-4"></i>
-                            </div>
-                        </div>
-                        <hr class="my-2" />
-                        <small class="text-muted">Capital deployed</small>
-                    </div>
-                </div>
+        <div class="card compact-table-card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="mb-0"><i class="bi bi-table me-2 text-primary"></i>Portfolio Summary</h6>
             </div>
-
-            @{
-                var gainClass = TotalGainLoss >= 0 ? "success" : "danger";
-                var gainIcon = TotalGainLoss >= 0 ? "bi-graph-up-arrow" : "bi-graph-down-arrow";
-                var gainSign = TotalGainLoss >= 0 ? "+" : "";
-            }
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between">
-                            <div>
-                                <p class="text-muted small mb-1">Total Gain / Loss</p>
-                                <h3 class="mb-0 fw-bold text-@gainClass">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover compact-table mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="fw-normal text-muted">Total Portfolio Value</th>
+                                <td class="text-end fw-semibold"><PrivacyValue Value="@($"{TotalPortfolioValue:N2} {PortfolioCurrency}")" /></td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Total Invested</th>
+                                <td class="text-end fw-semibold"><PrivacyValue Value="@($"{TotalInvested:N2} {PortfolioCurrency}")" /></td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Total Gain / Loss</th>
+                                <td class="text-end fw-semibold text-@gainClass">
                                     <PrivacyValue Value="@($"{gainSign}{TotalGainLoss:N2} {PortfolioCurrency}")" />
-                                </h3>
-                            </div>
-                            <div class="rounded-circle bg-@gainClass bg-opacity-10 p-3">
-                                <i class="bi @gainIcon text-@gainClass fs-4"></i>
-                            </div>
-                        </div>
-                        <hr class="my-2" />
-                        <small class="text-@gainClass fw-semibold">@gainSign@TotalGainLossPercentage.ToString("N2")%</small>
-                        <small class="text-muted"> return on investment</small>
-                    </div>
-                </div>
-            </div>
-
-            @{
-                var dividendCount = UpcomingDividends.Count;
-                var dividendTotal = UpcomingDividends.Where(d => d.AmountPrimaryCurrency.HasValue).Sum(d => d.AmountPrimaryCurrency!.Value);
-                var dividendCurrency = UpcomingDividends.FirstOrDefault(d => !string.IsNullOrEmpty(d.PrimaryCurrency))?.PrimaryCurrency ?? PortfolioCurrency;
-            }
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between">
-                            <div>
-                                <p class="text-muted small mb-1">Upcoming Dividends</p>
-                                <h3 class="mb-0 fw-bold">
+                                    <small class="d-block">@gainSign@TotalGainLossPercentage.ToString("N2")%</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Upcoming Dividends</th>
+                                <td class="text-end fw-semibold">
                                     @if (dividendCount > 0)
                                     {
                                         <PrivacyValue Value="@($"{dividendTotal:N2} {dividendCurrency}")" />
+                                        <small class="d-block text-muted">@dividendCount payment@(dividendCount != 1 ? "s" : "")</small>
                                     }
                                     else
                                     {
-                                        <span class="text-muted" style="font-size:1.1rem;">None scheduled</span>
+                                        <span class="text-muted">None scheduled</span>
                                     }
-                                </h3>
-                            </div>
-                            <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                                <i class="bi bi-calendar-event text-warning fs-4"></i>
-                            </div>
-                        </div>
-                        <hr class="my-2" />
-                        <small class="text-muted">@dividendCount upcoming payment@(dividendCount != 1 ? "s" : "")</small>
-                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Holdings</th>
+                                <td class="text-end fw-semibold">@HoldingCount</td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Top Performer</th>
+                                <td class="text-end fw-semibold">
+                                    @if (BestPerformer != null)
+                                    {
+                                        <span class="text-success">+@((BestPerformer.GainLossPercentage * 100).ToString("N2"))%</span>
+                                        <small class="d-block text-muted">@BestPerformer.Name</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No data available</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="fw-normal text-muted">Worst Performer</th>
+                                <td class="text-end fw-semibold">
+                                    @if (WorstPerformer != null && WorstPerformer != BestPerformer)
+                                    {
+                                        <span class="text-danger">@((WorstPerformer.GainLossPercentage * 100).ToString("N2"))%</span>
+                                        <small class="d-block text-muted">@WorstPerformer.Name</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No data available</span>
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- Best & Worst Performer -->
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-success bg-opacity-10 border-0">
-                        <h6 class="mb-0 text-success"><i class="bi bi-trophy me-2"></i>Best Performer</h6>
-                    </div>
-                    <div class="card-body">
-                        @if (BestPerformer != null)
-                        {
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                                    <i class="bi bi-arrow-up-circle text-success fs-3"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-bold">@BestPerformer.Name</div>
-                                    <small class="text-muted">@(BestPerformer.Symbols?.FirstOrDefault() ?? string.Empty)</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="fw-bold text-success fs-5">+@((BestPerformer.GainLossPercentage * 100).ToString("N2"))%</div>
-                                    <small class="text-muted"><PrivacyValue Value="@($"{BestPerformer.CurrentValue.Amount:N2} {BestPerformer.Currency}")" /></small>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <p class="text-muted mb-0">No data available</p>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-danger bg-opacity-10 border-0">
-                        <h6 class="mb-0 text-danger"><i class="bi bi-exclamation-diamond me-2"></i>Worst Performer</h6>
-                    </div>
-                    <div class="card-body">
-                        @if (WorstPerformer != null && WorstPerformer != BestPerformer)
-                        {
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-danger bg-opacity-10 p-3">
-                                    <i class="bi bi-arrow-down-circle text-danger fs-3"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-bold">@WorstPerformer.Name</div>
-                                    <small class="text-muted">@(WorstPerformer.Symbols?.FirstOrDefault() ?? string.Empty)</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="fw-bold text-danger fs-5">@((WorstPerformer.GainLossPercentage * 100).ToString("N2"))%</div>
-                                    <small class="text-muted"><PrivacyValue Value="@($"{WorstPerformer.CurrentValue.Amount:N2} {WorstPerformer.Currency}")" /></small>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <p class="text-muted mb-0">No data available</p>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Top Holdings Table -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card compact-table-card border-0 shadow-sm mb-4">
             <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between">
                 <h6 class="mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>Top Holdings by Value</h6>
                 <a href="/holdings" class="btn btn-sm btn-outline-primary">View All <i class="bi bi-arrow-right ms-1"></i></a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover compact-table mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Name</th>
-                                <th>Symbol</th>
+                                <th class="d-none d-md-table-cell">Symbol</th>
                                 <th class="text-end">Value</th>
                                 <th class="text-end">Gain / Loss</th>
-                                <th class="text-end">Weight</th>
+                                <th class="text-end d-none d-lg-table-cell">Weight</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -319,10 +235,10 @@ else
                                 var rowGainSign = holding.GainLossPercentage >= 0 ? "+" : "";
                                 <tr>
                                     <td class="fw-semibold">@holding.Name</td>
-                                    <td><span class="badge bg-secondary">@(holding.Symbols?.FirstOrDefault() ?? "-")</span></td>
+                                    <td class="d-none d-md-table-cell"><span class="badge bg-secondary">@(holding.Symbols?.FirstOrDefault() ?? "-")</span></td>
                                     <td class="text-end"><PrivacyValue Value="@($"{holding.CurrentValue.Amount:N2} {holding.Currency}")" /></td>
                                     <td class="text-end @rowGainClass fw-semibold">@rowGainSign@((holding.GainLossPercentage * 100).ToString("N2"))%</td>
-                                    <td class="text-end">
+                                    <td class="text-end d-none d-lg-table-cell">
                                         <div class="d-flex align-items-center justify-content-end gap-2">
                                             <div class="progress flex-grow-1" style="height:6px; max-width:60px;">
                                                 <div class="progress-bar bg-primary" style="width:@((int)Math.Min(holding.Weight * 100, 100))%;"></div>
@@ -340,20 +256,20 @@ else
 
         @if (UpcomingDividends.Count > 0)
         {
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card compact-table-card border-0 shadow-sm mb-4">
                 <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between">
                     <h6 class="mb-0"><i class="bi bi-calendar2-event me-2 text-warning"></i>Upcoming Dividends</h6>
                     <a href="/dividends" class="btn btn-sm btn-outline-warning">View All <i class="bi bi-arrow-right ms-1"></i></a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover compact-table mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th>Company</th>
-                                    <th>Symbol</th>
+                                    <th class="d-none d-md-table-cell">Symbol</th>
                                     <th class="text-end">Ex-Date</th>
-                                    <th class="text-end">Pay Date</th>
+                                    <th class="text-end d-none d-lg-table-cell">Pay Date</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
@@ -362,9 +278,9 @@ else
                                 {
                                     <tr>
                                         <td class="fw-semibold">@div.CompanyName</td>
-                                        <td><span class="badge bg-secondary">@div.Symbol</span></td>
+                                        <td class="d-none d-md-table-cell"><span class="badge bg-secondary">@div.Symbol</span></td>
                                         <td class="text-end">@div.ExDate.ToString("dd/MM/yyyy")</td>
-                                        <td class="text-end">@div.PaymentDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end d-none d-lg-table-cell">@div.PaymentDate.ToString("dd/MM/yyyy")</td>
                                         <td class="text-end">
                                             @if (div.AmountPrimaryCurrency.HasValue)
                                             {
@@ -434,3 +350,37 @@ else
         </footer>
     }
 }
+
+<style>
+    @@media (max-width: 767.98px)
+    {
+        .dashboard-action-group
+        {
+            width: 100%;
+        }
+
+        .dashboard-action-group > .btn,
+        .dashboard-action-group > .btn-group
+        {
+            width: 100%;
+        }
+
+        .dashboard-action-group .dropdown-toggle
+        {
+            width: 100%;
+        }
+
+        .compact-table-card .card-header
+        {
+            padding: 0.75rem;
+        }
+
+        .compact-table th,
+        .compact-table td
+        {
+            padding: 0.55rem 0.5rem;
+            font-size: 0.88rem;
+            white-space: nowrap;
+        }
+    }
+</style>
