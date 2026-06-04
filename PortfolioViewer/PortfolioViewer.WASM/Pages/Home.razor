@@ -268,8 +268,8 @@ else
                                 <tr>
                                     <th>Company</th>
                                     <th class="d-none d-md-table-cell">Symbol</th>
-                                    <th class="text-end">Ex-Date</th>
-                                    <th class="text-end d-none d-lg-table-cell">Pay Date</th>
+                                    <th class="text-end">Pay Date</th>
+                                    <th class="text-end d-none d-lg-table-cell">Ex-Date</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
@@ -279,8 +279,8 @@ else
                                     <tr>
                                         <td class="fw-semibold">@div.CompanyName</td>
                                         <td class="d-none d-md-table-cell"><span class="badge bg-secondary">@div.Symbol</span></td>
-                                        <td class="text-end">@div.ExDate.ToString("dd/MM/yyyy")</td>
-                                        <td class="text-end d-none d-lg-table-cell">@div.PaymentDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end">@div.PaymentDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end d-none d-lg-table-cell">@div.ExDate.ToString("dd/MM/yyyy")</td>
                                         <td class="text-end">
                                             @if (div.AmountPrimaryCurrency.HasValue)
                                             {
