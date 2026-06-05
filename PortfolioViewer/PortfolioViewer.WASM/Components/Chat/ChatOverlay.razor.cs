@@ -178,7 +178,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error during streaming: {ex.Message}");
+				memory.Clear();
+				memory.Add(new ChatMessage(ChatRole.System, $"Error: {ex.Message}"));
 			}
 		}
 
