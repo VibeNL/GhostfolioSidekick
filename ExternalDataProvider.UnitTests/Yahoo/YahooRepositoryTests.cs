@@ -20,8 +20,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 	   public YahooRepositoryTests()
 	   {
 		   _loggerMock = new Mock<ILogger<YahooRepository>>();
-		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
-		   _repository = new YahooRepository(_loggerMock.Object, cacheService);
+		   _repository = new YahooRepository(_loggerMock.Object);
 	   }
 
 		[Fact]
