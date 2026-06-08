@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 						.OrderByDescending(x => SemanticMatcher.CalculateSemanticMatchScore(
 							[x.PartialSymbolIdentifier.Identifier], 
 							[x.SearchResult?.ShortName ?? ""]))
-						.FirstOrDefault();
+						.First();
 
 					if (bestMatch != null)
 					{
@@ -426,7 +426,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return cacheKey;
 		}
 
-		private class CustomSearchResult
+		private sealed class CustomSearchResult
 		{
 			public required PartialSymbolIdentifier PartialSymbolIdentifier { get; set; }
 
