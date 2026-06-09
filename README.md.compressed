@@ -8,33 +8,33 @@
 
 [Deep Wiki](https://deepwiki.com/VibeNL/GhostfolioSidekick)
 
-Continuous running Docker container (sidecar) that automatically imports files from brokers & crypto exchanges. 
+A continuous running Docker container (sidecar) that automatically imports files from brokers & crypto exchanges. 
 Program checks every hour for new transactions and inserts them in ghostfolio. 
-Can also correct & remove transactions if changed or source file deleted.
+Can also correct & remove transactions if they have changed or source file was deleted.
 
 Additionally, for self-hosted instances, maintains symbols automatically.
- - Set trackinsight property of symbols
- - Create manual symbols
- - Delete symbols that are no longer used
+- Set trackinsight property of symbols
+- Create manual symbols
+- Delete symbols that are no longer used
 
 ( more to come? Help is always welcome! )
 
 ## Setup
 
 ### Ghostfolio
-* Create an account in ghostfolio using anonymous option save your **KEY**.
-* Create the relevant accounts in ghostfolio.
+* Create account in ghostfolio using anonymous option save your KEY.
+* Create relevant accounts in ghostfolio.
 
 ### Folder structure
 
-FileImporterPath should point to a folder with the following structure:
- * Account Name
-   * File1.csv
- * Account Name 2
-   * File2.csv
-   * File3.csv
+FileImporterPath should point to folder with following structure:
+* Account Name
+  * File1.csv
+* Account Name 2
+  * File2.csv
+  * File3.csv
 
-Assuming you configured an account with the name 'Trading 212' and an account with 'De Giro' in ghostfolio, the following structure should be used.
+Assuming configured account 'Trading 212' and account 'De Giro' in ghostfolio, following structure should be used.
 For example:
 * Trading 212
   * Export2023.csv
@@ -43,12 +43,11 @@ For example:
   * Export2023.csv
 
 ### Configuration File
-A single json file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio.
-Also allows the following symbol settings
+Single json file that contains mapping to convert currencies and symbols to symbol found via ghostfolio.
+Also allows following symbol settings
   - Setting Trackinsight on symbols
   - Adding / Updating Manual symbols 
 
-```json
 {
     "settings" : {
         "performance.primarycurrency": "USD",
@@ -77,69 +76,68 @@ Also allows the following symbol settings
         { "symbol": "^SPX" }
     ]
 }
-```
 
 > **Notes:**
-> - `performance.primarycurrency`: default is `"EUR"`
-> - `dataprovider.preference.order`: default is `"YAHOO,COINGECKO"`
-> - `delete.unused.symbols`: default is `true`. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
-> - `sync-activities` is `true` by default; `sync-balance` is `true` by default.
+> - `performance.primarycurrency`: default is "EUR"
+> - `dataprovider.preference.order`: default is "YAHOO,COINGECKO"
+> - `delete.unused.symbols`: default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
+> - `sync-activities` is true by default; `sync-balance` is true by default.
 
 #### Settings
 
 ##### use.dust.threshold (Experimental)
-This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
-The amount is the total value of the assets (thus quantity times unitprice). Unitprice is converted to the currency defined by *use.dust.currency*.
+This setting controls workaround for dust (very small amount that cannot be sold or due to rounding errors).
+Amount is total value of assets (quantity times unitprice). Unitprice converted to currency defined by *use.dust.currency*.
 
-For crypto specifically, another setting will take presidence. See ***use.crypto.workaround.dust.threshold***. This due to the likelyness of higher values for the dust of cryptocurrencies.
+For crypto specifically, another setting takes precedence. See ***use.crypto.workaround.dust.threshold***. Due to likelihood of higher values for dust of cryptocurrencies.
 
 ##### use.crypto.workaround.dust.threshold (Experimental)
-This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
-The amount is the total value of the assets (thus quantity times unitprice). Unitprice is converted to the currency defined by *use.dust.currency*.
+This setting controls workaround for dust (very small amount that cannot be sold or due to rounding errors).
+Amount is total value of assets (quantity times unitprice). Unitprice converted to currency defined by *use.dust.currency*.
 
 ##### use.crypto.workaround.stakereward.add.to.last.buy (Experimental)
-This settings does control if a workaround is used for staking rewards. 
-If set to true, the staking reward is added to the last buy activity.
+This setting controls workaround for staking rewards. 
+If set to true, staking reward added to last buy activity.
 
 #### Platform and Account
 Creates platforms and accounts if not yet created
 
-Fields are identical to the UI
+Fields are identical to UI
 
 #### Benchmarks
-Add a symbol as a benchmark
+Add symbol as benchmark
 
 #### Mappings
-Change an identifier from the imported files to be compatible with Ghostfolio (for example, certain symbols may not be found by Ghostfolio, so we can substitute the identifier with one that is recognized)
+Change identifier from imported files to be compatible with Ghostfolio (certain symbols may not be found by Ghostfolio, so substitute identifier with one recognized)
 
 | Fieldname | Type | Description |
 |--|--|--|
-| type | one of: 'currency', 'symbol' | The type of mapping to be applied |
-| source | any string | the name of the symbol as it appears in the csv files |
-| target | any string | the name of the symbol to use within Ghostfolio |
+| type | one of: 'currency', 'symbol' | Type of mapping to be applied |
+| source | any string | Name of symbol as it appears in csv files |
+| target | any string | Name of symbol to use within Ghostfolio |
 
 #### Symbols
 Maintaining symbols in ghostfolio
 
 | Fieldname | Type | Description |
 |--|--|--|
-| symbol | any string | The name of the symbol|
-| trackinsight | any string | The trackinsight key to be set |
-| manualSymbolConfiguration | ManualSymbolConfiguration | see ManualSymbolConfiguration. Will be created if it does not exists |
+| symbol | any string | Name of symbol|
+| trackinsight | any string | Trackinsight key to be set |
+| manualSymbolConfiguration | ManualSymbolConfiguration | See ManualSymbolConfiguration. Will be created if it does not exists |
 
 ##### ManualSymbolConfiguration
 
 | Fieldname | Type | Description |
 |--|--|--|
-| currency | any string | The currency of the symbol |
-| isin | any string | The ISIN to be set |
-| name | any string | The name of the symbol |
+| currency | any string | Currency of symbol |
+| isin | any string | ISIN to be set |
+| name | any string | Name of symbol |
 | assetSubClass | one of: 'CRYPTOCURRENCY', 'ETF', 'STOCK', 'MUTUALFUND', 'BOND', 'COMMODITY', 'PRECIOUS_METAL', 'PRIVATE_EQUITY'| Same list as Ghostfolio |
 | assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
-| scraperConfiguration| object with url, selector and optional locale | The scraperconfiguration as used in Ghostfolio (NOTE: no support for headers yet)|
+| scraperConfiguration| object with url, selector and optional locale | Scraperconfiguration as used in Ghostfolio (NOTE: no support for headers yet)|
 
 ### Supported formats
-The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.
+Goal is to support all platforms as best as possible. Due to continuous growth of Ghostfolio, new features may be added when possible.
 
 | Platform | Source of the files | Documentation |
 |--|--|--|
@@ -159,8 +157,8 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Trine | Export of transaction history (CSV) | |
 
 #### Generic import format
-Beside the supported exchanges and brokers there is also a generic format. 
-This format is only usefull for stocks at the moment, not for cryptocurrency:
+Beside supported exchanges and brokers, there is also generic format. 
+Only useful for stocks at the moment, not for cryptocurrency:
 
 | Field | Value(s) | 
 | ----- | ----- |
@@ -175,7 +173,7 @@ This format is only usefull for stocks at the moment, not for cryptocurrency:
 | Description | A description, not used in ghostfolio itself. Is optional |
 | Id | The transaction id. Is optional |
 
-For stock splits there is a seperate format
+For stock splits there is a separate format
 | Field | Value(s) | 
 | ----- | ----- |
 | Symbol | The symbol to search
@@ -194,7 +192,7 @@ Symbol,Date,StockSplitFrom,StockSplitTo
 US67066G1040,2023-08-07,1,3
 
 ## Run in Docker
-The docker image is named: vibenl/ghostfoliosidekick
+Docker image named: vibenl/ghostfoliosidekick
 
 Example docker-compose.yml:
 ```
@@ -220,12 +218,12 @@ ghostfoliosidekick:
 ### Settings
 | Envs |Description  |
 |--|--|
-|**GHOSTFOLIO_URL**  | The endpoint for your ghostfolio instance.   |
-|**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
-|**FILEIMPORTER_PATH**  | The path to the files (see [Import Path]) |
-|**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named 'ghostfolio.db'. In case this variable is not specified, it will be placed in the **FILEIMPORTER_PATH**. |
-|**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
-|**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
+|**GHOSTFOLIO_URL**  | Endpoint for ghostfolio instance.   |
+|**GHOSTFOLIO_ACCESTOKEN**  | Token as used to 'login' in the UI |
+|**FILEIMPORTER_PATH**  | Path to files (see Import Path) |
+|**DATABASE_PATH** | Path to database file. If only path, file named 'ghostfolio.db'. If not specified, placed in FILEIMPORTER_PATH. |
+|**CONFIGURATIONFILE_PATH**  | (optional) Path to config file, for example '/files/config/config.json' |
+|**TROTTLE_WAITINSECONDS**  | (optional) Time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 
 ## Contributing
 
