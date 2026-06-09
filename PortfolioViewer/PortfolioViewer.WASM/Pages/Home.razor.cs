@@ -170,6 +170,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				// Clear the last sync time
 				LastSyncTime = null;
 
+				// Reload dashboard data to refresh the UI
+				await LoadDashboardDataAsync();
+				StateHasChanged(); // Ensure UI is refreshed after data reload
+
 				_statusMessage = "All data has been successfully deleted.";
 				_isError = false;
 			}
@@ -266,7 +270,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			try
 			{
 				UpcomingDividends = [.. (await UpcomingDividendsService.GetUpcomingDividendsAsync())
-					.Where(d => 
+					.Where(d =>
 						d.ExDate < DateOnly.FromDateTime(DateTime.Today) &&
 						d.PaymentDate >= DateOnly.FromDateTime(DateTime.Today))
 					.OrderBy(d => d.PaymentDate)];
