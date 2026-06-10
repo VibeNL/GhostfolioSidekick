@@ -10,14 +10,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 	public class ExternalDataCacheService(IDbContextFactory<DatabaseContext> dbContextFactory) : IExternalDataCacheService
 	{
 		/// <summary>
-		/// Gets a cached value or adds it if not present. Removes expired and duplicate entries.
-		/// </summary>
-		public Task<T?> GetOrAddAsync<T>(CacheKey cacheKey, Func<Task<T>> factory)
-		{
-			return GetOrAddAsync<T>(cacheKey.GetCombinedKey(), DetermineExpirationLength(cacheKey.DataType), factory);
-		}
-
-		/// <summary>
 		/// Gets a cached value or adds it if not present using a raw string key and explicit expiry.
 		/// </summary>
 		public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T>> factory)

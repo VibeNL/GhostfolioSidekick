@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			_ = _settingsMock.Setup(x => x.ConfigurationInstance).Returns(_configInstance);
 
-			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object, _loggerMock.Object);
+			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object);
 		}
 
 		[Fact]
@@ -48,14 +48,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Constructor_ShouldThrowArgumentNullException_WhenSettingsIsNull()
 		{
 			// Act & Assert
-			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object, _loggerMock.Object)));
+			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object)));
 		}
 
 		[Fact]
 		public async Task Constructor_ShouldThrowArgumentNullException_WhenApiWrapperIsNull()
 		{
 			// Act & Assert
-			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(_settingsMock.Object, null!, _loggerMock.Object)));
+			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(_settingsMock.Object, null!)));
 		}
 
 		[Fact]
@@ -348,7 +348,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 			Mock<IApplicationSettings> settingsMock = new();
 			_ = settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
-			GhostfolioSymbolMatcher symbolMatcher = new(settingsMock.Object, _apiWrapperMock.Object, _loggerMock.Object);
+			GhostfolioSymbolMatcher symbolMatcher = new(settingsMock.Object, _apiWrapperMock.Object);
 
 			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
