@@ -238,5 +238,62 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Assert
 			Assert.Equal(Currency.USD, result);
 		}
+
+		[Fact]
+		public async Task MatchSymbol_WithISINIdentifier_ShouldPreferISINMatch()
+		{
+			// Arrange
+			// US0378331005 is ISIN for Apple Inc.
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.ISIN, "US0378331005", null, [], []),
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "AAPL", null, [], []),
+				new PartialSymbolIdentifier(IdentifierType.Name, "Apple Inc.", null, [], [])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("AAPL", result.Symbol);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_WithTickerAndNameIdentifier_ShouldPreferTickerMatch()
+		{
+			// Arrange
+			// "Microsoft" as name could match MSFT or other MSFT-related symbols.
+			// Ticker "MSFT" should take priority over name match.
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Ticker, "MSFT", null, [], []),
+				new PartialSymbolIdentifier(IdentifierType.Name, "Microsoft", null, [], [])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("MSFT", result.Symbol);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_WithOnlyNameIdentifier_ShouldUseSemanticFallback()
+		{
+			// Arrange
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.Name, "Microsoft Corporation", null, [], [])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Contains("Microsoft", result.Name, StringComparison.OrdinalIgnoreCase);
+		}
 	}
 }
