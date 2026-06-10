@@ -80,13 +80,5 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 
 			return value;
 		}
-
-		private static TimeSpan DetermineExpirationLength(TypeOfData dataType) => dataType switch
-		{
-			TypeOfData.SymbolProfile => TimeSpan.FromDays(1),
-			TypeOfData.MarketData => TimeSpan.FromMinutes(30),
-			TypeOfData.Dividends => TimeSpan.FromDays(1),
-			_ => throw new NotImplementedException(),
-		};
 	}
 }
