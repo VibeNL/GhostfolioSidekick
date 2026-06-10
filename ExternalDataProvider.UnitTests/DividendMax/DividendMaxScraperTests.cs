@@ -3,7 +3,6 @@ using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.Model.Symbols;
 using Moq;
 using Moq.Protected;
-using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {

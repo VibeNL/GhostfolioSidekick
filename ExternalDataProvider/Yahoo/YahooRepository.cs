@@ -1,4 +1,3 @@
-using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;

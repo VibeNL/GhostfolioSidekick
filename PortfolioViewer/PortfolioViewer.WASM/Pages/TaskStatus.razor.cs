@@ -3,7 +3,6 @@ using GhostfolioSidekick.Model.Tasks;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {

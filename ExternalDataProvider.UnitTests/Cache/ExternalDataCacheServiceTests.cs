@@ -1,11 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Cache;
 using GhostfolioSidekick.ExternalDataProvider.Cache;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 {

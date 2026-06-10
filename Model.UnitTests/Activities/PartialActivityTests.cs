@@ -1,6 +1,4 @@
-using System;
 using GhostfolioSidekick.Model.Activities;
-using Xunit;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities
 {

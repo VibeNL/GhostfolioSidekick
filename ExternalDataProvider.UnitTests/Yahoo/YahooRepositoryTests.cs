@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
-using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 {

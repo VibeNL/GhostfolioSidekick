@@ -6,7 +6,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
-using Polly.Retry;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {

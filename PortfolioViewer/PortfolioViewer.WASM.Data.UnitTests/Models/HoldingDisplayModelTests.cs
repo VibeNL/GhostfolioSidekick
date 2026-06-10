@@ -1,7 +1,6 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.Model;
 using Xunit;
-using System.Collections.Generic;
 
 namespace PortfolioViewer.WASM.Data.UnitTests.Models
 {

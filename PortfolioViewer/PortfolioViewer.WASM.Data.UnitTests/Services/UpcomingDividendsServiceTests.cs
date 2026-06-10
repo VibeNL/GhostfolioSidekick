@@ -5,7 +5,6 @@ using Moq.EntityFrameworkCore;
 using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Market;
-using SymbolProfile = GhostfolioSidekick.Model.Symbols.SymbolProfile;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 

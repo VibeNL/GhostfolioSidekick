@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
