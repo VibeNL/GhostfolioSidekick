@@ -1,11 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Cache;
 using GhostfolioSidekick.ExternalDataProvider.Cache;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 {
@@ -46,11 +42,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 		public async Task GetOrAddAsync_CachesAndRetrievesValue()
 		{
 			int value = 42;
-			var result1 = await _cacheService.GetOrAddAsync<int>(CacheKey.CreateSymbolProfile(Source.Yahoo, "test:key"), () => Task.FromResult(value));
+			var result1 = await _cacheService.GetOrAddAsync<int>("test:key", TimeSpan.FromMinutes(5), () => Task.FromResult(value));
 			Assert.Equal(value, result1);
 
 			// Should retrieve from cache, not factory
-			var result2 = await _cacheService.GetOrAddAsync<int>(CacheKey.CreateSymbolProfile(Source.Yahoo, "test:key"), () => Task.FromResult(99));
+			var result2 = await _cacheService.GetOrAddAsync<int>("test:key", TimeSpan.FromMinutes(5), () => Task.FromResult(99));
 			Assert.Equal(value, result2);
 		}
 

@@ -1,7 +1,6 @@
 using GhostfolioSidekick.AI.Agents;
 using GhostfolioSidekick.AI.Common;
 using Markdig;
-using Microsoft.Agents.AI;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.AI;

@@ -89,8 +89,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.RemoveRange(It.Is<IEnumerable<Holding>>(h => h.Count() == 2)), Times.Once);
-          // SaveChangesAsync called three times: once for clearing, once for removing, once at the end
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(3));
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
@@ -118,12 +117,11 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Once);
-          // SaveChangesAsync called three times: once for clearing, once for adding, once at the end
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(3));
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldLogHoldingAlreadyExistsForSymbol_WhenSymbolHoldingDictionaryContainsSymbol()
+		public async Task DoWork_ShouldMergeActivitiesIntoSingleHolding_WhenSymbolMatches()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
@@ -137,8 +135,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			var activities = new List<Activity>
 			{
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST1", null)!] },
-				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST2", null)!] }
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST1", null)!] },
+				new TestActivity { PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "TEST2", null)!] }
 			};
 			var holdings = new List<Holding>();
 
@@ -147,23 +145,15 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
 			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
-			// Return the same symbol profile for both partial identifiers
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(symbolProfile);
 
 			// Act
 			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
-			// Verify that the log message for "holding already exists for symbol" was called
-			_loggerMock.Verify(
-				x => x.Log(
-					LogLevel.Trace,
-					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrReuseHolding: Merging identifiers for existing holding with symbol") &&
-										v.ToString()!.Contains("TEST")),
-					It.IsAny<Exception?>(),
-					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-				Times.Once);
+			dbContextMock.Verify(db => db.Holdings.Add(It.Is<Holding>(h =>
+				h.PartialSymbolIdentifiers.Select(x => x.Identifier).OrderBy(x => x).SequenceEqual(new[] { "TEST1", "TEST2" }) &&
+				h.Activities.Count == 2)), Times.Once);
 		}
 
 		[Fact]
@@ -357,12 +347,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await determineHoldingsMultipleMatchers.DoWork(_loggerMock.Object);
 
 			// Assert
-      // Verify that both matchers had their AllowedForDeterminingHolding property checked (actual MatchSymbol calls depend on implementation logic)
-		// Verify the method completes successfully
-		dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.AtLeast(2));
-		
-		
-		// Verify that both matchers had their AllowedForDeterminingHolding property checked
+	  // Verify that both matchers had their AllowedForDeterminingHolding property checked (actual MatchSymbol calls depend on implementation logic)
+	  dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.AtLeast(2));
+
+	  // Verify that both matchers had their AllowedForDeterminingHolding property checked
 		firstSymbolMatcher.VerifyGet(x => x.AllowedForDeterminingHolding, Times.AtLeastOnce);
 		symbolMatcher2.VerifyGet(x => x.AllowedForDeterminingHolding, Times.AtLeastOnce);
 	}
@@ -399,7 +387,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await determineHoldingsWithDisallowed.DoWork(_loggerMock.Object);
 
 			// Assert
-         disallowedMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);
+			disallowedMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);
 			_symbolMatcherMock.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.AtLeastOnce());
 		}
 
@@ -435,7 +423,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldClearAllPartialIdentifiers_WhenNoActivities()
+		public async Task DoWork_ShouldKeepExistingPartialIdentifiers_WhenNoActivities()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
@@ -455,9 +443,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
-			holding.PartialSymbolIdentifiers.Should().BeEmpty();
-			
-			
+			holding.PartialSymbolIdentifiers.Should().HaveCount(3);
+			holding.PartialSymbolIdentifiers.Select(x => x.Identifier).Should().BeEquivalentTo(["FIRST", "SECOND", "THIRD"]);
 		}
 
 		[Fact]
@@ -478,12 +465,11 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Never);
 			dbContextMock.Verify(db => db.Holdings.Remove(It.IsAny<Holding>()), Times.Never);
-          // SaveChangesAsync called three times: once for clearing, once for main operation, once for matching context
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(3));
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldReuseExistingHoldingForNewSymbol()
+		public async Task DoWork_ShouldCreateNewHolding_WhenExistingHoldingDoesNotMatchResolvedSymbol()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
@@ -511,13 +497,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
-		// The existing holding should be reused for the new symbol
-		holding.SymbolProfiles.Should().HaveCount(1);
-		holding.SymbolProfiles[0].Symbol.Should().Be("NEW_SYMBOL");
-		holding.PartialSymbolIdentifiers.Should().HaveCount(1);
-		holding.PartialSymbolIdentifiers[0].Identifier.Should().Be("NEW_SYMBOL");
-			
-			
+			dbContextMock.Verify(db => db.Holdings.Add(It.Is<Holding>(h =>
+				h.SymbolProfiles.Any(sp => sp.Symbol == "NEW_SYMBOL") &&
+				h.PartialSymbolIdentifiers.Any(id => id.Identifier == "NEW_SYMBOL"))), Times.Once);
+			dbContextMock.Verify(db => db.Holdings.RemoveRange(It.Is<IEnumerable<Holding>>(removed => removed.Single() == holding)), Times.Once);
 		}
 
 		[Fact]
@@ -546,6 +529,45 @@ namespace GhostfolioSidekick.UnitTests.Activities
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldPreferLatestActivity_WhenSameSymbolExistsInMultipleCurrencies()
+		{
+			// Arrange
+			var dbContextMock = new Mock<DatabaseContext>();
+			var olderActivity = new TestActivity
+			{
+				Date = new DateTime(2024, 1, 1),
+				PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "MSFT", Currency.EUR)!]
+			};
+			var newerActivity = new TestActivity
+			{
+				Date = new DateTime(2024, 2, 1),
+				PartialSymbolIdentifiers = [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "MSFT", Currency.USD)!]
+			};
+			var activities = new List<Activity> { olderActivity, newerActivity };
+			var holdings = new List<Holding>();
+
+			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
+			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
+
+			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.Is<PartialSymbolIdentifier[]>(ids => ids.Any(id => id.Currency == Currency.USD))))
+				.ReturnsAsync(new SymbolProfile { Symbol = "MSFT", DataSource = "TestSource", Currency = Currency.USD, Name = "Microsoft" });
+			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.Is<PartialSymbolIdentifier[]>(ids => ids.Any(id => id.Currency == Currency.EUR))))
+				.ReturnsAsync(new SymbolProfile { Symbol = "MSFT", DataSource = "TestSource", Currency = Currency.EUR, Name = "Microsoft" });
+
+			// Act
+			await _determineHoldings.DoWork(_loggerMock.Object);
+
+			// Assert
+			dbContextMock.Verify(db => db.Holdings.Add(It.Is<Holding>(h => h.Activities.Count == 2)), Times.Once);
+			dbContextMock.Verify(db => db.SymbolProfiles.Add(It.Is<SymbolProfile>(sp =>
+				sp.Symbol == "MSFT" &&
+				sp.DataSource == "TestSource" &&
+				sp.Currency == Currency.USD)), Times.Once);
 		}
 
 		private record TestActivity : ActivityWithQuantityAndUnitPrice

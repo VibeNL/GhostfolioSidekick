@@ -1,4 +1,3 @@
-using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -11,7 +10,7 @@ using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository(ILogger<YahooRepository> logger, IExternalDataCacheService cacheService) :
+	public class YahooRepository(ILogger<YahooRepository> logger) :
 			ICurrencyRepository,
 			ISymbolMatcher,
 			IStockPriceRepository,
@@ -41,92 +40,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return result;
 		}
 
-		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
-		{
-			if (!symbolIdentifiers.Any(x => !string.IsNullOrWhiteSpace(x.Identifier)))
-			{
-				return null;
-			}
-
-			// Include all identifiers, expected currency and asset classes in the cache key
-			// to avoid returning stale results when the same ticker is looked up with different constraints.
-			var identifierPart = string.Join("|", symbolIdentifiers
-				.Where(x => !string.IsNullOrWhiteSpace(x.Identifier))
-				.Select(x => x.Identifier));
-			var currencyPart = symbolIdentifiers
-				.Where(i => i.Currency != null)
-				.Select(i => i.Currency!.Symbol)
-				.FirstOrDefault() ?? string.Empty;
-			var assetClassPart = string.Join(",", symbolIdentifiers
-				.SelectMany(i => i.AllowedAssetClasses ?? [])
-				.Distinct()
-				.OrderBy(x => x));
-			string cacheKey = $"{identifierPart}:{currencyPart}:{assetClassPart}";
-
-			return await cacheService.GetOrAddAsync<SymbolProfile>(CacheKey.CreateSymbolProfile(Source.Yahoo, cacheKey), async () =>
-			{
-				AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
-				return (await retryPolicy.ExecuteAsync(async () =>
-				{
-					List<SearchResult> searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
-					if (searchResults.Count == 0)
-					{
-						return null;
-					}
-
-					Currency expectedCurrency = ResolveExpectedCurrency(symbolIdentifiers);
-					var symbolCurrencies = new Dictionary<string, Currency?>(StringComparer.OrdinalIgnoreCase);
-					foreach (SearchResult result in searchResults)
-					{
-						symbolCurrencies[result.Symbol] = await GetActualCurrencyAsync(result.Symbol);
-					}
-
-					var identifierValues = symbolIdentifiers
-						.Select(i => i.Identifier)
-						.Where(v => !string.IsNullOrWhiteSpace(v))
-						.Concat(symbolIdentifiers
-							.Select(i => SymbolNameCleaner.CleanTickerSymbol(i.Identifier))
-							.Where(v => !string.IsNullOrWhiteSpace(v)))
-						.Distinct(StringComparer.OrdinalIgnoreCase)
-						.ToArray();
-
-					var allowedClasses = symbolIdentifiers
-							.SelectMany(i => i.AllowedAssetClasses ?? [])
-							.ToHashSet();
-					var filteredResults = allowedClasses.Count > 0
-						? searchResults.Where(r => allowedClasses.Contains(ParseQuoteType(r.Type))).ToList()
-						: searchResults;
-					var candidates = filteredResults.Count > 0 ? filteredResults : searchResults;
-
-					var bestMatch = candidates
-						.OrderByDescending(r => GetCurrencyMatchScore(r, expectedCurrency, symbolCurrencies))
-						.ThenByDescending(r => identifierValues.Any(v =>
-							string.Equals(v, r.Symbol, StringComparison.OrdinalIgnoreCase)) ? 1 : 0)
-						.ThenByDescending(r => SemanticMatcher.CalculateSemanticMatchScore(
-							identifierValues,
-							[
-								r.Symbol,
-									SymbolNameCleaner.CleanTickerSymbol(r.Symbol),
-									r.ShortName ?? string.Empty,
-									SymbolNameCleaner.CleanSymbolName(r.ShortName ?? string.Empty),
-									r.LongName ?? string.Empty,
-									SymbolNameCleaner.CleanSymbolName(r.LongName ?? string.Empty),
-							]))
-						.ThenByDescending(r => GetExchangeSuffixScore(r, expectedCurrency))
-						.First();
-
-					return await CreateSymbolProfileFromMatch(bestMatch);
-				}))!;
-			});
-		}
-
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
-			IEnumerable<MarketData>? result = await cacheService.GetOrAddAsync(CacheKey.CreateMarketData(Source.Yahoo, fromDate, DateOnly.MaxValue, symbol.Symbol), async () =>
-			{
-				return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
-			});
-			return result ?? [];
+			return await GetStockMarketData(symbol.Symbol, symbol.Currency, fromDate);
 		}
 
 		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate)
@@ -152,9 +68,65 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return list;
 		}
 
-		private async Task<List<SearchResult>> GetSearchResultsForIdentifiers(PartialSymbolIdentifier[] symbolIdentifiers)
+		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
-			var matches = new List<SearchResult>();
+			if (!symbolIdentifiers.Any(x => !string.IsNullOrWhiteSpace(x.Identifier)))
+			{
+				return null;
+			}
+
+
+			AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
+			return (await retryPolicy.ExecuteAsync(async () =>
+			{
+				var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
+				searchResults = [.. searchResults.OrderByDescending(x => x.SearchResult.Score)];
+				if (searchResults.Length == 0)
+				{
+					return null;
+				}
+
+				// Find the best match
+				// Prefer ISIN matches, then ticker matches (as we take the exchange into account), then full name matches, than partials.
+				// Within those groups, prefer matches with the expected currency.
+
+				// Match by ISIN
+				var bestMatch = searchResults
+					.FirstOrDefault(x => x.PartialSymbolIdentifier.IdentifierType == IdentifierType.ISIN);
+
+				if (bestMatch != null)
+				{
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+				}
+
+				// Match by ticker
+				bestMatch = searchResults
+					.FirstOrDefault(x => x.PartialSymbolIdentifier.IdentifierType == IdentifierType.Ticker);
+
+				if (bestMatch != null)
+				{
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+				}
+
+				// Match by name
+				bestMatch = searchResults
+					.OrderByDescending(x => SemanticMatcher.CalculateSemanticMatchScore(
+						[x.PartialSymbolIdentifier.Identifier],
+						[x.SearchResult?.ShortName ?? ""]))
+					.First();
+
+				if (bestMatch != null)
+				{
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+				}
+
+				return null;
+			}))!;
+		}
+
+		private async Task<CustomSearchResult[]> GetSearchResultsForIdentifiers(PartialSymbolIdentifier[] symbolIdentifiers)
+		{
+			var matches = new List<CustomSearchResult>();
 
 			foreach (PartialSymbolIdentifier identifier in symbolIdentifiers)
 			{
@@ -169,11 +141,22 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				if (results != null)
 				{
 					IEnumerable<SearchResult> filteredResults = results.Where(result => IsAllowedSymbolType(result, identifier));
-					matches.AddRange(filteredResults);
+
+					IEnumerable<CustomSearchResult> filteredResultsWithCurrency = await Task.WhenAll(filteredResults.Select(async result =>
+					{
+						Currency? currency = await GetActualCurrencyAsync(result.Symbol);
+						return new CustomSearchResult
+						{
+							PartialSymbolIdentifier = identifier,
+							SearchResult = result,
+							Currency = currency
+						};
+					}));
+					matches.AddRange(filteredResultsWithCurrency);
 				}
 			}
 
-			return matches;
+			return [.. matches];
 		}
 
 		private static string PrepareSearchTerm(PartialSymbolIdentifier identifier)
@@ -360,37 +343,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				: [new CountryWeight(securityProfile.Country, string.Empty, string.Empty, 1)];
 		}
 
-		private static int GetCurrencyMatchScore(SearchResult result, Currency? expectedCurrency, IReadOnlyDictionary<string, Currency?> symbolCurrencies)
-		{
-			if (expectedCurrency == null)
-			{
-				return 0;
-			}
-
-			_ = symbolCurrencies.TryGetValue(result.Symbol, out Currency? actualCurrency);
-			if (actualCurrency == null)
-			{
-				return 0;
-			}
-
-			// Normalize to source currency so that GBX/GBp and GBP are treated as equivalent
-			(Currency? actualSource, _) = actualCurrency.GetSourceCurrency();
-			(Currency? expectedSource, _) = expectedCurrency.GetSourceCurrency();
-
-			return actualSource == expectedSource ? 1 : 0;
-		}
-
-		private static int GetExchangeSuffixScore(SearchResult result, Currency? expectedCurrency)
-		{
-			if (expectedCurrency == null || expectedCurrency == Currency.USD)
-			{
-				return 0;
-			}
-
-			// Prefer symbols with an exchange suffix (e.g. ASML.AS) when currency is non-USD
-			return result.Symbol.Contains('.') ? 1 : 0;
-		}
-
 		internal static Currency ResolveExpectedCurrency(IEnumerable<PartialSymbolIdentifier> symbolIdentifiers)
 		{
 			return symbolIdentifiers
@@ -444,6 +396,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				"MUTUALFUND" => (AssetSubClass?)AssetSubClass.Undefined,
 				_ => null,
 			};
+		}
+
+		private sealed class CustomSearchResult
+		{
+			public required PartialSymbolIdentifier PartialSymbolIdentifier { get; set; }
+
+			public required SearchResult SearchResult { get; set; }
+			public Currency? Currency { get; set; }
 		}
 	}
 }

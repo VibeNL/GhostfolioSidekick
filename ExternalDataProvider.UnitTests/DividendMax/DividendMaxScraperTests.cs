@@ -3,7 +3,6 @@ using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.Model.Symbols;
 using Moq;
 using Moq.Protected;
-using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {
@@ -32,15 +31,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 
 			var handlerMock = new Mock<HttpMessageHandler>();
 			handlerMock.Protected()
-				.Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(r => r.RequestUri!.ToString().Contains("suggest.json")), ItExpr.IsAny<CancellationToken>())
+				.Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
 				.ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
 			handlerMock.Protected()
 				.Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(r => r.RequestUri!.ToString().Contains("apple-inc-dividends")), ItExpr.IsAny<CancellationToken>())
 				.ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(html) });
 
 			var httpClient = new HttpClient(handlerMock.Object);
-		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
-		   var repo = new DividendMaxScraper(httpClient, cacheService);
+			var repo = new DividendMaxScraper(httpClient);
 
 			// Act
 			var result = await repo.GetDividends(symbol);
@@ -79,8 +77,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 				.ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(html) });
 
 			var httpClient = new HttpClient(handlerMock.Object);
-		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
-		   var repo = new DividendMaxScraper(httpClient, cacheService);
+			var repo = new DividendMaxScraper(httpClient);
 
 			// Act
 			var result = await repo.GetDividends(symbol);

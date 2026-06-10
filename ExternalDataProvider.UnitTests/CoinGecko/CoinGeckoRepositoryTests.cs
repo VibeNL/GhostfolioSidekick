@@ -6,10 +6,8 @@ using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
-using GhostfolioSidekick.ExternalDataProvider.UnitTests.TestUtils;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 {
@@ -23,8 +21,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 	   {
 		   restClientMock = new Mock<ICoinGeckoRestClient>();
 		   loggerMock = new Mock<ILogger<CoinGeckoRepository>>();
-		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
-		   repository = new CoinGeckoRepository(loggerMock.Object, new MemoryCache(new MemoryCacheOptions()), restClientMock.Object, cacheService);
+		   repository = new CoinGeckoRepository(loggerMock.Object, restClientMock.Object);
 	   }
 
 		[Fact]

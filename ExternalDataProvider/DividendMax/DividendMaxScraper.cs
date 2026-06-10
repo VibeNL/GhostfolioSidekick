@@ -1,4 +1,3 @@
-using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
@@ -17,7 +16,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 	///     Status, Type, Decl. date, Ex-div date, Pay date, Decl. Currency, Forecast amount, Decl. amount, Accuracy
 	/// 4) generate UpcomingDividend objects from the rows where Ex-div date is in the future. and the decl. amount is not empty / a '-',
 	/// </summary>
-	public class DividendMaxScraper(HttpClient httpClient, IExternalDataCacheService cacheService) : IDividendRepository
+	public class DividendMaxScraper(HttpClient httpClient) : IDividendRepository
 	{
 		private const string TableSelector = "//table[contains(@class, 'mdc-data-table__table')]";
 		private const string TableRowsSelector = ".//tbody/tr";
@@ -36,31 +35,26 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				return [];
 			}
 
-			return await cacheService.GetOrAddAsync<IList<Dividend>>(CacheKey.CreateDividend(Source.DividendMax, symbol.Symbol), async () =>
+			string? page = await GetDividendPageHtml(symbol.WebsiteUrl!);
+			if (string.IsNullOrWhiteSpace(page))
 			{
-				string? page = await GetDividendPageHtml(symbol.WebsiteUrl!);
-				if (string.IsNullOrWhiteSpace(page))
-				{
-					return [];
-				}
+				return [];
+			}
 
-				List<Dividend> dividends = ParseDividendsFromHtml(page);
+			List<Dividend> dividends = ParseDividendsFromHtml(page);
 
-				// Group per ex-dividend date and sum
-				dividends = [.. dividends
-				   .GroupBy(d => new { d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState })
-				   .Select(g => new Dividend
-				   {
-					   Id = 0,
-					   ExDividendDate = g.Key.ExDividendDate,
-					   PaymentDate = g.Key.PaymentDate,
-					   DividendType = g.Key.DividendType,
-					   DividendState = g.Key.DividendState,
-					   Amount = new Money(g.First().Amount.Currency, g.Sum(d => d.Amount.Amount))
-				   })];
-
-				return dividends;
-			}) ?? [];
+			// Group per ex-dividend date and sum
+			return [.. dividends
+			   .GroupBy(d => new { d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState })
+			   .Select(g => new Dividend
+			   {
+				   Id = 0,
+				   ExDividendDate = g.Key.ExDividendDate,
+				   PaymentDate = g.Key.PaymentDate,
+				   DividendType = g.Key.DividendType,
+				   DividendState = g.Key.DividendState,
+				   Amount = new Money(g.First().Amount.Currency, g.Sum(d => d.Amount.Amount))
+			   })];
 		}
 
 		private async Task<string?> GetDividendPageHtml(string pageUrl)
