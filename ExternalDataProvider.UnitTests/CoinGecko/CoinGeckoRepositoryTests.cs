@@ -23,8 +23,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 	   {
 		   restClientMock = new Mock<ICoinGeckoRestClient>();
 		   loggerMock = new Mock<ILogger<CoinGeckoRepository>>();
-		   var cacheService = CacheServiceFactory.CreateInMemoryCacheService();
-		   repository = new CoinGeckoRepository(loggerMock.Object, new MemoryCache(new MemoryCacheOptions()), restClientMock.Object, cacheService);
+		   repository = new CoinGeckoRepository(loggerMock.Object, restClientMock.Object);
 	   }
 
 		[Fact]
