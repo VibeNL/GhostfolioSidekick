@@ -238,7 +238,7 @@ namespace GhostfolioSidekick.UnitTests
 			await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 
 			Assert.NotNull(capturedExpiry);
-			Assert.Equal(TimeSpan.FromMinutes(30), capturedExpiry);
+			Assert.Equal(TimeSpan.FromHours(4), capturedExpiry);
 		}
 
 		// ------------------------------------------------------------------
