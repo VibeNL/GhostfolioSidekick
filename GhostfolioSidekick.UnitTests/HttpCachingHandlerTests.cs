@@ -368,7 +368,7 @@ namespace GhostfolioSidekick.UnitTests
 				"https://query2.finance.yahoo.com/v8/finance/chart/USDEUR=X?period1=1780839050&period2=1781011850&interval=1d&events=history");
 
 			// 1780839050 -> 2026-06-07 UTC -> midnight = 1780809600
-			// 1781011850 -> 2026-06-09 UTC -> midnight = 1781078400 — wait, let me verify
+			// 1781011850 -> 2026-06-09 UTC -> midnight = 1781078400
 			Assert.Contains("period1=", key);
 			Assert.Contains("period2=", key);
 		}
