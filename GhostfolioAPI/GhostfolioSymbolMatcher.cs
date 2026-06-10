@@ -5,23 +5,19 @@ using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public class GhostfolioSymbolMatcher : ISymbolMatcher
 	{
 		private readonly IApiWrapper apiWrapper;
-		private readonly ILogger<GhostfolioSymbolMatcher> logger;
 
 		public GhostfolioSymbolMatcher(
 			IApplicationSettings settings,
-			IApiWrapper apiWrapper,
-			ILogger<GhostfolioSymbolMatcher> logger)
+			IApiWrapper apiWrapper)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
-			this.logger = logger;
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
