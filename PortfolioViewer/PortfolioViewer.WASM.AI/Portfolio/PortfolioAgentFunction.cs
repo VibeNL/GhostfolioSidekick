@@ -106,8 +106,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 		public async Task<string> GetUpcomingDividends()
 		{
 			await using var scope = scopeFactory.CreateAsyncScope();
-			var service = scope.ServiceProvider.GetRequiredService<IUpcomingDividendsService>();
-			var dividends = await service.GetUpcomingDividendsAsync();
+			var service = scope.ServiceProvider.GetRequiredService<IDividendsService>();
+			var dividends = await service.GetDividendsAsync();
 
 			if (dividends.Count == 0)
 			{
