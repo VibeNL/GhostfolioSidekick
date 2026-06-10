@@ -56,7 +56,7 @@ namespace GhostfolioSidekick
 			"/v8/finance/chart/",
 		];
 
-		private static readonly TimeSpan MarketDataExpiry = TimeSpan.FromMinutes(30);
+		private static readonly TimeSpan MarketDataExpiry = TimeSpan.FromHours(4);
 		private static readonly TimeSpan DefaultExpiry = TimeSpan.FromDays(1);
 
 		private readonly IExternalDataCacheService cacheService;
