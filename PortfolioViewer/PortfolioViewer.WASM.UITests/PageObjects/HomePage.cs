@@ -17,8 +17,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				// Wait for either the sync button or the start page heading
-				await _page.WaitForSelectorAsync("h1:has-text('Start page')", new PageWaitForSelectorOptions { Timeout = timeout });
+				// Wait for either the sync button or the dashboard heading
+				await _page.WaitForSelectorAsync("h1:has-text('Dashboard')", new PageWaitForSelectorOptions { Timeout = timeout });
 				await _page.WaitForSelectorAsync(SyncButtonSelector, new PageWaitForSelectorOptions { Timeout = timeout });
 			});
 		}
@@ -130,12 +130,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			}
 		}
 
-		public async Task WaitForSyncToCompleteAsync(int timeout = 60000)
+		public async Task WaitForSyncToCompleteAsync(int timeoutInMilliseconds = 60000)
 		{
 			// Wait for the progress to reach 100% or the button to become enabled again
 			var startTime = DateTime.Now;
 			
-			while ((DateTime.Now - startTime).TotalMilliseconds < timeout)
+			while ((DateTime.Now - startTime).TotalMilliseconds < timeoutInMilliseconds)
 			{
 				var progress = await GetProgressPercentageAsync();
 				var isEnabled = await IsSyncButtonEnabledAsync();
@@ -150,7 +150,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				await _page.WaitForTimeoutAsync(500);
 			}
 			
-			throw new TimeoutException($"Sync did not complete within {timeout}ms");
+			throw new TimeoutException($"Sync did not complete within {timeoutInMilliseconds}ms");
 		}
 
 		public async Task OpenOptionsMenuAsync()

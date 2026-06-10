@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -17,7 +16,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		private readonly Mock<ILogger<GhostfolioSymbolMatcher>> _loggerMock;
 		private readonly GhostfolioSymbolMatcher _symbolMatcher;
 		private readonly ConfigurationInstance _configInstance;
-		private readonly DummyExternalDataCacheService externalDataCacheService = new();
 
 		public GhostfolioSymbolMatcherTests()
 		{
@@ -33,7 +31,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			_ = _settingsMock.Setup(x => x.ConfigurationInstance).Returns(_configInstance);
 
-			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object, _loggerMock.Object, externalDataCacheService);
+			_symbolMatcher = new GhostfolioSymbolMatcher(_settingsMock.Object, _apiWrapperMock.Object);
 		}
 
 		[Fact]
@@ -50,14 +48,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Constructor_ShouldThrowArgumentNullException_WhenSettingsIsNull()
 		{
 			// Act & Assert
-			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object, _loggerMock.Object, externalDataCacheService)));
+			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(null!, _apiWrapperMock.Object)));
 		}
 
 		[Fact]
 		public async Task Constructor_ShouldThrowArgumentNullException_WhenApiWrapperIsNull()
 		{
 			// Act & Assert
-			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(_settingsMock.Object, null!, _loggerMock.Object, externalDataCacheService)));
+			_ = await Assert.ThrowsAsync<ArgumentNullException>(() => Task.FromResult(new GhostfolioSymbolMatcher(_settingsMock.Object, null!)));
 		}
 
 		[Fact]
@@ -95,31 +93,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			_ = result.Should().BeNull();
 		}
 
-		[Fact]
-		public async Task MatchSymbol_ShouldReturnCachedResult_WhenSymbolIsCached()
-		{
-			// Arrange
-			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
-			SymbolProfile expectedSymbol = new()
-			{
-				Symbol = "AAPL",
-				Name = "Apple Inc.",
-				Currency = Currency.USD,
-				DataSource = Datasource.YAHOO,
-				AssetClass = AssetClass.Equity,
-				AssetSubClass = AssetSubClass.Stock
-			};
-
-			// Cache the symbol first
-			externalDataCacheService.Set("AAPL", expectedSymbol);
-
-			// Act
-			SymbolProfile? result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
-
-			// Assert
-			_ = result.Should().Be(expectedSymbol);
-			_apiWrapperMock.Verify(x => x.GetSymbolProfile(It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
-		}
 
 		[Fact]
 		public async Task MatchSymbol_ShouldReturnSymbol_WhenFoundByApiWrapper()
@@ -375,7 +348,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 			Mock<IApplicationSettings> settingsMock = new();
 			_ = settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
-			GhostfolioSymbolMatcher symbolMatcher = new(settingsMock.Object, _apiWrapperMock.Object, _loggerMock.Object, externalDataCacheService);
+			GhostfolioSymbolMatcher symbolMatcher = new(settingsMock.Object, _apiWrapperMock.Object);
 
 			PartialSymbolIdentifier[] symbolIdentifiers = new[] { PartialSymbolIdentifier.CreateGeneric(IdentifierType.Ticker, "AAPL", null)! };
 
@@ -477,23 +450,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 	}
 
-	internal class DummyExternalDataCacheService : IExternalDataCacheService
-	{
-		private readonly Dictionary<string, SymbolProfile?> _memoryCache = [];
-
-		public async Task<T?> GetOrAddAsync<T>(CacheKey cacheKey, Func<Task<T>> factory)
-		{
-			return _memoryCache.TryGetValue(cacheKey.Key, out SymbolProfile? cachedValue) ? (T?)(object?)cachedValue : await factory();
-		}
-
-		public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T>> factory)
-		{
-			return await factory();
-		}
-
-		public void Set(string key, SymbolProfile? value)
-		{
-			_memoryCache[key] = value;
-		}
-	}
 }

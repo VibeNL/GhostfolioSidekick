@@ -2,19 +2,20 @@ using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using Microsoft.SemanticKernel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
 	[method: System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 	public partial class WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds) : ICustomChatClient
 	{
-		private InteropInstance? interopInstance;
+		private InteropInstance interopInstance = new();
 
 		private IJSObjectReference? module;
+		private static readonly JsonSerializerOptions options = new() { WriteIndented = true };
 
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
@@ -76,7 +77,7 @@ Format function calls like this:
 
 			StartStreamingAsync(convertedMessages, cancellationToken);
 
-			await foreach (var update in ProcessStreamingResponseAsync(options, cancellationToken))
+			await foreach (var update in ProcessStreamingResponseAsync(messages, options, cancellationToken))
 			{
 				yield return update;
 			}
@@ -95,13 +96,19 @@ Format function calls like this:
 			return messages.Count == 0;
 		}
 
-		private List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
+		private static List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
 		{
 			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
 			var convertedMessages = list
 				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
 				.Select(RemoveThink)
 				.ToList();
+
+			if (!string.IsNullOrWhiteSpace(options?.Instructions) &&
+				!convertedMessages.Any(m => m.Role == ChatRole.System))
+			{
+				convertedMessages.Insert(0, new ChatMessage(ChatRole.System, options!.Instructions));
+			}
 
 			if (ShouldAddFunctionPrompt(options))
 			{
@@ -111,35 +118,38 @@ Format function calls like this:
 			return convertedMessages;
 		}
 
-		private bool ShouldAddFunctionPrompt(ChatOptions? options)
+		private static bool ShouldAddFunctionPrompt(ChatOptions? options)
 		{
-			return ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true;
+			return options?.Tools?.Any() == true;
 		}
 
 		private static ChatMessage CreateFunctionPromptMessage(ChatOptions options)
 		{
-			var functions = options.Tools!.OfType<KernelFunction>().ToList();
+			var functions = options.Tools!.OfType<AIFunction>().ToList();
 			var functionDefinitions = BuildFunctionDefinitions(functions);
 			return new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionDefinitions));
 		}
 
-		private static string BuildFunctionDefinitions(List<KernelFunction> functions)
+		private static string BuildFunctionDefinitions(List<AIFunction> functions)
 		{
 			var functionDefinitions = new StringBuilder();
-			foreach (var function in functions)
-			{
-				functionDefinitions.AppendLine($"- {function.Name}");
-				functionDefinitions.AppendLine($"  Description: {function.Description ?? function.Name}");
-				functionDefinitions.AppendLine("  Parameters:");
 
-				foreach (var param in function.Metadata.Parameters)
+			foreach (var aiFunction in functions)
+			{
+				// Combine the framework properties into a single payload
+				var completeRepresentation = new
 				{
-					var paramDesc = param.Description ?? param.Name;
-					var paramType = param.ParameterType?.Name ?? "string";
-					functionDefinitions.AppendLine($"    - {param.Name} ({paramType}): {paramDesc}");
-				}
-				functionDefinitions.AppendLine();
+					name = aiFunction.Name,
+					description = aiFunction.Description,
+					parameters = aiFunction.JsonSchema // Already a validated JsonElement
+				};
+
+				// Serialize the entire structure to JSON
+				string fullJsonSpec = JsonSerializer.Serialize(completeRepresentation, options);
+
+				functionDefinitions.AppendLine(fullJsonSpec);
 			}
+
 			return functionDefinitions.ToString();
 		}
 
@@ -159,6 +169,7 @@ Format function calls like this:
 		}
 
 		private async IAsyncEnumerable<ChatResponseUpdate> ProcessStreamingResponseAsync(
+			IEnumerable<ChatMessage> originalMessages,
 			ChatOptions? options,
 			[EnumeratorCancellation] CancellationToken cancellationToken)
 		{
@@ -175,18 +186,22 @@ Format function calls like this:
 
 				if (response.IsStreamComplete)
 				{
-					await foreach (var finalUpdate in HandleStreamComplete(options, totalTextBuilder))
+					await foreach (var finalUpdate in HandleStreamComplete(originalMessages, options, totalTextBuilder, cancellationToken))
 					{
 						yield return finalUpdate;
 					}
 					yield break;
 				}
 
+				// Suppress raw tool-call JSON tokens — only emit when not in tool-calling mode
 				var content = ExtractContentFromResponse(response);
 				if (content != null)
 				{
 					totalTextBuilder.Append(content);
-					yield return CreateResponseUpdate(options, content);
+					if (!HasTools(options))
+					{
+						yield return CreateResponseUpdate(options, content);
+					}
 				}
 			}
 		}
@@ -199,8 +214,10 @@ Format function calls like this:
 		}
 
 		private async IAsyncEnumerable<ChatResponseUpdate> HandleStreamComplete(
+			IEnumerable<ChatMessage> originalMessages,
 			ChatOptions? options,
-			StringBuilder totalTextBuilder)
+			StringBuilder totalTextBuilder,
+			[EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			if (!HasTools(options) || totalTextBuilder.Length == 0)
 			{
@@ -208,28 +225,34 @@ Format function calls like this:
 			}
 
 			var totalText = totalTextBuilder.ToString();
-			if (TryParseToolCalls(ChatMessageContentHelper.ToDisplayText(totalText), out var toolCalls))
+			if (!TryParseToolCalls(totalText, out var toolCalls))
 			{
-				await foreach (var update in ExecuteToolCallsAsync(options!, toolCalls))
-				{
-					yield return update;
-				}
+				// Model responded with prose instead of a tool call — emit as-is
+				yield return new ChatResponseUpdate(ChatRole.Assistant, ChatMessageContentHelper.ToDisplayText(totalText).Trim());
+				yield break;
 			}
-			else
-			{
-				var content = ChatMessageContentHelper.ToDisplayText(totalText).Trim();
-				yield return new ChatResponseUpdate(ChatRole.Assistant, content);
-			}
-		}
 
-		private async IAsyncEnumerable<ChatResponseUpdate> ExecuteToolCallsAsync(
-			ChatOptions options,
-			List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
-		{
+			// Execute every tool and collect results
+			var toolResults = new List<string>();
 			foreach (var toolCall in toolCalls)
 			{
-				var output = await CallToolAsync(options, toolCall.Name, toolCall.Arguments);
-				yield return new ChatResponseUpdate(ChatRole.Assistant, output);
+				var output = await CallToolAsync(options!, toolCall.Name, toolCall.Arguments);
+				toolResults.Add(output);
+			}
+
+			// Build synthesis conversation:
+			// - original history (user question + prior assistant turns)
+			// - a single User message that contains all tool results, asking the model to synthesize
+			var combinedResults = string.Join("\n\n", toolResults);
+			var synthesisMessages = new List<ChatMessage>(originalMessages)
+			{
+				new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{combinedResults}\n\nPlease answer the original question using this data."),
+			};
+
+			// Second LLM call — no tools, so the model produces a natural language response
+			await foreach (var update in GetStreamingResponseAsync(synthesisMessages, options: null, cancellationToken))
+			{
+				yield return update;
 			}
 		}
 
@@ -254,6 +277,10 @@ Format function calls like this:
 			return options?.Tools?.Any() ?? false;
 		}
 
+		private static readonly Regex ThinkTagRegex = ThinkRegex();
+
+		private static readonly Regex JsonObjectRegex = JsonRegex();
+
 		private bool TryParseToolCalls(string content, out List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
 		{
 			toolCalls = [];
@@ -263,7 +290,28 @@ Format function calls like this:
 				return false;
 			}
 
-			content = content.Trim('\'');
+			// Strip <think>...</think> blocks produced by reasoning models
+			content = ThinkTagRegex.Replace(content, string.Empty);
+
+			// Strip surrounding backtick code fences (e.g. ```json ... ```)
+			content = content.Trim('`').Trim();
+
+			// Remove optional language hint after opening fence (e.g. "json\n")
+			if (content.StartsWith("json", StringComparison.OrdinalIgnoreCase))
+			{
+				content = content["json".Length..].TrimStart();
+			}
+
+			content = content.Trim('\'').Trim();
+
+			// Extract the first JSON object from the text in case there is surrounding prose
+			var jsonMatch = JsonObjectRegex.Match(content);
+			if (!jsonMatch.Success)
+			{
+				return false;
+			}
+
+			content = jsonMatch.Value;
 
 			try
 			{
@@ -399,7 +447,7 @@ Format function calls like this:
 		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
 			// Call the `initialize` function in the JavaScript module
-			interopInstance = new(OnProgress);
+			interopInstance.SetProgressReporter(OnProgress);
 			await (await GetModule()).InvokeVoidAsync(
 				"initializeWebLLM",
 				modelIds.Select(x => x.Value).Distinct(),
@@ -440,7 +488,7 @@ Format function calls like this:
 
 		private async Task<string> CallToolAsync(ChatOptions options, string name, IDictionary<string, object?>? arguments)
 		{
-			var tool = options.Tools?.OfType<KernelFunction>()
+			var tool = options.Tools?.OfType<AIFunction>()
 				.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
 			if (tool == null)
@@ -449,20 +497,10 @@ Format function calls like this:
 				return $"Tool '{name}' not found.";
 			}
 
-			// Convert arguments to KernelArguments
-			var kernelArgs = new KernelArguments();
-			if (arguments != null)
-			{
-				foreach (var arg in arguments)
-				{
-					kernelArgs[arg.Key] = arg.Value;
-				}
-			}
-
-			// Call the tool (function)
 			try
 			{
-				var result = await tool.InvokeAsync(kernelArgs);
+				var aiArgs = arguments != null ? new AIFunctionArguments(arguments) : null;
+				var result = await tool.InvokeAsync(aiArgs);
 				var output = result?.ToString() ?? "[Function returned null]";
 				logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
 				return output;
@@ -478,5 +516,11 @@ Format function calls like this:
 		{
 			GC.SuppressFinalize(this);
 		}
+
+		[GeneratedRegex(@"<think>.*?</think>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+		private static partial Regex ThinkRegex();
+
+		[GeneratedRegex(@"\{[\s\S]*\}", RegexOptions.Singleline)]
+		private static partial Regex JsonRegex();
 	}
 }

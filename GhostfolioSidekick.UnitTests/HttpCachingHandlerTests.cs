@@ -1,6 +1,5 @@
 using GhostfolioSidekick.ExternalDataProvider.Cache;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Moq.Protected;
 using System.Net;
 
@@ -239,7 +238,7 @@ namespace GhostfolioSidekick.UnitTests
 			await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 
 			Assert.NotNull(capturedExpiry);
-			Assert.Equal(TimeSpan.FromMinutes(30), capturedExpiry);
+			Assert.Equal(TimeSpan.FromHours(4), capturedExpiry);
 		}
 
 		// ------------------------------------------------------------------
@@ -325,6 +324,53 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			string result = HttpCachingHandler.BuildCacheKey(input);
 			Assert.Equal(expected, result);
+		}
+
+		// ------------------------------------------------------------------
+		// Transient params (period1, period2) are rounded to midnight UTC so
+		// requests within the same day share a cache entry, but different days
+		// do not collide.
+		// ------------------------------------------------------------------
+		[Fact]
+		public void BuildCacheKey_RoundsTransientParamsToMidnight()
+		{
+			string key1 = HttpCachingHandler.BuildCacheKey(
+				"https://query2.finance.yahoo.com/v8/finance/chart/USDEUR=X?period1=1780839050&period2=1781011850&interval=1d&events=history");
+			string key2 = HttpCachingHandler.BuildCacheKey(
+				"https://query2.finance.yahoo.com/v8/finance/chart/USDEUR=X?period1=1780839671&period2=1781012471&interval=1d&events=history");
+
+			// Same day -> same key
+			Assert.Equal(key1, key2);
+
+			// Key still contains the rounded timestamps
+			Assert.Contains("period1=", key1);
+			Assert.Contains("period2=", key1);
+		}
+
+		[Fact]
+		public void BuildCacheKey_DifferentDays_DifferentKeys()
+		{
+			// June 7 2026 ~09:00 UTC
+			string key1 = HttpCachingHandler.BuildCacheKey(
+				"https://query2.finance.yahoo.com/v8/finance/chart/USDEUR=X?period1=1780839050&period2=1781011850&interval=1d&events=history");
+
+			// June 8 2026 ~09:00 UTC (one day later)
+			string key2 = HttpCachingHandler.BuildCacheKey(
+				"https://query2.finance.yahoo.com/v8/finance/chart/USDEUR=X?period1=1780925450&period2=1781098250&interval=1d&events=history");
+
+			Assert.NotEqual(key1, key2);
+		}
+
+		[Fact]
+		public void BuildCacheKey_RoundsToMidnightUTC()
+		{
+			string key = HttpCachingHandler.BuildCacheKey(
+				"https://query2.finance.yahoo.com/v8/finance/chart/USDEUR=X?period1=1780839050&period2=1781011850&interval=1d&events=history");
+
+			// 1780839050 -> 2026-06-07 UTC -> midnight = 1780809600
+			// 1781011850 -> 2026-06-09 UTC -> midnight = 1781078400
+			Assert.Contains("period1=", key);
+			Assert.Contains("period2=", key);
 		}
 	}
 }

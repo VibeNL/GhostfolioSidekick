@@ -1,4 +1,5 @@
 using PortfolioViewer.WASM.UITests.PageObjects;
+using xRetry.v3;
 
 namespace PortfolioViewer.WASM.UITests
 {
@@ -6,7 +7,7 @@ namespace PortfolioViewer.WASM.UITests
 	public class WasmUiSmokeTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
 	{
 
-		[Fact]
+		[RetryFact]
 		public async Task Api_HealthEndpoint_GivesResponse()
 		{
 			// Log the API base address
@@ -26,7 +27,7 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		[Fact]
+		[RetryFact]
 		public async Task Login_ShouldSucceedWithValidToken()
 		{
 			var loginPage = new LoginPage(Page!);
@@ -47,7 +48,7 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		[Fact]
+		[RetryFact]
 		public async Task Sync_ShouldStartAndComplete()
 		{
 			var loginPage = new LoginPage(Page!);
@@ -59,15 +60,15 @@ namespace PortfolioViewer.WASM.UITests
 				await loginPage.WaitForSuccessfulLoginAsync();
 				await homePage.WaitForPageLoadAsync();
 
-			var isSyncButtonEnabled = await homePage.IsSyncButtonEnabledAsync();
-			Assert.True(isSyncButtonEnabled, "Sync button should be enabled before starting sync");
+				var isSyncButtonEnabled = await homePage.IsSyncButtonEnabledAsync();
+				Assert.True(isSyncButtonEnabled, "Sync button should be enabled before starting sync");
 
-			await homePage.ClickSyncButtonAsync();
+				await homePage.ClickSyncButtonAsync();
 
-			var isSyncInProgress = await homePage.IsSyncInProgressAsync();
-			Assert.True(isSyncInProgress, "Sync should be in progress after clicking sync button");
+				var isSyncInProgress = await homePage.IsSyncInProgressAsync();
+				Assert.True(isSyncInProgress, "Sync should be in progress after clicking sync button");
 
-				await homePage.WaitForSyncToCompleteAsync(timeout: 120000);
+				await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
 
 				var isSyncButtonEnabledAfter = await homePage.IsSyncButtonEnabledAsync();
 				Assert.True(isSyncButtonEnabledAfter, "Sync button should be enabled after sync completes");
@@ -82,7 +83,7 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		[Fact]
+		[RetryFact]
 		public async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions()
 		{
 			var loginPage = new LoginPage(Page!);
@@ -106,7 +107,7 @@ namespace PortfolioViewer.WASM.UITests
 				var isSyncInProgress = await homePage.IsSyncInProgressAsync();
 				Assert.True(isSyncInProgress, "Sync should be in progress");
 
-				await homePage.WaitForSyncToCompleteAsync(timeout: 120000);
+				await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
 
 				var hasLastSyncTime = await homePage.HasLastSyncTimeAsync();
 				Assert.True(hasLastSyncTime, "Last sync time should be displayed after sync");

@@ -24,6 +24,13 @@ namespace GhostfolioSidekick
 			"key", "x-api-key", "crumb"
 		};
 
+		// Query-string parameter names that change on every call but do not affect the shape of the response.
+		// Strip these so cache hits land even as timestamps drift.
+		private static readonly HashSet<string> TransientParams = new(StringComparer.OrdinalIgnoreCase)
+		{
+			"period1", "period2"
+		};
+
 		// Only cache responses whose media type starts with one of these prefixes.
 		// Binary, image, audio, video, and compressed payloads are excluded.
 		private static readonly string[] CacheableMediaTypePrefixes =
@@ -49,7 +56,7 @@ namespace GhostfolioSidekick
 			"/v8/finance/chart/",
 		];
 
-		private static readonly TimeSpan MarketDataExpiry = TimeSpan.FromMinutes(30);
+		private static readonly TimeSpan MarketDataExpiry = TimeSpan.FromHours(4);
 		private static readonly TimeSpan DefaultExpiry = TimeSpan.FromDays(1);
 
 		private readonly IExternalDataCacheService cacheService;
@@ -169,7 +176,9 @@ namespace GhostfolioSidekick
 
 		/// <summary>
 		/// Returns a cache-safe key for <paramref name="url"/> by removing any query-string
-		/// parameters whose names appear in <see cref="SensitiveParams"/>.
+		/// parameters whose names appear in <see cref="SensitiveParams"/> and rounding
+		/// transient parameters (e.g. <c>period1</c>, <c>period2</c>) to midnight UTC
+		/// so that requests within the same day share a cache entry.
 		/// </summary>
 		internal static string BuildCacheKey(string url)
 		{
@@ -179,16 +188,24 @@ namespace GhostfolioSidekick
 			}
 
 			var query = HttpUtility.ParseQueryString(uri.Query);
+
+			// Remove sensitive parameters entirely.
 			string[] sensitiveKeys = [.. query.AllKeys.Where(k => k != null && SensitiveParams.Contains(k!))!];
-
-			if (sensitiveKeys.Length == 0)
-			{
-				return url;
-			}
-
 			foreach (string key in sensitiveKeys)
 			{
 				query.Remove(key);
+			}
+
+			// Round transient timestamp parameters to midnight UTC.
+			foreach (string? key in query.AllKeys)
+			{
+				if (key is not null && TransientParams.Contains(key) &&
+					int.TryParse(query[key], out int unixSeconds))
+				{
+					DateTimeOffset utc = DateTimeOffset.FromUnixTimeSeconds(unixSeconds).ToUniversalTime();
+					DateTime midnightUtc = new(utc.Year, utc.Month, utc.Day, 0, 0, 0, DateTimeKind.Utc);
+					query[key] = new DateTimeOffset(midnightUtc, TimeSpan.Zero).ToUnixTimeSeconds().ToString();
+				}
 			}
 
 			string sanitizedQuery = query.Count > 0 ? "?" + query.ToString() : string.Empty;

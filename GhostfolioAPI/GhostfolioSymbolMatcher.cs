@@ -1,32 +1,23 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.ExternalDataProvider.Cache;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Logging;
-using Polly.Retry;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public class GhostfolioSymbolMatcher : ISymbolMatcher
 	{
 		private readonly IApiWrapper apiWrapper;
-		private readonly ILogger<GhostfolioSymbolMatcher> logger;
-		private readonly IExternalDataCacheService cacheService;
 
 		public GhostfolioSymbolMatcher(
 			IApplicationSettings settings,
-			IApiWrapper apiWrapper,
-			ILogger<GhostfolioSymbolMatcher> logger,
-			IExternalDataCacheService cacheService)
+			IApiWrapper apiWrapper)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
-			this.logger = logger;
-			this.cacheService = cacheService;
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
@@ -45,43 +36,31 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					return null;
 				}
 
-				string cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier).Order());
-				return string.IsNullOrWhiteSpace(cacheKey)
-				? null
-				: await cacheService.GetOrAddAsync<SymbolProfile>(
-					CacheKey.CreateSymbolProfile(Source.Ghostfolio, cacheKey),
-				async () =>
+				foreach (PartialSymbolIdentifier identifier in symbolIdentifiers)
 				{
-					AsyncRetryPolicy retryPolicy = GhostfolioSidekick.ExternalDataProvider.RetryPolicyHelper.GetRetryPolicy(logger);
-					return (await retryPolicy.ExecuteAsync(async () =>
+					List<string> ids = [identifier.Identifier];
+
+					if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
 					{
-						foreach (PartialSymbolIdentifier identifier in symbolIdentifiers)
-						{
-							List<string> ids = [identifier.Identifier];
+						ids.Add($"{identifier.Identifier}USD");
+						ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
+					}
 
-							if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
-							{
-								ids.Add($"{identifier.Identifier}USD");
-								ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
-							}
+					ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
 
-							ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
+					SymbolProfile? symbol = await FindByDataProvider(
+						ids,
+						null,
+						identifier.AllowedAssetClasses?.ToArray(),
+						identifier.AllowedAssetSubClasses?.ToArray(),
+						false);
 
-							SymbolProfile? symbol = await FindByDataProvider(
-								ids,
-								null,
-								identifier.AllowedAssetClasses?.ToArray(),
-								identifier.AllowedAssetSubClasses?.ToArray(),
-								false);
-
-							if (symbol != null)
-							{
-								return symbol;
-							}
-						}
-						return null;
-					}))!;
-				})!;
+					if (symbol != null)
+					{
+						return symbol;
+					}
+				}
+				return null;
 			}
 			catch
 			{

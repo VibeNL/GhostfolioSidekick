@@ -1,11 +1,10 @@
-﻿using GhostfolioSidekick.AI.Agents;
+using GhostfolioSidekick.AI.Agents;
 using GhostfolioSidekick.AI.Common;
 using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
@@ -23,7 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private string streamingAuthor = string.Empty;
 		private InitializeProgress lastProgress = new(0);
 
-		private readonly List<ChatMessageContent> memory = [];
+		private readonly List<ChatMessage> memory = [];
 		private readonly AgentOrchestrator orchestrator;
 		private readonly AgentLogger agentLogger;
 
@@ -42,6 +41,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 			// Subscribe to AgentLogger event
 			agentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
+		}
+
+		private void ClearChat()
+		{
+			memory.Clear();
+			orchestrator.ClearMemory();
+			CurrentMessage = string.Empty;
 		}
 
 		private async Task ToggleChat()
@@ -135,7 +141,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 			try
 			{
-				memory.AddRange(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
+				memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = "User" });
 
 				// Send the messages to the chat client and process the response
 				await foreach (var response in orchestrator.AskQuestion(input))
@@ -146,11 +152,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 					var lastMemory = memory.LastOrDefault();
 					if (lastMemory?.AuthorName != streamingAuthor)
 					{
-						lastMemory = new ChatMessageContent(AuthorRole.Assistant, response.Content ?? string.Empty) { AuthorName = streamingAuthor };
+						lastMemory = new ChatMessage(ChatRole.Assistant, response.Text ?? string.Empty) { AuthorName = streamingAuthor };
 						memory.Add(lastMemory);
 					}
 
-					lastMemory.Content += response.Content ?? string.Empty;
+					var existingText = lastMemory.Text ?? string.Empty;
+					lastMemory.Contents = [new TextContent(existingText + (response.Text ?? string.Empty))];
 					StateHasChanged();
 
 					// Scroll to the bottom of the chat
@@ -158,7 +165,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				}
 
 				memory.Clear();
-				memory.AddRange(await orchestrator.History());
+				memory.AddRange(orchestrator.History());
 
 				IsBotTyping = false;
 				streamingAuthor = string.Empty;
@@ -170,7 +177,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error during streaming: {ex.Message}");
+				memory.Clear();
+				memory.Add(new ChatMessage(ChatRole.System, $"Error: {ex.Message}"));
 			}
 		}
 
@@ -187,19 +195,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 		}
 
-		private static string GetBubbleStyle(ChatMessageContent? message)
+		private static string GetBubbleStyle(ChatMessage? message)
 		{
 			const string baseStyle = "max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); ";
 
-			if (message?.Role == AuthorRole.User)
+			if (message?.Role == ChatRole.User)
 			{
 				return baseStyle + "background-color: #dbeafe; align-self: flex-end;";
 			}
-			else if (message?.Role == AuthorRole.Assistant)
+			else if (message?.Role == ChatRole.Assistant)
 			{
 				return baseStyle + "background-color: #e0f7fa; align-self: flex-start; border: 1px solid #b2ebf2;";
 			}
-			else if (message?.Role == AuthorRole.System)
+			else if (message?.Role == ChatRole.System)
 			{
 				return baseStyle + "background-color: #f3e5f5; align-self: center; font-style: italic;";
 			}
@@ -209,10 +217,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 		}
 
-		public async void Dispose()
+		public void Dispose()
 		{
-			// Release wake lock on disposal
-			await ReleaseWakeLock();
+			// Release wake lock on disposal — fire-and-forget is intentional here as Dispose cannot be async
+			if (wakeLockActive)
+			{
+				_ = JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
+				wakeLockActive = false;
+			}
 
 			// Unsubscribe from AgentLogger event
 			agentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;

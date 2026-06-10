@@ -1,0 +1,230 @@
+# GhostfolioSidekick
+
+[![Build & deploy application](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=VibeNL_GhostfolioSidekick&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VibeNL_GhostfolioSidekick)
+
+[![Shield: Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support-yellow?logo=buymeacoffee)](https://www.buymeacoffee.com/vibenl)
+
+[Deep Wiki](https://deepwiki.com/VibeNL/GhostfolioSidekick)
+
+A continuous running Docker container (sidecar) that automatically imports files from brokers & crypto exchanges. 
+Program checks every hour for new transactions and inserts them in ghostfolio. 
+Can also correct & remove transactions if they have changed or source file was deleted.
+
+Additionally, for self-hosted instances, maintains symbols automatically.
+- Set trackinsight property of symbols
+- Create manual symbols
+- Delete symbols that are no longer used
+
+( more to come? Help is always welcome! )
+
+## Setup
+
+### Ghostfolio
+* Create account in ghostfolio using anonymous option save your KEY.
+* Create relevant accounts in ghostfolio.
+
+### Folder structure
+
+FileImporterPath should point to folder with following structure:
+* Account Name
+  * File1.csv
+* Account Name 2
+  * File2.csv
+  * File3.csv
+
+Assuming configured account 'Trading 212' and account 'De Giro' in ghostfolio, following structure should be used.
+For example:
+* Trading 212
+  * Export2023.csv
+* De Giro
+  * Export2022.csv
+  * Export2023.csv
+
+### Configuration File
+Single json file that contains mapping to convert currencies and symbols to symbol found via ghostfolio.
+Also allows following symbol settings
+  - Setting Trackinsight on symbols
+  - Adding / Updating Manual symbols 
+
+{
+    "settings" : {
+        "performance.primarycurrency": "USD",
+        "dataprovider.preference.order": "COINGECKO;YAHOO",
+        "delete.unused.symbols": false
+    },
+    "platforms":[
+        { "name": "De Giro", "url":"https://www.degiro.nl/" }
+    ],
+    "accounts":[
+        { "name": "De Giro", "currency":"EUR", "platform":"De Giro", "sync-activities": true, "sync-balance": false }
+    ],
+    "mappings":[
+        { "type":"currency", "source":"GBX", "target":"GBp"},
+        { "type":"symbol", "source":"USDC", "target":"usd-coin"},
+        { "type":"symbol", "source":"BTC", "target":"bitcoin"}
+    ],
+    "symbols":[
+        { "symbol": "VDUC.L", "trackinsight": "VUSC" },
+        { "symbol": "VFEM.L", "trackinsight": "VDEM" },
+        { "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
+        { "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY" } }
+    ],
+    "benchmarks":[
+        { "symbol": "^AEX" },
+        { "symbol": "^SPX" }
+    ]
+}
+
+> **Notes:**
+> - `performance.primarycurrency`: default is "EUR"
+> - `dataprovider.preference.order`: default is "YAHOO,COINGECKO"
+> - `delete.unused.symbols`: default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
+> - `sync-activities` is true by default; `sync-balance` is true by default.
+
+#### Settings
+
+##### use.dust.threshold (Experimental)
+This setting controls workaround for dust (very small amount that cannot be sold or due to rounding errors).
+Amount is total value of assets (quantity times unitprice). Unitprice converted to currency defined by *use.dust.currency*.
+
+For crypto specifically, another setting takes precedence. See ***use.crypto.workaround.dust.threshold***. Due to likelihood of higher values for dust of cryptocurrencies.
+
+##### use.crypto.workaround.dust.threshold (Experimental)
+This setting controls workaround for dust (very small amount that cannot be sold or due to rounding errors).
+Amount is total value of assets (quantity times unitprice). Unitprice converted to currency defined by *use.dust.currency*.
+
+##### use.crypto.workaround.stakereward.add.to.last.buy (Experimental)
+This setting controls workaround for staking rewards. 
+If set to true, staking reward added to last buy activity.
+
+#### Platform and Account
+Creates platforms and accounts if not yet created
+
+Fields are identical to UI
+
+#### Benchmarks
+Add symbol as benchmark
+
+#### Mappings
+Change identifier from imported files to be compatible with Ghostfolio (certain symbols may not be found by Ghostfolio, so substitute identifier with one recognized)
+
+| Fieldname | Type | Description |
+|--|--|--|
+| type | one of: 'currency', 'symbol' | Type of mapping to be applied |
+| source | any string | Name of symbol as it appears in csv files |
+| target | any string | Name of symbol to use within Ghostfolio |
+
+#### Symbols
+Maintaining symbols in ghostfolio
+
+| Fieldname | Type | Description |
+|--|--|--|
+| symbol | any string | Name of symbol|
+| trackinsight | any string | Trackinsight key to be set |
+| manualSymbolConfiguration | ManualSymbolConfiguration | See ManualSymbolConfiguration. Will be created if it does not exists |
+
+##### ManualSymbolConfiguration
+
+| Fieldname | Type | Description |
+|--|--|--|
+| currency | any string | Currency of symbol |
+| isin | any string | ISIN to be set |
+| name | any string | Name of symbol |
+| assetSubClass | one of: 'CRYPTOCURRENCY', 'ETF', 'STOCK', 'MUTUALFUND', 'BOND', 'COMMODITY', 'PRECIOUS_METAL', 'PRIVATE_EQUITY'| Same list as Ghostfolio |
+| assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
+| scraperConfiguration| object with url, selector and optional locale | Scraperconfiguration as used in Ghostfolio (NOTE: no support for headers yet)|
+
+### Supported formats
+Goal is to support all platforms as best as possible. Due to continuous growth of Ghostfolio, new features may be added when possible.
+
+| Platform | Source of the files | Documentation |
+|--|--|--|
+| Bitvavo (Broker) | Export of transaction history | |
+| Bunq (Bank) | Export CSV (Semicolon delimited) | |
+| Centraal Beheer (Broker) | Export of transaction history (CSV, Semicolon delimited) | |
+| Coinbase (Broker) | Export of transaction history | |
+| De Giro | Export of account history (Language dependent, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
+| Generic importer | See below | |
+| Gold Republic | Account Statement export (PDF) | |
+| MacroTrends | Historical data CSV export | |
+| Nexo (Broker) | Export of transaction history | |
+| NIBC (Bank) | Export CSV (Semicolon delimited) | |
+| Scalable Capital (Prime only) | The CSV files export via the transaction view | |
+| Trade Republic | CSV transaction export (recommended) or monthly statements and individual invoices (PDF, legacy) | [Documentation](./Documentation/Parsers/TradeRepublic.md) |
+| Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
+| Trine | Export of transaction history (CSV) | |
+
+#### Generic import format
+Beside supported exchanges and brokers, there is also generic format. 
+Only useful for stocks at the moment, not for cryptocurrency:
+
+| Field | Value(s) | 
+| ----- | ----- |
+| ActivityType | BUY ,SELL, DIVIDEND and INTEREST | 
+| Symbol | The symbol to search
+| Date | The date, yyyy-MM-dd |
+| Currency | The currency of the unitprice and fee |
+| Quantity | The amount of units |
+| UnitPrice | The paid price per unit |
+| Fee | The total fee paid for the transaction. Is optional |
+| Tax | The total tax on the transaction, is used to adjust the unitprice. Is optional |
+| Description | A description, not used in ghostfolio itself. Is optional |
+| Id | The transaction id. Is optional |
+
+For stock splits there is a separate format
+| Field | Value(s) | 
+| ----- | ----- |
+| Symbol | The symbol to search
+| Date | The date, yyyy-MM-dd |
+| StockSplitFrom | The number of stock in the old situation |
+| StockSplitTo | The number of stock in the new situation |
+
+##### Example
+
+File1:
+ActivityType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
+BUY,US67066G1040,2023-08-07,USD,0.0267001000,453.33,0.02
+
+File2:
+Symbol,Date,StockSplitFrom,StockSplitTo
+US67066G1040,2023-08-07,1,3
+
+## Run in Docker
+Docker image named: vibenl/ghostfoliosidekick
+
+Example docker-compose.yml:
+```
+ghostfoliosidekick:
+	image: vibenl/ghostfoliosidekick:latest
+	container_name: Ghostfolio-Ghostfoliosidekick
+	hostname: ghostfoliosidekick
+	security_opt:
+		- no-new-privileges:true
+	environment:
+		- GHOSTFOLIO_URL=url
+		- GHOSTFOLIO_ACCESTOKEN=abc
+		- FILEIMPORTER_PATH=/var/lib/data
+		- CONFIGURATIONFILE_PATH=/var/lib/data/config.json
+	restart: always
+	volumes:
+		- /volume1/docker/ghostfolio/sidekick:/var/lib/data:r
+	depends_on:
+	ghostfolio:
+		condition: service_started
+```
+
+### Settings
+| Envs |Description  |
+|--|--|
+|**GHOSTFOLIO_URL**  | Endpoint for ghostfolio instance.   |
+|**GHOSTFOLIO_ACCESTOKEN**  | Token as used to 'login' in the UI |
+|**FILEIMPORTER_PATH**  | Path to files (see Import Path) |
+|**DATABASE_PATH** | Path to database file. If only path, file named 'ghostfolio.db'. If not specified, placed in FILEIMPORTER_PATH. |
+|**CONFIGURATIONFILE_PATH**  | (optional) Path to config file, for example '/files/config/config.json' |
+|**TROTTLE_WAITINSECONDS**  | (optional) Time in seconds between calls to Ghostfolio. Defaults to no waittime. |
+
+## Contributing
+
+* Feel free to submit any issue or PR's you think necessary
