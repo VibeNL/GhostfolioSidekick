@@ -155,7 +155,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var totalValue = new Money(targetCurrency, point.Value);
 				var totalInvested = new Money(targetCurrency, point.Invested);
 				var balance = new Money(targetCurrency, point.Balance);
-				var gainLoss = totalValue.Subtract(totalInvested);
+				var assetValue = totalValue.Subtract(balance);
+				var gainLoss = assetValue.Subtract(totalInvested);
 				var gainLossPercentage = totalInvested.Amount == 0 ? 0 : gainLoss.Amount / totalInvested.Amount;
 
 				displayData.Add(new TimeSeriesDisplayModel
