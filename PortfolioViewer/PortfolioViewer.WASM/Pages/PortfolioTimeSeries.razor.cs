@@ -152,10 +152,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			foreach (var point in TimeSeriesData)
 			{
-				var totalValue = new Money(targetCurrency, point.Value);
+				// point.Value is the sum of TotalValue from CalculatedSnapshot (holdings value only, no cash)
+				// point.Balance is the cash balance
+				// point.Invested is the total invested in holdings
+				var assetValue = new Money(targetCurrency, point.Value);
 				var totalInvested = new Money(targetCurrency, point.Invested);
 				var balance = new Money(targetCurrency, point.Balance);
-				var assetValue = totalValue.Subtract(balance);
+				var totalValue = assetValue.Add(balance);
 				var gainLoss = assetValue.Subtract(totalInvested);
 				var gainLossPercentage = totalInvested.Amount == 0 ? 0 : gainLoss.Amount / totalInvested.Amount;
 
