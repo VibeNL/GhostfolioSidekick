@@ -1,6 +1,7 @@
 using Grpc.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
@@ -14,6 +15,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 	[Collection("NonParallel")]
 	public class SyncGrpcServiceTests
 	{
+		private static readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+
 		private sealed class TestDb : IDisposable
 		{
 			public DatabaseContext Context { get; }
@@ -117,7 +120,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 			var response = await service.GetTableNames(new GetTableNamesRequest(), new FakeServerCallContext());
 
 			Assert.Contains("test_table", response.TableNames);
@@ -149,7 +152,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
 
 			Assert.True(response.LatestDates.ContainsKey("with_date"));
@@ -172,7 +175,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req = new GetEntityDataRequest { Entity = "items", Page = 1, PageSize = 2 };
@@ -209,7 +212,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req = new GetEntityDataSinceRequest { Entity = "events", Page = 1, PageSize = 10, SinceDate = "2021-01-01" };
@@ -237,7 +240,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req = new GetEntityDataRequest { Entity = "t", Page = 0, PageSize = 10 };
@@ -252,7 +255,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			var ctx = db.Context;
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req = new GetEntityDataRequest { Entity = "invalid table;drop", Page = 1, PageSize = 10 };
@@ -273,7 +276,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 			var response = await service.GetTableNames(new GetTableNamesRequest(), new FakeServerCallContext());
 
 			Assert.DoesNotContain("__EFMigrationsHistory", response.TableNames);
@@ -294,7 +297,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req = new GetEntityDataSinceRequest { Entity = "nodate", Page = 1, PageSize = 10, SinceDate = "2000-01-01" };
@@ -329,7 +332,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
 
 			Assert.True(response.LatestDates.ContainsKey("t_date"));
@@ -352,7 +355,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req = new GetEntityDataRequest { Entity = "few", Page = 1, PageSize = 10 };
@@ -382,7 +385,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
 
 			Assert.True(response.LatestDates.ContainsKey("maybe_null"));
@@ -400,7 +403,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			await db.Connection.CloseAsync();
 			// service should handle and not throw; result may be empty
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var response = await service.GetTableNames(new GetTableNamesRequest(), new FakeServerCallContext());
 			Assert.NotNull(response);
@@ -415,7 +418,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			// Simulate connection failure by closing the underlying connection
 			await db.Connection.CloseAsync();
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
 			Assert.NotNull(response);
@@ -438,7 +441,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			await db.Connection.CloseAsync();
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
-			var service = new SyncGrpcService(ctx, logger);
+			var service = new SyncGrpcService(ctx, logger, _cache);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req = new GetEntityDataRequest { Entity = "some", Page = 1, PageSize = 10 };
