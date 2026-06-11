@@ -3,16 +3,14 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 {
-	public class SyncGrpcService(DatabaseContext dbContext, ILogger<SyncGrpcService> logger) : SyncService.SyncServiceBase
+	public class SyncGrpcService(DatabaseContext dbContext, ILogger<SyncGrpcService> logger, IMemoryCache cache) : SyncService.SyncServiceBase
 	{
 		private readonly string[] _tablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
-		private Lazy<Task<Dictionary<string, string>>>? _tablesWithDatesCache;
-
-		private Lazy<Task<Dictionary<string, string>>> TablesWithDatesCache =>
-			_tablesWithDatesCache ??= new(() => LoadTablesWithDatesAsync(dbContext, logger, _tablesToIgnore));
+		private const string TablesWithDatesCacheKey = "TablesWithDates";
 
 		public override async Task<GetTableNamesResponse> GetTableNames(GetTableNamesRequest request, ServerCallContext context)
 		{
@@ -111,8 +109,18 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			}
 		}
 
-		private async Task<Dictionary<string, string>> GetTablesWithDatesAsync() =>
-			await TablesWithDatesCache.Value;
+		private async Task<Dictionary<string, string>> GetTablesWithDatesAsync()
+		{
+			Dictionary<string, string>? cached = null;
+			if (!cache.TryGetValue(TablesWithDatesCacheKey, out cached))
+			{
+				cached = await LoadTablesWithDatesAsync(dbContext, logger, _tablesToIgnore);
+				var options = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromHours(1));
+				cache.Set(TablesWithDatesCacheKey, cached, options);
+			}
+			return cached ?? throw new InvalidOperationException("Cache entry was unexpectedly null");
+		}
 
 	private static async Task<Dictionary<string, string>> LoadTablesWithDatesAsync(DatabaseContext dbContext, ILogger<SyncGrpcService> logger, string[] tablesToIgnore)
 	{
