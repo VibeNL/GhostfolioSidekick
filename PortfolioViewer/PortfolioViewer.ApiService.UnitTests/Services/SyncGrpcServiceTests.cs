@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 	[Collection("NonParallel")]
 	public class SyncGrpcServiceTests
 	{
-		private static readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+		private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
 
 		private sealed class TestDb : IDisposable
 		{
