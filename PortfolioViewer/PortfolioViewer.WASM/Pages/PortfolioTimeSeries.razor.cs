@@ -182,11 +182,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				return Task.CompletedTask;
 			}
 
+			var sorted = TimeSeriesDisplayData.OrderBy(p => p.Date).ToList();
+
 			List<object> valueList = [];
 			List<object> investedList = [];
 			List<object> balanceList = [];
 			List<object> gainLossPercentageList = [];
-			foreach (var p in TimeSeriesDisplayData)
+			foreach (var p in sorted)
 			{
 				valueList.Add(p.TotalValue.Amount);
 				investedList.Add(p.TotalInvested.Amount);
@@ -194,7 +196,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				gainLossPercentageList.Add(p.GainLossPercentage);
 			}
 
-			var dates = TimeSeriesData.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray();
+			var dates = sorted.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray();
 
 			var valueTrace = new Scatter
 			{
