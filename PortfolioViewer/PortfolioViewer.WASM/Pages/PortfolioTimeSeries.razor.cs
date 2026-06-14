@@ -254,7 +254,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 						Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "Gain/Loss %" },
 						Overlaying = "y",
 						Side = Plotly.Blazor.LayoutLib.YAxisLib.SideEnum.Right,
-						TickFormat = ".0%"
+						TickFormat = ".2%"
 					}
 				],
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 60, B = 40 },
