@@ -1,4 +1,7 @@
 @echo off
+
+cd..
+
 title Copilot CLI + LM Studio Fix
 cls
 
