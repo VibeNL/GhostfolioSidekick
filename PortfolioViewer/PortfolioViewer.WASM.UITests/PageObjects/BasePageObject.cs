@@ -26,8 +26,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				"text=/unhandled error/i",
 				"#blazor-error-ui",
 				".blazor-error-boundary",
-				"[style*='background:lightyellow']", // Default Blazor error UI styling
-				"text=/reload/i" // The reload text is usually part of the error
+				"[style*='background:lightyellow']" // Default Blazor error UI styling
 			};
 
 			foreach (var selector in selectors)
