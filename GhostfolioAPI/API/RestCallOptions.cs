@@ -8,6 +8,6 @@
 
 		public TimeSpan CircuitBreakerDuration { get; set; } = TimeSpan.FromSeconds(30);
 
-		public TimeSpan TrottleTimeout { get; set; } = TimeSpan.FromSeconds(0);
+		public TimeSpan TrottleTimeout { get; set; } = TimeSpan.FromSeconds(60);
 	}
 }

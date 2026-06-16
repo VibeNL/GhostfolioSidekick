@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -9,10 +10,11 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public class GhostfolioSync(IApiWrapper apiWrapper, ILogger<GhostfolioSync> logger) : IGhostfolioSync
+	public class GhostfolioSync(IApiWrapper apiWrapper, ILogger<GhostfolioSync> logger, IApplicationSettings applicationSettings) : IGhostfolioSync
 	{
 		private readonly IApiWrapper apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 		private readonly ILogger<GhostfolioSync> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+		private readonly IApplicationSettings applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 
 		public async Task SyncAccount(Account account)
 		{
@@ -66,6 +68,12 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		public async Task SyncSymbolProfiles(IEnumerable<SymbolProfile> manualSymbolProfiles)
 		{
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogWarning("AllowAdminCalls is disabled, skipping SyncSymbolProfiles for non-admin user");
+				return;
+			}
+
 			await apiWrapper.SyncSymbolProfiles(manualSymbolProfiles);
 		}
 
@@ -78,18 +86,18 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (Activity activity in activities)
 			{
-			   if (activity is ReceiveActivity receiveActivity)
-			   {
-				   yield return ConvertReceiveToBuy(receiveActivity);
-			   }
-			   else if (activity is SendActivity sendActivity)
-			   {
-				   yield return ConvertSendToSell(sendActivity);
-			   }
-			   else
-			   {
-				   yield return activity;
-			   }
+				if (activity is ReceiveActivity receiveActivity)
+				{
+					yield return ConvertReceiveToBuy(receiveActivity);
+				}
+				else if (activity is SendActivity sendActivity)
+				{
+					yield return ConvertSendToSell(sendActivity);
+				}
+				else
+				{
+					yield return activity;
+				}
 			}
 		}
 

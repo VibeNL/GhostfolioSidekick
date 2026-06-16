@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.Configuration
 				return timeoutInSeconds;
 			}
 
-			return 0;
+			return 60; // Default: 1 call per minute to avoid overloading hosted Ghostfolio
 		}
 
 		private static int GetDatabaseQueryTimeout()

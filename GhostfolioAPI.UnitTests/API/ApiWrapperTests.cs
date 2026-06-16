@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
@@ -18,6 +19,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		private readonly Mock<IRestClient> _mockRestCall;
 		private readonly Mock<ILogger<ApiWrapper>> _mockLogger;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
+		private readonly Mock<IApplicationSettings> _mockAppSettings;
 		private readonly ApiWrapper _apiWrapper;
 
 		public ApiWrapperTests()
@@ -25,7 +27,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			_mockRestCall = new Mock<IRestClient>();
 			_mockLogger = new Mock<ILogger<ApiWrapper>>();
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
-			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object);
+			_mockAppSettings = new Mock<IApplicationSettings>();
+			_mockAppSettings.Setup(x => x.AllowAdminCalls).Returns(true);
+			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object, _mockAppSettings.Object);
 
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>())).ReturnsAsync(new Money { Amount = 100, Currency = Currency.EUR });
 

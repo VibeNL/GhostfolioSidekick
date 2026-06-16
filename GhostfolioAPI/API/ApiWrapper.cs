@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
@@ -13,7 +14,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 	public class ApiWrapper(
 			RestCall restCall,
 			ILogger<ApiWrapper> logger,
-			ICurrencyExchange currencyExchange) : IApiWrapper
+			ICurrencyExchange currencyExchange,
+			IApplicationSettings applicationSettings) : IApiWrapper
 	{
 		private const string ActivitiesEndpoint = "api/v1/activities";
 
@@ -164,8 +166,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						DataSource = Datasource.GetUnderlyingDataSource(symbolProfile.DataSource).ToString(),
 						Name = symbolProfile.Name ?? symbolProfile.Symbol,
 						Symbol = symbolProfile.Symbol,
-						Sectors = symbolProfile.SectorWeights?.Select(x => new Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
-						Countries = symbolProfile.CountryWeight?.Select(x => new Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []
+						Sectors = symbolProfile.SectorWeights?.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
+						Countries = symbolProfile.CountryWeight?.Select(x => new Contract.Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []
 					};
 				}
 
@@ -275,6 +277,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task SyncSymbolProfiles(IEnumerable<Model.Symbols.SymbolProfile> manualSymbolProfiles)
 		{
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogWarning("SyncSymbolProfiles skipped: not authorized (non-admin user)");
+				return;
+			}
+
 			var existingProfiles = await GetAllSymbolProfiles();
 
 			foreach (var manualSymbolProfile in manualSymbolProfiles)
