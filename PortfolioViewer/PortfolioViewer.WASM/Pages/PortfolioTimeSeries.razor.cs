@@ -152,10 +152,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			foreach (var point in TimeSeriesData)
 			{
-				var totalValue = new Money(targetCurrency, point.Value);
+				// point.Value is the sum of TotalValue from CalculatedSnapshot (holdings value only, no cash)
+				// point.Balance is the cash balance
+				// point.Invested is the total invested in holdings
+				var assetValue = new Money(targetCurrency, point.Value);
 				var totalInvested = new Money(targetCurrency, point.Invested);
 				var balance = new Money(targetCurrency, point.Balance);
-				var gainLoss = totalValue.Subtract(totalInvested);
+				var totalValue = assetValue.Add(balance);
+				var gainLoss = assetValue.Subtract(totalInvested);
 				var gainLossPercentage = totalInvested.Amount == 0 ? 0 : gainLoss.Amount / totalInvested.Amount;
 
 				displayData.Add(new TimeSeriesDisplayModel
@@ -182,19 +186,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				return Task.CompletedTask;
 			}
 
+			var sorted = TimeSeriesDisplayData.OrderBy(p => p.Date).ToList();
+
 			List<object> valueList = [];
 			List<object> investedList = [];
 			List<object> balanceList = [];
-			foreach (var p in TimeSeriesData)
+			List<object> gainLossPercentageList = [];
+			foreach (var p in sorted)
 			{
-				valueList.Add(p.Value);
-				investedList.Add(p.Invested);
-				balanceList.Add(p.Balance);
+				valueList.Add(p.TotalValue.Amount);
+				investedList.Add(p.TotalInvested.Amount);
+				balanceList.Add(p.Balance.Amount);
+				gainLossPercentageList.Add(p.GainLossPercentage);
 			}
+
+			var dates = sorted.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray();
 
 			var valueTrace = new Scatter
 			{
-				X = TimeSeriesData.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+				X = dates,
 				Y = valueList,
 				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 				Name = "Portfolio Value",
@@ -203,7 +213,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 			var investedTrace = new Scatter
 			{
-				X = TimeSeriesData.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+				X = dates,
 				Y = investedList,
 				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 				Name = "Invested Amount",
@@ -212,22 +222,42 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 			var balanceTrace = new Scatter
 			{
-				X = TimeSeriesData.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+				X = dates,
 				Y = balanceList,
 				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 				Name = "Cash Balance",
 				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#fd7e14", Width = 2 },
 				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#fd7e14", Size = 6 }
 			};
+			var gainLossPercentageTrace = new Scatter
+			{
+				X = dates,
+				Y = gainLossPercentageList,
+				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+				Name = "Gain/Loss %",
+				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#6f42c1", Width = 2 },
+				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#6f42c1", Size = 6 },
+				YAxis = "y2"
+			};
 
-			plotData = [valueTrace, investedTrace, balanceTrace];
+			plotData = [valueTrace, investedTrace, balanceTrace, gainLossPercentageTrace];
 			var primaryCurrency = ServerConfigurationService?.PrimaryCurrency;
 			plotLayout = new Plotly.Blazor.Layout
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Portfolio Value Over Time" },
 				XAxis = [new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } }],
-				YAxis = [new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({primaryCurrency?.Symbol ?? "$"})" } }],
-				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
+				YAxis =
+				[
+					new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({primaryCurrency?.Symbol ?? "$"})" } },
+					new Plotly.Blazor.LayoutLib.YAxis
+					{
+						Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "Gain/Loss %" },
+						Overlaying = "y",
+						Side = Plotly.Blazor.LayoutLib.YAxisLib.SideEnum.Right,
+						TickFormat = ".2%"
+					}
+				],
+				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 60, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,
 				Legend = [new Plotly.Blazor.LayoutLib.Legend
