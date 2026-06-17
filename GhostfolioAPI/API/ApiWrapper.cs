@@ -71,6 +71,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			var accounts = await GetAllAccounts();
 			var account = accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+
 			if (account == null)
 			{
 				return null;
@@ -80,6 +81,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return ContractToModelMapper.MapAccount(
 					account,
 					platforms.SingleOrDefault(x => x.Id == account.PlatformId));
+		}
+
+		public async Task<bool> AccountExistsAsync(string name)
+		{
+			var accounts = await GetAllAccounts();
+			return accounts.Any(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 		}
 
 		public async Task<Model.Accounts.Platform?> GetPlatformByName(string name)

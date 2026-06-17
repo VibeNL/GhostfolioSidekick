@@ -8,6 +8,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 	public interface IApiWrapper
 	{
 		Task<Account?> GetAccountByName(string name);
+		Task<bool> AccountExistsAsync(string name);
 		Task<Platform?> GetPlatformByName(string name);
 
 		Task<List<SymbolProfile>> GetSymbolProfile(string identifier, bool includeIndexes);

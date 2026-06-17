@@ -6,6 +6,8 @@ namespace GhostfolioSidekick.IntegrationTests
 	{
 		public volatile bool IsTriggered;
 
+		public List<string> Messages { get; } = new();
+
 		public IDisposable? BeginScope<TState>(TState state) where TState : notnull
 		{
 			return this;
@@ -24,9 +26,21 @@ namespace GhostfolioSidekick.IntegrationTests
 		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 		{
 			var message = formatter(state, exception);
-			if (message != null && message.Contains(checkForEndMessage))
+			if (message != null)
 			{
-				IsTriggered = true;
+				Messages.Add(message);
+				if (logLevel == LogLevel.Critical && exception != null)
+				{
+					Console.WriteLine($"[CRITICAL] {message} Exception: {exception.Message}");
+				}
+				if (logLevel == LogLevel.Error && exception != null)
+				{
+					Console.WriteLine($"[ERROR] {message} Exception: {exception.Message}");
+				}
+				if (message.Contains(checkForEndMessage))
+				{
+					IsTriggered = true;
+				}
 			}
 		}
 	}
