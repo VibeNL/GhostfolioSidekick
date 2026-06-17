@@ -92,6 +92,10 @@ namespace GhostfolioSidekick.IntegrationTests
 
 			_ = testLogger.IsTriggered.Should().BeTrue(because: "non-admin sync must complete without admin endpoint errors");
 
+			// Verify no unauthorized/401 errors in logs
+			var unauthorizedMessages = testLogger.Messages.Where(m => m.Contains("401") || m.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase)).ToList();
+			unauthorizedMessages.Should().BeEmpty(because: "non-admin sync should not produce any unauthorized errors");
+
 			// Verify accounts exist (AccountExistsAsync uses api/v1/account which works for non-admin).
 			_ = (await apiWrapper.AccountExistsAsync("TestAccount1")).Should().BeTrue(because: "non-admin sync should create accounts in Ghostfolio");
 			_ = (await apiWrapper.AccountExistsAsync("TestAccount2")).Should().BeTrue(because: "non-admin sync should create accounts in Ghostfolio");
