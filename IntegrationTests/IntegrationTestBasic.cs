@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.IntegrationTests
 		private INetwork network = default!;
 		private RedisContainer redisContainer = default!;
 		private IContainer ghostfolioContainer = default!;
-		private HttpClient httpClient = default!;
+		private static HttpClient httpClient = default!;
 		private AuthData? authToken;
 
 		private readonly Dictionary<string, int> AccountsWithExpectedNumbers = new()
@@ -49,168 +49,252 @@ namespace GhostfolioSidekick.IntegrationTests
 		[Fact(Timeout = 600000)]
 		public async Task CanSetupGhostfolioDependencies()
 		{
-			// url ghostfolio for debugging:
 			string url = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
 			_ = authToken.Should().NotBeNull();
 
-			await InitializeSidekick(authToken, url);
+			var testLogger = new TestLogger("Service SyncActivitiesWithGhostfolioTask has executed.");
+			var (testHost, apiWrapper) = await InitializeSidekickForTestAsync(url, authToken!.AccessToken, "./Files/ghostfolio.db", testLogger, allowAdminCalls: true);
+
+			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(10));
+
+			await VerifyInstance(apiWrapper);
 		}
 
 		/// <summary>
 		/// Integration test: Non-admin user sync with AllowAdminCalls=false.
 		/// Spins up own containers, creates non-admin user, verifies sync.
 		/// </summary>
-		[Fact(Timeout = 900000)]
+		[Fact(Timeout = 60000)]
 		public async Task GhostfolioNonAdminUserSyncTest()
 		{
-			await using var network = new NetworkBuilder()
-				.WithCleanUp(true)
-				.WithName($"ghostfolio-nonadmin-{Guid.NewGuid():N}")
-				.Build();
+			await using var infra = await CreateContainerInfrastructureAsync();
 
-			await using var postgres = new PostgreSqlBuilder("postgres:16")
-				.WithUsername(Username)
-				.WithPassword(Password)
-				.WithDatabase(Database)
-				.WithNetwork(network)
-				.WithNetworkAliases("postgrescontainer")
-				.WithImagePullPolicy(PullPolicy.Always)
-				.Build();
+			var url = infra.GhostfolioUrl;
 
-			await using var redis = new RedisBuilder("redis")
-				.WithNetwork(network)
-				.WithImagePullPolicy(PullPolicy.Always)
-				.Build();
+			// Create admin user (first user).
+			var adminAuth = await CreateAdminUserAsync(url);
 
-			IContainer ghostfolio = null!;
+			// Create non-admin user authenticated as admin.
+			var nonAdminAuth = await CreateNonAdminUserAsync(url, adminAuth);
 
-			try
+			// Initialize sidekick with non-admin token.
+			var dbPath = Path.Combine(Path.GetTempPath(), $"ghostfolio_sidekick_non_admin_{Guid.NewGuid():N}.db");
+			if (System.IO.File.Exists(dbPath))
 			{
-				await postgres.StartAsync(TestContext.Current.CancellationToken);
-					await redis.StartAsync(TestContext.Current.CancellationToken);
-
-					await TestcontainersSettings.ExposeHostPortsAsync(postgres.GetMappedPublicPort(PostgresPort), TestContext.Current.CancellationToken);
-					await TestcontainersSettings.ExposeHostPortsAsync(redis.GetMappedPublicPort(ReditPort), TestContext.Current.CancellationToken);
-
-				ghostfolio = new ContainerBuilder("ghostfolio/ghostfolio:latest")
-					.WithPortBinding(GhostfolioPort, true)
-					.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
-					.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
-					.WithEnvironment("IS_AUTH_ENABLED", "true")
-					.WithEnvironment("REDIS_HOST", TestContainerHostName)
-					.WithEnvironment("REDIS_PASSWORD", string.Empty)
-					.WithEnvironment("REDIS_PORT", redis.GetMappedPublicPort(ReditPort).ToString())
-					.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@postgrescontainer/{Database}")
-					.WithEnvironment("POSTGRES_DB", Database)
-					.WithEnvironment("POSTGRES_PASSWORD", Password)
-					.WithEnvironment("POSTGRES_USER", Username)
-					.WithEnvironment("REQUEST_TIMEOUT", "60000")
-					.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(GhostfolioPort))
-					.WithNetwork(network)
-					.WithImagePullPolicy(PullPolicy.Always)
-					.Build();
-
-				await ghostfolio.StartAsync(TestContext.Current.CancellationToken);
-
-				await TestcontainersSettings.ExposeHostPortsAsync(ghostfolio.GetMappedPublicPort(GhostfolioPort), TestContext.Current.CancellationToken);
-
-				var url = new UriBuilder(Uri.UriSchemeHttp, ghostfolio.Hostname, ghostfolio.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
-
-				// Create admin user (first user).
-				var adminRequest = new HttpRequestMessage(HttpMethod.Post, $"{url}api/v1/user")
-				{
-					Content = new StringContent("{}")
-				};
-				var adminResponse = await httpClient.SendAsync(adminRequest, TestContext.Current.CancellationToken);
-				_ = adminResponse.EnsureSuccessStatusCode();
-				var adminAuth = await adminResponse.Content.ReadFromJsonAsync<AuthData>(cancellationToken: TestContext.Current.CancellationToken);
-				_ = adminAuth.Should().NotBeNull();
-
-				// Create non-admin user authenticated as admin.
-				var nonAdminBody = System.Text.Json.JsonSerializer.Serialize(new
-				{
-					username = NonAdminUsername,
-					otp2faSecret = (string?)null,
-					oneTimePassword = (string?)null,
-					password = NonAdminPassword,
-					email = NonAdminEmail
-				});
-				var nonAdminRequest = new HttpRequestMessage(HttpMethod.Post, $"{url}api/v1/user")
-				{
-					Content = new StringContent(nonAdminBody)
-				};
-				nonAdminRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminAuth!.AccessToken);
-				var nonAdminResponse = await httpClient.SendAsync(nonAdminRequest, TestContext.Current.CancellationToken);
-				_ = nonAdminResponse.EnsureSuccessStatusCode();
-				var nonAdminAuth = await nonAdminResponse.Content.ReadFromJsonAsync<AuthData>(cancellationToken: TestContext.Current.CancellationToken);
-				_ = nonAdminAuth.Should().NotBeNull();
-				nonAdminAuth!.AccessToken.Should().NotBeNullOrEmpty();
-
-				// Initialize sidekick with non-admin token.
-				var dbPath = Path.Combine(Path.GetTempPath(), $"ghostfolio_sidekick_non_admin_{Guid.NewGuid():N}.db");
-				if (System.IO.File.Exists(dbPath))
-				{
-					System.IO.File.Delete(dbPath);
-				}
-
-				Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", url);
-				Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", nonAdminAuth.AccessToken);
-				Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
-				Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
-				Environment.SetEnvironmentVariable("DATABASE_PATH", dbPath);
-					Environment.SetEnvironmentVariable("TROTTLE_WAITINSECONDS", "0");
-
-				var testLogger = new TestLogger("Service SyncAccountsWithGhostfolioTask has executed.");
-				var testHost = Program
-					.CreateHostBuilder()
-					.ConfigureServices((hostContext, services) =>
-					{
-						_ = services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
-					})
-					.Build();
-
-				// Override AllowAdminCalls to false.
-				var settings = testHost.Services.GetRequiredService<IApplicationSettings>();
-				((ApplicationSettings)settings).AllowAdminCalls = false;
-
-				var host = testHost.Services.GetService<IHostedService>();
-				var apiWrapper = testHost.Services.GetRequiredService<IApiWrapper>();
-
-				await host!.StartAsync(CancellationToken.None);
-
-				// Wait max 3 minutes for sync to complete.
-				var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-				while (!testLogger.IsTriggered && stopwatch.Elapsed.TotalMinutes < 5)
-				{
-					await Task.Delay(1000, TestContext.Current.CancellationToken);
-				}
-
-				// Dump logs on failure for debugging.
-				if (!testLogger.IsTriggered)
-				{
-					var lastMessages = testLogger.Messages.TakeLast(50).ToArray();
-					throw new Exception($"Sync did not complete. Last {lastMessages.Length} log messages: {string.Join("\n", lastMessages)}");
-				}
-
-				_ = testLogger.IsTriggered.Should().BeTrue(because: "non-admin sync must complete without admin endpoint errors");
-
-				// Verify accounts exist (AccountExistsAsync uses api/v1/account which works for non-admin).
-				_ = (await apiWrapper.AccountExistsAsync("TestAccount1")).Should().BeTrue(because: "non-admin sync should create accounts in Ghostfolio");
-				_ = (await apiWrapper.AccountExistsAsync("TestAccount2")).Should().BeTrue(because: "non-admin sync should create accounts in Ghostfolio");
+				System.IO.File.Delete(dbPath);
 			}
-			finally
-			{
-				if (ghostfolio != null)
-				{
-					await ghostfolio.StopAsync(TestContext.Current.CancellationToken);
-					await ghostfolio.DisposeAsync();
-				}
-			}
+
+			var testLogger = new TestLogger("Service SyncAccountsWithGhostfolioTask has executed.");
+			var (testHost, apiWrapper) = await InitializeSidekickForTestAsync(url, nonAdminAuth.AccessToken, dbPath, testLogger, allowAdminCalls: false);
+
+			// Wait for sync to complete.
+			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(5));
+
+			_ = testLogger.IsTriggered.Should().BeTrue(because: "non-admin sync must complete without admin endpoint errors");
+
+			// Verify accounts exist (AccountExistsAsync uses api/v1/account which works for non-admin).
+			_ = (await apiWrapper.AccountExistsAsync("TestAccount1")).Should().BeTrue(because: "non-admin sync should create accounts in Ghostfolio");
+			_ = (await apiWrapper.AccountExistsAsync("TestAccount2")).Should().BeTrue(because: "non-admin sync should create accounts in Ghostfolio");
 		}
 
-		private const string NetworkName = "ghostfolio-network";
+		/// <summary>
+	/// Container infrastructure for a single test (auto-disposed).
+	/// </summary>
+	sealed class ContainerInfrastructure : IAsyncDisposable
+	{
+		public INetwork Network { get; }
+		public PostgreSqlContainer Postgres { get; }
+		public RedisContainer Redis { get; }
+		public IContainer Ghostfolio { get; }
+		public string GhostfolioUrl { get; }
 
-		public async ValueTask InitializeAsync()
+		public ContainerInfrastructure(INetwork network, PostgreSqlContainer postgres, RedisContainer redis, IContainer ghostfolio, string url)
+		{
+			Network = network;
+			Postgres = postgres;
+			Redis = redis;
+			Ghostfolio = ghostfolio;
+			GhostfolioUrl = url;
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			await Ghostfolio.StopAsync();
+			await Ghostfolio.DisposeAsync();
+			await Postgres.StopAsync();
+			await Postgres.DisposeAsync();
+			await Redis.StopAsync();
+			await Redis.DisposeAsync();
+			await Network.DisposeAsync();
+		}
+	}
+
+	/// <summary>
+	/// Create isolated container infrastructure for a single test. Auto-disposed via await using.
+	/// </summary>
+	private static async Task<ContainerInfrastructure> CreateContainerInfrastructureAsync()
+	{
+		var network = new NetworkBuilder()
+			.WithCleanUp(true)
+			.WithName($"ghostfolio-{Guid.NewGuid():N}")
+			.Build();
+
+		var postgres = new PostgreSqlBuilder("postgres:16")
+			.WithUsername(Username)
+			.WithPassword(Password)
+			.WithDatabase(Database)
+			.WithNetwork(network)
+			.WithNetworkAliases("postgrescontainer")
+			.WithImagePullPolicy(PullPolicy.Always)
+			.Build();
+
+		var redis = new RedisBuilder("redis")
+			.WithNetwork(network)
+			.WithImagePullPolicy(PullPolicy.Always)
+			.Build();
+
+		await postgres.StartAsync(TestContext.Current.CancellationToken);
+		await redis.StartAsync(TestContext.Current.CancellationToken);
+
+		await TestcontainersSettings.ExposeHostPortsAsync(postgres.GetMappedPublicPort(PostgresPort), TestContext.Current.CancellationToken);
+		await TestcontainersSettings.ExposeHostPortsAsync(redis.GetMappedPublicPort(ReditPort), TestContext.Current.CancellationToken);
+
+		var ghostfolio = BuildGhostfolioContainer(network, postgres, redis);
+		await ghostfolio.StartAsync(TestContext.Current.CancellationToken);
+		await TestcontainersSettings.ExposeHostPortsAsync(ghostfolio.GetMappedPublicPort(GhostfolioPort), TestContext.Current.CancellationToken);
+
+		var url = new UriBuilder(Uri.UriSchemeHttp, ghostfolio.Hostname, ghostfolio.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
+
+		return new ContainerInfrastructure(network, postgres, redis, ghostfolio, url);
+	}
+
+	/// <summary>
+	/// Build (but don't start) a Ghostfolio container.
+	/// </summary>
+	private static IContainer BuildGhostfolioContainer(INetwork network, PostgreSqlContainer postgres, RedisContainer redis)
+	{
+		return new ContainerBuilder("ghostfolio/ghostfolio:latest")
+			.WithPortBinding(GhostfolioPort, true)
+			.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
+			.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
+			.WithEnvironment("IS_AUTH_ENABLED", "true")
+			.WithEnvironment("REDIS_HOST", TestContainerHostName)
+			.WithEnvironment("REDIS_PASSWORD", string.Empty)
+			.WithEnvironment("REDIS_PORT", redis.GetMappedPublicPort(ReditPort).ToString())
+			.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@postgrescontainer/{Database}")
+			.WithEnvironment("POSTGRES_DB", Database)
+			.WithEnvironment("POSTGRES_PASSWORD", Password)
+			.WithEnvironment("POSTGRES_USER", Username)
+			.WithEnvironment("REQUEST_TIMEOUT", "60000")
+			.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(GhostfolioPort))
+			.WithNetwork(network)
+			.WithImagePullPolicy(PullPolicy.Always)
+			.Build();
+	}
+
+	/// <summary>
+	/// Create admin user (first user registration).
+	/// </summary>
+	private static async Task<AuthData> CreateAdminUserAsync(string url)
+	{
+		var request = new HttpRequestMessage(HttpMethod.Post, $"{url}api/v1/user")
+		{
+			Content = new StringContent("{}")
+		};
+		var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+		_ = response.EnsureSuccessStatusCode();
+		var auth = await response.Content.ReadFromJsonAsync<AuthData>(cancellationToken: TestContext.Current.CancellationToken);
+		_ = auth.Should().NotBeNull();
+		return auth!;
+	}
+
+	/// <summary>
+	/// Create non-admin user (authenticated as admin).
+	/// </summary>
+	private static async Task<AuthData> CreateNonAdminUserAsync(string url, AuthData adminAuth)
+	{
+		var body = System.Text.Json.JsonSerializer.Serialize(new
+		{
+			username = NonAdminUsername,
+			otp2faSecret = (string?)null,
+			oneTimePassword = (string?)null,
+			password = NonAdminPassword,
+			email = NonAdminEmail
+		});
+		var request = new HttpRequestMessage(HttpMethod.Post, $"{url}api/v1/user")
+		{
+			Content = new StringContent(body)
+		};
+		request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminAuth.AccessToken);
+		var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+		_ = response.EnsureSuccessStatusCode();
+		var auth = await response.Content.ReadFromJsonAsync<AuthData>(cancellationToken: TestContext.Current.CancellationToken);
+		_ = auth.Should().NotBeNull();
+		auth!.AccessToken.Should().NotBeNullOrEmpty();
+		return auth;
+	}
+
+	/// <summary>
+	/// Initialize sidekick host for a test. Returns (host, apiWrapper) tuple.
+	/// </summary>
+	private static async Task<(IHostedService Host, IApiWrapper ApiWrapper)> InitializeSidekickForTestAsync(string url, string accessToken, string dbPath, TestLogger testLogger, bool allowAdminCalls)
+	{
+		// Clean up existing database file if present
+		if (System.IO.File.Exists(dbPath))
+		{
+			System.IO.File.Delete(dbPath);
+		}
+
+		Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", url);
+		Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", accessToken);
+		Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
+		Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
+		Environment.SetEnvironmentVariable("DATABASE_PATH", dbPath);
+		Environment.SetEnvironmentVariable("TROTTLE_WAITINSECONDS", "0");
+
+		var testHost = Program
+			.CreateHostBuilder()
+			.ConfigureServices((hostContext, services) =>
+			{
+				_ = services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
+			})
+			.Build();
+
+		if (!allowAdminCalls)
+		{
+			var settings = testHost.Services.GetRequiredService<IApplicationSettings>();
+			((ApplicationSettings)settings).AllowAdminCalls = false;
+		}
+
+		var host = testHost.Services.GetService<IHostedService>();
+		var apiWrapper = testHost.Services.GetRequiredService<IApiWrapper>();
+
+		await host!.StartAsync(CancellationToken.None);
+
+		return (host, apiWrapper);
+	}
+
+	/// <summary>
+	/// Wait for sync to complete, with timeout and log dump on failure.
+	/// </summary>
+	private static async Task WaitForSyncAsync(TestLogger testLogger, TimeSpan timeout)
+	{
+		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+		while (!testLogger.IsTriggered && stopwatch.Elapsed < timeout)
+		{
+			await Task.Delay(1000, TestContext.Current.CancellationToken);
+		}
+
+		if (!testLogger.IsTriggered)
+		{
+			var lastMessages = testLogger.Messages.TakeLast(50).ToArray();
+			throw new Exception($"Sync did not complete within {timeout}. Last {lastMessages.Length} log messages: {string.Join("\n", lastMessages)}");
+		}
+	}
+
+	private const string NetworkName = "ghostfolio-network";
+
+	public async ValueTask InitializeAsync()
 		{
 			network = new NetworkBuilder()
 				.WithCleanUp(true)
@@ -259,46 +343,6 @@ namespace GhostfolioSidekick.IntegrationTests
 			await DeleteNetworkIfExistsAsync(network).ConfigureAwait(false);
 		}
 
-		private async Task InitializeSidekick(AuthData authToken, string url)
-		{
-			// Arrange
-			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", url);
-			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", authToken.AccessToken);
-			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
-			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
-
-			// Clean up existing database file if present
-			string dbPath = "./Files/ghostfolio.db";
-			if (System.IO.File.Exists(dbPath))
-			{
-				System.IO.File.Delete(dbPath);
-			}
-
-			var testLogger = new TestLogger("Service SyncActivitiesWithGhostfolioTask has executed.");
-			var testHost = Program
-				.CreateHostBuilder()
-				.ConfigureServices((hostContext, services) =>
-				{
-					_ = services.AddSingleton<ILogger<TimedHostedService>>(testLogger);
-				})
-				.Build();
-
-			var host = testHost.Services.GetService<IHostedService>();
-			var c = new CancellationToken();
-
-			var apiWrapper = testHost.Services.GetRequiredService<IApiWrapper>();
-
-			// Act
-			await host!.StartAsync(c);
-
-			while (!testLogger.IsTriggered)
-			{
-				await Task.Delay(1000, TestContext.Current.CancellationToken);
-			}
-
-			// Assert
-			await VerifyInstance(apiWrapper);
-		}
 
 		private async Task VerifyInstance(IApiWrapper apiWrapper)
 		{
@@ -373,23 +417,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await TestcontainersSettings.ExposeHostPortsAsync(postgresContainer.GetMappedPublicPort(PostgresPort)).ConfigureAwait(false);
 			await TestcontainersSettings.ExposeHostPortsAsync(redisContainer.GetMappedPublicPort(ReditPort)).ConfigureAwait(false);
 
-			ghostfolioContainer = new ContainerBuilder("ghostfolio/ghostfolio:latest")
-				.WithPortBinding(GhostfolioPort, true)
-				.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
-				.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
-				.WithEnvironment("IS_AUTH_ENABLED", "true")
-				.WithEnvironment("REDIS_HOST", TestContainerHostName)
-				.WithEnvironment("REDIS_PASSWORD", string.Empty)
-				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(ReditPort).ToString())
-				.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@postgrescontainer/{Database}")
-				.WithEnvironment("POSTGRES_DB", Database)
-				.WithEnvironment("POSTGRES_PASSWORD", Password)
-				.WithEnvironment("POSTGRES_USER", Username)
-				.WithEnvironment("REQUEST_TIMEOUT", "60000")
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(GhostfolioPort))
-				.WithNetwork(network)
-				.WithImagePullPolicy(PullPolicy.Always)
-				.Build();
+			ghostfolioContainer = BuildGhostfolioContainer(network, postgresContainer, redisContainer);
 
 			try
 			{
