@@ -51,6 +51,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task CreatePlatform(Model.Accounts.Platform platform)
 		{
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogWarning("CreatePlatform skipped: not authorized (non-admin user)");
+				return;
+			}
+
 			var o = new JObject
 			{
 				["name"] = platform.Name,
@@ -284,12 +290,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task SyncSymbolProfiles(IEnumerable<Model.Symbols.SymbolProfile> manualSymbolProfiles)
 		{
-			if (!applicationSettings.AllowAdminCalls)
-			{
-				logger.LogWarning("SyncSymbolProfiles skipped: not authorized (non-admin user)");
-				return;
-			}
-
 			var existingProfiles = await GetAllSymbolProfiles();
 
 			foreach (var manualSymbolProfile in manualSymbolProfiles)
@@ -425,6 +425,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private async Task<List<Platform>> GetPlatforms()
 		{
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogTrace("GetPlatforms skipped: not authorized (non-admin user)");
+				return [];
+			}
+
 			var content = await restCall.DoRestGet($"api/v1/platform");
 
 			if (content == null)
@@ -438,6 +444,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()
 		{
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogTrace("GetAllSymbolProfiles skipped: not authorized (non-admin user)");
+				return [];
+			}
+
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
 
 			if (content == null)

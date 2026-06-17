@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -10,11 +9,10 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public class GhostfolioSync(IApiWrapper apiWrapper, ILogger<GhostfolioSync> logger, IApplicationSettings applicationSettings) : IGhostfolioSync
+	public class GhostfolioSync(IApiWrapper apiWrapper, ILogger<GhostfolioSync> logger) : IGhostfolioSync
 	{
 		private readonly IApiWrapper apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 		private readonly ILogger<GhostfolioSync> logger = logger ?? throw new ArgumentNullException(nameof(logger));
-		private readonly IApplicationSettings applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 
 		public async Task SyncAccount(Account account)
 		{
@@ -68,12 +66,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		public async Task SyncSymbolProfiles(IEnumerable<SymbolProfile> manualSymbolProfiles)
 		{
-			if (!applicationSettings.AllowAdminCalls)
-			{
-				logger.LogWarning("AllowAdminCalls is disabled, skipping SyncSymbolProfiles for non-admin user");
-				return;
-			}
-
 			await apiWrapper.SyncSymbolProfiles(manualSymbolProfiles);
 		}
 

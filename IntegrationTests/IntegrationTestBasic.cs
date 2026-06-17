@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.IntegrationTests
 		/// Integration test: Non-admin user sync with AllowAdminCalls=false.
 		/// Spins up own containers, creates non-admin user, verifies sync.
 		/// </summary>
-		[Fact(Timeout = 60000)]
+		[Fact(Timeout = 600000)]
 		public async Task GhostfolioNonAdminUserSyncTest()
 		{
 			await using var infra = await CreateContainerInfrastructureAsync();

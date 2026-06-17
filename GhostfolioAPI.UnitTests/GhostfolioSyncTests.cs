@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -15,30 +14,27 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 	{
 		private readonly Mock<IApiWrapper> _apiWrapperMock;
 		private readonly Mock<ILogger<GhostfolioSync>> _loggerMock;
-		private readonly Mock<IApplicationSettings> _appSettingsMock;
 		private readonly GhostfolioSync _ghostfolioSync;
 
 		public GhostfolioSyncTests()
 		{
 			_apiWrapperMock = new Mock<IApiWrapper>();
 			_loggerMock = new Mock<ILogger<GhostfolioSync>>();
-			_appSettingsMock = new Mock<IApplicationSettings>();
-			_appSettingsMock.Setup(x => x.AllowAdminCalls).Returns(true);
-			_ghostfolioSync = new GhostfolioSync(_apiWrapperMock.Object, _loggerMock.Object, _appSettingsMock.Object);
+			_ghostfolioSync = new GhostfolioSync(_apiWrapperMock.Object, _loggerMock.Object);
 		}
 
 		[Fact]
 		public void Constructor_ThrowsArgumentNullException_WhenApiWrapperIsNull()
 		{
 			// Arrange & Act & Assert
-			_ = Assert.Throws<ArgumentNullException>(() => new GhostfolioSync(null!, _loggerMock.Object, _appSettingsMock.Object));
+			_ = Assert.Throws<ArgumentNullException>(() => new GhostfolioSync(null!, _loggerMock.Object));
 		}
 
 		[Fact]
 		public void Constructor_ThrowsArgumentNullException_WhenLoggerIsNull()
 		{
 			// Arrange & Act & Assert
-			_ = Assert.Throws<ArgumentNullException>(() => new GhostfolioSync(_apiWrapperMock.Object, null!, _appSettingsMock.Object));
+			_ = Assert.Throws<ArgumentNullException>(() => new GhostfolioSync(_apiWrapperMock.Object, null!));
 		}
 
 		[Fact]
