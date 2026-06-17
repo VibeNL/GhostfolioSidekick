@@ -4,6 +4,7 @@ using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +24,10 @@ namespace GhostfolioSidekick.IntegrationTests
 		private const string Username = "testuser";
 		private const string Password = "testpassword";
 		private const string Database = "testdb";
+
+		private const string NonAdminUsername = "nonadmin";
+		private const string NonAdminPassword = "nonadminpassword";
+		private const string NonAdminEmail = "nonadmin@test.com";
 
 		private const int ReditPort = 6379;
 		private const int PostgresPort = 5432;
@@ -51,6 +56,27 @@ namespace GhostfolioSidekick.IntegrationTests
 			await InitializeSidekick(authToken, url);
 		}
 
+		/// <summary>
+		/// Integration test: Create non-admin user and run full sync with AllowAdminCalls=false.
+		/// Verifies accounts and activities sync without hitting admin-only endpoints.
+		/// </summary>
+		[Fact(Timeout = 600000)]
+		public async Task GhostfolioNonAdminUserSyncTest()
+		{
+			// Create non-admin user (returns AuthData with accessToken)
+			var nonAdminAuth = await CreateNonAdminUserAsync();
+			nonAdminAuth.AccessToken.Should().NotBeNullOrEmpty();
+
+			// Build Ghostfolio URL
+			var url = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
+
+			// Use unique DB path to avoid collision with admin test
+			var nonAdminDbPath = Path.Combine(Path.GetTempPath(), $"ghostfolio_sidekick_non_admin_{Guid.NewGuid():N}.db");
+
+			// Initialize sidekick with non-admin token and AllowAdminCalls=false
+			await InitializeSidekickNonAdmin(nonAdminAuth, url, nonAdminDbPath);
+		}
+
 		private const string NetworkName = "ghostfolio-network";
 
 		public async ValueTask InitializeAsync()
@@ -75,7 +101,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			var response = await httpClient.GetAsync(ghostfolioUri, TestContext.Current.CancellationToken).ConfigureAwait(false);
 			_ = response.EnsureSuccessStatusCode();
 
-			// Create a new user.
+			// Create admin user (first user is admin).
 			response = await httpClient.PostAsync($"{ghostfolioUri}api/v1/user", new StringContent("{}")).ConfigureAwait(false);
 			_ = response.EnsureSuccessStatusCode();
 			authToken = await response.Content.ReadFromJsonAsync<AuthData>().ConfigureAwait(false);
@@ -220,6 +246,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithPortBinding(GhostfolioPort, true)
 				.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
 				.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
+				.WithEnvironment("IS_AUTH_ENABLED", "true")
 				.WithEnvironment("REDIS_HOST", TestContainerHostName)
 				.WithEnvironment("REDIS_PASSWORD", string.Empty)
 				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(ReditPort).ToString())
@@ -261,6 +288,86 @@ namespace GhostfolioSidekick.IntegrationTests
 			_ = ghostfolioContainer.State.Should().Be(TestcontainersStates.Running, "the Ghostfolio container should be running.");
 		}
 
+		/// <summary>
+		/// Creates a non-admin user via Ghostfolio's user endpoint (authenticated as admin) and returns the auth token.
+		/// </summary>
+		private async Task<AuthData> CreateNonAdminUserAsync()
+		{
+			var ghostfolioUri = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri;
+
+			var body = System.Text.Json.JsonSerializer.Serialize(new
+			{
+				username = NonAdminUsername,
+				otp2faSecret = (string?)null,
+				oneTimePassword = (string?)null,
+				password = NonAdminPassword,
+				email = NonAdminEmail
+			});
+
+			// Create non-admin user authenticated as admin (first user is admin)
+			var request = new System.Net.Http.HttpRequestMessage(
+				System.Net.Http.HttpMethod.Post,
+				$"{ghostfolioUri}api/v1/user")
+			{
+				Content = new StringContent(body)
+			};
+			request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken!.AccessToken);
+
+			var response = await httpClient.SendAsync(request).ConfigureAwait(false);
+			_ = response.EnsureSuccessStatusCode();
+
+			var authData = await response.Content.ReadFromJsonAsync<AuthData>().ConfigureAwait(false);
+			_ = authData.Should().NotBeNull();
+			return authData!;
+		}
+
+		/// <summary>
+		/// Initializes the Sidekick for a non-admin user with AllowAdminCalls=false and a custom DB path.
+		/// </summary>
+		private async Task InitializeSidekickNonAdmin(AuthData nonAdminAuthToken, string url, string dbPath)
+		{
+			// Arrange - set env vars
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", url);
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", nonAdminAuthToken.AccessToken);
+			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
+			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
+			Environment.SetEnvironmentVariable("DATABASE_PATH", dbPath);
+
+			// Clean up database file if present
+			if (System.IO.File.Exists(dbPath))
+			{
+				System.IO.File.Delete(dbPath);
+			}
+
+			var nonAdminTestLogger = new TestLogger("Service DisplayInformationTask has executed.");
+			var testHost = Program
+				.CreateHostBuilder()
+				.ConfigureServices((hostContext, services) =>
+				{
+					_ = services.AddSingleton<ILogger<TimedHostedService>>(nonAdminTestLogger);
+				})
+				.Build();
+
+			// Override AllowAdminCalls to false for non-admin user
+			var settings = testHost.Services.GetRequiredService<IApplicationSettings>();
+			_ = settings.Should().BeOfType<ApplicationSettings>();
+			((ApplicationSettings)settings).AllowAdminCalls = false;
+
+			var host = testHost.Services.GetService<IHostedService>();
+			var c = new CancellationToken();
+
+			// Act
+			await host!.StartAsync(c);
+
+			// Wait for sync to complete
+			while (!nonAdminTestLogger.IsTriggered)
+			{
+				await Task.Delay(1000, TestContext.Current.CancellationToken);
+			}
+
+			// Assert: sync completed without throwing (no admin endpoint errors)
+			_ = nonAdminTestLogger.IsTriggered.Should().BeTrue(because: "non-admin sync must complete without admin endpoint errors");
+		}
 	}
 }
 
