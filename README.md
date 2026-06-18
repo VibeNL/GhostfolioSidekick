@@ -19,7 +19,7 @@ Additionally, maintains symbols automatically (self-hosted only):
 
 For non-self-hosted instances (shared accounts), the sidekick runs in non-admin mode:
  - No admin-only endpoints are called (platforms, symbol profiles, market data)
- - Set `allowAdminCalls: false` in appsettings.json or via `ALLOW_ADMIN_CALLS` env var
+ - Default targets self-hosted (`ALLOW_ADMIN_CALLS=true`); set `ALLOW_ADMIN_CALLS=false` for shared/non-self-hosted instances
  - Platforms cannot be created automatically; configure them in Ghostfolio first
  - Symbol profile sync is skipped gracefully
 
