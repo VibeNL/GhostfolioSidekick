@@ -12,10 +12,16 @@ Continuous running Docker container (sidecar) that automatically imports files f
 Program checks every hour for new transactions and inserts them in ghostfolio. 
 Can also correct & remove transactions if changed or source file deleted.
 
-Additionally, for self-hosted instances, maintains symbols automatically.
+Additionally, maintains symbols automatically (self-hosted only):
  - Set trackinsight property of symbols
  - Create manual symbols
  - Delete symbols that are no longer used
+
+For non-self-hosted instances (shared accounts), the sidekick runs in non-admin mode:
+ - No admin-only endpoints are called (platforms, symbol profiles, market data)
+ - Set `allowAdminCalls: false` in appsettings.json or via `ALLOW_ADMIN_CALLS` env var
+ - Platforms cannot be created automatically; configure them in Ghostfolio first
+ - Symbol profile sync is skipped gracefully
 
 ( more to come? Help is always welcome! )
 
@@ -226,6 +232,7 @@ ghostfoliosidekick:
 |**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named 'ghostfolio.db'. In case this variable is not specified, it will be placed in the **FILEIMPORTER_PATH**. |
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
+|**ALLOW_ADMIN_CALLS**  | (optional) Set to `false` to run in non-admin mode (for shared/non-self-hosted Ghostfolio instances). Defaults to `true`. |
 
 ## Contributing
 
