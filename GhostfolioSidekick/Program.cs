@@ -136,6 +136,13 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							_ = services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							_ = services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
+							_ = services.AddSingleton<IRestCall>(sp =>
+							{
+								var restClient = sp.GetRequiredService<IRestClient>();
+								var logger = sp.GetRequiredService<ILogger<RestCall>>();
+								var settings = sp.GetRequiredService<IApplicationSettings>();
+								return new RestCall(restClient, sp.GetRequiredService<IMemoryCache>(), logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken, new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings.TrottleTimeout) });
+							});
 							_ = services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
 							_ = services.AddHttpClient<IDividendRepository, DividendMaxScraper>();
