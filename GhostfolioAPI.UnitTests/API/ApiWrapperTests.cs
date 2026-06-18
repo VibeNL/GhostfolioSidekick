@@ -591,6 +591,48 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 		#endregion
 
+		#region Non-Admin Mode Tests
+
+		[Fact]
+		public async Task CreatePlatform_WhenAllowAdminCallsFalse_ShouldNotCallApi()
+		{
+			// Arrange
+			var mockSettings = new Mock<IApplicationSettings>();
+			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+			var platform = new Model.Accounts.Platform { Name = "TestPlatform", Url = "https://test.com" };
+
+			// Act
+			await wrapper.CreatePlatform(platform);
+
+			// Assert
+			_mockRestCall.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Never);
+			_mockLogger.Verify(x => x.Log(
+				It.Is<LogLevel>(l => l == LogLevel.Warning),
+				It.IsAny<EventId>(),
+				It.Is<It.IsAnyType>((o, t) => o.ToString() != null && o.ToString()!.Contains("not authorized") == true),
+				It.IsAny<Exception>(),
+				It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task GetAllSymbolProfiles_WhenAllowAdminCallsFalse_ShouldReturnEmptyList()
+		{
+			// Arrange
+			var mockSettings = new Mock<IApplicationSettings>();
+			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+
+			// Act
+			var result = await wrapper.GetAllSymbolProfiles();
+
+			// Assert
+			result.Should().BeEmpty();
+			_mockRestCall.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Never);
+		}
+
+		#endregion
+
 		#region Helper Methods
 
 		private void SetupRestCall(string suffix, string? content)
