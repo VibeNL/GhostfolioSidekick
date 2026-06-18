@@ -39,27 +39,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		protected override async Task OnParametersSetAsync()
 		{
-			if (_previousFilterState == null || HasFilterStateChanged())
+			if (_previousFilterState == null || !FilterState.IsEqual(_previousFilterState))
 			{
 				if (_previousFilterState != null)
 				{
 					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
 				}
-				if (FilterState != null)
-				{
-					FilterState.PropertyChanged += OnFilterStateChanged;
-				}
-				_previousFilterState = FilterState;
+
+				FilterState.PropertyChanged += OnFilterStateChanged;
+				_previousFilterState = new(FilterState);
 				await LoadMoversAsync();
 			}
-		}
-
-		private bool HasFilterStateChanged()
-		{
-			if (_previousFilterState == null) return true;
-			return _previousFilterState.StartDate != FilterState.StartDate ||
-				   _previousFilterState.EndDate != FilterState.EndDate ||
-				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
@@ -108,46 +98,53 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task PrepareRisersAndLosers()
 		{
+			var holdings = HoldingsData.Where(h => h.Quantity > 0 && h.CurrentValue.Amount > 0).ToList();
+
+			// Collect all symbols and fetch price history in a single bulk query
+			var symbols = holdings
+				.Select(h => h.Symbols.FirstOrDefault() ?? string.Empty)
+				.Where(s => !string.IsNullOrEmpty(s))
+				.Distinct()
+				.ToList();
+
+			var priceHistoryBySymbol = await HoldingsDataService.GetHoldingPriceHistoryBulkAsync(
+				symbols, StartDate, EndDate);
+
 			var timeRangePerformances = new List<HoldingTimeRangePerformance>();
-			foreach (var holding in HoldingsData.Where(h => h.Quantity > 0 && h.CurrentValue.Amount > 0))
+			foreach (var holding in holdings)
 			{
 				try
 				{
-					var priceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-                       holding.Symbols.FirstOrDefault() ?? string.Empty,
-						StartDate,
-						EndDate
-					);
-					if (priceHistory.Count != 0)
+					var symbol = holding.Symbols.FirstOrDefault() ?? string.Empty;
+					if (string.IsNullOrEmpty(symbol)) continue;
+
+					if (!priceHistoryBySymbol.TryGetValue(symbol, out var priceHistory) || priceHistory.Count == 0)
+						continue;
+
+					var startPricePoint = priceHistory.OrderBy(p => p.Date).First();
+					var endPricePoint = priceHistory.OrderByDescending(p => p.Date).First();
+					if (startPricePoint.Price <= 0) continue;
+
+					var currency = holding.CurrentPrice.Currency;
+					var percentageChange = (endPricePoint.Price - startPricePoint.Price) / startPricePoint.Price;
+					timeRangePerformances.Add(new HoldingTimeRangePerformance
 					{
-						var startPricePoint = priceHistory.OrderBy(p => p.Date).First();
-						var endPricePoint = priceHistory.OrderByDescending(p => p.Date).First();
-						if (startPricePoint != null && endPricePoint != null && startPricePoint.Price > 0)
-						{
-							var currency = holding.CurrentPrice.Currency;
-							var startPrice = new Money(currency, startPricePoint.Price);
-							var endPrice = new Money(currency, endPricePoint.Price);
-							var percentageChange = (endPricePoint.Price - startPricePoint.Price) / startPricePoint.Price;
-							var absoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price);
-							timeRangePerformances.Add(new HoldingTimeRangePerformance
-							{
-                               Symbol = holding.Symbols.FirstOrDefault() ?? string.Empty,
-								Name = holding.Name,
-								StartPrice = startPrice,
-								EndPrice = endPrice,
-								PercentageChange = percentageChange,
-								AbsoluteChange = absoluteChange,
-								CurrentValue = holding.CurrentValue,
-								Quantity = holding.Quantity
-							});
-						}
-					}
+						Symbol = symbol,
+						Name = holding.Name,
+						StartPrice = new Money(currency, startPricePoint.Price),
+						EndPrice = new Money(currency, endPricePoint.Price),
+						PercentageChange = percentageChange,
+						AbsoluteChange = new Money(currency, endPricePoint.Price - startPricePoint.Price),
+						CurrentValue = holding.CurrentValue,
+						Quantity = holding.Quantity
+					});
 				}
 				catch (Exception ex)
 				{
-                   System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbols.FirstOrDefault() ?? string.Empty}: {ex.Message}");
+					System.Diagnostics.Debug.WriteLine($"Error calculating performance for {holding.Symbols.FirstOrDefault() ?? string.Empty}: {ex.Message}");
 				}
 			}
+
 			TopRisers = [.. timeRangePerformances
 				.Where(h => h.PercentageChange > 0)
 				.OrderByDescending(h => h.PercentageChange)
