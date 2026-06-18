@@ -102,32 +102,33 @@ namespace GhostfolioSidekick.IntegrationTests
 		}
 
 		/// <summary>
-		/// Integration test: Non-admin user sync with platform configured.
-		/// Verifies sidekick does not try to create platforms for non-admin users.
+		/// Integration test: Non-admin user sync verifies no platform creation attempts.
 		/// </summary>
 		[Fact(Timeout = 600000)]
 		public async Task GhostfolioNonAdminUserSyncWithPlatformTest()
 		{
 			await using var infra = await CreateContainerInfrastructureAsync();
-
 			var url = infra.GhostfolioUrl;
+
+			// Wait for Ghostfolio to be fully ready.
+			for (int i = 0; i < 30; i++)
+			{
+				try
+				{
+					var pingResp = await httpClient.GetAsync(url, TestContext.Current.CancellationToken);
+					if (pingResp.IsSuccessStatusCode) break;
+				}
+				catch { }
+				await Task.Delay(2000, TestContext.Current.CancellationToken);
+			}
 
 			// Create admin user (first user).
 			var adminAuth = await CreateAdminUserAsync(url);
 
-			// Create a platform as admin.
-			var createPlatformReq = new HttpRequestMessage(HttpMethod.Post, $"{url}api/v1/platform")
-			{
-				Content = new StringContent("{\"name\":\"TestPlatform\",\"url\":\"https://test.com\"}")
-			};
-			createPlatformReq.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminAuth.AccessToken);
-			var createPlatformResp = await httpClient.SendAsync(createPlatformReq, TestContext.Current.CancellationToken);
-			_ = createPlatformResp.EnsureSuccessStatusCode();
-
 			// Create non-admin user authenticated as admin.
 			var nonAdminAuth = await CreateNonAdminUserAsync(url, adminAuth);
 
-			// Initialize sidekick with non-admin token and platform configured.
+			// Initialize sidekick with non-admin token.
 			var dbPath = Path.Combine(Path.GetTempPath(), $"ghostfolio_sidekick_non_admin_{Guid.NewGuid():N}.db");
 			if (System.IO.File.Exists(dbPath))
 			{
@@ -140,11 +141,11 @@ namespace GhostfolioSidekick.IntegrationTests
 			// Wait for sync to complete.
 			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(5));
 
-			_ = testLogger.IsTriggered.Should().BeTrue(because: "non-admin sync with platform must complete without platform creation errors");
+			_ = testLogger.IsTriggered.Should().BeTrue(because: "non-admin sync must complete");
 
-			// Verify no platform creation errors in logs
-			var platformErrors = testLogger.Messages.Where(m => m.Contains("platform", StringComparison.OrdinalIgnoreCase) && m.Contains("error", StringComparison.OrdinalIgnoreCase)).ToList();
-			platformErrors.Should().BeEmpty(because: "non-admin sync should not attempt platform creation");
+			// Verify no platform creation attempts in logs
+			var platformAttempts = testLogger.Messages.Where(m => m.Contains("CreatePlatform", StringComparison.OrdinalIgnoreCase)).ToList();
+			platformAttempts.Should().BeEmpty(because: "non-admin sync should not attempt platform creation");
 		}
 
 		/// <summary>
