@@ -21,6 +21,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
 		private readonly Mock<IApplicationSettings> _mockAppSettings;
 		private readonly ApiWrapper _apiWrapper;
+		private readonly RestResponse _okResponse = new() { StatusCode = HttpStatusCode.OK, IsSuccessStatusCode = true, ResponseStatus = ResponseStatus.Completed };
+		private readonly RestResponse _authResponse = new() { StatusCode = HttpStatusCode.OK, IsSuccessStatusCode = true, ResponseStatus = ResponseStatus.Completed, Content = JsonConvert.SerializeObject(new Token { AuthToken = "a" }) };
+		private readonly RestCallOptions _noThrottleOptions = new() { TrottleTimeout = TimeSpan.Zero };
 
 		public ApiWrapperTests()
 		{
@@ -29,22 +32,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
 			_mockAppSettings = new Mock<IApplicationSettings>();
 			_mockAppSettings.Setup(x => x.AllowAdminCalls).Returns(true);
-			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object, _mockAppSettings.Object);
+			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions), _mockLogger.Object, _mockCurrencyExchange.Object, _mockAppSettings.Object);
 
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>())).ReturnsAsync(new Money { Amount = 100, Currency = Currency.EUR });
 
-			_mockRestCall
-					.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("auth")), default))
-					.ReturnsAsync(new RestResponse
-					{
-						StatusCode = HttpStatusCode.OK,
-						IsSuccessStatusCode = true,
-						ResponseStatus = ResponseStatus.Completed,
-						Content = JsonConvert.SerializeObject(new Token
-						{
-							AuthToken = "a",
-						})
-					});
+			// Default: OK for all calls
+			_mockRestCall.Setup(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default)).ReturnsAsync(_okResponse);
+
+			// Auth endpoint override
+			_mockRestCall.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("auth")), default)).ReturnsAsync(_authResponse);
 		}
 
 		#region CreateAccount Tests
@@ -599,7 +595,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var mockSettings = new Mock<IApplicationSettings>();
 			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
-			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
 			var platform = new Model.Accounts.Platform { Name = "TestPlatform", Url = "https://test.com" };
 
 			// Act
@@ -621,7 +617,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var mockSettings = new Mock<IApplicationSettings>();
 			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
-			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
 
 			// Act
 			var result = await wrapper.GetAllSymbolProfiles();
