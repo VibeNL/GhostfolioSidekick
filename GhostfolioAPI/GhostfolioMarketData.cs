@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public class GhostfolioMarketData(RestCall restCall, ILogger<GhostfolioMarketData> logger) : IGhostfolioMarketData
+	public class GhostfolioMarketData(IRestCall restCall, ILogger<GhostfolioMarketData> logger) : IGhostfolioMarketData
 	{
 		public async Task DeleteSymbol(SymbolProfile symbolProfile)
 		{

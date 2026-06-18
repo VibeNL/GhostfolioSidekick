@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
-	public class RestCall
+	public class RestCall : IRestCall
 	{
 		private const string Authorization = "Authorization";
 		private const string ContentType = "Content-Type";
