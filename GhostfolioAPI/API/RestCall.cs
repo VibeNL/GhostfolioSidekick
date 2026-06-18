@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			this.options = options;
 		}
 
-		public async Task<string?> DoRestGet(string suffixUrl, bool useCircuitBreaker = false)
+		public virtual async Task<string?> DoRestGet(string suffixUrl, bool useCircuitBreaker = false)
 		{
 			Policy<RestResponse> policy = retryPolicy;
 			if (useCircuitBreaker)
@@ -128,7 +128,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		public async Task<RestResponse> DoRestPost(string suffixUrl, string body)
+		public virtual async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
 			try
 			{
@@ -236,7 +236,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		public async Task<RestResponse> DoRestDelete(string suffixUrl)
+		public virtual async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
 			try
 			{
