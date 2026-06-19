@@ -8,6 +8,10 @@
 	<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
+<ItemGroup>
+  <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
+</ItemGroup>
+
 	<ItemGroup>
 		<SonarQubeSetting Include="sonar.exclusions">
 			<Value>**/Migrations/*</Value>
