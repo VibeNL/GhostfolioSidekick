@@ -130,13 +130,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			Account account = new() { Name = "TestAccount", SyncActivities = true };
 			List<Activity> activities = [new BuyActivity(account, null, [], DateTime.Now, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 100), "tx1", null, null)];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>())).Returns(Task.CompletedTask);
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
-			_apiWrapperMock.Verify(x => x.SyncAllActivities(It.IsAny<List<Activity>>()), Times.Once);
+			_apiWrapperMock.Verify(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()), Times.Once);
 		}
 
 		[Fact]
@@ -152,12 +152,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);
@@ -176,12 +176,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [sendReceiveActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);
@@ -200,12 +200,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [giftFiatActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);
@@ -226,12 +226,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [giftAssetActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);
@@ -253,12 +253,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [repayBondActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);
@@ -277,12 +277,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [repayBondActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			Assert.Empty(capturedActivities);
@@ -297,12 +297,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [dividendActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);
@@ -320,12 +320,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [dividendActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);
@@ -348,12 +348,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			List<Activity> activities = [sendReceiveActivity];
 
 			List<Activity> capturedActivities = [];
-			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>()))
-				.Callback<List<Activity>>(acts => capturedActivities = acts)
+			_ = _apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>(), It.IsAny<CancellationToken>()))
+				.Callback<List<Activity>, CancellationToken>((acts, _) => capturedActivities = acts)
 				.Returns(Task.CompletedTask);
 
 			// Act
-			await _ghostfolioSync.SyncAllActivities(activities);
+			await _ghostfolioSync.SyncAllActivities(activities, TestContext.Current.CancellationToken);
 
 			// Assert
 			_ = Assert.Single(capturedActivities);

@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.UnitTests
 			// Arrange - don't create the test database file
 
 			// Act
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			loggerMock.Verify(
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.UnitTests
 			await CreateTestDatabase(testDbPath);
 
 			// Act
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			Assert.True(File.Exists(backupDbPath), "Backup file should be created");
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.UnitTests
 			await CreateTestDatabase(testDbPath);
 
 			// Act
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert - should create backup folder and compressed backup
 			Assert.True(Directory.Exists(backupFolderPath), "Backup folder should be created");
@@ -139,7 +139,7 @@ namespace GhostfolioSidekick.UnitTests
 			await File.WriteAllTextAsync(existingBackupPath, "dummy content", TestContext.Current.CancellationToken);
 
 			// Act
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert - should not create another compressed backup
 			var compressedBackups = Directory.GetFiles(backupFolderPath, "GhostfolioSidekick_backup_*.db.gz");
@@ -175,7 +175,7 @@ namespace GhostfolioSidekick.UnitTests
 			}
 
 			// Act
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert - should keep only 5 most recent backups (the 6 old ones + 1 new one = 7 total, keep 5)
 			var remainingBackups = Directory.GetFiles(backupFolderPath, "GhostfolioSidekick_backup_*.db.gz");
@@ -198,7 +198,7 @@ namespace GhostfolioSidekick.UnitTests
 			await CreateTestDatabase(testDbPath);
 
 			// Act
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert - verify compressed file is valid
 			var compressedBackup = Directory.GetFiles(backupFolderPath, "GhostfolioSidekick_backup_*.db.gz").First();
@@ -236,7 +236,7 @@ namespace GhostfolioSidekick.UnitTests
 		applicationSettingsMock.Setup(x => x.BackupFolderName).Returns(invalidPath);
 
 			// Act - should not throw, main backup should still succeed
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert - main backup should succeed
 			Assert.True(File.Exists(backupDbPath), "Main backup file should be created even if compressed backup fails");
@@ -267,7 +267,7 @@ namespace GhostfolioSidekick.UnitTests
 			File.SetCreationTimeUtc(yesterdayBackupPath, yesterday);
 
 			// Act - create today's backup
-			await copyDatabaseTask.DoWork(loggerMock.Object);
+			await copyDatabaseTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert - should have both backups
 			var allBackups = Directory.GetFiles(backupFolderPath, "GhostfolioSidekick_backup_*.db.gz");

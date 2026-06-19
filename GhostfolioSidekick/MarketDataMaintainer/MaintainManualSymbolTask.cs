@@ -22,7 +22,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Maintain Manual Symbol";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 

@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			}
 		}
 
-		public async Task SyncAllActivities(IEnumerable<Activity> allActivities)
+		public async Task SyncAllActivities(IEnumerable<Activity> allActivities, System.Threading.CancellationToken cancellationToken = default)
 		{
 			logger.LogDebug("Syncing activities");
 
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			allActivities = SettleNegativeDividends(allActivities);
 			List<Activity> allactivitiesList = allActivities.Where(x => x.Account.SyncActivities).ToList();
 
-			await apiWrapper.SyncAllActivities([.. allactivitiesList]);
+			await apiWrapper.SyncAllActivities([.. allactivitiesList], cancellationToken);
 			logger.LogDebug("activities synced");
 		}
 

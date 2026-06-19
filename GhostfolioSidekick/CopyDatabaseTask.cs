@@ -16,7 +16,9 @@ namespace GhostfolioSidekick
 
 		public string Name => "Copy & Backup Database";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Copying database...");
 

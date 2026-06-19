@@ -20,7 +20,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public string Name => "Account Maintainer";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogDebug("{Name} Starting to do work", nameof(AccountMaintainerTask));
 

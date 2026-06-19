@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
             var loggerMock = new Mock<ILogger>();
             var task = new UpcomingDividendsTask(dbFactoryMock.Object, currencyExchangeMock.Object, appSettingsMock.Object);
-            await task.DoWork(loggerMock.Object);
+            await task.DoWork(loggerMock.Object, CancellationToken.None);
 
             var result = dbContext.UpcomingDividendTimelineEntries.FirstOrDefault(x => x.HoldingId == 1);
             Assert.NotNull(result);
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
             var loggerMock = new Mock<ILogger>();
             var task = new UpcomingDividendsTask(dbFactoryMock.Object, currencyExchangeMock.Object, appSettingsMock.Object);
-            await task.DoWork(loggerMock.Object);
+            await task.DoWork(loggerMock.Object, CancellationToken.None);
 
             var result = dbContext.UpcomingDividendTimelineEntries.FirstOrDefault(x => x.HoldingId == 2);
             Assert.NotNull(result);

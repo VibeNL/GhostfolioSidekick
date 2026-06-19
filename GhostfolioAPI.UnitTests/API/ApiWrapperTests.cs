@@ -386,7 +386,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Assert
 			await act.Should().NotThrowAsync();
-			_mockLogger.VerifyLog(x => x.LogDebug("Applying changes"), Times.Once);
+			_mockLogger.VerifyLog(x => x.LogDebug("Applying changes ({Total} operations)", It.IsAny<object[]>()), Times.Once);
 		}
 
 		[Fact]

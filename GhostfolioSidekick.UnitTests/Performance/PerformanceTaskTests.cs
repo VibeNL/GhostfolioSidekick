@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			var verifyContext = new DatabaseContext(options);
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			var verifyContext = new DatabaseContext(options);
@@ -229,7 +229,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			var verifyContext = new DatabaseContext(options);
@@ -270,7 +270,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert — calculator never called, no snapshots written
 			calculatorMock.Verify(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), It.IsAny<Currency>()), Times.Never);
@@ -303,7 +303,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert - should complete without error
 			calculatorMock.Verify(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD), Times.Never);
@@ -356,7 +356,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			calculatorMock.Verify(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD), Times.Exactly(2));
@@ -422,7 +422,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act — must not throw even though calculator fails for holding 1
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert — calculator attempted for both holdings; only holding 2's snapshot persisted
 			calculatorMock.Verify(x => x.GetCalculatedSnapshots(It.IsAny<Holding>(), Currency.USD), Times.Exactly(2));
@@ -467,7 +467,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			var verifyContext = new DatabaseContext(options);
@@ -516,7 +516,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object, appSettingsMock.Object);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			var verifyContext = new DatabaseContext(options);

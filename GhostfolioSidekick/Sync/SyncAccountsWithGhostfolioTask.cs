@@ -17,7 +17,9 @@ namespace GhostfolioSidekick.Sync
 
 		public string Name => "Sync Accounts with Ghostfolio";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => TimeSpan.FromHours(1);
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			await using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var allAccounts = await databaseContext.Accounts.ToListAsync();

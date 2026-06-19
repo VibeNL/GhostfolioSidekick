@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.UnitTests
 			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(settings);
 
 			// Act
-			displayInformationTask.DoWork(loggerMock.Object);
+			displayInformationTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			loggerMock.Verify(
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.UnitTests
 			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(settings);
 
 			// Act
-			displayInformationTask.DoWork(loggerMock.Object);
+			displayInformationTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			loggerMock.Verify(

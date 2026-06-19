@@ -140,8 +140,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return [.. existingActivities.Select(x => ContractToModelMapper.MapActivity(account, symbols, x))];
 		}
 
-		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
+		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities, System.Threading.CancellationToken cancellationToken = default)
 		{
+			var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+			logger.LogInformation("SyncAllActivities started (timeout: {MaxRunTime})", cancellationToken.CanBeCanceled ? "enabled" : "disabled");
+
 			var content = await DoRestGetActivities();
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
@@ -198,9 +201,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				.OrderBy(x => x.Order1.Date)
 				.ToList();
 
-			logger.LogDebug("Applying changes");
+			logger.LogDebug("Applying changes ({Total} operations)", mergeOrders.Count);
+			int applied = 0;
 			foreach (var item in mergeOrders)
 			{
+				if (cancellationToken.IsCancellationRequested)
+				{
+					logger.LogInformation("SyncAllActivities timeout reached after {Elapsed}ms ({Applied}/{Total} operations applied), stopping gracefully", stopwatch.ElapsedMilliseconds, applied, mergeOrders.Count);
+					break;
+				}
+
 				try
 				{
 					switch (item.Operation)
@@ -218,12 +228,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						default:
 							throw new NotSupportedException();
 					}
+					applied++;
 				}
 				catch (Exception ex)
 				{
 					logger.LogError(ex, "Transaction failed to write {Exception}, skipping", ex.Message);
 				}
 			}
+
+			logger.LogInformation("SyncAllActivities completed ({Applied}/{Total} operations applied in {Elapsed}ms)", applied, mergeOrders.Count, stopwatch.Elapsed);
 
 			static int SortOnDataSource(Model.Activities.Activity activity, Model.Symbols.SymbolProfile x)
 			{

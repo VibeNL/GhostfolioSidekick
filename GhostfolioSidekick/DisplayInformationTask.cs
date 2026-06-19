@@ -15,7 +15,9 @@ namespace GhostfolioSidekick
 
 		public string Name => "Display Information";
 
-		public Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			PrintUsedSettings(logger);
 			return Task.CompletedTask;

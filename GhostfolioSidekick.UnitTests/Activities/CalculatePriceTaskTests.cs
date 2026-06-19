@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var loggerMock = new Mock<ILogger<CalculatePriceTask>>();
 
 			// Act
-			await _calculatePriceTask.DoWork(loggerMock.Object);
+			await _calculatePriceTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			mockStrategy1.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Exactly(holdings.Count));
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var loggerMock = new Mock<ILogger<CalculatePriceTask>>();
 
 			// Act
-			await _calculatePriceTask.DoWork(loggerMock.Object);
+			await _calculatePriceTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			mockStrategy.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Never);

@@ -17,7 +17,9 @@ namespace GhostfolioSidekick.Sync
 
 		public string Name => "Cleanup Ghostfolio Unused Symbols";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => TimeSpan.FromHours(1);
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			var symbols = await ghostfolioMarketData.GetAllSymbolProfiles();
 			var benchmarks = await ghostfolioMarketData.GetBenchmarks();

@@ -19,7 +19,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public string Name => "Balance Maintainer";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			List<AccountKey> accountKeys;
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())

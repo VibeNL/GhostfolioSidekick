@@ -22,7 +22,9 @@ namespace GhostfolioSidekick.Performance
 
 		public string Name => "Upcoming Dividends Calculations";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Starting upcoming dividends calculation for holdings...");
 

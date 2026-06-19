@@ -191,9 +191,20 @@ namespace GhostfolioSidekick
 			var taskLogger = new DatabaseTaskLogger(databaseContext, workItem.Work, this.logger);
 			taskLogger.EmptyPreviousLogs();
 
+			// Create timeout token if MaxRunTime is specified
+			CancellationTokenSource? timeoutSource = null;
+			CancellationToken combinedToken = cancellationTokenSource!.Token;
+
+			if (workItem.Work.MaxRunTime.HasValue && workItem.Work.MaxRunTime.Value > TimeSpan.Zero)
+			{
+				timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token);
+				timeoutSource.CancelAfter(workItem.Work.MaxRunTime.Value);
+				combinedToken = timeoutSource.Token;
+			}
+
 			try
 			{
-				await workItem.Work.DoWork(taskLogger);
+				await workItem.Work.DoWork(taskLogger, combinedToken);
 			}
 			catch (Exception ex)
 			{
@@ -212,6 +223,10 @@ namespace GhostfolioSidekick
 				{
 					throw;
 				}
+			}
+			finally
+			{
+				timeoutSource?.Dispose();
 			}
 		}
 

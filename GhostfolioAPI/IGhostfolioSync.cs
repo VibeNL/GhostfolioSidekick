@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		Task SyncAccount(Account account);
 
-		Task SyncAllActivities(IEnumerable<Activity> allActivities);
+		Task SyncAllActivities(IEnumerable<Activity> allActivities, System.Threading.CancellationToken cancellationToken = default);
 
 		Task SyncMarketData(SymbolProfile profile, ICollection<MarketData> list);
 

@@ -20,7 +20,9 @@ namespace GhostfolioSidekick.Performance
 
 		public string Name => "Performance Calculations";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Starting performance calculations for holdings...");
 			var currency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;

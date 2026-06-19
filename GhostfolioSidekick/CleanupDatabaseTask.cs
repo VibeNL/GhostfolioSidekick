@@ -15,7 +15,9 @@ namespace GhostfolioSidekick
 
 		public string Name => "Cleanup Database";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Cleanup database...");
 			await dbContext.ExecutePragma("PRAGMA integrity_check;");
