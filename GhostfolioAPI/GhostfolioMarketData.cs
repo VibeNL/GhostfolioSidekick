@@ -19,9 +19,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 				logger.LogDebug("Deleted symbol {Symbol}", symbolProfile.Symbol);
 			}
-			catch (NotAuthorizedException)
+			catch (NotAuthorizedException ex)
 			{
-				logger.LogWarning("403 Forbidden on DeleteSymbol for {Symbol} — non-admin user, skipping", symbolProfile.Symbol);
+				logger.LogWarning(ex, "403 Forbidden on DeleteSymbol for {Symbol} — non-admin user, skipping", symbolProfile.Symbol);
 			}
 		}
 
@@ -50,9 +50,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 				return profiles;
 			}
-			catch (NotAuthorizedException)
+			catch (NotAuthorizedException ex)
 			{
-				logger.LogWarning("403 Forbidden on GetAllSymbolProfiles — non-admin user, returning empty list");
+				logger.LogWarning(ex, "403 Forbidden on GetAllSymbolProfiles — non-admin user, returning empty list");
 				return [];
 			}
 		}
