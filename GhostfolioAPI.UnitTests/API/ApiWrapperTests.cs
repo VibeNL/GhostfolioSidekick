@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		private readonly ApiWrapper _apiWrapper;
 		private readonly RestResponse _okResponse = new() { StatusCode = HttpStatusCode.OK, IsSuccessStatusCode = true, ResponseStatus = ResponseStatus.Completed };
 		private readonly RestResponse _authResponse = new() { StatusCode = HttpStatusCode.OK, IsSuccessStatusCode = true, ResponseStatus = ResponseStatus.Completed, Content = JsonConvert.SerializeObject(new Token { AuthToken = "a" }) };
-		private readonly RestCallOptions _noThrottleOptions = new() { TrottleTimeout = TimeSpan.Zero };
+		private readonly RestCallOptions _noThrottleOptions = new() { ThrottleTimeout = TimeSpan.Zero };
 
 		public ApiWrapperTests()
 		{

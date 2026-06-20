@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Configuration
 
 		string GhostfolioAccessToken { get; }
 
-		int TrottleTimeout { get; }
+		int ThrottleTimeout { get; }
 
 		/// <summary>
 		/// Database query timeout in seconds for complex queries. Default is 120 seconds.

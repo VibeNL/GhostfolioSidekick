@@ -319,7 +319,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private async Task ExecuteTrottling(long elapsedMilliseconds, CancellationToken cancellationToken)
 		{
 			var elapsed = TimeSpan.FromMilliseconds(elapsedMilliseconds);
-			var remaining = options.TrottleTimeout - elapsed;
+			var remaining = options.ThrottleTimeout - elapsed;
 			if (remaining > TimeSpan.Zero)
 			{
 				await this.timeProvider.Delay(remaining, cancellationToken);

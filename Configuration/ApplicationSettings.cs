@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Configuration
 		private const string PATHFILES = "FILEIMPORTER_PATH";
 		private const string DATABASEPATH = "DATABASE_PATH";
 		private const string CONFIGURATIONFILE = "CONFIGURATIONFILE_PATH";
-		private const string TROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
+		private const string THROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
 		private const string DATABASE_QUERY_TIMEOUT = "DATABASE_QUERY_TIMEOUT_SECONDS";
 		private const string ENABLE_DATABASE_PERFORMANCE_LOGGING = "ENABLE_DATABASE_PERFORMANCE_LOGGING";
 		private const string BACKUP_FOLDER_NAME = "BACKUP_FOLDER_NAME";
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.Configuration
 			}
 		}
 
-		public int TrottleTimeout => GetTimeout();
+		public int ThrottleTimeout => GetTimeout();
 
 		/// <summary>
 		/// Database query timeout in seconds for complex queries. Default is 120 seconds.
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.Configuration
 
 		private static int GetTimeout()
 		{
-			if (int.TryParse(Environment.GetEnvironmentVariable(TROTTLETIMEOUT), out int timeoutInSeconds))
+			if (int.TryParse(Environment.GetEnvironmentVariable(THROTTLETIMEOUT), out int timeoutInSeconds))
 			{
 				return timeoutInSeconds;
 			}

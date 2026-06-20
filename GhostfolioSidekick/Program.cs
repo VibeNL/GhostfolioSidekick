@@ -85,17 +85,6 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton(x =>
 							{
 								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
-								return new RestCall(x.GetService<IRestClient>()!,
-													x.GetService<MemoryCache>()!,
-													x.GetService<ILogger<RestCall>>()!,
-													settings!.GhostfolioUrl,
-													settings!.GhostfolioAccessToken,
-													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) },
-													TimeProvider.System);
-							});
-							_ = services.AddSingleton(x =>
-							{
-								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
 							_ = services.AddDbContextFactory<DatabaseContext>((sp, options) =>
@@ -142,7 +131,7 @@ namespace GhostfolioSidekick
 								var restClient = sp.GetRequiredService<IRestClient>();
 								var logger = sp.GetRequiredService<ILogger<RestCall>>();
 								var settings = sp.GetRequiredService<IApplicationSettings>();
-								return new RestCall(restClient, sp.GetRequiredService<IMemoryCache>(), logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken, new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings.TrottleTimeout) }, TimeProvider.System);
+								return new RestCall(restClient, sp.GetRequiredService<IMemoryCache>(), logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken, new RestCallOptions() { ThrottleTimeout = TimeSpan.FromSeconds(settings.ThrottleTimeout) }, TimeProvider.System);
 							});
 							_ = services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
