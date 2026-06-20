@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
 
     <!-- Version Stamping -->
     <!-- VersionPrefix: yyyy.MM.dd -->
