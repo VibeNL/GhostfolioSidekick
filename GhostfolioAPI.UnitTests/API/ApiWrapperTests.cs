@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
 			_mockAppSettings = new Mock<IApplicationSettings>();
 			_mockAppSettings.Setup(x => x.AllowAdminCalls).Returns(true);
-			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions), _mockLogger.Object, _mockCurrencyExchange.Object, _mockAppSettings.Object);
+			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions, TimeProvider.System), _mockLogger.Object, _mockCurrencyExchange.Object, _mockAppSettings.Object);
 
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>())).ReturnsAsync(new Money { Amount = 100, Currency = Currency.EUR });
 
@@ -595,7 +595,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var mockSettings = new Mock<IApplicationSettings>();
 			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
-			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions, TimeProvider.System), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
 			var platform = new Model.Accounts.Platform { Name = "TestPlatform", Url = "https://test.com" };
 
 			// Act
@@ -617,7 +617,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var mockSettings = new Mock<IApplicationSettings>();
 			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
-			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions, TimeProvider.System), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
 
 			// Act
 			var result = await wrapper.GetAllSymbolProfiles();

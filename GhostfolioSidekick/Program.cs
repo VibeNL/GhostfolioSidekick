@@ -90,7 +90,8 @@ namespace GhostfolioSidekick
 													x.GetService<ILogger<RestCall>>()!,
 													settings!.GhostfolioUrl,
 													settings!.GhostfolioAccessToken,
-													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
+													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) },
+													TimeProvider.System);
 							});
 							_ = services.AddSingleton(x =>
 							{
@@ -141,7 +142,7 @@ namespace GhostfolioSidekick
 								var restClient = sp.GetRequiredService<IRestClient>();
 								var logger = sp.GetRequiredService<ILogger<RestCall>>();
 								var settings = sp.GetRequiredService<IApplicationSettings>();
-								return new RestCall(restClient, sp.GetRequiredService<IMemoryCache>(), logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken, new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings.TrottleTimeout) });
+								return new RestCall(restClient, sp.GetRequiredService<IMemoryCache>(), logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken, new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings.TrottleTimeout) }, TimeProvider.System);
 							});
 							_ = services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 

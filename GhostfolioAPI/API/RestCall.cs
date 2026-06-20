@@ -26,6 +26,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private readonly RetryPolicy<RestResponse> retryPolicy;
 		private readonly CircuitBreakerPolicy<RestResponse> basicCircuitBreakerPolicy;
 		private readonly RestCallOptions options;
+		private readonly TimeProvider timeProvider;
 
 		public RestCall(
 			IRestClient restClient,
@@ -33,7 +34,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			ILogger<RestCall> logger,
 			string url,
 			string accessToken,
-			RestCallOptions options)
+			RestCallOptions options,
+			TimeProvider timeProvider)
 		{
 			if (string.IsNullOrEmpty(url))
 			{
@@ -45,6 +47,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			this.logger = logger;
 			this.url = url;
 			this.accessToken = accessToken;
+			this.timeProvider = timeProvider;
 
 			retryPolicy = Policy
 				.HandleResult<RestResponse>(x =>
@@ -84,6 +87,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				policy = basicCircuitBreakerPolicy.Wrap(retryPolicy);
 			}
 
+			var timestamp = timeProvider.GetTimestamp();
+
 			try
 			{
 				await semaphore.WaitAsync();
@@ -96,14 +101,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader(Authorization, $"Bearer {await GetAuthenticationToken()}");
 				request.AddHeader(ContentType, ContentJson);
 
-				var stopwatch = new Stopwatch();
-
-				stopwatch.Start();
-
 				var r = policy.Execute(() => restClient.ExecuteGetAsync(request).Result);
-				stopwatch.Stop();
 
-				logger.LogTrace("Url {Url}/{SuffixUrl} took {ElapsedMilliseconds}ms", url, suffixUrl, stopwatch.ElapsedMilliseconds);
+				var elapsed = timeProvider.GetElapsedTime(timestamp);
+				logger.LogTrace("Url {Url}/{SuffixUrl} took {ElapsedMilliseconds}ms", url, suffixUrl, elapsed.TotalMilliseconds);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -123,13 +124,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
+				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
 
 		public virtual async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
+			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await semaphore.WaitAsync();
@@ -159,13 +161,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
+				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
 
 		public async Task<RestResponse> DoRestPut(string suffixUrl, string body)
 		{
+			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await semaphore.WaitAsync();
@@ -195,13 +198,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
+				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
 
 		public async Task<RestResponse> DoRestPatch(string suffixUrl, string body)
 		{
+			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await semaphore.WaitAsync();
@@ -231,13 +235,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
+				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
 
 		public virtual async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
+			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await semaphore.WaitAsync();
@@ -266,7 +271,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
+				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
@@ -311,10 +316,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		private Task ExecuteTrottling()
+		private async Task ExecuteTrottling(long elapsedMilliseconds, CancellationToken cancellationToken)
 		{
-			// Naive implementation of trottling for now
-			return Task.Delay(options.TrottleTimeout);
+			var elapsed = TimeSpan.FromMilliseconds(elapsedMilliseconds);
+			var remaining = options.TrottleTimeout - elapsed;
+			if (remaining > TimeSpan.Zero)
+			{
+				await this.timeProvider.Delay(remaining, cancellationToken);
+			}
 		}
 	}
 }
