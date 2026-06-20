@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class ApiWrapper(
-			RestCall restCall,
+			IRestCall restCall,
 			ILogger<ApiWrapper> logger,
 			ICurrencyExchange currencyExchange,
 			IApplicationSettings applicationSettings) : IApiWrapper
