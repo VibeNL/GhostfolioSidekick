@@ -23,7 +23,7 @@ For non-self-hosted instances (shared accounts), the sidekick runs in non-admin 
  - Platforms cannot be created automatically; configure them in Ghostfolio first
  - Symbol profile sync is skipped gracefully
 
-### Setting up for Official Ghostfolio (Ghostfolio.com)
+### Setting up for Official Ghostfolio (ghostfol.io)
 
 When syncing to the official hosted Ghostfolio instance, you need to configure the sidekick for non-admin mode with appropriate throttling:
 
