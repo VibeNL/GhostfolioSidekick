@@ -299,14 +299,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(new ActivityList { Activities = [.. activities] }));
 
 			// Set up the symbol profiles response to include the symbol that will be looked up
-			var marketDataResponse = new MarketDataList
-			{
-				MarketData = [new MarketData { Symbol = testSymbol.Symbol, DataSource = testSymbol.DataSource }],
-				AssetProfile = testSymbol
-			};
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(marketDataResponse));
-			SetupRestCall($"api/v1/market-data/{testSymbol.DataSource}/{testSymbol.Symbol}",
-				JsonConvert.SerializeObject(new MarketDataListNoMarketData { AssetProfile = testSymbol }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = new[] { testSymbol } }));
 
 			// Act
 			var result = await _apiWrapper.GetActivitiesByAccount(account);
@@ -361,7 +355,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var symbol = CreateTestSymbolProfile(identifier);
 			var contractActivities = new ActivityList { Activities = [CreateTestActivity("a", symbol)] };
 			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(contractActivities));
-			SetupRestCall("api/v1/admin/market-data/", string.Empty);
+			SetupRestCall("api/v1/asset-profiles", string.Empty);
 			var accounts = new List<Account> { new() { Name = accountName, Currency = "EUR", Id = "a" } };
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 
@@ -395,7 +389,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var contractActivities = new ActivityList { Activities = [] };
 			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(contractActivities));
-			SetupRestCall("api/v1/admin/market-data/", string.Empty);
+			SetupRestCall("api/v1/asset-profiles", string.Empty);
 			var accounts = new List<Account>();
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 
@@ -476,7 +470,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var symbolProfile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
 
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(new MarketDataList { MarketData = [], AssetProfile = CreateTestSymbolProfile() }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = Array.Empty<Contract.SymbolProfile>() }));
 			SetupRestCall("api/v1/admin/profile-data/", string.Empty);
 			SetupPatchRestCall("api/v1/admin/profile-data/YAHOO/TEST", string.Empty);
 
@@ -495,7 +490,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var symbolProfile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
 
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(new MarketDataList { MarketData = [], AssetProfile = CreateTestSymbolProfile() }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = Array.Empty<Contract.SymbolProfile>() }));
 			SetupFailedRestCall("api/v1/admin/profile-data/");
 
 			// Act & Assert
@@ -509,7 +505,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var symbolProfile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
 			var existingProfile = new Contract.SymbolProfile { Symbol = "TEST", DataSource = "YAHOO", Currency = "EUR", Name = "Test", AssetClass = "EQUITY", Countries = [], Sectors = [] };
 
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(new MarketDataList { MarketData = [new MarketData { Symbol = "TEST", DataSource = "YAHOO" }], AssetProfile = CreateTestSymbolProfile() }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = new[] { CreateTestSymbolProfile() } }));
 			SetupRestCall("api/v1/market-data/YAHOO/TEST", JsonConvert.SerializeObject(new MarketDataListNoMarketData { AssetProfile = existingProfile }));
 			SetupFailedPatchRestCall("api/v1/admin/profile-data/YAHOO/TEST");
 

@@ -42,26 +42,17 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			try
 			{
-				var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
+				var content = await restCall.DoRestGet($"api/v1/asset-profiles");
 
 				if (content == null)
 				{
 					return [];
 				}
 
-				var market = JsonConvert.DeserializeObject<MarketDataList>(content);
+				var assetProfiles = JsonConvert.DeserializeObject<AssetProfileList>(content);
 
-				var profiles = new List<SymbolProfile>();
-				foreach (var f in market?.MarketData
-					.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
-					.ToList() ?? [])
-				{
-					content = await restCall.DoRestGet($"api/v1/market-data/{f.DataSource}/{f.Symbol}");
-					var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
-					profiles.Add(data!.AssetProfile);
-				}
-
-				return profiles;
+				return [.. (assetProfiles?.AssetProfiles ?? [])
+					.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))];
 			}
 			catch (NotAuthorizedException ex)
 			{

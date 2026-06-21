@@ -23,22 +23,21 @@ public class GhostfolioMarketDataTests
 	public async Task GetAllSymbolProfiles_WithValidData_ShouldReturnProfiles()
 	{
 		// Arrange
-		var adminContent = JsonConvert.SerializeObject(new MarketDataList
+		var profilesContent = JsonConvert.SerializeObject(new AssetProfileList
 		{
-			MarketData = [new() { DataSource = "YAHOO", Symbol = "AAPL" }],
-			AssetProfile = new() { DataSource = "YAHOO", Symbol = "AAPL", Name = "Apple", Currency = "USD", AssetClass = "EQUITY", Countries = [], Sectors = [] }
-		});
-		var profileContent = JsonConvert.SerializeObject(new MarketDataList
-		{
-			MarketData = [],
-			AssetProfile = new() { DataSource = "YAHOO", Symbol = "AAPL", Name = "Apple Inc.", Currency = "USD", AssetClass = "EQUITY", Countries = [], Sectors = [] }
+			AssetProfiles = new[]
+			{
+				new SymbolProfile
+				{
+					DataSource = "YAHOO", Symbol = "AAPL", Name = "Apple", Currency = "USD",
+					AssetClass = "EQUITY", Countries = [], Sectors = []
+				}
+			}
 		});
 
 		var mock = new Mock<IRestCall>();
-		mock.Setup(x => x.DoRestGet("api/v1/admin/market-data/"))
-			.ReturnsAsync(adminContent);
-		mock.Setup(x => x.DoRestGet(It.Is<string>(s => s.Contains("api/v1/market-data/"))))
-			.ReturnsAsync(profileContent);
+		mock.Setup(x => x.DoRestGet("api/v1/asset-profiles"))
+			.ReturnsAsync(profilesContent);
 
 		var settings = CreateSettings(allowAdminCalls: true);
 		var marketData = new GhostfolioMarketData(mock.Object, Mock.Of<ILogger<GhostfolioMarketData>>(), settings.Object);
@@ -54,15 +53,9 @@ public class GhostfolioMarketDataTests
 	public async Task GetAllSymbolProfiles_WithEmptyData_ShouldReturnEmptyList()
 	{
 		// Arrange
-		var adminContent = JsonConvert.SerializeObject(new MarketDataList
-		{
-			MarketData = [],
-			AssetProfile = new() { DataSource = "YAHOO", Symbol = "AAPL", Name = "Apple", Currency = "USD", AssetClass = "EQUITY", Countries = [], Sectors = [] }
-		});
-
 		var mock = new Mock<IRestCall>();
-		mock.Setup(x => x.DoRestGet("api/v1/admin/market-data/"))
-			.ReturnsAsync(adminContent);
+		mock.Setup(x => x.DoRestGet("api/v1/asset-profiles"))
+			.ReturnsAsync(JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = Array.Empty<SymbolProfile>() }));
 
 		var settings = CreateSettings(allowAdminCalls: true);
 		var marketData = new GhostfolioMarketData(mock.Object, Mock.Of<ILogger<GhostfolioMarketData>>(), settings.Object);
@@ -79,7 +72,7 @@ public class GhostfolioMarketDataTests
 	{
 		// Arrange
 		var mock = new Mock<IRestCall>();
-		mock.Setup(x => x.DoRestGet("api/v1/admin/market-data/"))
+		mock.Setup(x => x.DoRestGet("api/v1/asset-profiles"))
 			.ReturnsAsync((string?)null);
 
 		var settings = CreateSettings(allowAdminCalls: true);
@@ -97,7 +90,7 @@ public class GhostfolioMarketDataTests
 	{
 		// Arrange
 		var mock = new Mock<IRestCall>();
-		mock.Setup(x => x.DoRestGet("api/v1/admin/market-data/"))
+		mock.Setup(x => x.DoRestGet("api/v1/asset-profiles"))
 			.ThrowsAsync(new NotAuthorizedException("Forbidden"));
 
 		var settings = CreateSettings(allowAdminCalls: true);
