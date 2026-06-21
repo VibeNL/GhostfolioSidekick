@@ -4,6 +4,7 @@ using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
+using System.Diagnostics;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.DependencyInjection;
@@ -347,10 +348,13 @@ namespace GhostfolioSidekick.IntegrationTests
 
 	public async ValueTask InitializeAsync()
 		{
-			network = new NetworkBuilder()
-				.WithCleanUp(true)
-				.WithName(NetworkName)
-				.Build();
+		// Clean up any leftover network from a previous crashed/aborted run.
+		await DeleteNetworkIfExistsAsync(NetworkName).ConfigureAwait(false);
+
+		network = new NetworkBuilder()
+			.WithCleanUp(true)
+			.WithName(NetworkName)
+			.Build();
 
 			await InitializePostgresContainer(network).ConfigureAwait(false);
 			await InitializeRedisContainer(network).ConfigureAwait(false);
@@ -488,6 +492,41 @@ namespace GhostfolioSidekick.IntegrationTests
 			if (network != null)
 			{
 				await network.DisposeAsync();
+			}
+		}
+
+		private static async Task DeleteNetworkIfExistsAsync(string networkName)
+		{
+			try
+			{
+				var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "docker",
+					Arguments = $"network inspect {networkName} -f '{{{{.Id}}}}'",
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					UseShellExecute = false,
+					CreateNoWindow = true
+				});
+				process!.WaitForExit();
+
+				if (process.ExitCode == 0)
+				{
+					var process2 = Process.Start(new ProcessStartInfo
+					{
+						FileName = "docker",
+						Arguments = $"network rm {networkName}",
+						RedirectStandardOutput = true,
+						RedirectStandardError = true,
+						UseShellExecute = false,
+						CreateNoWindow = true
+					});
+					process2!.WaitForExit();
+				}
+			}
+			catch
+			{
+				// Network doesn't exist or Docker is unavailable — safe to ignore.
 			}
 		}
 
