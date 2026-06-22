@@ -207,7 +207,7 @@ Assemblies: `GhostfolioSidekick.<ProjectName>`
 ### Code Quality
 
 - **Production-Ready**: SOLID, DRY, YAGNI, best practices
-- **Verify**: `dotnet build` + `dotnet test` pass before mark complete. Run after every change.
+- **Verify**: After every code change, run `dotnet build` (verify compilation) and `dotnet test` (verify all tests pass) before marking a task complete.
 - **Warnings = Errors**: ALL warnings resolved before commit
 - **SonarCloud**: Pass quality gate (README.md badge)
 - **Exclusions**: JS + generated code excluded (`<SonarQubeSetting>` in `.csproj`)
