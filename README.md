@@ -273,6 +273,14 @@ ghostfoliosidekick:
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 |**ALLOW_ADMIN_CALLS**  | (optional) Set to `false` to run in non-admin mode (for shared/non-self-hosted Ghostfolio instances). Defaults to `true`. |
+|**DATABASE_QUERY_TIMEOUT_SECONDS**  | (optional) Database query timeout in seconds for complex queries. Defaults to `120`. |
+|**ENABLE_DATABASE_PERFORMANCE_LOGGING**  | (optional) Enable detailed database performance logging. Defaults to `false`. |
+|**BACKUP_FOLDER_NAME**  | (optional) Folder name for database backups. Defaults to `GHOSTFOLIOSIDEKICKBACKUPS`. |
+|**MAX_BACKUP_COUNT**  | (optional) Maximum number of compressed backups to keep. Defaults to `5`. |
+|**COINGECKO_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for CoinGecko API calls. Defaults to `24`. |
+|**YAHOO_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for Yahoo Finance API calls. Defaults to `24`. |
+|**DIVIDENDMAX_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for DividendMax API calls. Defaults to `168` (7 days). |
+|**GHOSTFOLIO_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for Ghostfolio API calls. Defaults to `168` (7 days). |
 
 ## Contributing
 

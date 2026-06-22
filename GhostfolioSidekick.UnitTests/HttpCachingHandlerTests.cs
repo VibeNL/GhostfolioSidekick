@@ -242,13 +242,13 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		// ------------------------------------------------------------------
-		// Non-market-data URLs get a long (1-day) expiry.
+		// Non-market-data URLs get source-specific expiry.
 		// ------------------------------------------------------------------
 		[Theory]
-		[InlineData("https://api.coingecko.com/api/v3/coins/bitcoin")]
-		[InlineData("https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL")]
-		[InlineData("https://www.dividendmax.com/en/stock/apple-inc-dividends")]
-		public async Task NonMarketDataUrl_UsesLongExpiry(string url)
+		[InlineData("https://api.coingecko.com/api/v3/coins/bitcoin", 24)]
+		[InlineData("https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL", 24)]
+		[InlineData("https://www.dividendmax.com/en/stock/apple-inc-dividends", 168)]
+		public async Task NonMarketDataUrl_UsesSourceSpecificExpiry(string url, int expectedHours)
 		{
 			TimeSpan? capturedExpiry = null;
 			_cacheMock
@@ -261,7 +261,7 @@ namespace GhostfolioSidekick.UnitTests
 			await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 
 			Assert.NotNull(capturedExpiry);
-			Assert.Equal(TimeSpan.FromDays(1), capturedExpiry);
+			Assert.Equal(TimeSpan.FromHours(expectedHours), capturedExpiry);
 		}
 
 		// ------------------------------------------------------------------
