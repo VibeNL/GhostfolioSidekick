@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -322,6 +322,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var remaining = options.ThrottleTimeout - elapsed;
 			if (remaining > TimeSpan.Zero)
 			{
+				logger.LogTrace("Throttling for {Remaining} (elapsed: {Elapsed}ms, throttle timeout: {ThrottleTimeout})", remaining, elapsedMilliseconds, options.ThrottleTimeout);
 				await this.timeProvider.Delay(remaining, cancellationToken);
 			}
 		}
