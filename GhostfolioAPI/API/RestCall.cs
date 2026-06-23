@@ -322,7 +322,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var remaining = options.ThrottleTimeout - elapsed;
 			if (remaining > TimeSpan.Zero)
 			{
-				logger.LogTrace("Throttling for {Remaining} (elapsed: {Elapsed}ms, throttle timeout: {ThrottleTimeout})", remaining, elapsedMilliseconds, options.ThrottleTimeout);
+				logger.LogDebug("Throttling for {Remaining} (elapsed: {Elapsed}ms, throttle timeout: {ThrottleTimeout})", remaining, elapsedMilliseconds, options.ThrottleTimeout);
 				await this.timeProvider.Delay(remaining, cancellationToken);
 			}
 		}
