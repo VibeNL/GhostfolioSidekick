@@ -34,8 +34,8 @@ namespace GhostfolioSidekick.UnitTests
 		private void SetupCacheMissAndStore()
 		{
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, __, factory, ___) => factory());
 		}
 
 		// ------------------------------------------------------------------
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.UnitTests
 		private void SetupCacheHit(CachedHttpResponse cached)
 		{
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(cached);
 		}
 
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
+				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()),
 				Times.Never);
 		}
 
@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
+				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()),
 				Times.Once);
 		}
 
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 			_cacheMock.Verify(
-				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()),
+				c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()),
 				Times.Once);
 		}
 
@@ -146,8 +146,8 @@ namespace GhostfolioSidekick.UnitTests
 				});
 
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory()!);
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, __, factory, ___) => factory()!);
 
 			HttpResponseMessage response = await _httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 
@@ -179,8 +179,8 @@ namespace GhostfolioSidekick.UnitTests
 				});
 
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory()!);
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, __, factory, ___) => factory()!);
 
 			HttpResponseMessage response = await _httpClient.GetAsync(
 				"https://api.coingecko.com/api/v3/coins/bitcoin",
@@ -229,9 +229,9 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			TimeSpan? capturedExpiry = null;
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, expiry, _2) => capturedExpiry = expiry)
-				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, expiry, _2, ___) => capturedExpiry = expiry)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, __, factory, ___) => factory());
 
 			SetupInnerHandler(HttpStatusCode.OK, "{}");
 
@@ -252,9 +252,9 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			TimeSpan? capturedExpiry = null;
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, expiry, _2) => capturedExpiry = expiry)
-				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, expiry, _2, ___) => capturedExpiry = expiry)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, __, factory, ___) => factory());
 
 			SetupInnerHandler(HttpStatusCode.OK, "{}");
 
@@ -275,9 +275,9 @@ namespace GhostfolioSidekick.UnitTests
 			const string expectedKey = "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false";
 
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((key, _, _2) => capturedKey = key)
-				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((key, _, _2, ___) => capturedKey = key)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, __, factory, ___) => factory());
 
 			SetupInnerHandler(HttpStatusCode.OK, "{}");
 
@@ -293,9 +293,9 @@ namespace GhostfolioSidekick.UnitTests
 			const string requestUrl = "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false";
 
 			_cacheMock
-				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>()))
-				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((key, _, _2) => capturedKey = key)
-				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>>((_, __, factory) => factory());
+				.Setup(c => c.GetOrAddAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<Func<Task<CachedHttpResponse?>>>(), It.IsAny<CancellationToken>()))
+				.Callback<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((key, _, _2, ___) => capturedKey = key)
+				.Returns<string, TimeSpan, Func<Task<CachedHttpResponse?>>, CancellationToken>((_, __, factory, ___) => factory());
 
 			SetupInnerHandler(HttpStatusCode.OK, "{}");
 

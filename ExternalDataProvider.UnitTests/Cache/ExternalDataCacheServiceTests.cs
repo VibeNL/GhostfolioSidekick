@@ -43,11 +43,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 		public async Task GetOrAddAsync_CachesAndRetrievesValue()
 		{
 			int value = 42;
-			var result1 = await _cacheService.GetOrAddAsync<int>("test:key", TimeSpan.FromMinutes(5), () => Task.FromResult(value));
+			var result1 = await _cacheService.GetOrAddAsync<int>("test:key", TimeSpan.FromMinutes(5), () => Task.FromResult(value), TestContext.Current.CancellationToken);
 			Assert.Equal(value, result1);
 
 			// Should retrieve from cache, not factory
-			var result2 = await _cacheService.GetOrAddAsync<int>("test:key", TimeSpan.FromMinutes(5), () => Task.FromResult(99));
+			var result2 = await _cacheService.GetOrAddAsync<int>("test:key", TimeSpan.FromMinutes(5), () => Task.FromResult(99), TestContext.Current.CancellationToken);
 			Assert.Equal(value, result2);
 		}
 

@@ -16,19 +16,19 @@ public class DbBackedCacheService(IDbContextFactory<DatabaseContext> dbContextFa
 	/// <summary>
 	/// Gets a cached value or fetches it using the factory function.
 	/// </summary>
-	public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T?>> factory)
+	public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T?>> factory, CancellationToken cancellationToken = default)
 	{
-		await using DatabaseContext dbContext = await dbContextFactory.CreateDbContextAsync();
+		await using DatabaseContext dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 		DateTime now = DateTime.UtcNow;
 
 		// Remove all expired cache entries before proceeding
-		_ = await dbContext.ExternalDataCacheEntries.Where(e => e.ExpiresAt <= now).ExecuteDeleteAsync();
+		_ = await dbContext.ExternalDataCacheEntries.Where(e => e.ExpiresAt <= now).ExecuteDeleteAsync(cancellationToken);
 
 		// Try to get a valid (not expired) cache entry
 		ExternalDataCacheEntry? entry = await dbContext.ExternalDataCacheEntries
 			.Where(e => e.Key == key && e.ExpiresAt > now)
-			.FirstOrDefaultAsync();
+			.FirstOrDefaultAsync(cancellationToken);
 
 		if (entry != null)
 		{
@@ -38,7 +38,7 @@ public class DbBackedCacheService(IDbContextFactory<DatabaseContext> dbContextFa
 				using MemoryStream ms = new(entry.DataJson);
 				using GZipStream gzip = new(ms, CompressionMode.Decompress);
 				using StreamReader reader = new(gzip, Encoding.UTF8);
-				string json = await reader.ReadToEndAsync();
+				string json = await reader.ReadToEndAsync(cancellationToken);
 				return JsonSerializer.Deserialize<T?>(json);
 			}
 			catch (JsonException)
@@ -80,7 +80,7 @@ public class DbBackedCacheService(IDbContextFactory<DatabaseContext> dbContextFa
 		// Remove old entries for this key
 		dbContext.ExternalDataCacheEntries.RemoveRange(dbContext.ExternalDataCacheEntries.Where(e => e.Key == key));
 		_ = dbContext.ExternalDataCacheEntries.Add(newEntry);
-		_ = await dbContext.SaveChangesAsync();
+		_ = await dbContext.SaveChangesAsync(cancellationToken);
 
 		return value;
 	}

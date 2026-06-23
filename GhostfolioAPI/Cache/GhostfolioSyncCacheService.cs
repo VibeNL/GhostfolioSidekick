@@ -15,8 +15,8 @@ public class GhostfolioSyncCacheService(DbBackedCacheService cacheService) : IGh
 	/// <summary>
 	/// Gets a cached Ghostfolio API response or fetches it using the factory function.
 	/// </summary>
-	public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T?>> factory)
+	public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T?>> factory, CancellationToken cancellationToken = default)
 	{
-		return await cacheService.GetOrAddAsync(key, expiry, factory);
+		return await cacheService.GetOrAddAsync(key, expiry, factory, cancellationToken);
 	}
 }

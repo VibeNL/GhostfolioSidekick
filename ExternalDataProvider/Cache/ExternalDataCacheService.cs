@@ -12,9 +12,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 		/// <summary>
 		/// Gets a cached value or adds it if not present using a raw string key and explicit expiry.
 		/// </summary>
-		public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T>> factory)
+		public async Task<T?> GetOrAddAsync<T>(string key, TimeSpan expiry, Func<Task<T>> factory, CancellationToken cancellationToken = default)
 		{
-			return await cacheService.GetOrAddAsync(key, expiry, async () => await factory());
+			return await cacheService.GetOrAddAsync(key, expiry, async () => await factory(), cancellationToken);
 		}
 	}
 }
