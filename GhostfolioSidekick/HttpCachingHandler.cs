@@ -14,8 +14,6 @@ namespace GhostfolioSidekick
 	/// </summary>
 	internal class HttpCachingHandler : DelegatingHandler
 	{
-		private const string Coingecko = "coingecko.com";
-
 		// Query-string parameter names that may carry credentials and must not be cached.
 		private static readonly HashSet<string> SensitiveParams = new(StringComparer.OrdinalIgnoreCase)
 		{
