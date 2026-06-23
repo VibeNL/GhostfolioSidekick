@@ -17,6 +17,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private const string ContentType = "Content-Type";
 		private const string ContentJson = "application/json";
 		private readonly SemaphoreSlim semaphore = new(1);
+		private DateTimeOffset? lastCallTime;
 
 		private readonly IMemoryCache memoryCache;
 		private readonly IRestClient restClient;
@@ -91,6 +92,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -124,7 +126,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
@@ -134,6 +135,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -161,7 +163,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
@@ -171,6 +172,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -198,7 +200,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
@@ -208,6 +209,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -235,7 +237,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
@@ -245,6 +246,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -271,7 +273,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling((long)timeProvider.GetElapsedTime(timestamp).TotalMilliseconds, CancellationToken.None);
 				semaphore.Release();
 			}
 		}
@@ -316,15 +317,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		private async Task ExecuteTrottling(long elapsedMilliseconds, CancellationToken cancellationToken)
+		private async Task ExecuteTrottling(CancellationToken cancellationToken)
 		{
-			var elapsed = TimeSpan.FromMilliseconds(elapsedMilliseconds);
-			var remaining = options.ThrottleTimeout - elapsed;
-			if (remaining > TimeSpan.Zero)
+			var now = this.timeProvider.GetUtcNow();
+			if (lastCallTime.HasValue)
 			{
-				logger.LogDebug("Throttling for {Remaining} (elapsed: {Elapsed}ms, throttle timeout: {ThrottleTimeout})", remaining, elapsedMilliseconds, options.ThrottleTimeout);
-				await this.timeProvider.Delay(remaining, cancellationToken);
+				var elapsed = now - lastCallTime.Value;
+				var remaining = options.ThrottleTimeout - elapsed;
+				if (remaining > TimeSpan.Zero)
+				{
+					logger.LogDebug("Throttling for {Remaining} (elapsed: {Elapsed}ms, throttle timeout: {ThrottleTimeout})", remaining, elapsed.TotalMilliseconds, options.ThrottleTimeout);
+					await this.timeProvider.Delay(remaining, cancellationToken);
+				}
 			}
+
+			lastCallTime = now;
 		}
 	}
 }
