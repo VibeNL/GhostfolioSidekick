@@ -132,7 +132,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public virtual async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
-			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await ExecuteTrottling(CancellationToken.None);
@@ -169,7 +168,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestPut(string suffixUrl, string body)
 		{
-			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await ExecuteTrottling(CancellationToken.None);
@@ -206,7 +204,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestPatch(string suffixUrl, string body)
 		{
-			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await ExecuteTrottling(CancellationToken.None);
@@ -243,7 +240,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public virtual async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
-			var timestamp = timeProvider.GetTimestamp();
 			try
 			{
 				await ExecuteTrottling(CancellationToken.None);
