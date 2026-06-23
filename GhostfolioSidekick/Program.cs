@@ -91,7 +91,7 @@ namespace GhostfolioSidekick
 							{
 								IApplicationSettings? settings = sp.GetService<IApplicationSettings>();
 								string? dbPath = settings?.DatabaseFilePath;
-								_ = options.UseSqlite($"Data Source={dbPath};BusyTimeout=5000;");
+								_ = options.UseSqlite($"Data Source={dbPath};Timeout=5");
 								_ = options.UseLazyLoadingProxies();
 							});
 
