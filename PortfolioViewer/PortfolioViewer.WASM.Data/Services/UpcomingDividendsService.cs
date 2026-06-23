@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			var entries = await db.UpcomingDividendTimelineEntries
 				.AsNoTracking()
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 			if (entries.Count == 0)
 			{

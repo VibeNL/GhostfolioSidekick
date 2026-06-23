@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				symbolIdentifiers.AddRange(
 					(await databaseContext.SymbolProfiles.Where(x => x.AssetSubClass == AssetSubClass.Stock)
 						.Select(x => new Tuple<string, string>(x.Symbol, x.DataSource))
-						.ToListAsync())
+						.ToListAsync(cancellationToken))
 						.OrderBy(x => x.Item1)
 						.ThenBy(x => x.Item2)
 						.Where(x => !Datasource.IsGhostfolio(x.Item2)));

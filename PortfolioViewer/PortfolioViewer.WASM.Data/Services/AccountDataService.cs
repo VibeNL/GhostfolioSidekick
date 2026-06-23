@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.Include(a => a.Platform)
 				.OrderBy(a => a.Name)
 				.AsNoTracking()
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 		}
 
 		public async Task<List<Account>> GetAccountsAsync(string? symbolFilter, CancellationToken cancellationToken = default)

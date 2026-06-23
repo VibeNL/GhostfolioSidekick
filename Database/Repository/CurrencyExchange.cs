@@ -132,7 +132,7 @@ namespace GhostfolioSidekick.Database.Repository
 					rate.Date,
 					rate.Close
 				})
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 				foreach (var group in allExchangeRateData.Where(x => x.Close != 0).GroupBy(x => new { x.SourceCurrency, x.TargetCurrency }))
 				{

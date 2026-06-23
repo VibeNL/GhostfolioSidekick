@@ -35,12 +35,12 @@ namespace GhostfolioSidekick.Activities
 			List<int> usedHoldingIds;
 			using (DatabaseContext databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken))
 			{
-				List<Activity> activities = await databaseContext.Activities.ToListAsync();
+				List<Activity> activities = await databaseContext.Activities.ToListAsync(cancellationToken);
 				List<Holding> existingHoldings = await databaseContext.Holdings
 					.Include(h => h.SymbolProfiles)
 					.Include(h => h.Activities)
 					.AsSplitQuery()
-					.ToListAsync();
+					.ToListAsync(cancellationToken);
 
 				Dictionary<PartialSymbolIdentifier, DesiredHoldingState> partialIdentifierMap = new(new PartialSymbolIdentifierComparer());
 				Dictionary<string, DesiredHoldingState> symbolProfileMap = [];
@@ -134,7 +134,7 @@ namespace GhostfolioSidekick.Activities
 			List<Holding> holdingsForMatching = await matchingContext.Holdings
 				.Include(h => h.SymbolProfiles)
 				.Where(h => usedHoldingIds.Contains(h.Id))
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 			await MatchOtherMatchers(logger, matchingContext, holdingsForMatching).ConfigureAwait(false);
 		}
 

@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Performance
 				   .Include(h => h.Activities.Where(a => a is DividendActivity))
 				   .Include(h => h.CalculatedSnapshots)
 				   .AsSplitQuery()
-				   .ToListAsync();
+				   .ToListAsync(cancellationToken);
 
 			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync();
 
@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.Performance
 								&& d.PaymentDate >= today
 								&& d.PaymentDate <= oneYearFromNow
 								&& d.DividendState != DividendState.Paid)
-							.ToListAsync();
+							.ToListAsync(cancellationToken);
 
 						// Get latest quantity from CalculatedSnapshots
 						var latestSnapshot = holding.CalculatedSnapshots

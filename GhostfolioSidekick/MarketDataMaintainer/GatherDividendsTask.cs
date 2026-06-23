@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			var symbols = await databaseContext.SymbolProfiles
 				.Include(s => s.Dividends)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			foreach (var symbol in symbols)
 			{

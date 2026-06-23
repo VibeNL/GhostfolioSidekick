@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Activities
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
-			var holdings = await databaseContext.Holdings.ToListAsync();
+			var holdings = await databaseContext.Holdings.ToListAsync(cancellationToken);
 			foreach (var holdingStrategy in holdingStrategies.OrderBy(x => x.Priority))
 			{
 				foreach (var holding in holdings)

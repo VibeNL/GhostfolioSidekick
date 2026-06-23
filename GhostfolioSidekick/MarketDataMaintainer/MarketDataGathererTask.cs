@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			{
 				(await databaseContext.SymbolProfiles.Where(x => x.AssetClass != AssetClass.Undefined)
 					.Select(x => new Tuple<string, string>(x.Symbol, x.DataSource))
-					.ToListAsync())
+					.ToListAsync(cancellationToken))
 					.OrderBy(x => x.Item1)
 					.ThenBy(x => x.Item2)
 					.ToList()
@@ -185,7 +185,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var holdingIds = await databaseContext.Holdings
 				.Where(h => h.SymbolProfiles.Contains(symbol))
 				.Select(h => h.Id)
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 			if (holdingIds.Count == 0)
 			{

@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				using var DbContext = await DbContextFactory.CreateDbContextAsync(CancellationToken.None);
 				_taskRuns = await DbContext.Tasks
 					.AsNoTracking()
-					.ToListAsync();
+					.ToListAsync(CancellationToken.None);
 
 				CalculateStatistics();
 			}
@@ -235,7 +235,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			_taskLogs = await dbContext.Set<TaskRunLog>()
 					.AsNoTracking()
 					.Where(l => l.TaskRun == task)
-					.ToListAsync();
+					.ToListAsync(CancellationToken.None);
 			_taskLogs = [.. _taskLogs.OrderBy(l => l.Timestamp)];
 
 			StateHasChanged();

@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Sync
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			await using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
-			var allAccounts = await databaseContext.Accounts.ToListAsync();
+			var allAccounts = await databaseContext.Accounts.ToListAsync(cancellationToken);
 			foreach (var account in allAccounts)
 			{
 				await ghostfolioSync.SyncAccount(account);

@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Activities
 			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
-			var activityManager = new ActivityManager(await databaseContext.Accounts.ToListAsync());
+			var activityManager = new ActivityManager(await databaseContext.Accounts.ToListAsync(cancellationToken));
 			var accountNames = new List<string>();
 			await ParseFiles(logger, importers, directories, activityManager, accountNames);
 
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.Activities
 
 		private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
-			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync(CancellationToken.None);
 
 			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
 			{
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.Activities
 			var existingActivities = await databaseContext
 				.Activities
 				.Include(x => x.Account)
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 			// Ensure all account entities in activities are properly tracked
 			await EnsureAccountsAreTracked(databaseContext, activities);

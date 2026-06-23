@@ -27,9 +27,9 @@ namespace GhostfolioSidekick.Activities
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
-			var activities = await databaseContext.Activities.ToListAsync();
+			var activities = await databaseContext.Activities.ToListAsync(cancellationToken);
 
-			var currentHoldings = await databaseContext.Holdings.ToListAsync();
+			var currentHoldings = await databaseContext.Holdings.ToListAsync(cancellationToken);
 
 			foreach (var activityTuple in activities
 					.Select(x => new CustomObject { Activity = x, PartialIdentifier = x as IActivityWithPartialIdentifier })

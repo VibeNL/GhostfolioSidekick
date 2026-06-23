@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			var accounts = applicationSettings.ConfigurationInstance.Accounts;
 
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
-			var existingAccounts = await databaseContext.Accounts.ToListAsync();
+			var existingAccounts = await databaseContext.Accounts.ToListAsync(cancellationToken);
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{

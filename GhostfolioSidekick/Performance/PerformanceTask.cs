@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Performance
 				holdingIds = await dbContext.Holdings
 					.Where(h => h.SymbolProfiles.Any())
 					.Select(h => h.Id)
-					.ToListAsync();
+					.ToListAsync(cancellationToken);
 			}
 
 			if (holdingIds == null || holdingIds.Count == 0)

@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Sync
 			var allActivities = await databaseContext.Activities
 				.Include(x => x.Holding)
 				.Include(x => x.Account)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			await ghostfolioSync.SyncAllActivities(allActivities, cancellationToken);
 		}

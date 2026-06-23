@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			{
 				accountKeys = await databaseContext.Accounts
 					.Select(x => new AccountKey(x.Name, x.Id))
-					.ToListAsync();
+						.ToListAsync(cancellationToken);
 			}
 
 			foreach (var accountKey in accountKeys.Select(x => x.Id))
@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 				var activities = await databaseContext.Activities
 									.Where(x => x.Account.Id == accountKey)
 									.AsNoTracking()
-									.ToListAsync();
+									.ToListAsync(cancellationToken);
 
 				// Ensure activities is never null and order by date
 				var orderedActivities = (activities ?? []).OrderBy(x => x.Date);

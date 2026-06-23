@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Sync
 			await using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			var manualSymbolProfiles = await databaseContext.SymbolProfiles
 				.Include(x => x.MarketData)
-				.Where(x => x.DataSource == Datasource.MANUAL).ToListAsync();
+				.Where(x => x.DataSource == Datasource.MANUAL).ToListAsync(cancellationToken);
 			await ghostfolioSync.SyncSymbolProfiles(manualSymbolProfiles);
 
 			foreach (var profile in manualSymbolProfiles)

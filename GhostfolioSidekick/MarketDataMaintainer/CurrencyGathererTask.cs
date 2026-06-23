@@ -30,55 +30,55 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.AsNoTracking()
 				.Select(x => new { x.UnitPrice!.Currency, x.Date })
 				.Distinct()
-				.ToListAsync()).Union(
+				.ToListAsync(cancellationToken)).Union(
 					await databaseContext.Activities
 					.OfType<CashDepositActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<CashWithdrawalActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<DividendActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<FeeActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<InterestActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<KnownBalanceActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<RepayBondActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				)
 				.Where(x => x.Currency != null)
 				.GroupBy(x => x.Currency)
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.AsNoTracking()
 				.Select(x => new { x.Currency, Date = DateTime.Today })
 				.Distinct()
-				.ToListAsync())
+				.ToListAsync(cancellationToken))
 				.Where(x => x.Currency != null)
 				.Select(x => new { Currency = x.Currency!.GetSourceCurrency().Item1, x.Date })
 				.GroupBy(x => x.Currency)
