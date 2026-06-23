@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			List<AccountKey> accountKeys;
-			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
+			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken))
 			{
 				accountKeys = await databaseContext.Accounts
 					.Select(x => new AccountKey(x.Name, x.Id))
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			foreach (var accountKey in accountKeys.Select(x => x.Id))
 			{
-				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+				using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 				var activities = await databaseContext.Activities
 									.Where(x => x.Account.Id == accountKey)
 									.AsNoTracking()

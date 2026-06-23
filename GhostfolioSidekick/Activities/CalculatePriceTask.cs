@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Activities
 
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 			var holdings = await databaseContext.Holdings.ToListAsync();
 			foreach (var holdingStrategy in holdingStrategies.OrderBy(x => x.Priority))

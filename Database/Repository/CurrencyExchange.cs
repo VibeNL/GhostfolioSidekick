@@ -120,7 +120,7 @@ namespace GhostfolioSidekick.Database.Repository
 
 		private async Task PreloadAllExchangeRatesInternal()
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(CancellationToken.None);
 
 			try
 			{

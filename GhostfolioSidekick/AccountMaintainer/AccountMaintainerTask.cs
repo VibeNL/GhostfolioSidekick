@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			try
 			{
-				await AddOrUpdateAccountsAndPlatforms();
+				await AddOrUpdateAccountsAndPlatforms(cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -39,12 +39,12 @@ namespace GhostfolioSidekick.AccountMaintainer
 			logger.LogDebug("{Name} Done", nameof(AccountMaintainerTask));
 		}
 
-		private async Task AddOrUpdateAccountsAndPlatforms()
+		private async Task AddOrUpdateAccountsAndPlatforms(CancellationToken cancellationToken)
 		{
 			var platforms = applicationSettings.ConfigurationInstance.Platforms;
 			var accounts = applicationSettings.ConfigurationInstance.Accounts;
 
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			var existingAccounts = await databaseContext.Accounts.ToListAsync();
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 				if (account == null)
 				{
-					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
+					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform), cancellationToken);
 				}
 				else
 				{
@@ -62,9 +62,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 			}
 		}
 
-		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
+		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration, CancellationToken cancellationToken)
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 			var platform = await CreateOrUpdatePlatform(databaseContext, platformConfiguration);
 			await databaseContext.Accounts.AddAsync(new Account(accountConfig.Name)

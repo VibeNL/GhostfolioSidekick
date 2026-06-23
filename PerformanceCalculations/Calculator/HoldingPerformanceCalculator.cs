@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				hasPreloaded = true;
 			}
 
-			using DatabaseContext databaseContext = await dbFactory.CreateDbContextAsync();
+			using DatabaseContext databaseContext = await dbFactory.CreateDbContextAsync(CancellationToken.None);
 
 			var holdingData = await databaseContext
 				.Holdings

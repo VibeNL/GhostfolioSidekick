@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Performance
 
 			// Remove all snapshots and load holding IDs in a single context
 			List<int> holdingIds;
-			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken))
 			{
 				await dbContext.CalculatedSnapshots.ExecuteDeleteAsync();
 
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Performance
 
 			for (int i = 0; i < holdingIds.Count; i++)
 			{
-				using var batchDbContext = await dbContextFactory.CreateDbContextAsync();
+				using var batchDbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				var holdingId = holdingIds[i];
 				try

@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			var currenciesActivities = (await databaseContext.Activities
 				.OfType<ActivityWithQuantityAndUnitPrice>()
 				.AsNoTracking()
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var currencyHistory = await currencyRepository.GetCurrencyHistory(match.Item1.Currency, match.Item2.Currency, fromDate);
 				if (currencyHistory != null)
 				{
-					using var writeDatabaseContext = await databaseContextFactory.CreateDbContextAsync();
+					using var writeDatabaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 					var currencyExchangeProfile = await writeDatabaseContext.CurrencyExchangeRates
 						.Where(x => x.SourceCurrency == sourceCurrency && x.TargetCurrency == targetCurrency)

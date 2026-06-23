@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 	{
 		public async Task<List<Account>> GetAccountInfo()
 		{
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(CancellationToken.None);
 			return await databaseContext.Accounts
 				.Include(a => a.Platform)
 				.OrderBy(a => a.Name)
@@ -327,7 +327,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		public async Task<Account?> GetAccountByIdAsync(int accountId)
 		{
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(CancellationToken.None);
 			return await databaseContext.Accounts
 				.Include(a => a.Platform)
 				.FirstOrDefaultAsync(a => a.Id == accountId);

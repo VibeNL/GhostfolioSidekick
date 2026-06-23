@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Sync
 
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			await using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			await using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			var manualSymbolProfiles = await databaseContext.SymbolProfiles
 				.Include(x => x.MarketData)
 				.Where(x => x.DataSource == Datasource.MANUAL).ToListAsync();

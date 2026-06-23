@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Performance
 		{
 			logger.LogInformation("Starting upcoming dividends calculation for holdings...");
 
-			using var dbContext = await dbContextFactory.CreateDbContextAsync();
+			using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 			var today = DateOnly.FromDateTime(DateTime.Today);
 			var oneYearFromNow = today.AddYears(1);

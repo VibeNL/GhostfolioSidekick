@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Activities
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			List<int> usedHoldingIds;
-			using (DatabaseContext databaseContext = await databaseContextFactory.CreateDbContextAsync())
+			using (DatabaseContext databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken))
 			{
 				List<Activity> activities = await databaseContext.Activities.ToListAsync();
 				List<Holding> existingHoldings = await databaseContext.Holdings
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.Activities
 				usedHoldingIds = [.. usedHoldings.Where(h => h.Id != 0).Select(h => h.Id)];
 			}
 
-			using DatabaseContext matchingContext = await databaseContextFactory.CreateDbContextAsync();
+			using DatabaseContext matchingContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			List<Holding> holdingsForMatching = await matchingContext.Holdings
 				.Include(h => h.SymbolProfiles)
 				.Where(h => usedHoldingIds.Contains(h.Id))

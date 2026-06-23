@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();
-			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
+			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken))
 			{
 				(await databaseContext.SymbolProfiles.Where(x => x.AssetClass != AssetClass.Undefined)
 					.Select(x => new Tuple<string, string>(x.Symbol, x.DataSource))
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			{
 				logger.LogDebug("Gathering market data for {Symbol} from {DataSource}", symbolIds.Item1, symbolIds.Item2);
 
-				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+				using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 				var symbol = await databaseContext.SymbolProfiles
 					.Include(x => x.MarketData)
 					.Where(x => x.Symbol == symbolIds.Item1 && x.DataSource == symbolIds.Item2)
