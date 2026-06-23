@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 			var lastKnownDate = await databaseContext.CalculatedSnapshots
-				.MaxAsync(x => (DateOnly?)x.Date);
+				.MaxAsync(x => (DateOnly?)x.Date, cancellationToken: cancellationToken);
 
 			if (lastKnownDate == null)
 			{

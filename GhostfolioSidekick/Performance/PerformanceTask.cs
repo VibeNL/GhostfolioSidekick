@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Performance
 			List<int> holdingIds;
 			using (var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken))
 			{
-				await dbContext.CalculatedSnapshots.ExecuteDeleteAsync();
+				await dbContext.CalculatedSnapshots.ExecuteDeleteAsync(cancellationToken: cancellationToken);
 
 				holdingIds = await dbContext.Holdings
 					.Where(h => h.SymbolProfiles.Any())
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Performance
 				try
 				{
 					var holding = await batchDbContext.Holdings
-						.FirstOrDefaultAsync(h => h.Id == holdingId);
+						.FirstOrDefaultAsync(h => h.Id == holdingId, cancellationToken: cancellationToken);
 
 					if (holding == null)
 					{

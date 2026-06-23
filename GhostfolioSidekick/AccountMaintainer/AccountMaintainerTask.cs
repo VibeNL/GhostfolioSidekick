@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 				Platform = platform,
 				SyncActivities = accountConfig.SyncActivities,
 				SyncBalance = accountConfig.SyncBalance
-			});
+			}, cancellationToken);
 			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 

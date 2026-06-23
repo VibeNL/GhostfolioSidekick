@@ -49,13 +49,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var activities = databaseContext.Holdings.Where(x => x.SymbolProfiles.Contains(symbol))
 					.SelectMany(x => x.Activities);
 
-				if (!await activities.AnyAsync())
+				if (!await activities.AnyAsync(cancellationToken: cancellationToken))
 				{
 					logger.LogDebug("No activities found for {Symbol} from {DataSource}", symbol.Symbol, symbol.DataSource);
 					continue;
 				}
 
-				var minActivityDate = await activities.MinAsync(x => x.Date);
+				var minActivityDate = await activities.MinAsync(x => x.Date, cancellationToken: cancellationToken);
 
 				var date = DateOnly.FromDateTime(minActivityDate);
 				var stockPriceRepository = stockPriceRepositories.SingleOrDefault(x => x.DataSource == symbol.DataSource);

@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					var currencyExchangeProfile = await writeDatabaseContext.CurrencyExchangeRates
 						.Where(x => x.SourceCurrency == sourceCurrency && x.TargetCurrency == targetCurrency)
-						.FirstOrDefaultAsync() ?? new CurrencyExchangeProfile(sourceCurrency, targetCurrency);
+						.FirstOrDefaultAsync(cancellationToken: cancellationToken) ?? new CurrencyExchangeProfile(sourceCurrency, targetCurrency);
 
 					foreach (var item in currencyHistory)
 					{
@@ -132,9 +132,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						}
 					}
 
-					if (!await writeDatabaseContext.CurrencyExchangeRates.ContainsAsync(currencyExchangeProfile).ConfigureAwait(false))
+					if (!await writeDatabaseContext.CurrencyExchangeRates.ContainsAsync(currencyExchangeProfile, cancellationToken: cancellationToken).ConfigureAwait(false))
 					{
-						await writeDatabaseContext.CurrencyExchangeRates.AddAsync(currencyExchangeProfile);
+						await writeDatabaseContext.CurrencyExchangeRates.AddAsync(currencyExchangeProfile, cancellationToken);
 					}
 
 					await writeDatabaseContext.SaveChangesAsync(cancellationToken);

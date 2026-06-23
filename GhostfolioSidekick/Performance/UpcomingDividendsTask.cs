@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Performance
 				   .AsSplitQuery()
 				   .ToListAsync(cancellationToken);
 
-			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync();
+			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync(cancellationToken: cancellationToken);
 
 			int totalHoldings = holdings.Count;
 			int processedHoldings = 0;

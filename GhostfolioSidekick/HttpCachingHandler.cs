@@ -150,7 +150,7 @@ namespace GhostfolioSidekick
 					Content = successContent,
 					ContentType = successContentType
 				};
-			});
+			}, cancellationToken);
 
 			if (cachedResponse == null)
 			{

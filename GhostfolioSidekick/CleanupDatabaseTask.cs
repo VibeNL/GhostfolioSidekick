@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick
 		{
 			logger.LogInformation("Cleanup database...");
 			await dbContext.ExecutePragma("PRAGMA integrity_check;");
-			await dbContext.Database.ExecuteSqlRawAsync("VACUUM;");
+			await dbContext.Database.ExecuteSqlRawAsync("VACUUM;", cancellationToken: cancellationToken);
 			logger.LogInformation("Database cleaned.");
 		}
 	}

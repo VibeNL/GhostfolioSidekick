@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using KellermanSoftware.CompareNetObjects;
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 				var balanceCalculator = new BalanceCalculator(exchangeRateService);
 				var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
 
-				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey)!;
+				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey, cancellationToken: cancellationToken)!;
 				var existingBalances = account!.Balance ?? [];
 
 				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
