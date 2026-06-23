@@ -44,6 +44,7 @@ namespace GhostfolioSidekick
 			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
 			await databaseContext.ExecutePragma("PRAGMA fullfsync=ON;");
 			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+			await databaseContext.ExecutePragma("PRAGMA busy_timeout=5000;");
 
 			logger.LogInformation("Integrity checks...");
 			await databaseContext.ExecutePragma("PRAGMA integrity_check;");
@@ -205,12 +206,14 @@ namespace GhostfolioSidekick
 			try
 			{
 				await workItem.Work.DoWork(taskLogger, combinedToken);
+				await taskLogger.FlushAsync();
 			}
 			catch (Exception ex)
 			{
 				// Log the main exception and all inner exceptions
 				var exceptionMessage = GetFullExceptionMessage(ex);
 				taskLogger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, exceptionMessage);
+				await taskLogger.FlushAsync();
 				var taskrun = GetTask(databaseContext, workItem.Work.GetType().Name);
 				if (taskrun != null)
 				{
@@ -226,6 +229,7 @@ namespace GhostfolioSidekick
 			}
 			finally
 			{
+				await taskLogger.DisposeAsync();
 				timeoutSource?.Dispose();
 			}
 		}
