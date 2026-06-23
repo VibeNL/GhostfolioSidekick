@@ -17,12 +17,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Predict Dividends Task";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 			var lastKnownDate = await databaseContext.CalculatedSnapshots
-				.MaxAsync(x => (DateOnly?)x.Date);
+				.MaxAsync(x => (DateOnly?)x.Date, cancellationToken: cancellationToken);
 
 			if (lastKnownDate == null)
 			{
@@ -36,11 +38,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			// Build holdings map: symbol -> (quantity, dataSource)
 			var holdingsWithProfiles = await databaseContext.Holdings
 				.Include(h => h.SymbolProfiles)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			var snapshots = await databaseContext.CalculatedSnapshots
 				.Where(s => s.Date == lastKnownDate)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			var holdingsMap = new Dictionary<string, (decimal Quantity, string DataSource)>();
 			foreach (var holding in holdingsWithProfiles)
@@ -73,7 +75,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.Where(s => heldHoldingIds.Contains(s.HoldingId)
 						 && s.Date >= lookbackStart
 						 && s.Date < today)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			var snapshotsByHolding = historicalSnapshots
 				.GroupBy(s => s.HoldingId)
@@ -87,7 +89,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			// Load all data before making changes
 			var existingPredictions = await databaseContext.Dividends
 				.Where(d => d.DividendState == DividendState.Predicted)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			var historicalDividends = await databaseContext.Activities
 				.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
@@ -96,20 +98,20 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						&& a.Amount.Amount > 0
 						&& a.PartialSymbolIdentifiers.Any(p => heldSymbols.Contains(p.Identifier)))
 				.OrderBy(a => a.Date)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			var confirmedUpcoming = await databaseContext.Activities
 				.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
 				.Where(a => a.Date >= today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
 					&& a.PartialSymbolIdentifiers.Any(p => heldSymbols.Contains(p.Identifier)))
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			// Also include upcoming dividends from the Dividends table (non-predicted)
 			var confirmedUpcomingDivs = await databaseContext.Dividends
 				.Where(d => d.PaymentDate >= today
 					&& d.DividendState != DividendState.Predicted
 					&& d.SymbolProfileSymbol != null && heldSymbols.Contains(d.SymbolProfileSymbol))
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			// Combine both sources for alreadyCovered check
 			var allConfirmedUpcoming = confirmedUpcoming.Cast<object>().ToList();
@@ -218,7 +220,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 			}
 
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 			logger.LogInformation("Dividend prediction completed: {Added} predictions for {Symbols} symbols", addedCount, holdingsMap.Count);
 		}
 

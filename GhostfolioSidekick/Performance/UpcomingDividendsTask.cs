@@ -22,11 +22,13 @@ namespace GhostfolioSidekick.Performance
 
 		public string Name => "Upcoming Dividends Calculations";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Starting upcoming dividends calculation for holdings...");
 
-			using var dbContext = await dbContextFactory.CreateDbContextAsync();
+			using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 			var today = DateOnly.FromDateTime(DateTime.Today);
 			var oneYearFromNow = today.AddYears(1);
@@ -36,9 +38,9 @@ namespace GhostfolioSidekick.Performance
 				   .Include(h => h.Activities.Where(a => a is DividendActivity))
 				   .Include(h => h.CalculatedSnapshots)
 				   .AsSplitQuery()
-				   .ToListAsync();
+				   .ToListAsync(cancellationToken);
 
-			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync();
+			await dbContext.UpcomingDividendTimelineEntries.ExecuteDeleteAsync(cancellationToken: cancellationToken);
 
 			int totalHoldings = holdings.Count;
 			int processedHoldings = 0;
@@ -61,7 +63,7 @@ namespace GhostfolioSidekick.Performance
 								&& d.PaymentDate >= today
 								&& d.PaymentDate <= oneYearFromNow
 								&& d.DividendState != DividendState.Paid)
-							.ToListAsync();
+							.ToListAsync(cancellationToken);
 
 						// Get latest quantity from CalculatedSnapshots
 						var latestSnapshot = holding.CalculatedSnapshots
@@ -195,7 +197,7 @@ namespace GhostfolioSidekick.Performance
 				logger.LogInformation("Processed {Processed}/{Total} holdings for dividends", processedHoldings, totalHoldings);
 			}
 
-			await dbContext.SaveChangesAsync();
+			await dbContext.SaveChangesAsync(cancellationToken);
 			logger.LogInformation("Upcoming dividends calculation completed for {Count} holdings", totalHoldings);
 		}
 	}

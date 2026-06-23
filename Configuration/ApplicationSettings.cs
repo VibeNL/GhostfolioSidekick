@@ -9,11 +9,15 @@ namespace GhostfolioSidekick.Configuration
 		private const string PATHFILES = "FILEIMPORTER_PATH";
 		private const string DATABASEPATH = "DATABASE_PATH";
 		private const string CONFIGURATIONFILE = "CONFIGURATIONFILE_PATH";
-		private const string TROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
+		private const string THROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
 		private const string DATABASE_QUERY_TIMEOUT = "DATABASE_QUERY_TIMEOUT_SECONDS";
 		private const string ENABLE_DATABASE_PERFORMANCE_LOGGING = "ENABLE_DATABASE_PERFORMANCE_LOGGING";
 		private const string BACKUP_FOLDER_NAME = "BACKUP_FOLDER_NAME";
 		private const string MAX_BACKUP_COUNT = "MAX_BACKUP_COUNT";
+		private const string COINGECKO_CACHE_EXPIRY = "COINGECKO_CACHE_EXPIRY_DAYS";
+		private const string YAHOO_CACHE_EXPIRY = "YAHOO_CACHE_EXPIRY_DAYS";
+		private const string DIVIDENDMAX_CACHE_EXPIRY = "DIVIDENDMAX_CACHE_EXPIRY_DAYS";
+		private const string GHOSTFOLIO_CACHE_EXPIRY = "GHOSTFOLIO_CACHE_EXPIRY_DAYS";
 		private const string DEFAULT_DB_NAME = "ghostfolio.db";
 		private const string DEFAULT_DB_BACKUP_NAME = "ghostfolio_backup.db";
 
@@ -78,7 +82,7 @@ namespace GhostfolioSidekick.Configuration
 			}
 		}
 
-		public int TrottleTimeout => GetTimeout();
+		public int ThrottleTimeout => GetTimeout();
 
 		/// <summary>
 		/// Database query timeout in seconds for complex queries. Default is 120 seconds.
@@ -100,14 +104,45 @@ namespace GhostfolioSidekick.Configuration
 		/// </summary>
 		public int MaxBackupCount => GetMaxBackupCount();
 
+		/// <summary>
+		/// HTTP cache expiry in hours for CoinGecko API calls. Default is 24.
+		/// </summary>
+		public int CoinGeckoCacheExpiryHours => GetCacheExpiryHours(COINGECKO_CACHE_EXPIRY, 24);
+
+		/// <summary>
+		/// HTTP cache expiry in hours for Yahoo Finance API calls. Default is 24.
+		/// </summary>
+		public int YahooCacheExpiryHours => GetCacheExpiryHours(YAHOO_CACHE_EXPIRY, 24);
+
+		/// <summary>
+		/// HTTP cache expiry in hours for DividendMax API calls. Default is 168.
+		/// </summary>
+		public int DividendMaxCacheExpiryHours => GetCacheExpiryHours(DIVIDENDMAX_CACHE_EXPIRY, 168);
+
+		/// <summary>
+		/// HTTP cache expiry in hours for Ghostfolio API calls. Default is 168.
+		/// </summary>
+		public int GhostfolioCacheExpiryHours => GetCacheExpiryHours(GHOSTFOLIO_CACHE_EXPIRY, 168);
+
+		private static int GetCacheExpiryHours(string envVar, int defaultHours)
+		{
+			if (int.TryParse(Environment.GetEnvironmentVariable(envVar), out int hours) && hours > 0)
+			{
+				return hours;
+			}
+
+			return defaultHours;
+		}
+
 		private static int GetTimeout()
 		{
-			if (int.TryParse(Environment.GetEnvironmentVariable(TROTTLETIMEOUT), out int timeoutInSeconds))
+			var envValue = Environment.GetEnvironmentVariable(THROTTLETIMEOUT);
+			if (!string.IsNullOrEmpty(envValue) && int.TryParse(envValue, out int timeoutInSeconds))
 			{
 				return timeoutInSeconds;
 			}
 
-			return 0;
+			return 0; // Default: no wait time between calls
 		}
 
 		private static int GetDatabaseQueryTimeout()

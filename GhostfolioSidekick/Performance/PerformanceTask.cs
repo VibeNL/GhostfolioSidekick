@@ -20,21 +20,23 @@ namespace GhostfolioSidekick.Performance
 
 		public string Name => "Performance Calculations";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Starting performance calculations for holdings...");
 			var currency = Currency.GetCurrency(applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency) ?? Currency.EUR;
 
 			// Remove all snapshots and load holding IDs in a single context
 			List<int> holdingIds;
-			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken))
 			{
-				await dbContext.CalculatedSnapshots.ExecuteDeleteAsync();
+				await dbContext.CalculatedSnapshots.ExecuteDeleteAsync(cancellationToken: cancellationToken);
 
 				holdingIds = await dbContext.Holdings
 					.Where(h => h.SymbolProfiles.Any())
 					.Select(h => h.Id)
-					.ToListAsync();
+					.ToListAsync(cancellationToken);
 			}
 
 			if (holdingIds == null || holdingIds.Count == 0)
@@ -51,13 +53,13 @@ namespace GhostfolioSidekick.Performance
 
 			for (int i = 0; i < holdingIds.Count; i++)
 			{
-				using var batchDbContext = await dbContextFactory.CreateDbContextAsync();
+				using var batchDbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				var holdingId = holdingIds[i];
 				try
 				{
 					var holding = await batchDbContext.Holdings
-						.FirstOrDefaultAsync(h => h.Id == holdingId);
+						.FirstOrDefaultAsync(h => h.Id == holdingId, cancellationToken: cancellationToken);
 
 					if (holding == null)
 					{
@@ -86,7 +88,7 @@ namespace GhostfolioSidekick.Performance
 
 				try
 				{
-					await batchDbContext.SaveChangesAsync();
+					await batchDbContext.SaveChangesAsync(cancellationToken);
 				}
 				catch (Exception ex)
 				{

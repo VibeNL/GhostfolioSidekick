@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_memoryCache.Set(nameof(FileImporterTask), knownHash);
 
 			// Act
-			await _fileImporterTask.DoWork(_mockLogger.Object);
+			await _fileImporterTask.DoWork(_mockLogger.Object, CancellationToken.None);
 
 			// Assert
 			_mockLogger.VerifyLog(logger => logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask)), Times.Once);

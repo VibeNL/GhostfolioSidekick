@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
@@ -20,13 +20,15 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public string Name => "Account Maintainer";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogDebug("{Name} Starting to do work", nameof(AccountMaintainerTask));
 
 			try
 			{
-				await AddOrUpdateAccountsAndPlatforms();
+				await AddOrUpdateAccountsAndPlatforms(cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -37,13 +39,13 @@ namespace GhostfolioSidekick.AccountMaintainer
 			logger.LogDebug("{Name} Done", nameof(AccountMaintainerTask));
 		}
 
-		private async Task AddOrUpdateAccountsAndPlatforms()
+		private async Task AddOrUpdateAccountsAndPlatforms(CancellationToken cancellationToken)
 		{
 			var platforms = applicationSettings.ConfigurationInstance.Platforms;
 			var accounts = applicationSettings.ConfigurationInstance.Accounts;
 
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
-			var existingAccounts = await databaseContext.Accounts.ToListAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
+			var existingAccounts = await databaseContext.Accounts.ToListAsync(cancellationToken);
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
@@ -51,18 +53,18 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 				if (account == null)
 				{
-					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
+					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform), cancellationToken);
 				}
 				else
 				{
-					await UpdateAccount(databaseContext, account, accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
+					await UpdateAccount(databaseContext, account, accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform), cancellationToken);
 				}
 			}
 		}
 
-		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
+		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration, CancellationToken cancellationToken)
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 			var platform = await CreateOrUpdatePlatform(databaseContext, platformConfiguration);
 			await databaseContext.Accounts.AddAsync(new Account(accountConfig.Name)
@@ -71,11 +73,11 @@ namespace GhostfolioSidekick.AccountMaintainer
 				Platform = platform,
 				SyncActivities = accountConfig.SyncActivities,
 				SyncBalance = accountConfig.SyncBalance
-			});
-			await databaseContext.SaveChangesAsync();
+			}, cancellationToken);
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 
-		private async Task UpdateAccount(DatabaseContext databaseContext, Account account, AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
+		private async Task UpdateAccount(DatabaseContext databaseContext, Account account, AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration, CancellationToken cancellationToken)
 		{
 			bool hasChanges = false;
 
@@ -109,7 +111,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			if (hasChanges)
 			{
-				await databaseContext.SaveChangesAsync();
+				await databaseContext.SaveChangesAsync(cancellationToken);
 			}
 		}
 

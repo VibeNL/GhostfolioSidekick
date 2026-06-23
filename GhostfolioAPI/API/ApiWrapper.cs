@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
@@ -11,9 +12,10 @@ using Newtonsoft.Json.Linq;
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class ApiWrapper(
-			RestCall restCall,
+			IRestCall restCall,
 			ILogger<ApiWrapper> logger,
-			ICurrencyExchange currencyExchange) : IApiWrapper
+			ICurrencyExchange currencyExchange,
+			IApplicationSettings applicationSettings) : IApiWrapper
 	{
 		private const string ActivitiesEndpoint = "api/v1/activities";
 
@@ -49,6 +51,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task CreatePlatform(Model.Accounts.Platform platform)
 		{
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogWarning("CreatePlatform skipped: not authorized (non-admin user)");
+				return;
+			}
+
 			var o = new JObject
 			{
 				["name"] = platform.Name,
@@ -69,6 +77,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			var accounts = await GetAllAccounts();
 			var account = accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+
 			if (account == null)
 			{
 				return null;
@@ -78,6 +87,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return ContractToModelMapper.MapAccount(
 					account,
 					platforms.SingleOrDefault(x => x.Id == account.PlatformId));
+		}
+
+		public async Task<bool> AccountExistsAsync(string name)
+		{
+			var accounts = await GetAllAccounts();
+			return accounts.Any(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 		}
 
 		public async Task<Model.Accounts.Platform?> GetPlatformByName(string name)
@@ -125,8 +140,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return [.. existingActivities.Select(x => ContractToModelMapper.MapActivity(account, symbols, x))];
 		}
 
-		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
+		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities, System.Threading.CancellationToken cancellationToken = default)
 		{
+			var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+			logger.LogInformation("SyncAllActivities started (timeout: {MaxRunTime})", cancellationToken.CanBeCanceled ? "enabled" : "disabled");
+
 			var content = await DoRestGetActivities();
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
@@ -164,8 +182,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						DataSource = Datasource.GetUnderlyingDataSource(symbolProfile.DataSource).ToString(),
 						Name = symbolProfile.Name ?? symbolProfile.Symbol,
 						Symbol = symbolProfile.Symbol,
-						Sectors = symbolProfile.SectorWeights?.Select(x => new Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
-						Countries = symbolProfile.CountryWeight?.Select(x => new Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []
+						Sectors = symbolProfile.SectorWeights?.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
+						Countries = symbolProfile.CountryWeight?.Select(x => new Contract.Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []
 					};
 				}
 
@@ -183,9 +201,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				.OrderBy(x => x.Order1.Date)
 				.ToList();
 
-			logger.LogDebug("Applying changes");
+			logger.LogDebug("Applying changes ({Total} operations)", mergeOrders.Count);
+			int applied = 0;
 			foreach (var item in mergeOrders)
 			{
+				if (cancellationToken.IsCancellationRequested)
+				{
+					logger.LogInformation("SyncAllActivities timeout reached after {Elapsed}ms ({Applied}/{Total} operations applied), stopping gracefully", stopwatch.ElapsedMilliseconds, applied, mergeOrders.Count);
+					break;
+				}
+
 				try
 				{
 					switch (item.Operation)
@@ -203,12 +228,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						default:
 							throw new NotSupportedException();
 					}
+					applied++;
 				}
 				catch (Exception ex)
 				{
 					logger.LogError(ex, "Transaction failed to write {Exception}, skipping", ex.Message);
 				}
 			}
+
+			logger.LogInformation("SyncAllActivities completed ({Applied}/{Total} operations applied in {Elapsed}ms)", applied, mergeOrders.Count, stopwatch.Elapsed);
 
 			static int SortOnDataSource(Model.Activities.Activity activity, Model.Symbols.SymbolProfile x)
 			{
@@ -410,6 +438,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private async Task<List<Platform>> GetPlatforms()
 		{
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogTrace("GetPlatforms skipped: not authorized (non-admin user)");
+				return [];
+			}
+
 			var content = await restCall.DoRestGet($"api/v1/platform");
 
 			if (content == null)
@@ -423,26 +457,23 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				logger.LogTrace("GetAllSymbolProfiles skipped: not authorized (non-admin user)");
+				return [];
+			}
+
+			var content = await restCall.DoRestGet($"api/v1/asset-profiles");
 
 			if (content == null)
 			{
 				return [];
 			}
 
-			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
+			var assetProfiles = JsonConvert.DeserializeObject<AssetProfileList>(content);
 
-			var profiles = new List<Contract.SymbolProfile>();
-			foreach (var f in market?.MarketData
-				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
-				.ToList() ?? [])
-			{
-				content = await restCall.DoRestGet($"api/v1/market-data/{f.DataSource}/{f.Symbol}");
-				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
-				profiles.Add(data!.AssetProfile);
-			}
-
-			return profiles;
+			return [.. (assetProfiles?.AssetProfiles ?? [])
+				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))];
 		}
 
 		private async Task WriteOrder(Activity activity)

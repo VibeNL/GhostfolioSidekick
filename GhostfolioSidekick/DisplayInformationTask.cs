@@ -15,7 +15,9 @@ namespace GhostfolioSidekick
 
 		public string Name => "Display Information";
 
-		public Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			PrintUsedSettings(logger);
 			return Task.CompletedTask;
@@ -29,7 +31,7 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"GhostfolioUrl : {applicationSettings.GhostfolioUrl}");
 			sb.AppendLine($"FileImporterPath : {applicationSettings.FileImporterPath}");
 			sb.AppendLine($"DatabasePath : {applicationSettings.DatabasePath}");
-			sb.AppendLine($"TrottleTimeout : {applicationSettings.TrottleTimeout}");
+			sb.AppendLine($"ThrottleTimeout : {applicationSettings.ThrottleTimeout}");
 
 			var settings = applicationSettings.ConfigurationInstance.Settings;
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");

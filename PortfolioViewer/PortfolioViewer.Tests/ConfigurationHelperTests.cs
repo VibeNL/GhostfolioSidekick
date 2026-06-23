@@ -287,11 +287,15 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 			public string DatabaseFilePath { get; set; } = string.Empty;
 			public string GhostfolioUrl { get; set; } = string.Empty;
 			public string GhostfolioAccessToken { get; set; } = string.Empty;
-			public int TrottleTimeout { get; set; }
+			public int ThrottleTimeout { get; set; }
 			public int DatabaseQueryTimeoutSeconds { get; set; } = 120;
 			public bool EnableDatabasePerformanceLogging { get; set; }
 			public string BackupFolderName { get; set; } = "Backups";
 			public int MaxBackupCount { get; set; } = 5;
+			public int CoinGeckoCacheExpiryHours { get; set; } = 24;
+			public int YahooCacheExpiryHours { get; set; } = 24;
+			public int DividendMaxCacheExpiryHours { get; set; } = 168;
+			public int GhostfolioCacheExpiryHours { get; set; } = 168;
 			public ConfigurationInstance ConfigurationInstance { get; set; } = new();
 			public bool AllowAdminCalls { get; set; }
 

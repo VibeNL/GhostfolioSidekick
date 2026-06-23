@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockDividendRepository.Setup(r => r.IsSymbolSupported(It.IsAny<SymbolProfile>())).ReturnsAsync(false);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			_mockDividendRepository.Verify(r => r.GetDividends(It.IsAny<SymbolProfile>()), Times.Never);
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockDividendRepository.Setup(r => r.IsSymbolSupported(It.IsAny<SymbolProfile>())).ReturnsAsync(false);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: dividends are untouched when the symbol is skipped
 			symbolProfile.Dividends.Should().HaveCount(1);
@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			SetupSupportedSymbol("AAPL", [newDividend]);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			symbolProfile.Dividends.Should().HaveCount(1).And.Contain(newDividend);
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			SetupSupportedSymbol("AAPL", [BuildDividend(amount: 1.75m)]);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: count stays at 1, amount is updated
 			symbolProfile.Dividends.Should().HaveCount(1);
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			SetupSupportedSymbol("AAPL", []);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: stale non-predicted dividend is removed
 			symbolProfile.Dividends.Should().BeEmpty();
@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			SetupSupportedSymbol("AAPL", []);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: Predicted dividends are never removed regardless of gathered data
 			symbolProfile.Dividends.Should().HaveCount(1);
@@ -160,7 +160,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync((IList<Dividend>)[BuildDividend()]);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			symbolAapl.Dividends.Should().HaveCount(1);
@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			SetupSupportedSymbol("AAPL", []);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			dbContextMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			SetupSupportedSymbol("AAPL", gathered);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			loggerMock.Verify(

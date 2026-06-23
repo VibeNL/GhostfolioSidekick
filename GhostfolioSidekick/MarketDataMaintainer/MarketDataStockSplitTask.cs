@@ -20,15 +20,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Market Data Stock Split Gatherer";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();
-			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
+			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken))
 			{
 				symbolIdentifiers.AddRange(
 					(await databaseContext.SymbolProfiles.Where(x => x.AssetSubClass == AssetSubClass.Stock)
 						.Select(x => new Tuple<string, string>(x.Symbol, x.DataSource))
-						.ToListAsync())
+						.ToListAsync(cancellationToken))
 						.OrderBy(x => x.Item1)
 						.ThenBy(x => x.Item2)
 						.Where(x => !Datasource.IsGhostfolio(x.Item2)));
@@ -36,22 +38,21 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var symbolIds in symbolIdentifiers)
 			{
-				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+				using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 				var symbol = await databaseContext.SymbolProfiles
 					.Include(x => x.MarketData)
 					.Where(x => x.Symbol == symbolIds.Item1 && x.DataSource == symbolIds.Item2)
-					.SingleAsync();
-
+					.SingleAsync(cancellationToken);
 				var activities = databaseContext.Holdings.Where(x => x.SymbolProfiles.Contains(symbol))
 					.SelectMany(x => x.Activities);
 
-				if (!await activities.AnyAsync())
+				if (!await activities.AnyAsync(cancellationToken: cancellationToken))
 				{
 					logger.LogTrace("No activities found for {Symbol} from {DataSource}", symbol.Symbol, symbol.DataSource);
 					continue;
 				}
 
-				var minActivityDate = await activities.MinAsync(x => x!.Date);
+				var minActivityDate = await activities.MinAsync(x => x!.Date, cancellationToken: cancellationToken);
 
 				var date = DateOnly.FromDateTime(minActivityDate);
 				var stockSplitRepository = stockPriceRepositories.SingleOrDefault(x => x.DataSource == symbol.DataSource);
@@ -77,12 +78,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 				}
 
-				if (!await databaseContext.SymbolProfiles.ContainsAsync(symbol).ConfigureAwait(false))
+				if (!await databaseContext.SymbolProfiles.ContainsAsync(symbol, cancellationToken: cancellationToken).ConfigureAwait(false))
 				{
-					await databaseContext.SymbolProfiles.AddAsync(symbol);
+					await databaseContext.SymbolProfiles.AddAsync(symbol, cancellationToken);
 				}
 
-				await databaseContext.SaveChangesAsync();
+				await databaseContext.SaveChangesAsync(cancellationToken);
 
 				if (splits.Any())
 				{

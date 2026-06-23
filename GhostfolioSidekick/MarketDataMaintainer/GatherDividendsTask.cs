@@ -18,12 +18,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Gather Dividends Task";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			var symbols = await databaseContext.SymbolProfiles
 				.Include(s => s.Dividends)
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 
 			foreach (var symbol in symbols)
 			{
@@ -75,7 +77,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 
 			// Save changes
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 	}
 }

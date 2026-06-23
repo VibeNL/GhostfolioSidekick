@@ -85,24 +85,13 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton(x =>
 							{
 								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
-								return new RestCall(x.GetService<IRestClient>()!,
-													x.GetService<MemoryCache>()!,
-													x.GetService<ILogger<RestCall>>()!,
-													settings!.GhostfolioUrl,
-													settings!.GhostfolioAccessToken,
-													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
-							});
-							_ = services.AddSingleton(x =>
-							{
-								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
-							_ = services.AddDbContextFactory<DatabaseContext>((sp, options) =>
+							_ = services.AddSingleton<IDbContextFactory<DatabaseContext>, DatabaseContextFactory>();
+							_ = services.AddScoped<DatabaseContext>(sp =>
 							{
-								IApplicationSettings? settings = sp.GetService<IApplicationSettings>();
-								string? dbPath = settings?.DatabaseFilePath;
-								_ = options.UseSqlite($"Data Source={dbPath}");
-								_ = options.UseLazyLoadingProxies();
+								var factory = sp.GetRequiredService<IDbContextFactory<DatabaseContext>>();
+								return factory.CreateDbContext();
 							});
 
 							_ = services.AddSingleton<ICurrencyMapper, SymbolMapper>();
@@ -110,7 +99,11 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton<IApiWrapper, ApiWrapper>();
 
 							// Register ExternalDataCacheService for caching external data provider requests
+							_ = services.AddSingleton<Database.DbBackedCacheService>();
 							_ = services.AddSingleton<ExternalDataProvider.Cache.IExternalDataCacheService, ExternalDataProvider.Cache.ExternalDataCacheService>();
+
+							// Register GhostfolioSyncCacheService for caching Ghostfolio API responses
+							_ = services.AddSingleton<GhostfolioAPI.Cache.IGhostfolioSyncCacheService, GhostfolioAPI.Cache.GhostfolioSyncCacheService>();
 
 							AddHooksToCacheExternalServices(services);
 
@@ -136,6 +129,13 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							_ = services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							_ = services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
+							_ = services.AddSingleton<IRestCall>(sp =>
+							{
+								var restClient = sp.GetRequiredService<IRestClient>();
+								var logger = sp.GetRequiredService<ILogger<RestCall>>();
+								var settings = sp.GetRequiredService<IApplicationSettings>();
+								return new RestCall(restClient, sp.GetRequiredService<IMemoryCache>(), logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken, new RestCallOptions() { ThrottleTimeout = TimeSpan.FromSeconds(settings.ThrottleTimeout) }, TimeProvider.System);
+							});
 							_ = services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
 							_ = services.AddHttpClient<IDividendRepository, DividendMaxScraper>();

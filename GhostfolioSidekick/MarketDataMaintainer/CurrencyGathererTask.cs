@@ -20,63 +20,65 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Currency Gatherer";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			var currenciesActivities = (await databaseContext.Activities
 				.OfType<ActivityWithQuantityAndUnitPrice>()
 				.AsNoTracking()
 				.Select(x => new { x.UnitPrice!.Currency, x.Date })
 				.Distinct()
-				.ToListAsync()).Union(
+				.ToListAsync(cancellationToken)).Union(
 					await databaseContext.Activities
 					.OfType<CashDepositActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<CashWithdrawalActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<DividendActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<FeeActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<InterestActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<KnownBalanceActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<RepayBondActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync()
+					.ToListAsync(cancellationToken)
 				)
 				.Where(x => x.Currency != null)
 				.GroupBy(x => x.Currency)
@@ -85,7 +87,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.AsNoTracking()
 				.Select(x => new { x.Currency, Date = DateTime.Today })
 				.Distinct()
-				.ToListAsync())
+				.ToListAsync(cancellationToken))
 				.Where(x => x.Currency != null)
 				.Select(x => new { Currency = x.Currency!.GetSourceCurrency().Item1, x.Date })
 				.GroupBy(x => x.Currency)
@@ -110,11 +112,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var currencyHistory = await currencyRepository.GetCurrencyHistory(match.Item1.Currency, match.Item2.Currency, fromDate);
 				if (currencyHistory != null)
 				{
-					using var writeDatabaseContext = await databaseContextFactory.CreateDbContextAsync();
+					using var writeDatabaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 					var currencyExchangeProfile = await writeDatabaseContext.CurrencyExchangeRates
 						.Where(x => x.SourceCurrency == sourceCurrency && x.TargetCurrency == targetCurrency)
-						.FirstOrDefaultAsync() ?? new CurrencyExchangeProfile(sourceCurrency, targetCurrency);
+						.FirstOrDefaultAsync(cancellationToken: cancellationToken) ?? new CurrencyExchangeProfile(sourceCurrency, targetCurrency);
 
 					foreach (var item in currencyHistory)
 					{
@@ -130,12 +132,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						}
 					}
 
-					if (!await writeDatabaseContext.CurrencyExchangeRates.ContainsAsync(currencyExchangeProfile).ConfigureAwait(false))
+					if (!await writeDatabaseContext.CurrencyExchangeRates.ContainsAsync(currencyExchangeProfile, cancellationToken: cancellationToken).ConfigureAwait(false))
 					{
-						await writeDatabaseContext.CurrencyExchangeRates.AddAsync(currencyExchangeProfile);
+						await writeDatabaseContext.CurrencyExchangeRates.AddAsync(currencyExchangeProfile, cancellationToken);
 					}
 
-					await writeDatabaseContext.SaveChangesAsync();
+					await writeDatabaseContext.SaveChangesAsync(cancellationToken);
 				}
 			}
 		}

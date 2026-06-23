@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
 
 			// Act
-			await _determineHoldings.DoWork(loggerMock.Object);
+			await _determineHoldings.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.RemoveRange(It.Is<IEnumerable<Holding>>(h => h.Count() == 2)), Times.Once);
@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
 
 			// Act
-			await _determineHoldings.DoWork(loggerMock.Object);
+			await _determineHoldings.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Once);
@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(symbolProfile);
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.Is<Holding>(h =>
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync((SymbolProfile?)null);
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			// Verify that the log warning for "no symbol profile found" was called
@@ -229,7 +229,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				.ReturnsAsync(new SymbolProfile { Symbol = "NEW_SYMBOL", DataSource = "TestSource" });
 
 			// Act
-			await determineHoldingsWithMappings.DoWork(_loggerMock.Object);
+			await determineHoldingsWithMappings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
             // The matcher may be called more than once due to cache/context separation
@@ -258,14 +258,14 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				.ReturnsAsync(symbolProfile);
 
 			// Act - First call
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Reset dbContextMock for second call
 			dbContextMock.Invocations.Clear();
 			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			// Act - Second call (should use cache)
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
             // Assert - Symbol matcher should be called only as many times as needed (may be >1 due to context separation)
 			_symbolMatcherMock.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.AtLeast(1));
@@ -298,7 +298,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			   .ReturnsAsync(new SymbolProfile { Symbol = "EXISTING_SYMBOL", DataSource = "TestSource" });
 
 		   // Act
-		   await _determineHoldings.DoWork(_loggerMock.Object);
+		   await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 		   // Assert
 		   // The code should use the existing symbol profile from the database (preloaded)
@@ -344,7 +344,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				.ReturnsAsync(new SymbolProfile { Symbol = "MULTI_MATCHER_SYMBOL", DataSource = "SecondSource" });
 
 			// Act
-			await determineHoldingsMultipleMatchers.DoWork(_loggerMock.Object);
+			await determineHoldingsMultipleMatchers.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 	  // Verify that both matchers had their AllowedForDeterminingHolding property checked (actual MatchSymbol calls depend on implementation logic)
@@ -384,7 +384,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				.ReturnsAsync(new SymbolProfile { Symbol = "TEST_SYMBOL", DataSource = "AllowedSource" });
 
 			// Act
-			await determineHoldingsWithDisallowed.DoWork(_loggerMock.Object);
+			await determineHoldingsWithDisallowed.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			disallowedMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);
@@ -415,7 +415,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				.ReturnsAsync(new SymbolProfile { Symbol = "EXISTING", DataSource = "TestSource" });
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			existingHolding.SymbolProfiles.Should().HaveCount(1);
@@ -440,7 +440,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			holding.PartialSymbolIdentifiers.Should().HaveCount(3);
@@ -460,7 +460,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Never);
@@ -494,7 +494,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				.ReturnsAsync(new SymbolProfile { Symbol = "NEW_SYMBOL", DataSource = "TestSource" });
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.Is<Holding>(h =>
@@ -517,7 +517,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			_loggerMock.Verify(
@@ -560,7 +560,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				.ReturnsAsync(new SymbolProfile { Symbol = "MSFT", DataSource = "TestSource", Currency = Currency.EUR, Name = "Microsoft" });
 
 			// Act
-			await _determineHoldings.DoWork(_loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.Is<Holding>(h => h.Activities.Count == 2)), Times.Once);

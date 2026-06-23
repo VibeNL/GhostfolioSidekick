@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			}
 		}
 
-		public async Task SyncAllActivities(IEnumerable<Activity> allActivities)
+		public async Task SyncAllActivities(IEnumerable<Activity> allActivities, System.Threading.CancellationToken cancellationToken = default)
 		{
 			logger.LogDebug("Syncing activities");
 
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			allActivities = SettleNegativeDividends(allActivities);
 			List<Activity> allactivitiesList = allActivities.Where(x => x.Account.SyncActivities).ToList();
 
-			await apiWrapper.SyncAllActivities([.. allactivitiesList]);
+			await apiWrapper.SyncAllActivities([.. allactivitiesList], cancellationToken);
 			logger.LogDebug("activities synced");
 		}
 
@@ -78,18 +78,18 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (Activity activity in activities)
 			{
-			   if (activity is ReceiveActivity receiveActivity)
-			   {
-				   yield return ConvertReceiveToBuy(receiveActivity);
-			   }
-			   else if (activity is SendActivity sendActivity)
-			   {
-				   yield return ConvertSendToSell(sendActivity);
-			   }
-			   else
-			   {
-				   yield return activity;
-			   }
+				if (activity is ReceiveActivity receiveActivity)
+				{
+					yield return ConvertReceiveToBuy(receiveActivity);
+				}
+				else if (activity is SendActivity sendActivity)
+				{
+					yield return ConvertSendToSell(sendActivity);
+				}
+				else
+				{
+					yield return activity;
+				}
 			}
 		}
 

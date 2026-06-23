@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
@@ -18,29 +19,28 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		private readonly Mock<IRestClient> _mockRestCall;
 		private readonly Mock<ILogger<ApiWrapper>> _mockLogger;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
+		private readonly Mock<IApplicationSettings> _mockAppSettings;
 		private readonly ApiWrapper _apiWrapper;
+		private readonly RestResponse _okResponse = new() { StatusCode = HttpStatusCode.OK, IsSuccessStatusCode = true, ResponseStatus = ResponseStatus.Completed };
+		private readonly RestResponse _authResponse = new() { StatusCode = HttpStatusCode.OK, IsSuccessStatusCode = true, ResponseStatus = ResponseStatus.Completed, Content = JsonConvert.SerializeObject(new Token { AuthToken = "a" }) };
+		private readonly RestCallOptions _noThrottleOptions = new() { ThrottleTimeout = TimeSpan.Zero };
 
 		public ApiWrapperTests()
 		{
 			_mockRestCall = new Mock<IRestClient>();
 			_mockLogger = new Mock<ILogger<ApiWrapper>>();
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
-			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object);
+			_mockAppSettings = new Mock<IApplicationSettings>();
+			_mockAppSettings.Setup(x => x.AllowAdminCalls).Returns(true);
+			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions, TimeProvider.System), _mockLogger.Object, _mockCurrencyExchange.Object, _mockAppSettings.Object);
 
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>())).ReturnsAsync(new Money { Amount = 100, Currency = Currency.EUR });
 
-			_mockRestCall
-					.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("auth")), default))
-					.ReturnsAsync(new RestResponse
-					{
-						StatusCode = HttpStatusCode.OK,
-						IsSuccessStatusCode = true,
-						ResponseStatus = ResponseStatus.Completed,
-						Content = JsonConvert.SerializeObject(new Token
-						{
-							AuthToken = "a",
-						})
-					});
+			// Default: OK for all calls
+			_mockRestCall.Setup(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default)).ReturnsAsync(_okResponse);
+
+			// Auth endpoint override
+			_mockRestCall.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("auth")), default)).ReturnsAsync(_authResponse);
 		}
 
 		#region CreateAccount Tests
@@ -299,14 +299,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(new ActivityList { Activities = [.. activities] }));
 
 			// Set up the symbol profiles response to include the symbol that will be looked up
-			var marketDataResponse = new MarketDataList
-			{
-				MarketData = [new MarketData { Symbol = testSymbol.Symbol, DataSource = testSymbol.DataSource }],
-				AssetProfile = testSymbol
-			};
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(marketDataResponse));
-			SetupRestCall($"api/v1/market-data/{testSymbol.DataSource}/{testSymbol.Symbol}",
-				JsonConvert.SerializeObject(new MarketDataListNoMarketData { AssetProfile = testSymbol }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = new[] { testSymbol } }));
 
 			// Act
 			var result = await _apiWrapper.GetActivitiesByAccount(account);
@@ -361,7 +355,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var symbol = CreateTestSymbolProfile(identifier);
 			var contractActivities = new ActivityList { Activities = [CreateTestActivity("a", symbol)] };
 			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(contractActivities));
-			SetupRestCall("api/v1/admin/market-data/", string.Empty);
+			SetupRestCall("api/v1/asset-profiles", string.Empty);
 			var accounts = new List<Account> { new() { Name = accountName, Currency = "EUR", Id = "a" } };
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 
@@ -386,7 +380,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Assert
 			await act.Should().NotThrowAsync();
-			_mockLogger.VerifyLog(x => x.LogDebug("Applying changes"), Times.Once);
+			_mockLogger.VerifyLog(x => x.LogDebug("Applying changes ({Total} operations)", It.IsAny<object[]>()), Times.Once);
 		}
 
 		[Fact]
@@ -395,7 +389,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var contractActivities = new ActivityList { Activities = [] };
 			SetupRestCall("api/v1/activities", JsonConvert.SerializeObject(contractActivities));
-			SetupRestCall("api/v1/admin/market-data/", string.Empty);
+			SetupRestCall("api/v1/asset-profiles", string.Empty);
 			var accounts = new List<Account>();
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 
@@ -476,7 +470,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var symbolProfile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
 
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(new MarketDataList { MarketData = [], AssetProfile = CreateTestSymbolProfile() }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = Array.Empty<Contract.SymbolProfile>() }));
 			SetupRestCall("api/v1/admin/profile-data/", string.Empty);
 			SetupPatchRestCall("api/v1/admin/profile-data/YAHOO/TEST", string.Empty);
 
@@ -495,7 +490,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var symbolProfile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
 
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(new MarketDataList { MarketData = [], AssetProfile = CreateTestSymbolProfile() }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = Array.Empty<Contract.SymbolProfile>() }));
 			SetupFailedRestCall("api/v1/admin/profile-data/");
 
 			// Act & Assert
@@ -509,7 +505,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var symbolProfile = new Model.Symbols.SymbolProfile("TEST", "Test Symbol", [], Currency.EUR, Datasource.YAHOO, Model.Activities.AssetClass.Equity, null, [], []);
 			var existingProfile = new Contract.SymbolProfile { Symbol = "TEST", DataSource = "YAHOO", Currency = "EUR", Name = "Test", AssetClass = "EQUITY", Countries = [], Sectors = [] };
 
-			SetupRestCall("api/v1/admin/market-data/", JsonConvert.SerializeObject(new MarketDataList { MarketData = [new MarketData { Symbol = "TEST", DataSource = "YAHOO" }], AssetProfile = CreateTestSymbolProfile() }));
+			SetupRestCall("api/v1/asset-profiles",
+				JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = new[] { CreateTestSymbolProfile() } }));
 			SetupRestCall("api/v1/market-data/YAHOO/TEST", JsonConvert.SerializeObject(new MarketDataListNoMarketData { AssetProfile = existingProfile }));
 			SetupFailedPatchRestCall("api/v1/admin/profile-data/YAHOO/TEST");
 
@@ -583,6 +580,48 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Act & Assert
 			await Assert.ThrowsAsync<NotSupportedException>(() => _apiWrapper.SyncMarketData(profile, marketData));
+		}
+
+		#endregion
+
+		#region Non-Admin Mode Tests
+
+		[Fact]
+		public async Task CreatePlatform_WhenAllowAdminCallsFalse_ShouldNotCallApi()
+		{
+			// Arrange
+			var mockSettings = new Mock<IApplicationSettings>();
+			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions, TimeProvider.System), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+			var platform = new Model.Accounts.Platform { Name = "TestPlatform", Url = "https://test.com" };
+
+			// Act
+			await wrapper.CreatePlatform(platform);
+
+			// Assert
+			_mockRestCall.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Never);
+			_mockLogger.Verify(x => x.Log(
+				It.Is<LogLevel>(l => l == LogLevel.Warning),
+				It.IsAny<EventId>(),
+				It.Is<It.IsAnyType>((o, t) => o.ToString() != null && o.ToString()!.Contains("not authorized") == true),
+				It.IsAny<Exception>(),
+				It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task GetAllSymbolProfiles_WhenAllowAdminCallsFalse_ShouldReturnEmptyList()
+		{
+			// Arrange
+			var mockSettings = new Mock<IApplicationSettings>();
+			mockSettings.Setup(x => x.AllowAdminCalls).Returns(false);
+			var wrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", _noThrottleOptions, TimeProvider.System), _mockLogger.Object, _mockCurrencyExchange.Object, mockSettings.Object);
+
+			// Act
+			var result = await wrapper.GetAllSymbolProfiles();
+
+			// Assert
+			result.Should().BeEmpty();
+			_mockRestCall.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Never);
 		}
 
 		#endregion

@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			var loggerMock = new Mock<ILogger<AccountMaintainerTask>>();
 
-			await accountMaintainerTask.DoWork(loggerMock.Object);
+			await accountMaintainerTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			loggerMock.VerifyLog(logger => logger.LogDebug("{Name} Starting to do work", nameof(AccountMaintainerTask)), Times.Once);
 		}
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			mockDbContextFactory.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			// Act
-			await accountMaintainerTask.DoWork(mockLogger.Object);
+			await accountMaintainerTask.DoWork(mockLogger.Object, CancellationToken.None);
 
 			// Assert
 			mockDbContext.Verify(x => x.Accounts.AddAsync(It.Is<Account>(a =>
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			mockDbContextFactory.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			// Act
-			await accountMaintainerTask.DoWork(mockLogger.Object);
+			await accountMaintainerTask.DoWork(mockLogger.Object, CancellationToken.None);
 
 			// Assert
 			existingAccount.SyncActivities.Should().BeFalse();

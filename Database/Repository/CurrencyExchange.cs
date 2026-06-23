@@ -120,7 +120,7 @@ namespace GhostfolioSidekick.Database.Repository
 
 		private async Task PreloadAllExchangeRatesInternal()
 		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(CancellationToken.None);
 
 			try
 			{
@@ -132,7 +132,7 @@ namespace GhostfolioSidekick.Database.Repository
 					rate.Date,
 					rate.Close
 				})
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 				foreach (var group in allExchangeRateData.Where(x => x.Close != 0).GroupBy(x => new { x.SourceCurrency, x.TargetCurrency }))
 				{

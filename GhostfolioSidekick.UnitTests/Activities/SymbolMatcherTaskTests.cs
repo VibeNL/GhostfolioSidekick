@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatcher.Setup(sm => sm.DataSource).Returns("TestSource");
 
 			// Act
-			await _symbolMatcherTask.DoWork(loggerMock.Object);
+			await _symbolMatcherTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			_symbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Once);
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var loggerMock = new Mock<ILogger<SymbolMatcherTask>>();
 
 			// Act
-			await _symbolMatcherTask.DoWork(loggerMock.Object);
+			await _symbolMatcherTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			mockSymbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var loggerMock = new Mock<ILogger<SymbolMatcherTask>>();
 
 			// Act
-			await _symbolMatcherTask.DoWork(loggerMock.Object);
+			await _symbolMatcherTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			mockSymbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);

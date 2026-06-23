@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.ExternalDataProvider.Cache;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -13,8 +14,6 @@ namespace GhostfolioSidekick
 	/// </summary>
 	internal class HttpCachingHandler : DelegatingHandler
 	{
-		private const string Coingecko = "coingecko.com";
-
 		// Query-string parameter names that may carry credentials and must not be cached.
 		private static readonly HashSet<string> SensitiveParams = new(StringComparer.OrdinalIgnoreCase)
 		{
@@ -56,14 +55,27 @@ namespace GhostfolioSidekick
 			"/v8/finance/chart/",
 		];
 
+		private const string CoingeckoHost = "coingecko.com";
+		private const string YahooHost = "finance.yahoo.com";
+		private const string DividendMaxHost = "dividendmax.com";
+		private const string GhostfolioHost = "ghostfolio.";
+
 		private static readonly TimeSpan MarketDataExpiry = TimeSpan.FromHours(4);
-		private static readonly TimeSpan DefaultExpiry = TimeSpan.FromDays(1);
 
 		private readonly IExternalDataCacheService cacheService;
+		private readonly TimeSpan coinGeckoExpiry;
+		private readonly TimeSpan yahooExpiry;
+		private readonly TimeSpan dividendMaxExpiry;
+		private readonly TimeSpan ghostfolioExpiry;
 
 		public HttpCachingHandler(IServiceProvider serviceProvider)
 		{
 			this.cacheService = serviceProvider.GetRequiredService<IExternalDataCacheService>();
+			IApplicationSettings? settings = serviceProvider.GetService<IApplicationSettings>();
+			this.coinGeckoExpiry = TimeSpan.FromHours(settings?.CoinGeckoCacheExpiryHours ?? 24);
+			this.yahooExpiry = TimeSpan.FromHours(settings?.YahooCacheExpiryHours ?? 24);
+			this.dividendMaxExpiry = TimeSpan.FromHours(settings?.DividendMaxCacheExpiryHours ?? 168);
+			this.ghostfolioExpiry = TimeSpan.FromHours(settings?.GhostfolioCacheExpiryHours ?? 168);
 		}
 
 		protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -82,7 +94,7 @@ namespace GhostfolioSidekick
 				return await base.SendAsync(request, cancellationToken);
 			}
 
-			TimeSpan expiry = IsMarketDataUrl(url) ? MarketDataExpiry : DefaultExpiry;
+			TimeSpan expiry = IsMarketDataUrl(url) ? MarketDataExpiry : GetExpiryForHost(url);
 			bool cachNotFound = IsCoinGeckoUrl(url);
 
 			// Captures the live response when it is not cacheable, so we can return it
@@ -138,7 +150,7 @@ namespace GhostfolioSidekick
 					Content = successContent,
 					ContentType = successContentType
 				};
-			});
+			}, cancellationToken);
 
 			if (cachedResponse == null)
 			{
@@ -155,7 +167,23 @@ namespace GhostfolioSidekick
 
 		private static bool IsCoinGeckoUrl(string url)
 		{
-			return url.Contains(Coingecko, StringComparison.OrdinalIgnoreCase);
+			return url.Contains(CoingeckoHost, StringComparison.OrdinalIgnoreCase);
+		}
+
+		private TimeSpan GetExpiryForHost(string url)
+		{
+			// Check each host in priority order
+			if (url.Contains(CoingeckoHost, StringComparison.OrdinalIgnoreCase))
+				return this.coinGeckoExpiry;
+			if (url.Contains(YahooHost, StringComparison.OrdinalIgnoreCase))
+				return this.yahooExpiry;
+			if (url.Contains(DividendMaxHost, StringComparison.OrdinalIgnoreCase))
+				return this.dividendMaxExpiry;
+			if (url.Contains(GhostfolioHost, StringComparison.OrdinalIgnoreCase))
+				return this.ghostfolioExpiry;
+
+			// Fallback: use CoinGecko expiry as default
+			return this.coinGeckoExpiry;
 		}
 
 		/// <summary>

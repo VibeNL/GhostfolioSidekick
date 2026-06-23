@@ -12,10 +12,56 @@ Continuous running Docker container (sidecar) that automatically imports files f
 Program checks every hour for new transactions and inserts them in ghostfolio. 
 Can also correct & remove transactions if changed or source file deleted.
 
-Additionally, for self-hosted instances, maintains symbols automatically.
+Additionally, maintains symbols automatically (self-hosted only):
  - Set trackinsight property of symbols
  - Create manual symbols
  - Delete symbols that are no longer used
+
+For non-self-hosted instances (shared accounts), the sidekick runs in non-admin mode:
+ - No admin-only endpoints are called (platforms, symbol profiles, market data)
+ - Default targets self-hosted (`ALLOW_ADMIN_CALLS=true`); set `ALLOW_ADMIN_CALLS=false` for shared/non-self-hosted instances
+ - Platforms cannot be created automatically; configure them in Ghostfolio first
+ - Symbol profile sync is skipped gracefully
+
+### Setting up for Official Ghostfolio (ghostfol.io)
+
+When syncing to the official hosted Ghostfolio instance, you need to configure the sidekick for non-admin mode with appropriate throttling:
+
+```yaml
+ghostfoliosidekick:
+  image: vibenl/ghostfoliosidekick:latest
+  container_name: Ghostfolio-Ghostfoliosidekick
+  hostname: ghostfoliosidekick
+  security_opt:
+    - no-new-privilege:true
+  environment:
+    - GHOSTFOLIO_URL=https://app.ghostfol.io
+    - GHOSTFOLIO_ACCESTOKEN=your-user-token
+    - FILEIMPORTER_PATH=/var/lib/data
+    - CONFIGURATIONFILE_PATH=/var/lib/data/config.json
+    - ALLOW_ADMIN_CALLS=false
+    - TROTTLE_WAITINSECONDS=60
+  restart: always
+  volumes:
+    - /volume1/docker/ghostfolio/sidekick:/var/lib/data:r
+  depends_on:
+    ghostfolio:
+      condition: service_started
+```
+
+**Required settings for official Ghostfolio:**
+
+| Setting | Value | Reason |
+|---------|-------|--------|
+| `ALLOW_ADMIN_CALLS=false` | `false` | Official Ghostfolio does not grant admin access; admin endpoints will be rejected |
+| `TROTTLE_WAITINSECONDS=60` | `60` | Respects Ghostfolio's rate limits to avoid being blocked |
+
+**Important notes:**
+
+- **Runtime**: With 60s throttle between API calls, each sync run is limited to a maximum of 1 hour. Activities are synced incrementally — partial syncs accumulate over multiple runs until everything is complete.
+- **Platform setup**: Platforms cannot be created automatically. Create your platform (e.g., "Ghostfolio.com") in the Ghostfolio UI first, then reference it in your config file.
+- **Symbol maintenance**: Symbol profile sync is skipped in non-admin mode. Symbols will be resolved via Ghostfolio's built-in market data.
+- **User token**: Use your personal access token from Ghostfolio (Settings → API Access), not an admin key.
 
 ( more to come? Help is always welcome! )
 
@@ -226,6 +272,15 @@ ghostfoliosidekick:
 |**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named 'ghostfolio.db'. In case this variable is not specified, it will be placed in the **FILEIMPORTER_PATH**. |
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
+|**ALLOW_ADMIN_CALLS**  | (optional) Set to `false` to run in non-admin mode (for shared/non-self-hosted Ghostfolio instances). Defaults to `true`. |
+|**DATABASE_QUERY_TIMEOUT_SECONDS**  | (optional) Database query timeout in seconds for complex queries. Defaults to `120`. |
+|**ENABLE_DATABASE_PERFORMANCE_LOGGING**  | (optional) Enable detailed database performance logging. Defaults to `false`. |
+|**BACKUP_FOLDER_NAME**  | (optional) Folder name for database backups. Defaults to `GHOSTFOLIOSIDEKICKBACKUPS`. |
+|**MAX_BACKUP_COUNT**  | (optional) Maximum number of compressed backups to keep. Defaults to `5`. |
+|**COINGECKO_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for CoinGecko API calls. Defaults to `24`. |
+|**YAHOO_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for Yahoo Finance API calls. Defaults to `24`. |
+|**DIVIDENDMAX_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for DividendMax API calls. Defaults to `168` (7 days). |
+|**GHOSTFOLIO_CACHE_EXPIRY_DAYS**  | (optional) HTTP cache expiry in hours for Ghostfolio API calls. Defaults to `168` (7 days). |
 
 ## Contributing
 

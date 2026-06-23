@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				hasPreloaded = true;
 			}
 
-			using DatabaseContext databaseContext = await dbFactory.CreateDbContextAsync();
+			using DatabaseContext databaseContext = await dbFactory.CreateDbContextAsync(CancellationToken.None);
 
 			var holdingData = await databaseContext
 				.Holdings
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					AccountId = x.Account.Id,
 					Activity = x
 				})
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 			Dictionary<int, List<Activity>> activitiesByAccount = [];
 			foreach (var activityData in activitiesData)
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 						md.Close,
 						md.Currency
 					})
-					.ToListAsync();
+					.ToListAsync(CancellationToken.None);
 
 				foreach (var marketDataRow in marketDataQuery)
 				{
