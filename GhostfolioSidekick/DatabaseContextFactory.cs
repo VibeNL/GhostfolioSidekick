@@ -26,10 +26,9 @@ public class DatabaseContextFactory : IDbContextFactory<DatabaseContext>
 		connection.Open();
 
 		// Set busy_timeout on every new connection
-		var cmd = connection.CreateCommand();
+		using var cmd = connection.CreateCommand();
 		cmd.CommandText = "PRAGMA busy_timeout=5000;";
 		cmd.ExecuteNonQuery();
-		cmd.Dispose();
 
 		var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>();
 		optionsBuilder.UseSqlite(connection);
