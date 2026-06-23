@@ -101,6 +101,9 @@ namespace GhostfolioSidekick
 							// Register ExternalDataCacheService for caching external data provider requests
 							_ = services.AddSingleton<ExternalDataProvider.Cache.IExternalDataCacheService, ExternalDataProvider.Cache.ExternalDataCacheService>();
 
+							// Register GhostfolioSyncCacheService for caching Ghostfolio API responses
+							_ = services.AddSingleton<GhostfolioAPI.Cache.IGhostfolioSyncCacheService, GhostfolioAPI.Cache.GhostfolioSyncCacheService>();
+
 							AddHooksToCacheExternalServices(services);
 
 							_ = services.AddSingleton<YahooRepository>();
