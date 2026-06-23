@@ -87,12 +87,11 @@ namespace GhostfolioSidekick
 								IApplicationSettings? settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
-							_ = services.AddDbContextFactory<DatabaseContext>((sp, options) =>
+							_ = services.AddSingleton<IDbContextFactory<DatabaseContext>, DatabaseContextFactory>();
+							_ = services.AddScoped<DatabaseContext>(sp =>
 							{
-								IApplicationSettings? settings = sp.GetService<IApplicationSettings>();
-								string? dbPath = settings?.DatabaseFilePath;
-								_ = options.UseSqlite($"Data Source={dbPath};Timeout=5");
-								_ = options.UseLazyLoadingProxies();
+								var factory = sp.GetRequiredService<IDbContextFactory<DatabaseContext>>();
+								return factory.CreateDbContext();
 							});
 
 							_ = services.AddSingleton<ICurrencyMapper, SymbolMapper>();
