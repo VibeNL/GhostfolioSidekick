@@ -136,12 +136,13 @@ namespace GhostfolioSidekick.Configuration
 
 		private static int GetTimeout()
 		{
-			if (int.TryParse(Environment.GetEnvironmentVariable(THROTTLETIMEOUT), out int timeoutInSeconds))
+			var envValue = Environment.GetEnvironmentVariable(THROTTLETIMEOUT);
+			if (!string.IsNullOrEmpty(envValue) && int.TryParse(envValue, out int timeoutInSeconds))
 			{
 				return timeoutInSeconds;
 			}
 
-			return 60; // Default: 1 call per minute to avoid overloading hosted Ghostfolio
+			return 0; // Default: no wait time between calls
 		}
 
 		private static int GetDatabaseQueryTimeout()
