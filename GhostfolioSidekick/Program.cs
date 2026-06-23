@@ -99,6 +99,7 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton<IApiWrapper, ApiWrapper>();
 
 							// Register ExternalDataCacheService for caching external data provider requests
+							_ = services.AddSingleton<Database.DbBackedCacheService>();
 							_ = services.AddSingleton<ExternalDataProvider.Cache.IExternalDataCacheService, ExternalDataProvider.Cache.ExternalDataCacheService>();
 
 							// Register GhostfolioSyncCacheService for caching Ghostfolio API responses

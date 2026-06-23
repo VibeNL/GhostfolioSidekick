@@ -30,7 +30,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Cache
 			}
 
 			var factory = new TestDbContextFactory(options);
-			_cacheService = new ExternalDataCacheService(factory);
+			var dbBackedCache = new DbBackedCacheService(factory);
+			_cacheService = new ExternalDataCacheService(dbBackedCache);
 		}
 
 		private sealed class TestDbContextFactory(DbContextOptions<DatabaseContext> options) : IDbContextFactory<DatabaseContext>
