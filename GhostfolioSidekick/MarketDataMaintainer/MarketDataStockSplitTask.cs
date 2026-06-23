@@ -42,8 +42,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var symbol = await databaseContext.SymbolProfiles
 					.Include(x => x.MarketData)
 					.Where(x => x.Symbol == symbolIds.Item1 && x.DataSource == symbolIds.Item2)
-					.SingleAsync();
-
+					.SingleAsync(cancellationToken);
 				var activities = databaseContext.Holdings.Where(x => x.SymbolProfiles.Contains(symbol))
 					.SelectMany(x => x.Activities);
 
@@ -84,7 +83,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					await databaseContext.SymbolProfiles.AddAsync(symbol);
 				}
 
-				await databaseContext.SaveChangesAsync();
+				await databaseContext.SaveChangesAsync(cancellationToken);
 
 				if (splits.Any())
 				{

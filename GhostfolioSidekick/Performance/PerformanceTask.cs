@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.Performance
 
 				try
 				{
-					await batchDbContext.SaveChangesAsync();
+					await batchDbContext.SaveChangesAsync(cancellationToken);
 				}
 				catch (Exception ex)
 				{

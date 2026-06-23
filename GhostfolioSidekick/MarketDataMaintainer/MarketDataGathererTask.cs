@@ -44,7 +44,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var symbol = await databaseContext.SymbolProfiles
 					.Include(x => x.MarketData)
 					.Where(x => x.Symbol == symbolIds.Item1 && x.DataSource == symbolIds.Item2)
-					.SingleAsync();
+					.SingleAsync(cancellationToken);
+
 				var activities = databaseContext.Holdings.Where(x => x.SymbolProfiles.Contains(symbol))
 					.SelectMany(x => x.Activities);
 
@@ -164,7 +165,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 				}
 
-				await databaseContext.SaveChangesAsync();
+				await databaseContext.SaveChangesAsync(cancellationToken);
 				logger.LogDebug("Market data for {Symbol} from {DataSource} gathered", symbol.Symbol, symbol.DataSource);
 			}
 		}

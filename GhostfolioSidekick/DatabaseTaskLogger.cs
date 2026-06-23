@@ -54,7 +54,7 @@ namespace GhostfolioSidekick
 			var batch = _pendingLogs.ToList();
 			_pendingLogs.Clear();
 			dbContext.Set<TaskRunLog>().AddRange(batch);
-			await dbContext.SaveChangesAsync();
+			await dbContext.SaveChangesAsync(CancellationToken.None);
 		}
 
 		/// <summary>

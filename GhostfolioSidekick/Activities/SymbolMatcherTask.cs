@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Activities
 
 			AssertNoMultipleSymbols(logger, currentHoldings);
 
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 
 		private static void AssertNoMultipleSymbols(ILogger logger, List<Holding> currentHoldings)

@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.Performance
 				logger.LogInformation("Processed {Processed}/{Total} holdings for dividends", processedHoldings, totalHoldings);
 			}
 
-			await dbContext.SaveChangesAsync();
+			await dbContext.SaveChangesAsync(cancellationToken);
 			logger.LogInformation("Upcoming dividends calculation completed for {Count} holdings", totalHoldings);
 		}
 	}

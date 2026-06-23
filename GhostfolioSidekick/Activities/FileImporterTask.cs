@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Activities
 		{
 			await UpdatePartialSymbolIdentifiers(databaseContext, activities);
 			await SyncActivities(databaseContext, activities);
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(CancellationToken.None);
 		}
 
 		private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)

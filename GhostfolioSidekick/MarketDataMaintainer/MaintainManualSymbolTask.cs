@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				await AddAndUpdateSymbol(logger, databaseContext, symbolConfiguration, manualSymbolConfiguration);
 			}
 
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 
 		private static async Task AddAndUpdateSymbol(ILogger logger, DatabaseContext databaseContext, SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)

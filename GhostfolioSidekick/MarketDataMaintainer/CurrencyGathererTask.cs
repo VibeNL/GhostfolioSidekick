@@ -137,7 +137,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						await writeDatabaseContext.CurrencyExchangeRates.AddAsync(currencyExchangeProfile);
 					}
 
-					await writeDatabaseContext.SaveChangesAsync();
+					await writeDatabaseContext.SaveChangesAsync(cancellationToken);
 				}
 			}
 		}

@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 				}
 				else
 				{
-					await UpdateAccount(databaseContext, account, accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
+					await UpdateAccount(databaseContext, account, accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform), cancellationToken);
 				}
 			}
 		}
@@ -74,10 +74,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 				SyncActivities = accountConfig.SyncActivities,
 				SyncBalance = accountConfig.SyncBalance
 			});
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 
-		private async Task UpdateAccount(DatabaseContext databaseContext, Account account, AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
+		private async Task UpdateAccount(DatabaseContext databaseContext, Account account, AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration, CancellationToken cancellationToken)
 		{
 			bool hasChanges = false;
 
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			if (hasChanges)
 			{
-				await databaseContext.SaveChangesAsync();
+				await databaseContext.SaveChangesAsync(cancellationToken);
 			}
 		}
 

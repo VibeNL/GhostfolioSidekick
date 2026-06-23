@@ -172,7 +172,7 @@ namespace GhostfolioSidekick
 					dbTask.EndTime = DateTimeOffset.Now;
 				}
 
-				await databaseContext.SaveChangesAsync();
+				await databaseContext.SaveChangesAsync(cancellationTokenSource!.Token);
 			}
 		}
 
@@ -219,7 +219,7 @@ namespace GhostfolioSidekick
 				{
 					taskrun.InProgress = false;
 					taskrun.LastException = exceptionMessage;
-					await databaseContext.SaveChangesAsync();
+					await databaseContext.SaveChangesAsync(cancellationTokenSource.Token);
 				}
 
 				if (workItem.Work.ExceptionsAreFatal)

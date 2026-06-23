@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.Activities
 					databaseContext.Holdings.RemoveRange(unusedHoldings);
 				}
 
-				_ = await databaseContext.SaveChangesAsync();
+				_ = await databaseContext.SaveChangesAsync(cancellationToken);
 				usedHoldingIds = [.. usedHoldings.Where(h => h.Id != 0).Select(h => h.Id)];
 			}
 
@@ -266,7 +266,7 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			_ = await databaseContext.SaveChangesAsync();
+			_ = await databaseContext.SaveChangesAsync(CancellationToken.None);
 		}
 
 		private static DesiredHoldingState GetOrCreateHolding(

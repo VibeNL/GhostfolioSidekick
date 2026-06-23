@@ -220,7 +220,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 			}
 
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 			logger.LogInformation("Dividend prediction completed: {Added} predictions for {Symbols} symbols", addedCount, holdingsMap.Count);
 		}
 

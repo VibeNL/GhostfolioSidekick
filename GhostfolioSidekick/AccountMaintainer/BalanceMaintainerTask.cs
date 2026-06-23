@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 						account.Balance.Clear();
 						account.Balance.AddRange(balances);
 					}
-					await databaseContext.SaveChangesAsync();
+					await databaseContext.SaveChangesAsync(cancellationToken);
 				}
 			}
 		}

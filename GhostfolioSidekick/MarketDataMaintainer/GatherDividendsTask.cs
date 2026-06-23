@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 
 			// Save changes
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 	}
 }

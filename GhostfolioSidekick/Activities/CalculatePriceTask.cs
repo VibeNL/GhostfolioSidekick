@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 	}
 }
