@@ -166,6 +166,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					Date = point.Date,
 					TotalValue = totalValue,
+					AssetValue = assetValue,
 					TotalInvested = totalInvested,
 					Balance = balance,
 					GainLoss = gainLoss,
@@ -189,12 +190,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			var sorted = TimeSeriesDisplayData.OrderBy(p => p.Date).ToList();
 
 			List<object> valueList = [];
+			List<object> assetValueList = [];
 			List<object> investedList = [];
 			List<object> balanceList = [];
 			List<object> gainLossPercentageList = [];
 			foreach (var p in sorted)
 			{
 				valueList.Add(p.TotalValue.Amount);
+				assetValueList.Add(p.AssetValue.Amount);
 				investedList.Add(p.TotalInvested.Amount);
 				balanceList.Add(p.Balance.Amount);
 				gainLossPercentageList.Add(p.GainLossPercentage);
@@ -210,6 +213,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				Name = "Portfolio Value",
 				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#007bff", Width = 2 },
 				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#007bff", Size = 6 }
+			};
+			var assetValueTrace = new Scatter
+			{
+				X = dates,
+				Y = assetValueList,
+				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+				Name = "Holdings Value",
+				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#17a2b8", Width = 2 },
+				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#17a2b8", Size = 6 }
 			};
 			var investedTrace = new Scatter
 			{
@@ -240,7 +252,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				YAxis = "y2"
 			};
 
-			plotData = [valueTrace, investedTrace, balanceTrace, gainLossPercentageTrace];
+			plotData = [valueTrace, assetValueTrace, investedTrace, balanceTrace, gainLossPercentageTrace];
 			var primaryCurrency = ServerConfigurationService?.PrimaryCurrency;
 			plotLayout = new Plotly.Blazor.Layout
 			{
