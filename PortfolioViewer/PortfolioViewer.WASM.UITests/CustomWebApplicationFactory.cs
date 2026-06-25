@@ -1,10 +1,14 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Cache;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -41,7 +45,9 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			get
 			{
-				EnsureServer();
+				// Force the host to start by accessing CreateDefaultClient
+				// This triggers CreateHost which sets up Kestrel and ClientOptions.BaseAddress
+				using var _ = CreateDefaultClient();
 				return ClientOptions.BaseAddress.ToString();
 			}
 		}
@@ -112,7 +118,7 @@ namespace PortfolioViewer.WASM.UITests
 			_host.Start();
 
 			// Seed test data
-			SeedTestData(_host.Services);
+			SeedTestData(_host.Services, _connection);
 
 			// Extract the selected dynamic port out of the Kestrel server
 			// and assign it onto the client options for convenience so it
@@ -218,7 +224,7 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		private static void SeedTestData(IServiceProvider services)
+		private static void SeedTestData(IServiceProvider services, Microsoft.Data.Sqlite.SqliteConnection? connection)
 		{
 			try
 			{
@@ -226,103 +232,30 @@ namespace PortfolioViewer.WASM.UITests
 				DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
 
 				// Create the database schema for the in-memory database
-				// Note: The connection is already open and shared across all DbContext instances
 				_ = dbContext.Database.EnsureCreated();
 
-				// Seed test data
-				// Create test account
-				Account testAccount = new("Test Account");
-				_ = dbContext.Accounts.Add(testAccount);
-				_ = dbContext.SaveChanges();
-
-				// Create test symbol profile
-				SymbolProfile testSymbolProfile = new(
-					"AAPL",
-					"Apple Inc.",
-					[],
-					Currency.USD,
-					"NASDAQ",
-					AssetClass.Equity,
-					null,
-					[],
-					[]);
-
-				// Create test holding
-				Holding testHolding = new();
-				testHolding.SymbolProfiles.Add(testSymbolProfile);
-				_ = dbContext.Holdings.Add(testHolding);
-
-				// Create some test activities
-				// Use fixed dates for deterministic test behavior
-				DateTime baseDate = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-				List<GhostfolioSidekick.Model.Activities.Activity> activities =
-				[
-			new CashDepositActivity(
-				testAccount,
-				null,
-				baseDate.AddDays(-10),
-				new Money(Currency.USD, 10000m),
-				"DEPOSIT-001",
-				null,
-				"Initial deposit"),
-			new BuyActivity(
-				testAccount,
-				testHolding,
-				[],
-				baseDate.AddDays(-9),
-				10m,
-				new Money(Currency.USD, 150m),
-				new Money(Currency.USD, 150m).Times(10),
-				"BUY-001",
-				null,
-				"Buy Apple shares")
-			{
-			},
-			new BuyActivity(
-				testAccount,
-				testHolding,
-				[],
-				baseDate.AddDays(-5),
-				5m,
-				new Money(Currency.USD, 155m),
-				new Money(Currency.USD, 155m).Times(5),
-				"BUY-002",
-				null,
-				"Buy more Apple shares")
-			{
-			},
-			new DividendActivity(
-				testAccount,
-				testHolding,
-				[],
-				baseDate.AddDays(-2),
-				new Money(Currency.USD, 25m),
-				"DIV-001",
-				null,
-				"Dividend payment")
-			];
-
-				dbContext.Activities.AddRange(activities);
-				_ = dbContext.SaveChanges();
-
-				Console.WriteLine($"Test data seeded successfully: {activities.Count} activities created");
-
-				// Verify the data was actually saved
-				var activityCount = dbContext.Activities.Count();
-				var accountCount = dbContext.Accounts.Count();
-				var holdingCount = dbContext.Holdings.Count();
-				Console.WriteLine($"Verification - Activities: {activityCount}, Accounts: {accountCount}, Holdings: {holdingCount}");
+				// Seed all tables via TestDataSeeder
+				TestDataSeeder.Seed(dbContext);
 
 				// List all tables in the database
-				using DbConnection connection = dbContext.Database.GetDbConnection();
-				connection.Open();
+				connection!.Open();
 				using DbCommand command = connection.CreateCommand();
-				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
+				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
 				using DbDataReader reader = command.ExecuteReader();
-				Console.WriteLine("Database tables:");
+				var tables = new List<string>();
 				while (reader.Read())
 				{
-					Console.WriteLine($"  - {reader.GetString(0)}");
+					var name = reader.GetString(0);
+					tables.Add(name);
+				}
+
+				Console.WriteLine($"Test data seeded. Tables ({tables.Count}):");
+				foreach (var t in tables)
+				{
+					using DbCommand cmd = connection.CreateCommand();
+					cmd.CommandText = $"SELECT COUNT(*) FROM [{t}]";
+					var count = cmd.ExecuteScalar();
+					Console.WriteLine($"  - {t}: {count} rows");
 				}
 			}
 			catch (Exception ex)
