@@ -31,7 +31,7 @@ public class TablesPage(IPage page) : BasePageObject(page)
         await _page.ClickAsync("a.dropdown-item:has-text('Data Tables')");
     }
 
-    public async Task WaitForPageLoadAsync(int timeout = 30000)
+    public async Task WaitForPageLoadAsync(CancellationToken ct = default, int timeout = 30000)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {

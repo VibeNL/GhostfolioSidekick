@@ -1,139 +1,155 @@
 using Microsoft.Playwright;
+using PortfolioViewer.WASM.UITests.PageObjects;
 
-namespace PortfolioViewer.WASM.UITests
+namespace PortfolioViewer.WASM.UITests;
+
+/// <summary>
+/// Base class for Playwright UI tests. Provides browser lifecycle, login+sync setup, and error checking.
+/// </summary>
+public abstract class PlaywrightTestBase : IAsyncLifetime
 {
-	public abstract class PlaywrightTestBase : IAsyncLifetime
+	protected readonly CustomWebApplicationFactory Fixture;
+	protected string ServerAddress => Fixture.ServerAddress;
+
+	protected IPlaywright? Playwright;
+	protected IBrowser? Browser;
+	protected IBrowserContext? Context;
+	protected IPage? Page;
+
+	protected string ScreenshotDir = string.Empty;
+	protected string VideoDir = string.Empty;
+
+	// Lazy-initialized page objects to avoid creating them before Page is available
+	private LoginPage? _loginPage;
+	private HomePage? _homePage;
+	protected LoginPage LoginPage => _loginPage ??= new LoginPage(Page!);
+	protected HomePage HomePage => _homePage ??= new HomePage(Page!);
+
+	protected CancellationToken CancellationToken => TestContext.Current?.CancellationToken ?? CancellationToken.None;
+
+	protected PlaywrightTestBase(CustomWebApplicationFactory fixture)
 	{
-		protected readonly CustomWebApplicationFactory Fixture;
-		protected string ServerAddress => Fixture.ServerAddress;
-		protected IPlaywright? Playwright;
-		protected IBrowser? Browser;
-		protected IBrowserContext? Context;
-		protected IPage? Page;
+		Fixture = fixture;
+	}
 
-		protected string ScreenshotDir = string.Empty;
-		protected string VideoDir = string.Empty;
+	public virtual async ValueTask InitializeAsync()
+	{
+		Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+		Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 
-		protected PlaywrightTestBase(CustomWebApplicationFactory fixture)
+		// Create test-specific video directory
+		var baseVideoDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-videos");
+		var testName = GetCurrentTestName();
+		VideoDir = !string.IsNullOrEmpty(testName)
+			? Path.Combine(baseVideoDir, SanitizeFileName(testName))
+			: baseVideoDir;
+		Directory.CreateDirectory(VideoDir);
+
+		Context = await Browser.NewContextAsync(new BrowserNewContextOptions
 		{
-			Fixture = fixture;
+			RecordVideoDir = VideoDir,
+			ViewportSize = new ViewportSize { Width = 1920, Height = 1080 }
+		});
+
+		Page = await Context.NewPageAsync();
+
+		ScreenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
+		Directory.CreateDirectory(ScreenshotDir);
+
+		// Capture browser console logs for diagnostics
+		Page.Console += (_, msg) =>
+		{
+			Console.WriteLine($"[Browser Console] {msg.Type}: {msg.Text}");
+		};
+	}
+
+	/// <summary>
+	/// Performs login and waits for sync to complete. Called by derived tests before their assertions.
+	/// </summary>
+	protected async Task SetupAsync()
+	{
+		await LoginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken, CancellationToken);
+		await LoginPage.WaitForSuccessfulLoginAsync(CancellationToken);
+		await HomePage.WaitForPageLoadAsync(CancellationToken);
+
+		// Click sync and wait for completion using WaitForFunction (no magic timeouts)
+		var syncButton = await Page!.QuerySelectorAsync("button.btn-primary:has-text('Sync')");
+		if (syncButton != null)
+		{
+			await syncButton.ClickAsync();
+			// Wait for sync button to become enabled again (sync completed)
+			await Page.WaitForSelectorAsync("button.btn-primary:has-text('Sync'):not([disabled])", new PageWaitForSelectorOptions { Timeout = 120000 });
+		}
+	}
+
+	public virtual async ValueTask DisposeAsync()
+	{
+		if (Context != null)
+		{
+			await Context.CloseAsync();
 		}
 
-		public virtual async ValueTask InitializeAsync()
+		if (Browser != null)
 		{
-			Console.WriteLine($"Current Directory: {Directory.GetCurrentDirectory()}");
-
-			// Get test name from TestContext if available
-			var testName = GetCurrentTestName();
-
-			Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-			Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-
-			// Create test-specific video directory
-			var baseVideoDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-videos");
-			VideoDir = !string.IsNullOrEmpty(testName) 
-				? Path.Combine(baseVideoDir, SanitizeFileName(testName))
-				: baseVideoDir;
-			Directory.CreateDirectory(VideoDir);
-
-			Console.WriteLine($"Recording video to: {VideoDir}");
-
-			Context = await Browser.NewContextAsync(new BrowserNewContextOptions
-			{
-				RecordVideoDir = VideoDir,
-				ViewportSize = new ViewportSize { Width = 1920, Height = 1080 }
-			});
-
-			Page = await Context.NewPageAsync();
-
-			ScreenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
-			Directory.CreateDirectory(ScreenshotDir);
-
-			// Capture browser console logs for diagnostics
-			Page.Console += (_, msg) =>
-			{
-				Console.WriteLine($"[Browser Console] {msg.Type}: {msg.Text}");
-			};
+			await Browser.CloseAsync();
 		}
 
-		public virtual async ValueTask DisposeAsync()
+		Playwright?.Dispose();
+	}
+
+	protected string GetScreenshotPath(string name)
+	{
+		return Path.Combine(ScreenshotDir, $"{name}-{DateTime.Now:yyyyMMddHHmmss}.png");
+	}
+
+	protected string GetErrorScreenshotPath(string name)
+	{
+		return Path.Combine(ScreenshotDir, $"{name}-error-{DateTime.Now:yyyyMMddHHmmss}.png");
+	}
+
+	protected string GetErrorHtmlPath(string name)
+	{
+		return Path.Combine(ScreenshotDir, $"{name}-error-{DateTime.Now:yyyyMMddHHmmss}.html");
+	}
+
+	protected async Task CaptureErrorStateAsync(string testName)
+	{
+		if (Page == null) return;
+
+		await Page.ScreenshotAsync(new PageScreenshotOptions { Path = GetErrorScreenshotPath(testName) });
+		var html = await Page.ContentAsync();
+		await File.WriteAllTextAsync(GetErrorHtmlPath(testName), html, CancellationToken);
+	}
+
+	private static string GetCurrentTestName()
+	{
+		try
 		{
-			if (Context != null)
+			var testDisplayName = TestContext.Current?.Test?.TestDisplayName;
+			if (!string.IsNullOrEmpty(testDisplayName))
 			{
-				await Context.CloseAsync();
+				var lastDotIndex = testDisplayName.LastIndexOf('.');
+				return lastDotIndex >= 0 ? testDisplayName[(lastDotIndex + 1)..] : testDisplayName;
 			}
-
-			if (Browser != null)
-			{
-				await Browser.CloseAsync();
-			}
-
-			Playwright?.Dispose();
 		}
-
-		protected string GetScreenshotPath(string name)
+		catch
 		{
-			return Path.Combine(ScreenshotDir, $"{name}-{DateTime.Now:yyyyMMddHHmmss}.png");
+			// If we can't get the test name, return empty string
 		}
 
-		protected string GetErrorScreenshotPath(string name)
+		return string.Empty;
+	}
+
+	private static string SanitizeFileName(string fileName)
+	{
+		var invalid = Path.GetInvalidFileNameChars();
+		var sanitized = string.Join("_", fileName.Split(invalid, StringSplitOptions.RemoveEmptyEntries));
+
+		if (sanitized.Length > 100)
 		{
-			return Path.Combine(ScreenshotDir, $"{name}-error-{DateTime.Now:yyyyMMddHHmmss}.png");
+			sanitized = sanitized[..100];
 		}
 
-		protected string GetErrorHtmlPath(string name)
-		{
-			return Path.Combine(ScreenshotDir, $"{name}-error-{DateTime.Now:yyyyMMddHHmmss}.html");
-		}
-
-		protected async Task CaptureErrorStateAsync(string testName)
-		{
-			if (Page == null) return;
-
-			await Page.ScreenshotAsync(new PageScreenshotOptions { Path = GetErrorScreenshotPath(testName) });
-			var html = await Page.ContentAsync();
-			await File.WriteAllTextAsync(GetErrorHtmlPath(testName), html, TestContext.Current.CancellationToken);
-		}
-
-		private static string GetCurrentTestName()
-		{
-			try
-			{
-				// Try to get test name from xUnit TestContext
-				var testContext = TestContext.Current;
-				if (testContext != null)
-				{
-					// Use TestDisplayName which contains the full test name
-					var testDisplayName = testContext.Test?.TestDisplayName;
-					if (!string.IsNullOrEmpty(testDisplayName))
-					{
-						// Extract just the method name if it contains the full qualified name
-						var lastDotIndex = testDisplayName.LastIndexOf('.');
-						return lastDotIndex >= 0 ? testDisplayName[(lastDotIndex + 1)..] : testDisplayName;
-					}
-				}
-			}
-			catch
-			{
-				// If we can't get the test name, return empty string
-			}
-
-			return string.Empty;
-		}
-
-		private static string SanitizeFileName(string fileName)
-		{
-			// Remove invalid path characters
-			var invalid = Path.GetInvalidFileNameChars();
-			var sanitized = string.Join("_", fileName.Split(invalid, StringSplitOptions.RemoveEmptyEntries));
-			
-			// Limit length to avoid path too long issues
-			if (sanitized.Length > 100)
-			{
-				sanitized = sanitized[..100];
-			}
-			
-			return sanitized;
-		}
+		return sanitized;
 	}
 }

@@ -6,272 +6,127 @@ namespace PortfolioViewer.WASM.UITests;
 [Collection("WebApplicationFactory")]
 public class PageNavigationTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
 {
-    [RetryFact]
-    public async Task HoldingsPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var holdingsPage = new HoldingsPage(Page!);
+	[RetryFact]
+	public async Task HoldingsPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
+		var holdingsPage = new HoldingsPage(Page!);
+		await holdingsPage.NavigateViaMenuAsync();
+		await holdingsPage.WaitForPageLoadAsync();
 
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
+		var hasError = await holdingsPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "Holdings page should not show an error");
+	}
 
-            await holdingsPage.NavigateViaMenuAsync();
-            await holdingsPage.WaitForPageLoadAsync();
+	[RetryFact]
+	public async Task AccountsPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-            var hasError = await holdingsPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "Holdings page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("holdings");
-            throw;
-        }
-    }
+		var accountsPage = new AccountsPage(Page!);
+		await accountsPage.NavigateViaMenuAsync();
+		await accountsPage.WaitForPageLoadAsync();
 
-    [RetryFact]
-    public async Task AccountsPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var accountsPage = new AccountsPage(Page!);
+		var hasError = await accountsPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "Accounts page should not show an error");
+	}
 
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
+	[RetryFact]
+	public async Task TaxReportPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
+		var taxReportPage = new TaxReportPage(Page!);
+		await taxReportPage.NavigateViaMenuAsync();
+		await taxReportPage.WaitForPageLoadAsync();
 
-            await accountsPage.NavigateViaMenuAsync();
-            await accountsPage.WaitForPageLoadAsync();
+		var hasError = await taxReportPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "TaxReport page should not show an error");
+	}
 
-            var hasError = await accountsPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "Accounts page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("accounts");
-            throw;
-        }
-    }
+	[RetryFact]
+	public async Task TopMoversPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-    [RetryFact]
-    public async Task TaxReportPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var taxReportPage = new TaxReportPage(Page!);
+		var topMoversPage = new TopMoversPage(Page!);
+		await topMoversPage.NavigateViaMenuAsync();
+		await topMoversPage.WaitForPageLoadAsync();
 
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
+		var hasError = await topMoversPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "TopMovers page should not show an error");
+	}
 
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
+	[RetryFact]
+	public async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-            await taxReportPage.NavigateViaMenuAsync();
-            await taxReportPage.WaitForPageLoadAsync();
+		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
+		await timeSeriesPage.NavigateViaMenuAsync();
+		await timeSeriesPage.WaitForPageLoadAsync();
 
-            var hasError = await taxReportPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "TaxReport page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("tax-report");
-            throw;
-        }
-    }
+		var hasError = await timeSeriesPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "PortfolioTimeSeries page should not show an error");
+	}
 
-    [RetryFact]
-    public async Task TopMoversPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var topMoversPage = new TopMoversPage(Page!);
+	[RetryFact]
+	public async Task UpcomingDividendsPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
+		var dividendsPage = new UpcomingDividendsPage(Page!);
+		await dividendsPage.NavigateViaMenuAsync();
+		await dividendsPage.WaitForPageLoadAsync();
 
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
+		var hasDividendsTitle = await dividendsPage.HasDividendsTitleAsync();
+		Assert.True(hasDividendsTitle, "Upcoming Dividends page should display its title");
+	}
 
-            await topMoversPage.NavigateViaMenuAsync();
-            await topMoversPage.WaitForPageLoadAsync();
+	[RetryFact]
+	public async Task DataIssuesPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-            var hasError = await topMoversPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "TopMovers page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("top-movers");
-            throw;
-        }
-    }
+		var dataIssuesPage = new DataIssuesPage(Page!);
+		await dataIssuesPage.NavigateViaMenuAsync();
+		await dataIssuesPage.WaitForPageLoadAsync();
 
-    [RetryFact]
-    public async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
+		var hasError = await dataIssuesPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "DataIssues page should not show an error");
+	}
 
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
+	[RetryFact]
+	public async Task TaskStatusPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
+		var taskStatusPage = new TaskStatusPage(Page!);
+		await taskStatusPage.NavigateViaMenuAsync();
+		await taskStatusPage.WaitForPageLoadAsync();
 
-            await timeSeriesPage.NavigateViaMenuAsync();
-            await timeSeriesPage.WaitForPageLoadAsync();
+		var hasTaskStatusTitle = await taskStatusPage.HasTaskStatusTitleAsync();
+		Assert.True(hasTaskStatusTitle, "TaskStatus page should display its title");
 
-            var hasError = await timeSeriesPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "PortfolioTimeSeries page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("portfolio-timeseries");
-            throw;
-        }
-    }
+		var hasError = await taskStatusPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "TaskStatus page should not show an error");
+	}
 
-    [RetryFact]
-    public async Task UpcomingDividendsPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var dividendsPage = new UpcomingDividendsPage(Page!);
+	[RetryFact]
+	public async Task TablesPage_ShouldLoadViaMenu()
+	{
+		await SetupAsync();
 
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
+		var tablesPage = new TablesPage(Page!);
+		// Navigate directly to avoid ExecuteWithErrorCheckAsync triggering false positive Blazor error detection
+		await tablesPage.NavigateDirectAsync();
+		await tablesPage.WaitForPageLoadAsync();
 
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
+		var hasTableViewerTitle = await tablesPage.HasTableViewerTitleAsync();
+		Assert.True(hasTableViewerTitle, "Tables page should display its title");
 
-            await dividendsPage.NavigateViaMenuAsync();
-            await dividendsPage.WaitForPageLoadAsync();
-
-            var hasDividendsTitle = await dividendsPage.HasDividendsTitleAsync();
-            Assert.True(hasDividendsTitle, "Upcoming Dividends page should display its title");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("upcoming-dividends");
-            throw;
-        }
-    }
-
-    [RetryFact]
-    public async Task DataIssuesPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var dataIssuesPage = new DataIssuesPage(Page!);
-
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
-
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
-
-            await dataIssuesPage.NavigateViaMenuAsync();
-            await dataIssuesPage.WaitForPageLoadAsync();
-
-            var hasError = await dataIssuesPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "DataIssues page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("data-issues");
-            throw;
-        }
-    }
-
-    [RetryFact]
-    public async Task TaskStatusPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var taskStatusPage = new TaskStatusPage(Page!);
-
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
-
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
-
-            await taskStatusPage.NavigateViaMenuAsync();
-            await taskStatusPage.WaitForPageLoadAsync();
-
-            var hasTaskStatusTitle = await taskStatusPage.HasTaskStatusTitleAsync();
-            Assert.True(hasTaskStatusTitle, "TaskStatus page should display its title");
-
-            var hasError = await taskStatusPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "TaskStatus page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("task-status");
-            throw;
-        }
-    }
-
-    [RetryFact]
-    public async Task TablesPage_ShouldLoadViaMenu()
-    {
-        var loginPage = new LoginPage(Page!);
-        var homePage = new HomePage(Page!);
-        var tablesPage = new TablesPage(Page!);
-
-        try
-        {
-            await loginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken);
-            await loginPage.WaitForSuccessfulLoginAsync();
-            await homePage.WaitForPageLoadAsync();
-
-            await homePage.ClickSyncButtonAsync();
-            await homePage.WaitForSyncToCompleteAsync(timeoutInMilliseconds: 120000);
-
-            // Navigate via nav link directly - avoids ExecuteWithErrorCheckAsync which was
-            // triggering false positive Blazor error detection from "Reload Data" button
-            await tablesPage.NavigateDirectAsync();
-            await tablesPage.WaitForPageLoadAsync();
-
-            var hasTableViewerTitle = await tablesPage.HasTableViewerTitleAsync();
-            Assert.True(hasTableViewerTitle, "Tables page should display its title");
-
-            var hasError = await tablesPage.IsErrorDisplayedAsync();
-            Assert.False(hasError, "Tables page should not show an error");
-        }
-        catch
-        {
-            await CaptureErrorStateAsync("tables");
-            throw;
-        }
-    }
+		var hasError = await tablesPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "Tables page should not show an error");
+	}
 }
