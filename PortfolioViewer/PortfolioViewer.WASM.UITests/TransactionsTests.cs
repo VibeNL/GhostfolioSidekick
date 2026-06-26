@@ -11,7 +11,7 @@ public class TransactionsTests(CustomWebApplicationFactory fixture) : Playwright
 	{
 		await SetupAsync();
 
-		var transactionsPage = new TransactionsPage(Page!);
+		var transactionsPage = PageFactory.CreateTransactionsPage(Page!);
 		await transactionsPage.NavigateViaMenuAsync();
 		await transactionsPage.WaitForPageLoadAsync();
 		await transactionsPage.SetDateFilterToAllAsync();

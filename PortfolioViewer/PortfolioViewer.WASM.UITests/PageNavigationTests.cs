@@ -11,7 +11,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var holdingsPage = new HoldingsPage(Page!);
+		var holdingsPage = PageFactory.CreateHoldingsPage(Page!);
 		await holdingsPage.NavigateViaMenuAsync();
 		await holdingsPage.WaitForPageLoadAsync();
 
@@ -24,7 +24,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var accountsPage = new AccountsPage(Page!);
+		var accountsPage = PageFactory.CreateAccountsPage(Page!);
 		await accountsPage.NavigateViaMenuAsync();
 		await accountsPage.WaitForPageLoadAsync();
 
@@ -37,7 +37,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var taxReportPage = new TaxReportPage(Page!);
+		var taxReportPage = PageFactory.CreateTaxReportPage(Page!);
 		await taxReportPage.NavigateViaMenuAsync();
 		await taxReportPage.WaitForPageLoadAsync();
 
@@ -50,7 +50,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var topMoversPage = new TopMoversPage(Page!);
+		var topMoversPage = PageFactory.CreateTopMoversPage(Page!);
 		await topMoversPage.NavigateViaMenuAsync();
 		await topMoversPage.WaitForPageLoadAsync();
 
@@ -63,7 +63,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
+		var timeSeriesPage = PageFactory.CreatePortfolioTimeSeriesPage(Page!);
 		await timeSeriesPage.NavigateViaMenuAsync();
 		await timeSeriesPage.WaitForPageLoadAsync();
 
@@ -76,7 +76,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var dividendsPage = new UpcomingDividendsPage(Page!);
+		var dividendsPage = PageFactory.CreateUpcomingDividendsPage(Page!);
 		await dividendsPage.NavigateViaMenuAsync();
 		await dividendsPage.WaitForPageLoadAsync();
 
@@ -89,7 +89,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var dataIssuesPage = new DataIssuesPage(Page!);
+		var dataIssuesPage = PageFactory.CreateDataIssuesPage(Page!);
 		await dataIssuesPage.NavigateViaMenuAsync();
 		await dataIssuesPage.WaitForPageLoadAsync();
 
@@ -102,7 +102,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var taskStatusPage = new TaskStatusPage(Page!);
+		var taskStatusPage = PageFactory.CreateTaskStatusPage(Page!);
 		await taskStatusPage.NavigateViaMenuAsync();
 		await taskStatusPage.WaitForPageLoadAsync();
 
@@ -118,7 +118,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var tablesPage = new TablesPage(Page!);
+		var tablesPage = PageFactory.CreateTablesPage(Page!);
 		// Navigate directly to avoid ExecuteWithErrorCheckAsync triggering false positive Blazor error detection
 		await tablesPage.NavigateDirectAsync();
 		await tablesPage.WaitForPageLoadAsync();
