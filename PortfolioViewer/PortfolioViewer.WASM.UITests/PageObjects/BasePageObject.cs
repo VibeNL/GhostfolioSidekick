@@ -19,66 +19,37 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 	{
 		try
 		{
-			// Try multiple selectors for different ways Blazor might display errors
-			var selectors = new[]
+			// Only use the official Blazor error UI element selector.
+			// Avoid regex/text-based selectors that trigger false positives
+			// (e.g., any text containing "Reload" or "error").
+			var errorElement = await _page.QuerySelectorAsync("#blazor-error-ui");
+			if (errorElement != null && await errorElement.IsVisibleAsync())
 			{
-				"text=/An unhandled error has occurred.*Reload/i",
-				"text=/unhandled error/i",
-				"#blazor-error-ui",
-				".blazor-error-boundary",
-				"[style*='background:lightyellow']" // Default Blazor error UI styling
-			};
+				var errorText = await errorElement.TextContentAsync() ?? string.Empty;
+				var innerHTML = await errorElement.InnerHTMLAsync();
 
-			foreach (var selector in selectors)
-			{
+				Console.WriteLine($"Blazor error detected: {errorText}");
+				Console.WriteLine($"Error HTML: {innerHTML}");
+
+				// Take a screenshot for debugging
 				try
 				{
-					var errorElement = await _page.QuerySelectorAsync(selector);
-					if (errorElement != null)
-					{
-						var isVisible = await errorElement.IsVisibleAsync();
-						Console.WriteLine($"Found element with selector '{selector}', visible: {isVisible}");
-						
-						if (isVisible)
-						{
-							var errorText = await errorElement.TextContentAsync() ?? string.Empty;
-							var innerHTML = await errorElement.InnerHTMLAsync();
-							
-							Console.WriteLine($"Blazor error detected using selector: {selector}");
-							Console.WriteLine($"Error text: {errorText}");
-							Console.WriteLine($"Error HTML: {innerHTML}");
-							
-							// Take a screenshot for debugging
-							try
-							{
-								var screenshotPath = $"blazor-error-{DateTime.Now:yyyyMMdd-HHmmss}.png";
-								await _page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath, FullPage = true });
-								Console.WriteLine($"Screenshot saved to: {screenshotPath}");
-							}
-							catch { }
-							
-							throw new InvalidOperationException($"Blazor framework error occurred: {errorText.Trim()}");
-						}
-					}
+					var screenshotPath = $"blazor-error-{DateTime.Now:yyyyMMdd-HHmmss}.png";
+					await _page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath, FullPage = true });
+					Console.WriteLine($"Screenshot saved to: {screenshotPath}");
 				}
-				catch (InvalidOperationException)
-				{
-					throw; // Re-throw our own exception
-				}
-				catch
-				{
-					// Continue to next selector
-				}
+				catch { }
+
+				throw new InvalidOperationException($"Blazor framework error occurred: {errorText.Trim()}");
 			}
 		}
 		catch (InvalidOperationException)
 		{
 			throw; // Re-throw our own exception
 		}
-		catch (Exception ex)
+		catch
 		{
 			// Ignore errors while checking for errors (e.g., page closed, navigation in progress)
-			Console.WriteLine($"Could not check for Blazor error: {ex.Message}");
 		}
 	}
 
@@ -86,7 +57,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		/// Executes an action and automatically checks for Blazor errors afterwards.
 		/// Use this wrapper for critical operations that should detect framework errors.
 		/// </summary>
-		protected async Task ExecuteWithErrorCheckAsync(Func<Task> action)
+		protected async Task ExecuteWithErrorCheckAsync(Func<Task> action, CancellationToken ct = default)
 		{
 			await action();
 			await CheckForBlazorErrorAsync();
@@ -96,7 +67,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		/// Executes an action and automatically checks for Blazor errors afterwards.
 		/// Returns the result of the action.
 		/// </summary>
-		protected async Task<T> ExecuteWithErrorCheckAsync<T>(Func<Task<T>> action)
+		protected async Task<T> ExecuteWithErrorCheckAsync<T>(Func<Task<T>> action, CancellationToken ct = default)
 		{
 			var result = await action();
 			await CheckForBlazorErrorAsync();

@@ -1,10 +1,14 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Cache;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -15,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using Moq;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace PortfolioViewer.WASM.UITests
 {
@@ -41,7 +46,9 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			get
 			{
-				EnsureServer();
+				// Force the host to start by accessing CreateDefaultClient
+				// This triggers CreateHost which sets up Kestrel and ClientOptions.BaseAddress
+				using var _ = CreateDefaultClient();
 				return ClientOptions.BaseAddress.ToString();
 			}
 		}
@@ -73,33 +80,29 @@ namespace PortfolioViewer.WASM.UITests
 																_ = services.AddSingleton(mockSettings.Object);
 
 																// Remove existing DbContext registrations and replace with in-memory SQLite
-																List<ServiceDescriptor> dbContextDescriptors = services.Where(d =>
-																	d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
-																	d.ServiceType == typeof(DatabaseContext) ||
-																	d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
-																	.ToList();
+																var dbContextDescriptors = services.Where(d =>
+																		d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
+																		d.ServiceType == typeof(DatabaseContext) ||
+																		d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
+																		.ToList();
 
-
-																foreach (ServiceDescriptor? desc in dbContextDescriptors)
+																// Remove by index to avoid modifying collection during enumeration
+																for (int i = dbContextDescriptors.Count - 1; i >= 0; i--)
 																{
-																	_ = services.Remove(desc);
+																	services.Remove(dbContextDescriptors[i]);
 																}
 
 																// Register in-memory SQLite database for testing
 																// Important: Share the same connection across all DbContext instances
 																// to ensure in-memory database persists
 																_ = services.AddDbContext<DatabaseContext>(options =>
-																{
-																	// Use the shared in-memory connection
-																	// Don't let EF Core manage the connection (we keep it open)
-																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
-																}, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared"),
+																	ServiceLifetime.Scoped);
 
 																// Also register DbContextFactory with the same connection
 																_ = services.AddDbContextFactory<DatabaseContext>(options =>
-																{
-																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared");
-																}, ServiceLifetime.Scoped);
+																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared"),
+																	ServiceLifetime.Scoped);
 															}));
 
 
@@ -112,7 +115,7 @@ namespace PortfolioViewer.WASM.UITests
 			_host.Start();
 
 			// Seed test data
-			SeedTestData(_host.Services);
+			SeedTestData(_host.Services, _connection);
 
 			// Extract the selected dynamic port out of the Kestrel server
 			// and assign it onto the client options for convenience so it
@@ -144,64 +147,88 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			if (_host is null)
 			{
-				// This forces WebApplicationFactory to bootstrap the server
+				// Forces WebApplicationFactory to bootstrap the server
 				using HttpClient _ = CreateDefaultClient();
 			}
 		}
 
 
+		// Tracks whether WASM has been published this run to avoid redundant publishes
+		private static bool _wasmPublished = false;
+		private static readonly object _wasmPublishLock = new();
+
 		private static void EnsureWasmPublishedToApiStaticFiles()
 		{
-			var solutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
-			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
-			var apiroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService");
-			var apiDebugWwwroot = Path.Combine(apiroot, "wwwroot");
-			var localWwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-			var expectedIndex = Path.Combine(apiDebugWwwroot, "index.html");
+			if (_wasmPublished) return;
 
-			var tempFolder = Path.Combine(Path.GetTempPath() + "WasmPublish");
-
-			// Clean temp folder
-			if (Directory.Exists(tempFolder))
+			lock (_wasmPublishLock)
 			{
-				Directory.Delete(tempFolder, true);
-			}
+				if (_wasmPublished) return;
 
-			// Delete old debug wwwroot
-			if (Directory.Exists(apiDebugWwwroot))
-			{
-				Directory.Delete(apiDebugWwwroot, true);
-			}
+				// Resolve solution dir from assembly location (robust vs AppContext.BaseDirectory)
+				var assemblyPath = Assembly.GetExecutingAssembly().Location;
+				var testDir = Path.GetDirectoryName(assemblyPath) ?? Directory.GetCurrentDirectory();
+				var solutionDir = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", ".."));
 
-			_ = Directory.CreateDirectory(apiDebugWwwroot);
+				var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
+				var apiroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService");
+				var apiDebugWwwroot = Path.Combine(apiroot, "wwwroot");
+				var localWwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+				var expectedIndex = Path.Combine(apiDebugWwwroot, "index.html");
 
-			// Publish WASM project directly into temp folder
-			ProcessStartInfo psi = new("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
-			{
-				WorkingDirectory = solutionDir,
-				RedirectStandardOutput = true,
-				RedirectStandardError = true
-			};
-			using Process proc = System.Diagnostics.Process.Start(psi)!;
-			// Read output and error asynchronously to avoid deadlock
-			Task<string> outputTask = proc.StandardOutput.ReadToEndAsync();
-			Task<string> errorTask = proc.StandardError.ReadToEndAsync();
-			proc.WaitForExit();
-			var output = outputTask.Result;
-			var error = errorTask.Result;
-			if (proc.ExitCode != 0)
-			{
-				throw new Exception($"WASM publish failed: {error}\n{output}");
-			}
+				// Skip if already published (e.g., by build)
+				if (File.Exists(expectedIndex))
+				{
+					_wasmPublished = true;
+					return;
+				}
 
-			// Copy published files to API debug wwwroot
-			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), apiDebugWwwroot);
-			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), localWwwroot);
+				var tempFolder = Path.Combine(Path.GetTempPath(), "WasmPublish_" + Guid.NewGuid().ToString("n")[..8]);
 
-			// Ensure index.html exists in API debug wwwroot
-			if (!File.Exists(expectedIndex))
-			{
-				throw new FileNotFoundException($"WASM index.html not found in API debug wwwroot: {expectedIndex}");
+				// Clean temp folder
+				if (Directory.Exists(tempFolder))
+				{
+					Directory.Delete(tempFolder, true);
+				}
+
+				// Delete old debug wwwroot
+				if (Directory.Exists(apiDebugWwwroot))
+				{
+					Directory.Delete(apiDebugWwwroot, true);
+				}
+
+				_ = Directory.CreateDirectory(apiDebugWwwroot);
+
+				// Publish WASM project directly into temp folder (async to avoid deadlock)
+				ProcessStartInfo psi = new("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
+				{
+					WorkingDirectory = solutionDir,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					UseShellExecute = false
+				};
+				using Process proc = System.Diagnostics.Process.Start(psi)!;
+				Task<string> outputTask = proc.StandardOutput.ReadToEndAsync();
+				Task<string> errorTask = proc.StandardError.ReadToEndAsync();
+				proc.WaitForExit();
+				var output = outputTask.Result;
+				var error = errorTask.Result;
+				if (proc.ExitCode != 0)
+				{
+					throw new Exception($"WASM publish failed: {error}\n{output}");
+				}
+
+				// Copy published files to API debug wwwroot
+				CopyDirectory(Path.Combine(tempFolder, "wwwroot"), apiDebugWwwroot);
+				CopyDirectory(Path.Combine(tempFolder, "wwwroot"), localWwwroot);
+
+				// Ensure index.html exists in API debug wwwroot
+				if (!File.Exists(expectedIndex))
+				{
+					throw new FileNotFoundException($"WASM index.html not found in API debug wwwroot: {expectedIndex}");
+				}
+
+				_wasmPublished = true;
 			}
 		}
 
@@ -218,7 +245,7 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		private static void SeedTestData(IServiceProvider services)
+		private static void SeedTestData(IServiceProvider services, Microsoft.Data.Sqlite.SqliteConnection? connection)
 		{
 			try
 			{
@@ -226,103 +253,30 @@ namespace PortfolioViewer.WASM.UITests
 				DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
 
 				// Create the database schema for the in-memory database
-				// Note: The connection is already open and shared across all DbContext instances
 				_ = dbContext.Database.EnsureCreated();
 
-				// Seed test data
-				// Create test account
-				Account testAccount = new("Test Account");
-				_ = dbContext.Accounts.Add(testAccount);
-				_ = dbContext.SaveChanges();
-
-				// Create test symbol profile
-				SymbolProfile testSymbolProfile = new(
-					"AAPL",
-					"Apple Inc.",
-					[],
-					Currency.USD,
-					"NASDAQ",
-					AssetClass.Equity,
-					null,
-					[],
-					[]);
-
-				// Create test holding
-				Holding testHolding = new();
-				testHolding.SymbolProfiles.Add(testSymbolProfile);
-				_ = dbContext.Holdings.Add(testHolding);
-
-				// Create some test activities
-				// Use fixed dates for deterministic test behavior
-				DateTime baseDate = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-				List<GhostfolioSidekick.Model.Activities.Activity> activities =
-				[
-			new CashDepositActivity(
-				testAccount,
-				null,
-				baseDate.AddDays(-10),
-				new Money(Currency.USD, 10000m),
-				"DEPOSIT-001",
-				null,
-				"Initial deposit"),
-			new BuyActivity(
-				testAccount,
-				testHolding,
-				[],
-				baseDate.AddDays(-9),
-				10m,
-				new Money(Currency.USD, 150m),
-				new Money(Currency.USD, 150m).Times(10),
-				"BUY-001",
-				null,
-				"Buy Apple shares")
-			{
-			},
-			new BuyActivity(
-				testAccount,
-				testHolding,
-				[],
-				baseDate.AddDays(-5),
-				5m,
-				new Money(Currency.USD, 155m),
-				new Money(Currency.USD, 155m).Times(5),
-				"BUY-002",
-				null,
-				"Buy more Apple shares")
-			{
-			},
-			new DividendActivity(
-				testAccount,
-				testHolding,
-				[],
-				baseDate.AddDays(-2),
-				new Money(Currency.USD, 25m),
-				"DIV-001",
-				null,
-				"Dividend payment")
-			];
-
-				dbContext.Activities.AddRange(activities);
-				_ = dbContext.SaveChanges();
-
-				Console.WriteLine($"Test data seeded successfully: {activities.Count} activities created");
-
-				// Verify the data was actually saved
-				var activityCount = dbContext.Activities.Count();
-				var accountCount = dbContext.Accounts.Count();
-				var holdingCount = dbContext.Holdings.Count();
-				Console.WriteLine($"Verification - Activities: {activityCount}, Accounts: {accountCount}, Holdings: {holdingCount}");
+				// Seed all tables via TestDataSeeder
+				TestDataSeeder.Seed(dbContext);
 
 				// List all tables in the database
-				using DbConnection connection = dbContext.Database.GetDbConnection();
-				connection.Open();
+				connection!.Open();
 				using DbCommand command = connection.CreateCommand();
-				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
+				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
 				using DbDataReader reader = command.ExecuteReader();
-				Console.WriteLine("Database tables:");
+				var tables = new List<string>();
 				while (reader.Read())
 				{
-					Console.WriteLine($"  - {reader.GetString(0)}");
+					var name = reader.GetString(0);
+					tables.Add(name);
+				}
+
+				Console.WriteLine($"Test data seeded. Tables ({tables.Count}):");
+				foreach (var t in tables)
+				{
+					using DbCommand cmd = connection.CreateCommand();
+					cmd.CommandText = $"SELECT COUNT(*) FROM [{t}]";
+					var count = cmd.ExecuteScalar();
+					Console.WriteLine($"  - {t}: {count} rows");
 				}
 			}
 			catch (Exception ex)
