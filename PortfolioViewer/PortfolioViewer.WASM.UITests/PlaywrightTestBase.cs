@@ -25,7 +25,7 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	protected LoginPage LoginPage => _loginPage ??= new LoginPage(Page!);
 	protected HomePage HomePage => _homePage ??= new HomePage(Page!);
 
-	protected CancellationToken CancellationToken => TestContext.Current?.CancellationToken ?? CancellationToken.None;
+	protected static CancellationToken CancellationToken => TestContext.Current?.CancellationToken ?? CancellationToken.None;
 
 	protected PlaywrightTestBase(CustomWebApplicationFactory fixture)
 	{
