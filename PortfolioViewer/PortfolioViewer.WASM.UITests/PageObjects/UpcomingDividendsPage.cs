@@ -29,7 +29,7 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
         });
     }
 
-    public async Task WaitForPageLoadAsync(CancellationToken ct = default, int timeout = 30000)
+    public async Task WaitForPageLoadAsync(int timeout = 30000)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {

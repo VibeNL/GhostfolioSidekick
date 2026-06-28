@@ -13,7 +13,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		private const string ForceFullSyncSelector = "button.dropdown-item:has-text('Force Full Sync')";
 		private const string DeleteAllDataSelector = "button.dropdown-item:has-text('Delete All Data')";
 
-		public async Task WaitForPageLoadAsync(CancellationToken ct = default, int timeout = 10000)
+		public async Task WaitForPageLoadAsync(int timeout = 10000)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{

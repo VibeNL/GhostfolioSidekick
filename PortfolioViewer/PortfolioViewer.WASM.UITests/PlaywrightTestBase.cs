@@ -69,8 +69,8 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	protected async Task SetupAsync()
 	{
 		await LoginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken, CancellationToken);
-		await LoginPage.WaitForSuccessfulLoginAsync(CancellationToken);
-		await HomePage.WaitForPageLoadAsync(CancellationToken);
+		await LoginPage.WaitForSuccessfulLoginAsync();
+		await HomePage.WaitForPageLoadAsync();
 
 		// Click sync and wait for completion using WaitForFunction (no magic timeouts)
 		var syncButton = await Page!.QuerySelectorAsync("button.btn-primary:has-text('Sync')");
