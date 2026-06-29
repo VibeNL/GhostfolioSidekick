@@ -297,10 +297,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 					if (lastKnownPrice == 0 && activitiesByDate.TryGetValue(date, out List<ActivityWithQuantityAndUnitPrice>? activities))
 					{
-						foreach (ActivityWithQuantityAndUnitPrice activity in activities.OrderBy(x => x.UnitPrice.Amount))
+						foreach (ActivityWithQuantityAndUnitPrice activity in activities.OrderBy(x => (x.AdjustedUnitPrice.Amount != 0 ? x.AdjustedUnitPrice : x.UnitPrice).Amount))
 						{
+							Money priceToUse = activity.AdjustedUnitPrice.Amount != 0 ? activity.AdjustedUnitPrice : activity.UnitPrice;
 							Money converted = await currencyExchange.ConvertMoney(
-								activity.UnitPrice,
+								priceToUse,
 								targetCurrency,
 								date).ConfigureAwait(false);
 							decimal convertedAmount = converted.Amount;
