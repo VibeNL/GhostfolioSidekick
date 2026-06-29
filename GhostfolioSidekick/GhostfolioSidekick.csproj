@@ -26,8 +26,4 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Model\Performance\" />
-	</ItemGroup>
 </Project>
