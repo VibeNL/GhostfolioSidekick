@@ -52,8 +52,7 @@ namespace GhostfolioSidekick.Activities.Strategies
 									.FirstOrDefault(x => x.Date >= DateOnly.FromDateTime(activity.Date));
 				if (marketData != null)
 				{
-					var currency = symbolProfile.Currency;
-					activity.AdjustedUnitPrice = new Money(currency, marketData.Close);
+					activity.AdjustedUnitPrice = new Money(marketData.Currency, marketData.Close);
 					activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace("Determine price", activity.AdjustedQuantity, activity.AdjustedUnitPrice));
 					return;
 				}
