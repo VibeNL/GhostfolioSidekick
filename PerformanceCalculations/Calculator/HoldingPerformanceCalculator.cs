@@ -347,20 +347,21 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 				if (sign == 1)
 				{
-					Money convertedTotal = await currencyExchange.ConvertMoney(
-						activity.UnitPrice.Times(activity.Quantity),
-						targetCurrency,
-						date).ConfigureAwait(false);
+						Money priceToUse = activity.AdjustedUnitPrice.Amount != 0 ? activity.AdjustedUnitPrice : activity.UnitPrice;
+						Money convertedTotal = await currencyExchange.ConvertMoney(
+							priceToUse.Times(activity.AdjustedQuantity),
+							targetCurrency,
+							date).ConfigureAwait(false);
 
-					snapshot.TotalInvested += convertedTotal.Amount + totalFeesAndTaxes;
-					snapshot.Quantity += activity.AdjustedQuantity;
-					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot);
-				}
-				else
-				{
-					decimal costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
-					snapshot.TotalInvested -= costBasisReduction + totalFeesAndTaxes;
-					snapshot.Quantity -= activity.AdjustedQuantity;
+						snapshot.TotalInvested += convertedTotal.Amount + totalFeesAndTaxes;
+						snapshot.Quantity += activity.AdjustedQuantity;
+						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot);
+					}
+					else
+					{
+						decimal costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
+						snapshot.TotalInvested -= costBasisReduction + totalFeesAndTaxes;
+						snapshot.Quantity -= activity.AdjustedQuantity;
 
 					if (snapshot.Quantity <= 0)
 					{
