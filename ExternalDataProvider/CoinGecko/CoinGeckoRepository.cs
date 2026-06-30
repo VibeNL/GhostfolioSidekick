@@ -63,26 +63,24 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return [];
 			}
 
-			WebCallResult<CoinGeckoOhlc[]> longRange = await RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
+			var longRange = await RetryPolicyHelper
+							.GetFallbackPolicy<HttpResult<CoinGeckoOhlc[]>>(logger)
 							.WrapAsync(RetryPolicyHelper
 								.GetRetryPolicy(logger))
 								.ExecuteAsync(async () =>
 								{
-									WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
-
-									return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
+									var response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
+									return !response.Success ? throw new InvalidOperationException(response.Error?.Message) : response;
 								});
 
-			WebCallResult<CoinGeckoOhlc[]> shortRange = await RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
+			var shortRange = await RetryPolicyHelper
+							.GetFallbackPolicy<HttpResult<CoinGeckoOhlc[]>>(logger)
 							.WrapAsync(RetryPolicyHelper
 								.GetRetryPolicy(logger))
 								.ExecuteAsync(async () =>
 								{
-									WebCallResult<CoinGeckoOhlc[]>? response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
-
-									return response == null || !response.Success ? throw new InvalidOperationException(response?.Error?.Message) : response;
+									var response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
+									return !response.Success ? throw new InvalidOperationException(response.Error?.Message) : response;
 								});
 
 			List<MarketData> list = [];
@@ -112,7 +110,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return null;
 			}
 
-			WebCallResult<CoinGeckoAsset[]> coinGeckoAssets = await coinGeckoRestClient.Api.GetAssetsAsync();
+			var coinGeckoAssets = await coinGeckoRestClient.Api.GetAssetsAsync();
 			if (coinGeckoAssets == null || !coinGeckoAssets.Success)
 			{
 				return null;
