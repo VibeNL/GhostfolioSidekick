@@ -84,6 +84,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Configure the HTTP request pipeline.
 			app.UseExceptionHandler();
 
+			// Use HTTPS redirection if needed
+			app.UseRouting();
+			
+			// Enable gRPC-Web for browser compatibility
+			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
 			if (app.Environment.IsDevelopment())
 			{
 				app.MapOpenApi();
@@ -93,25 +99,21 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				}
 				);
 			}
-
-			// Enable gRPC-Web for browser compatibility
-			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-
+						
 			// Map gRPC services
 			app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
-
 			// Map API controllers BEFORE fallback routes
 			app.MapControllers();
 			app.MapDefaultEndpoints();
 
 			// Static files and fallback should come last
-			app.UseStaticFiles(new StaticFileOptions
-			{
-				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
-				ServeUnknownFileTypes = true, // Allow serving files with unknown MIME types
-				DefaultContentType = "application/octet-stream" // Default MIME type for unknown files
-			});
-			app.MapFallbackToFile("index.html");
+			//app.UseStaticFiles(new StaticFileOptions
+			//{
+			//	FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+			//	ServeUnknownFileTypes = true, // Allow serving files with unknown MIME types
+			//	DefaultContentType = "application/octet-stream" // Default MIME type for unknown files
+			//});
+			//app.MapFallbackToFile("index.html");
 
 			return app.RunAsync();
 		}
