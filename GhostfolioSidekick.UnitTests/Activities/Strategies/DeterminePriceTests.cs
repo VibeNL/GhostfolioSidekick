@@ -94,6 +94,41 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 		}
 
 		[Fact]
+		public async Task Execute_ShouldUseMarketDataCurrency_WhenDifferentFromSymbolProfileCurrency()
+		{
+			// Arrange
+			var activityDate = DateTime.Now;
+			var marketDataDate = DateOnly.FromDateTime(activityDate);
+
+			// Symbol profile is USD, but market data is EUR
+			var marketData = new MarketData { Date = marketDataDate, Close = 75m, Currency = Currency.EUR };
+
+			var symbolProfile = new SymbolProfile
+			{
+				MarketData = [marketData],
+				Currency = Currency.USD
+			};
+
+			var activity = new ReceiveActivity
+			{
+				Date = activityDate,
+				AdjustedQuantity = 10
+			};
+
+			var holding = new Holding
+			{
+				SymbolProfiles = [symbolProfile],
+				Activities = [activity]
+			};
+
+			// Act
+			await _determinePrice.Execute(holding);
+
+			// Assert - should use EUR from market data, not USD from symbol profile
+			activity.AdjustedUnitPrice.Should().Be(new Money(Currency.EUR, 75m));
+		}
+
+		[Fact]
 		public async Task Execute_ShouldNotSetUnitPrice_ForIrrelevantActivities()
 		{
 			// Arrange

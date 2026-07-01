@@ -297,10 +297,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 					if (lastKnownPrice == 0 && activitiesByDate.TryGetValue(date, out List<ActivityWithQuantityAndUnitPrice>? activities))
 					{
-						foreach (ActivityWithQuantityAndUnitPrice activity in activities.OrderBy(x => x.UnitPrice.Amount))
+						foreach (ActivityWithQuantityAndUnitPrice activity in activities.OrderBy(x => (x.AdjustedUnitPrice.Amount != 0 ? x.AdjustedUnitPrice : x.UnitPrice).Amount))
 						{
+							Money priceToUse = activity.AdjustedUnitPrice.Amount != 0 ? activity.AdjustedUnitPrice : activity.UnitPrice;
 							Money converted = await currencyExchange.ConvertMoney(
-								activity.UnitPrice,
+								priceToUse,
 								targetCurrency,
 								date).ConfigureAwait(false);
 							decimal convertedAmount = converted.Amount;
@@ -346,20 +347,21 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 				if (sign == 1)
 				{
-					Money convertedTotal = await currencyExchange.ConvertMoney(
-						activity.UnitPrice.Times(activity.Quantity),
-						targetCurrency,
-						date).ConfigureAwait(false);
+						Money priceToUse = activity.AdjustedUnitPrice.Amount != 0 ? activity.AdjustedUnitPrice : activity.UnitPrice;
+						Money convertedTotal = await currencyExchange.ConvertMoney(
+							priceToUse.Times(activity.AdjustedQuantity),
+							targetCurrency,
+							date).ConfigureAwait(false);
 
-					snapshot.TotalInvested += convertedTotal.Amount + totalFeesAndTaxes;
-					snapshot.Quantity += activity.AdjustedQuantity;
-					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot);
-				}
-				else
-				{
-					decimal costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
-					snapshot.TotalInvested -= costBasisReduction + totalFeesAndTaxes;
-					snapshot.Quantity -= activity.AdjustedQuantity;
+						snapshot.TotalInvested += convertedTotal.Amount + totalFeesAndTaxes;
+						snapshot.Quantity += activity.AdjustedQuantity;
+						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot);
+					}
+					else
+					{
+						decimal costBasisReduction = snapshot.AverageCostPrice * activity.AdjustedQuantity;
+						snapshot.TotalInvested -= costBasisReduction + totalFeesAndTaxes;
+						snapshot.Quantity -= activity.AdjustedQuantity;
 
 					if (snapshot.Quantity <= 0)
 					{

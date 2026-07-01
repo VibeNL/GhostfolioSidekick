@@ -251,6 +251,80 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 		}
 
 		[Fact]
+		public async Task GetCalculatedSnapshots_ShouldUseAdjustedUnitPrice_ForReceiveActivityWithZeroUnitPrice()
+		{
+			// Arrange — simulates ReceiveActivity where UnitPrice is empty but AdjustedUnitPrice is set by DeterminePrice
+			using DatabaseContext context = CreateDatabaseContext();
+			SymbolProfile symbolProfile = CreateSymbolProfile("BTC", "Bitcoin", Currency.USD);
+			Account account = CreateAccount("Test Account");
+			DateTime receiveDate = DateTime.Today.AddDays(-5);
+
+			var receiveActivity = new ReceiveActivity(
+				account, null, [], receiveDate, 10, "T1", null, null)
+			{
+				UnitPrice = new Money(Currency.USD, 0), // No reported price
+				AdjustedUnitPrice = new Money(Currency.USD, 50000), // Set by DeterminePrice from market data
+				AdjustedQuantity = 10,
+			};
+
+			Holding holding = CreateHolding([symbolProfile], [receiveActivity]);
+
+			_ = context.Holdings.Add(holding);
+			_ = await context.SaveChangesAsync(CancellationToken.None);
+
+			PerformanceCalculator calculator = CreateCalculator(context);
+
+			// Act
+			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
+
+			// Assert
+			List<CalculatedSnapshot> snapshots = result.ToList();
+			var firstSnapshot = snapshots.First(s => s.Date == DateOnly.FromDateTime(receiveDate));
+			firstSnapshot.Quantity.Should().Be(10);
+			firstSnapshot.TotalInvested.Should().Be(500000); // AdjustedUnitPrice * AdjustedQuantity
+			firstSnapshot.AverageCostPrice.Should().Be(50000); // TotalInvested / Quantity
+		}
+
+		[Fact]
+		public async Task GetCalculatedSnapshots_ShouldUseAdjustedUnitPrice_ForSendActivityWithZeroUnitPrice()
+		{
+			// Arrange — simulates SendActivity where UnitPrice is empty but AdjustedUnitPrice is set
+			using DatabaseContext context = CreateDatabaseContext();
+			SymbolProfile symbolProfile = CreateSymbolProfile("BTC", "Bitcoin", Currency.USD);
+			Account account = CreateAccount("Test Account");
+			DateTime buyDate = DateTime.Today.AddDays(-10);
+			DateTime sendDate = DateTime.Today.AddDays(-5);
+
+			// First, a buy to establish the holding
+			var buyActivity = CreateBuyActivity(account, buyDate, 10, new Money(Currency.USD, 40000), "T1");
+			// Then a send with no UnitPrice but AdjustedUnitPrice set
+			var sendActivity = new SendActivity(
+				account, null, [], sendDate, 2, "T2", null, null)
+			{
+				UnitPrice = new Money(Currency.USD, 0),
+				AdjustedUnitPrice = new Money(Currency.USD, 50000),
+				AdjustedQuantity = 2,
+			};
+
+			Holding holding = CreateHolding([symbolProfile], [buyActivity, sendActivity]);
+
+			_ = context.Holdings.Add(holding);
+			_ = await context.SaveChangesAsync(CancellationToken.None);
+
+			PerformanceCalculator calculator = CreateCalculator(context);
+
+			// Act
+			IEnumerable<CalculatedSnapshot> result = await calculator.GetCalculatedSnapshots(holding, Currency.USD);
+
+			// Assert
+			List<CalculatedSnapshot> snapshots = result.ToList();
+			var snapshotOnSend = snapshots.First(s => s.Date == DateOnly.FromDateTime(sendDate));
+			snapshotOnSend.Quantity.Should().Be(8); // 10 - 2
+			snapshotOnSend.TotalInvested.Should().Be(320000); // (40000*10) - (40000*2) — cost basis uses AverageCostPrice
+			snapshotOnSend.AverageCostPrice.Should().Be(40000); // 320000 / 8
+		}
+
+		[Fact]
 		public async Task GetCalculatedSnapshots_ShouldUseLastKnownMarketPrice_WhenMarketDataMissing()
 		{
 			// Arrange
