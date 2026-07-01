@@ -28,7 +28,9 @@ namespace GhostfolioSidekick.Activities
 
 		public string Name => "File Importer";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			var directories = Directory.GetDirectories(fileLocation);
 
@@ -42,8 +44,8 @@ namespace GhostfolioSidekick.Activities
 
 			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
-			var activityManager = new ActivityManager(await databaseContext.Accounts.ToListAsync());
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
+			var activityManager = new ActivityManager(await databaseContext.Accounts.ToListAsync(cancellationToken));
 			var accountNames = new List<string>();
 			await ParseFiles(logger, importers, directories, activityManager, accountNames);
 
@@ -131,12 +133,12 @@ namespace GhostfolioSidekick.Activities
 		{
 			await UpdatePartialSymbolIdentifiers(databaseContext, activities);
 			await SyncActivities(databaseContext, activities);
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(CancellationToken.None);
 		}
 
 		private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
-			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync(CancellationToken.None);
 
 			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
 			{
@@ -159,7 +161,7 @@ namespace GhostfolioSidekick.Activities
 			var existingActivities = await databaseContext
 				.Activities
 				.Include(x => x.Account)
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 			// Ensure all account entities in activities are properly tracked
 			await EnsureAccountsAreTracked(databaseContext, activities);

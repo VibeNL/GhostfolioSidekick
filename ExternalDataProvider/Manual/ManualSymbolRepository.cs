@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 				var symbolProfile = (await symbolProfileQuery
 						.Where(x => identifier.AllowedAssetClasses == null || !identifier.AllowedAssetClasses!.Any() || identifier.AllowedAssetClasses!.Contains(x.AssetClass))
 						.Where(x => identifier.AllowedAssetSubClasses == null || x.AssetSubClass == null || !identifier.AllowedAssetSubClasses!.Any() || identifier.AllowedAssetSubClasses!.Contains(x.AssetSubClass.Value))
-						.ToListAsync()) // SQLlite does not support string operations that well
+						.ToListAsync(CancellationToken.None)) // SQLlite does not support string operations that well
 						.FirstOrDefault(x =>
 							string.Equals(x.Symbol, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
 							string.Equals(x.ISIN, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 				.OfType<ActivityWithQuantityAndUnitPrice>()
 				.Where(x => x.Holding != null && x.Holding.SymbolProfiles.Contains(profile))
 				.OrderBy(x => x.Date)
-				.ToListAsync();
+				.ToListAsync(CancellationToken.None);
 
 			if (activities.Count == 0)
 			{

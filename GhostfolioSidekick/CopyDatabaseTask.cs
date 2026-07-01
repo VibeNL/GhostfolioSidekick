@@ -16,7 +16,9 @@ namespace GhostfolioSidekick
 
 		public string Name => "Copy & Backup Database";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Copying database...");
 
@@ -35,7 +37,7 @@ namespace GhostfolioSidekick
 				await BackupDatabaseUsingSqliteApi(sourceFile, destinationFile);
 
 				// Wait longer to ensure file locks are fully released (especially important on network shares)
-				await Task.Delay(500);
+				await Task.Delay(500, cancellationToken);
 
 				logger.LogInformation($"Database copied successfully to '{destinationFile}'.");
 

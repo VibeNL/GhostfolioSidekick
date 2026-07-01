@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Configuration
 
 		string GhostfolioAccessToken { get; }
 
-		int TrottleTimeout { get; }
+		int ThrottleTimeout { get; }
 
 		/// <summary>
 		/// Database query timeout in seconds for complex queries. Default is 120 seconds.
@@ -35,6 +35,26 @@ namespace GhostfolioSidekick.Configuration
 		/// Maximum number of compressed backups to keep. Default is 5.
 		/// </summary>
 		int MaxBackupCount { get; }
+
+		/// <summary>
+		/// HTTP cache expiry in hours for CoinGecko API calls. Default is 24.
+		/// </summary>
+		int CoinGeckoCacheExpiryHours { get; }
+
+		/// <summary>
+		/// HTTP cache expiry in hours for Yahoo Finance API calls. Default is 24.
+		/// </summary>
+		int YahooCacheExpiryHours { get; }
+
+		/// <summary>
+		/// HTTP cache expiry in hours for DividendMax API calls. Default is 168.
+		/// </summary>
+		int DividendMaxCacheExpiryHours { get; }
+
+		/// <summary>
+		/// HTTP cache expiry in hours for Ghostfolio API calls. Default is 168.
+		/// </summary>
+		int GhostfolioCacheExpiryHours { get; }
 
 		ConfigurationInstance ConfigurationInstance { get; }
 

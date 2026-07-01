@@ -12,6 +12,8 @@ namespace GhostfolioSidekick
 
 		string Name { get; }
 
-		Task DoWork(ILogger logger);
+		TimeSpan? MaxRunTime { get; }
+
+		Task DoWork(ILogger logger, CancellationToken cancellationToken);
 	}
 }

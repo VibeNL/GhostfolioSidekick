@@ -28,17 +28,19 @@ namespace GhostfolioSidekick.Activities
 
 		public string Name => "Determine Holdings";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			List<int> usedHoldingIds;
-			using (DatabaseContext databaseContext = await databaseContextFactory.CreateDbContextAsync())
+			using (DatabaseContext databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken))
 			{
-				List<Activity> activities = await databaseContext.Activities.ToListAsync();
+				List<Activity> activities = await databaseContext.Activities.ToListAsync(cancellationToken);
 				List<Holding> existingHoldings = await databaseContext.Holdings
 					.Include(h => h.SymbolProfiles)
 					.Include(h => h.Activities)
 					.AsSplitQuery()
-					.ToListAsync();
+					.ToListAsync(cancellationToken);
 
 				Dictionary<PartialSymbolIdentifier, DesiredHoldingState> partialIdentifierMap = new(new PartialSymbolIdentifierComparer());
 				Dictionary<string, DesiredHoldingState> symbolProfileMap = [];
@@ -124,15 +126,15 @@ namespace GhostfolioSidekick.Activities
 					databaseContext.Holdings.RemoveRange(unusedHoldings);
 				}
 
-				_ = await databaseContext.SaveChangesAsync();
+				_ = await databaseContext.SaveChangesAsync(cancellationToken);
 				usedHoldingIds = [.. usedHoldings.Where(h => h.Id != 0).Select(h => h.Id)];
 			}
 
-			using DatabaseContext matchingContext = await databaseContextFactory.CreateDbContextAsync();
+			using DatabaseContext matchingContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			List<Holding> holdingsForMatching = await matchingContext.Holdings
 				.Include(h => h.SymbolProfiles)
 				.Where(h => usedHoldingIds.Contains(h.Id))
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
 			await MatchOtherMatchers(logger, matchingContext, holdingsForMatching).ConfigureAwait(false);
 		}
 
@@ -264,7 +266,7 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			_ = await databaseContext.SaveChangesAsync();
+			_ = await databaseContext.SaveChangesAsync(CancellationToken.None);
 		}
 
 		private static DesiredHoldingState GetOrCreateHolding(

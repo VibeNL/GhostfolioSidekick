@@ -8,13 +8,13 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		private const string SubmitButtonSelector = "button[type='submit']";
 		private const string ErrorAlertSelector = ".alert-danger";
 
-		public async Task NavigateAsync(string serverAddress)
+		public async Task NavigateAsync(string serverAddress, CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
 				await _page.GotoAsync(serverAddress);
 				await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-			});
+			}, ct);
 		}
 
 		public async Task WaitForPageLoadAsync(int timeout = 10000)
@@ -30,12 +30,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			await _page.FillAsync(AccessTokenInputSelector, token);
 		}
 
-		public async Task ClickLoginAsync()
+		public async Task ClickLoginAsync(CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
 				await _page.ClickAsync(SubmitButtonSelector);
-			});
+			}, ct);
 		}
 
 		public async Task<bool> IsErrorDisplayedAsync()
@@ -64,12 +64,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			}
 		}
 
-		public async Task LoginAsync(string serverAddress, string token)
+		public async Task LoginAsync(string serverAddress, string token, CancellationToken ct = default)
 		{
-			await NavigateAsync(serverAddress);
+			await NavigateAsync(serverAddress, ct);
 			await WaitForPageLoadAsync();
 			await FillAccessTokenAsync(token);
-			await ClickLoginAsync();
+			await ClickLoginAsync(ct);
 		}
 
 		public async Task WaitForSuccessfulLoginAsync(int timeout = 10000)

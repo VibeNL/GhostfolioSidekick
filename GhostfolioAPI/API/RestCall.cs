@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -11,12 +11,13 @@ using System.Diagnostics;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
-	public class RestCall
+	public class RestCall : IRestCall
 	{
 		private const string Authorization = "Authorization";
 		private const string ContentType = "Content-Type";
 		private const string ContentJson = "application/json";
 		private readonly SemaphoreSlim semaphore = new(1);
+		private DateTimeOffset? lastCallTime;
 
 		private readonly IMemoryCache memoryCache;
 		private readonly IRestClient restClient;
@@ -26,6 +27,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private readonly RetryPolicy<RestResponse> retryPolicy;
 		private readonly CircuitBreakerPolicy<RestResponse> basicCircuitBreakerPolicy;
 		private readonly RestCallOptions options;
+		private readonly TimeProvider timeProvider;
 
 		public RestCall(
 			IRestClient restClient,
@@ -33,7 +35,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			ILogger<RestCall> logger,
 			string url,
 			string accessToken,
-			RestCallOptions options)
+			RestCallOptions options,
+			TimeProvider timeProvider)
 		{
 			if (string.IsNullOrEmpty(url))
 			{
@@ -45,6 +48,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			this.logger = logger;
 			this.url = url;
 			this.accessToken = accessToken;
+			this.timeProvider = timeProvider;
 
 			retryPolicy = Policy
 				.HandleResult<RestResponse>(x =>
@@ -76,7 +80,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			this.options = options;
 		}
 
-		public async Task<string?> DoRestGet(string suffixUrl, bool useCircuitBreaker = false)
+		public virtual async Task<string?> DoRestGet(string suffixUrl, bool useCircuitBreaker = false)
 		{
 			Policy<RestResponse> policy = retryPolicy;
 			if (useCircuitBreaker)
@@ -84,8 +88,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				policy = basicCircuitBreakerPolicy.Wrap(retryPolicy);
 			}
 
+			var timestamp = timeProvider.GetTimestamp();
+
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -96,14 +103,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader(Authorization, $"Bearer {await GetAuthenticationToken()}");
 				request.AddHeader(ContentType, ContentJson);
 
-				var stopwatch = new Stopwatch();
-
-				stopwatch.Start();
-
 				var r = policy.Execute(() => restClient.ExecuteGetAsync(request).Result);
-				stopwatch.Stop();
 
-				logger.LogTrace("Url {Url}/{SuffixUrl} took {ElapsedMilliseconds}ms", url, suffixUrl, stopwatch.ElapsedMilliseconds);
+				var elapsed = timeProvider.GetElapsedTime(timestamp);
+				logger.LogTrace("Url {Url}/{SuffixUrl} took {ElapsedMilliseconds}ms", url, suffixUrl, elapsed.TotalMilliseconds);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -123,15 +126,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
 				semaphore.Release();
 			}
 		}
 
-		public async Task<RestResponse> DoRestPost(string suffixUrl, string body)
+		public virtual async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -159,7 +162,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
 				semaphore.Release();
 			}
 		}
@@ -168,6 +170,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -195,7 +198,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
 				semaphore.Release();
 			}
 		}
@@ -204,6 +206,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -231,15 +234,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
 				semaphore.Release();
 			}
 		}
 
-		public async Task<RestResponse> DoRestDelete(string suffixUrl)
+		public virtual async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
 			try
 			{
+				await ExecuteTrottling(CancellationToken.None);
 				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
@@ -266,7 +269,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				await ExecuteTrottling();
 				semaphore.Release();
 			}
 		}
@@ -311,10 +313,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		private Task ExecuteTrottling()
+		private async Task ExecuteTrottling(CancellationToken cancellationToken)
 		{
-			// Naive implementation of trottling for now
-			return Task.Delay(options.TrottleTimeout);
+			var now = this.timeProvider.GetUtcNow();
+			if (lastCallTime.HasValue)
+			{
+				var elapsed = now - lastCallTime.Value;
+				var remaining = options.ThrottleTimeout - elapsed;
+				if (remaining > TimeSpan.Zero)
+				{
+					logger.LogDebug("Throttling for {Remaining} (elapsed: {Elapsed}ms, throttle timeout: {ThrottleTimeout})", remaining, elapsed.TotalMilliseconds, options.ThrottleTimeout);
+					await this.timeProvider.Delay(remaining, cancellationToken);
+				}
+			}
+
+			lastCallTime = now;
 		}
 	}
 }

@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			// Only AAPL (stock) should be processed, BTC (crypto) should be skipped
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			// Only GOOGL should be processed, AAPL with GHOSTFOLIO datasource should be filtered out
@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			loggerMock.Verify(
@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			loggerMock.Verify(
@@ -286,7 +286,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			symbolProfile.StockSplits.Count.Should().Be(2);
@@ -355,7 +355,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			symbolProfile.StockSplits.Count.Should().Be(2);
@@ -411,7 +411,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			symbolProfile.StockSplits.Count.Should().Be(1);
@@ -463,7 +463,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			// Should use the minimum activity date (activityDate1)
@@ -538,7 +538,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			_mockStockSplitRepository1.Verify(
@@ -590,7 +590,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			// Should not log debug message when no splits are found
@@ -646,7 +646,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = new Mock<ILogger<MarketDataStockSplitTask>>();
 
 			// Act
-			await _marketDataStockSplitTask.DoWork(loggerMock.Object);
+			await _marketDataStockSplitTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			// The code should process symbols in ordered fashion: AAPL-ALPHA_VANTAGE, AAPL-YAHOO, GOOGL-YAHOO, MSFT-YAHOO

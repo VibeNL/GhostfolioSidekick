@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext.Object);
 
 			// Act
-			await _task.DoWork(new Mock<ILogger>().Object);
+			await _task.DoWork(new Mock<ILogger>().Object, CancellationToken.None);
 
 			// Assert
 			mockDbContext.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshot], [holding], []);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: quantity = 0 excludes the holding from the holdings map
 			VerifyLogContains(loggerMock, "0 predictions for 0 symbols");
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshot], [holding], []);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: no symbol profile → FirstOrDefault returns null → excluded from holdings map
 			VerifyLogContains(loggerMock, "0 predictions for 0 symbols");
@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: history.Count = 1 < 2 → symbol skipped, no intervals to compute
 			VerifyLogContains(loggerMock, "0 predictions for 1 symbols");
@@ -125,7 +125,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: intervalDays = 7 < 14 → symbol skipped
 			VerifyLogContains(loggerMock, "0 predictions for 1 symbols");
@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshot], [holding], [], activities);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			VerifyLogContains(loggerMock, "1 predictions for 1 symbols");
@@ -183,7 +183,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshot], [holding], dividends, activities);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: the only projected date is covered by a confirmed upcoming → 0 new predictions
 			VerifyLogContains(loggerMock, "0 predictions for 1 symbols");
@@ -218,7 +218,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshot], [holding], dividends, activities);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: old prediction removed, 1 freshly computed prediction added
 			VerifyLogContains(loggerMock, "1 predictions for 1 symbols");
@@ -242,7 +242,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var loggerMock = SetupDbContext([snapshotAapl, snapshotMsft], [holdingAapl, holdingMsft], [], activities);
 
 			// Act
-			await _task.DoWork(loggerMock.Object);
+			await _task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert: 1 annual projection per symbol → 2 total
 			VerifyLogContains(loggerMock, "2 predictions for 2 symbols");

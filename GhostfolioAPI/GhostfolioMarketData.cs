@@ -1,45 +1,64 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public class GhostfolioMarketData(RestCall restCall, ILogger<GhostfolioMarketData> logger) : IGhostfolioMarketData
+	public class GhostfolioMarketData(IRestCall restCall, ILogger<GhostfolioMarketData> logger, IApplicationSettings settings) : IGhostfolioMarketData
 	{
 		public async Task DeleteSymbol(SymbolProfile symbolProfile)
 		{
-			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}");
-			if (!r.IsSuccessStatusCode)
+			if (!settings.AllowAdminCalls)
 			{
-				throw new NotSupportedException($"Deletion failed {symbolProfile.Symbol}");
+				logger.LogDebug("DeleteSymbol skipped: not authorized (non-admin user)");
+				return;
 			}
 
-			logger.LogDebug("Deleted symbol {Symbol}", symbolProfile.Symbol);
+			try
+			{
+				var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}");
+				if (!r.IsSuccessStatusCode)
+				{
+					throw new NotSupportedException($"Deletion failed {symbolProfile.Symbol}");
+				}
+
+				logger.LogDebug("Deleted symbol {Symbol}", symbolProfile.Symbol);
+			}
+			catch (NotAuthorizedException ex)
+			{
+				logger.LogWarning(ex, "403 Forbidden on DeleteSymbol for {Symbol} — non-admin user, skipping", symbolProfile.Symbol);
+			}
 		}
 
 		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles()
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
-
-			if (content == null)
+			if (!settings.AllowAdminCalls)
 			{
+				logger.LogDebug("GetAllSymbolProfiles skipped: not authorized (non-admin user)");
 				return [];
 			}
 
-			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
-
-			var profiles = new List<SymbolProfile>();
-			foreach (var f in market?.MarketData
-				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
-				.ToList() ?? [])
+			try
 			{
-				content = await restCall.DoRestGet($"api/v1/market-data/{f.DataSource}/{f.Symbol}");
-				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
-				profiles.Add(data!.AssetProfile);
-			}
+				var content = await restCall.DoRestGet($"api/v1/asset-profiles");
 
-			return profiles;
+				if (content == null)
+				{
+					return [];
+				}
+
+				var assetProfiles = JsonConvert.DeserializeObject<AssetProfileList>(content);
+
+				return [.. (assetProfiles?.AssetProfiles ?? [])
+					.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))];
+			}
+			catch (NotAuthorizedException ex)
+			{
+				logger.LogWarning(ex, "403 Forbidden on GetAllSymbolProfiles — non-admin user, returning empty list");
+				return [];
+			}
 		}
 
 		public async Task<GenericInfo> GetBenchmarks()

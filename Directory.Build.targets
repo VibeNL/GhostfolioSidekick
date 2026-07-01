@@ -1,6 +1,11 @@
 <Project>
-  <!-- Include global suppressions file in all projects -->
-  <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
-  </ItemGroup>
+	<!-- Include global suppressions file in all projects -->
+	<ItemGroup>
+		<Compile Include="$(MSBuildThisFileDirectory)GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
+	</ItemGroup>
+
+	<!-- Suppress SQLite warning until a fix is available -->
+	<ItemGroup>
+		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
+	</ItemGroup>
 </Project>

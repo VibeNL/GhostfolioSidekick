@@ -17,11 +17,13 @@ namespace GhostfolioSidekick.Activities
 
 		public string Name => "Calculate Price";
 
-		public async Task DoWork(ILogger logger)
-		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+		public TimeSpan? MaxRunTime => null;
 
-			var holdings = await databaseContext.Holdings.ToListAsync();
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
+		{
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
+
+			var holdings = await databaseContext.Holdings.ToListAsync(cancellationToken);
 			foreach (var holdingStrategy in holdingStrategies.OrderBy(x => x.Priority))
 			{
 				foreach (var holding in holdings)
@@ -30,7 +32,7 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 	}
 }

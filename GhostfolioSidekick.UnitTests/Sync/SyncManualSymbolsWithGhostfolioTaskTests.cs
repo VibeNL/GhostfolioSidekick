@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 				.ReturnsAsync((Money money, Currency curr, DateOnly date) => money);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			var loggerMock = new Mock<ILogger<SyncManualActivitiesmarketDataWithGhostfolioTask>>();
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
@@ -110,7 +110,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 			// Act
-			await task.DoWork(loggerMock.Object);
+			await task.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);

@@ -44,6 +44,7 @@ namespace GhostfolioSidekick
 			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
 			await databaseContext.ExecutePragma("PRAGMA fullfsync=ON;");
 			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+			await databaseContext.ExecutePragma("PRAGMA busy_timeout=5000;");
 
 			logger.LogInformation("Integrity checks...");
 			await databaseContext.ExecutePragma("PRAGMA integrity_check;");
@@ -171,7 +172,7 @@ namespace GhostfolioSidekick
 					dbTask.EndTime = DateTimeOffset.Now;
 				}
 
-				await databaseContext.SaveChangesAsync();
+				await databaseContext.SaveChangesAsync(cancellationTokenSource!.Token);
 			}
 		}
 
@@ -191,27 +192,45 @@ namespace GhostfolioSidekick
 			var taskLogger = new DatabaseTaskLogger(databaseContext, workItem.Work, this.logger);
 			taskLogger.EmptyPreviousLogs();
 
+			// Create timeout token if MaxRunTime is specified
+			CancellationTokenSource? timeoutSource = null;
+			CancellationToken combinedToken = cancellationTokenSource!.Token;
+
+			if (workItem.Work.MaxRunTime.HasValue && workItem.Work.MaxRunTime.Value > TimeSpan.Zero)
+			{
+				timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token);
+				timeoutSource.CancelAfter(workItem.Work.MaxRunTime.Value);
+				combinedToken = timeoutSource.Token;
+			}
+
 			try
 			{
-				await workItem.Work.DoWork(taskLogger);
+				await workItem.Work.DoWork(taskLogger, combinedToken);
+				await taskLogger.FlushAsync();
 			}
 			catch (Exception ex)
 			{
 				// Log the main exception and all inner exceptions
 				var exceptionMessage = GetFullExceptionMessage(ex);
 				taskLogger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, exceptionMessage);
+				await taskLogger.FlushAsync();
 				var taskrun = GetTask(databaseContext, workItem.Work.GetType().Name);
 				if (taskrun != null)
 				{
 					taskrun.InProgress = false;
 					taskrun.LastException = exceptionMessage;
-					await databaseContext.SaveChangesAsync();
+					await databaseContext.SaveChangesAsync(cancellationTokenSource.Token);
 				}
 
 				if (workItem.Work.ExceptionsAreFatal)
 				{
 					throw;
 				}
+			}
+			finally
+			{
+				await taskLogger.DisposeAsync();
+				timeoutSource?.Dispose();
 			}
 		}
 

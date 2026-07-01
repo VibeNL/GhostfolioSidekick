@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var loggerMock = new Mock<ILogger<BalanceMaintainerTask>>();
 
 			// Act
-			await _balanceMaintainerTask.DoWork(loggerMock.Object);
+			await _balanceMaintainerTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			mockDbContext.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var loggerMock = new Mock<ILogger<BalanceMaintainerTask>>();
 
 			// Act
-			await _balanceMaintainerTask.DoWork(loggerMock.Object);
+			await _balanceMaintainerTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			mockDbContext.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var loggerMock = new Mock<ILogger<BalanceMaintainerTask>>();
 
 			// Act
-			await _balanceMaintainerTask.DoWork(loggerMock.Object);
+			await _balanceMaintainerTask.DoWork(loggerMock.Object, CancellationToken.None);
 
 			// Assert
 			// The task should complete successfully and only process accounts with SyncBalance = true

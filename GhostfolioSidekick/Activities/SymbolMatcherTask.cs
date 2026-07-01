@@ -22,12 +22,14 @@ namespace GhostfolioSidekick.Activities
 
 		public string Name => "Symbol Matcher";
 
-		public async Task DoWork(ILogger logger)
-		{
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
-			var activities = await databaseContext.Activities.ToListAsync();
+		public TimeSpan? MaxRunTime => null;
 
-			var currentHoldings = await databaseContext.Holdings.ToListAsync();
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
+		{
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
+			var activities = await databaseContext.Activities.ToListAsync(cancellationToken);
+
+			var currentHoldings = await databaseContext.Holdings.ToListAsync(cancellationToken);
 
 			foreach (var activityTuple in activities
 					.Select(x => new CustomObject { Activity = x, PartialIdentifier = x as IActivityWithPartialIdentifier })
@@ -39,7 +41,7 @@ namespace GhostfolioSidekick.Activities
 
 			AssertNoMultipleSymbols(logger, currentHoldings);
 
-			await databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync(cancellationToken);
 		}
 
 		private static void AssertNoMultipleSymbols(ILogger logger, List<Holding> currentHoldings)

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using KellermanSoftware.CompareNetObjects;
@@ -19,23 +19,25 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public string Name => "Balance Maintainer";
 
-		public async Task DoWork(ILogger logger)
+		public TimeSpan? MaxRunTime => null;
+
+		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			List<AccountKey> accountKeys;
-			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
+			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken))
 			{
 				accountKeys = await databaseContext.Accounts
 					.Select(x => new AccountKey(x.Name, x.Id))
-					.ToListAsync();
+						.ToListAsync(cancellationToken);
 			}
 
 			foreach (var accountKey in accountKeys.Select(x => x.Id))
 			{
-				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+				using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 				var activities = await databaseContext.Activities
 									.Where(x => x.Account.Id == accountKey)
 									.AsNoTracking()
-									.ToListAsync();
+									.ToListAsync(cancellationToken);
 
 				// Ensure activities is never null and order by date
 				var orderedActivities = (activities ?? []).OrderBy(x => x.Date);
@@ -43,7 +45,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 				var balanceCalculator = new BalanceCalculator(exchangeRateService);
 				var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
 
-				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey)!;
+				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey, cancellationToken: cancellationToken)!;
 				var existingBalances = account!.Balance ?? [];
 
 				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
@@ -56,7 +58,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 						account.Balance.Clear();
 						account.Balance.AddRange(balances);
 					}
-					await databaseContext.SaveChangesAsync();
+					await databaseContext.SaveChangesAsync(cancellationToken);
 				}
 			}
 		}
