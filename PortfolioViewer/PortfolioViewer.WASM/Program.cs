@@ -111,7 +111,7 @@ public class Program
 		// Holding Identifier Mapping Service
 		builder.Services.AddScoped<IHoldingIdentifierMappingService, HoldingIdentifierMappingService>();
 
-		// Register UpcomingDividendsService for DI
+		// Register DividendsService for DI
 		builder.Services.AddScoped<IDividendsService, DividendsService>();
 
 		var app = builder.Build();
