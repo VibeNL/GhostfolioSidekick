@@ -31,29 +31,10 @@ public class Program
 			http.AddServiceDiscovery();
 		});
 
-		// Get HostEnvironment and Configuration before registering services
-		var hostEnvironment = builder.HostEnvironment;
-		var configuration = builder.Configuration;
-
 		// Configure the default HttpClient for all consumers
 		builder.Services.AddHttpClient(string.Empty, client =>
 		{
-			var apiServiceHttps = configuration.GetSection("Services:apiservice:https").Get<string[]>()?.FirstOrDefault();
-			var apiServiceHttp = configuration.GetSection("Services:apiservice:http").Get<string[]>()?.FirstOrDefault();
-
-			// In production/development, use the configured API service URLs
-			if (!string.IsNullOrWhiteSpace(apiServiceHttps))
-			{
-				client.BaseAddress = new Uri(apiServiceHttps);
-			}
-			else if (!string.IsNullOrWhiteSpace(apiServiceHttp))
-			{
-				client.BaseAddress = new Uri(apiServiceHttp);
-			}
-			else
-			{
-				client.BaseAddress = new Uri(hostEnvironment.BaseAddress);
-			}
+			client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 		});
 
 		// Configure custom authentication

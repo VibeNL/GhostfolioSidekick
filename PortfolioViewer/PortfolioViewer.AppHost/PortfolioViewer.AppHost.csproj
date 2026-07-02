@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Sdk Name="Aspire.AppHost.Sdk" Version="13.4.2" />
+	<Sdk Name="Aspire.AppHost.Sdk" Version="13.4.6" />
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -29,8 +29,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.6" />
-		<PackageReference Include="Aspire4Wasm.AppHost" Version="7.0.0" />
-		<PackageReference Include="MessagePack" Version="3.1.7" />
+		<PackageReference Include="Aspire.Hosting.Blazor" Version="13.4.6-preview.1.26319.6" />
 	</ItemGroup>
 
 </Project>
