@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<Sdk Name="Aspire.AppHost.Sdk" Version="13.4.6" />
 
@@ -29,6 +29,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.6" />
+		<PackageReference Include="Aspire.Hosting.Blazor" Version="13.4.6-preview.1.26319.6" />
 	</ItemGroup>
 
 </Project>

@@ -1,10 +1,10 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+var blazorapp = builder.AddBlazorWasmProject<Projects.PortfolioViewer_WASM>("blazorapp");
 var apiService = builder.AddProject<Projects.PortfolioViewer_ApiService>("apiservice");
-
-// Add the Blazor WASM project — Aspire 13 publishes WASM output as static files automatically.
-// WithReference injects "Services:apiservice" config into the WASM's appsettings.json at runtime.
-builder.AddProject<Projects.PortfolioViewer_WASM>("blazorWasm")
-	.WithReference(apiService);
+builder.AddProject<Projects.PortfolioViewer_WASM>("blazorServer")
+						.WithExternalHttpEndpoints()
+						.WithBlazorClientApp(blazorapp)
+						.WithReference(apiService);
 
 await builder.Build().RunAsync();

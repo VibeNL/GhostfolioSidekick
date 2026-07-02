@@ -84,6 +84,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Configure the HTTP request pipeline.
 			app.UseExceptionHandler();
 
+			// Use HTTPS redirection if needed
+			app.UseRouting();
+			
+			// Enable gRPC-Web for browser compatibility
+			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
 			if (app.Environment.IsDevelopment())
 			{
 				app.MapOpenApi();
@@ -93,13 +99,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				}
 				);
 			}
-
-			// Enable gRPC-Web for browser compatibility
-			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-
+						
 			// Map gRPC services
 			app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
-
 			// Map API controllers BEFORE fallback routes
 			app.MapControllers();
 			app.MapDefaultEndpoints();

@@ -31,33 +31,10 @@ public class Program
 			http.AddServiceDiscovery();
 		});
 
-		// Get HostEnvironment and Configuration before registering services
-		var hostEnvironment = builder.HostEnvironment;
-		var configuration = builder.Configuration;
-
 		// Configure the default HttpClient for all consumers
 		builder.Services.AddHttpClient(string.Empty, client =>
 		{
-			// Under Aspire, the WASM is served from the AppHost on the same origin.
-			// Use same-origin base address — the AppHost proxies /api/* to the ApiService.
-			// For local dev outside Aspire, use configured API service URLs or same-origin.
-			var apiServiceHttps = configuration.GetSection("Services:apiservice:https").Get<string[]>()?.FirstOrDefault();
-			var apiServiceHttp = configuration.GetSection("Services:apiservice:http").Get<string[]>()?.FirstOrDefault();
-
-			if (!string.IsNullOrWhiteSpace(apiServiceHttps))
-			{
-				client.BaseAddress = new Uri(apiServiceHttps);
-			}
-			else if (!string.IsNullOrWhiteSpace(apiServiceHttp))
-			{
-				client.BaseAddress = new Uri(apiServiceHttp);
-			}
-			else
-			{
-				// Same-origin: AppHost serves WASM files and proxies /api/* to ApiService
-				client.BaseAddress = new Uri(hostEnvironment.BaseAddress);
-			}
-		});
+			client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 
 		// Configure custom authentication
 		builder.Services.AddAuthorizationCore();
