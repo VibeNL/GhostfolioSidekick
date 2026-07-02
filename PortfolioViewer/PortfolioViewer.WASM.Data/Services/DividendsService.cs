@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// </summary>
 		public async Task<List<DividendModel>> GetDividendsAsync(DateOnly? startDate = null, DateOnly? endDate = null)
 		{
-			await using var db = await dbContextFactory.CreateDbContextAsync();
+			await using var db = await dbContextFactory.CreateDbContextAsync(CancellationToken.None);
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
 
 			var upcomingResults = await GetUpcomingDividendsAsync(db, primaryCurrency, startDate, endDate);
