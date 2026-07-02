@@ -1,6 +1,6 @@
 @page "/dividends"
 
-<PageTitle>Upcoming Dividends</PageTitle>
+<PageTitle>Dividends</PageTitle>
 
 <div class="container-fluid">
     @if (!isLoading && dividends != null && dividends.Any())
@@ -27,7 +27,7 @@
             <div class="card border-primary shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h4 class="card-title mb-0">
-                        <i class="bi bi-cash-coin me-2"></i>Upcoming Dividends
+                        <i class="bi bi-cash-coin me-2"></i>Dividends
                     </h4>
                 </div>
                 <div class="card-body">
@@ -37,15 +37,15 @@
                             <div class="spinner-border text-primary mb-3" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <h5 class="text-muted">Loading Upcoming Dividends...</h5>
+                            <h5 class="text-muted">Loading Dividends...</h5>
                         </div>
                     }
                     else if (dividends == null || !dividends.Any())
                     {
                         <div class="text-center py-5">
                             <i class="bi bi-cash-coin text-muted" style="font-size: 4rem;"></i>
-                            <h5 class="text-muted mt-3">No Upcoming Dividends</h5>
-                            <p class="text-muted mb-0">There are no upcoming dividends at this time.</p>
+                            <h5 class="text-muted mt-3">No Dividends</h5>
+                            <p class="text-muted mb-0">There are no dividends in the selected date range.</p>
                         </div>
                     }
                     else
@@ -171,4 +171,3 @@
 	</div>
 	<div class="modal-backdrop fade show"></div>
 }
-

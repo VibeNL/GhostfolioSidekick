@@ -4,10 +4,10 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 
 public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
 {
-    private const string PageHeadingSelector = "h4:has-text('Upcoming Dividends')";
-    private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Upcoming Dividends')";
-    private const string EmptyStateSelector = "h5.text-muted:has-text('No Upcoming Dividends')";
-    private const string DividendsLinkSelector = "a.dropdown-item:has-text('Upcoming Dividends')";
+    private const string PageHeadingSelector = "h4.card-title:has-text('Dividends')";
+    private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Dividends')";
+    private const string EmptyStateSelector = "h5.text-muted:has-text('No Dividends')";
+    private const string DividendsLinkSelector = "a.dropdown-item:has-text('Dividends')";
     private const string TableSelector = "table.table-hover";
 
     public async Task NavigateViaMenuAsync()
