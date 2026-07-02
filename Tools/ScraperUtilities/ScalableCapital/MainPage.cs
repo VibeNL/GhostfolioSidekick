@@ -12,7 +12,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 			// Wait for transactions to load
 			logger.LogInformation("Waiting for transactions to load...");
-			await page.WaitForSelectorAsync("input[placeholder='Search transactions']", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+			// Wait for either English or German search placeholder (ScalableCapital supports DE locale)
+			await page.WaitForSelectorAsync(
+				"input[placeholder='Search transactions'], input[placeholder='Transaktionen durchsuchen']",
+				new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 30_000 });
 
 			return page.Url.Contains("/broker")
 				? new BrokerTransactionPage(page, logger)
