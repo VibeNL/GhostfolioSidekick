@@ -35,6 +35,7 @@ public class Program
 		builder.Services.AddHttpClient(string.Empty, client =>
 		{
 			client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+		});
 
 		// Configure custom authentication
 		builder.Services.AddAuthorizationCore();
