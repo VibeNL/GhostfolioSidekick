@@ -3,6 +3,7 @@
 		<!-- Force patched Microsoft.OpenApi to fix CVE-2026-49451 (stack overflow via circular schema refs) -->
 		<!-- Affected: >= 2.0.0-preview11,<=2.7.4 | >= 3.0.0,<=3.5.3 -->
 		<!-- Use 2.7.5 (first patched 2.x) to maintain compatibility with Microsoft.AspNetCore.OpenApi source generators -->
+		<!-- Note: 3.x has breaking changes with AspNetCore source generators (IOpenApiMediaType.Example is read-only) -->
 		<PackageReference Include="Microsoft.OpenApi" Version="2.7.5" Private="false" />
 	</ItemGroup>
 
