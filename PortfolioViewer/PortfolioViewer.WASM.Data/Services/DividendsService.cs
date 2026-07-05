@@ -100,11 +100,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			var query = db.Activities
 				.AsNoTracking()
 				.OfType<DividendActivity>()
-				.Include(a => a.Holding)
-					.ThenInclude(h => h!.SymbolProfiles)
-				.Include(a => a.Holding)
-					.ThenInclude(h => h!.CalculatedSnapshots)
-				.AsQueryable();
+				.Where(a => a.Holding != null);
 
 			if (startDate.HasValue)
 			{
@@ -118,39 +114,43 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				query = query.Where(a => a.Date <= endDateTime);
 			}
 
-			var activities = await query.ToListAsync();
+			// Single query: project everything we need — no Includes, no snapshot joins
+			var activities = await query
+				.Select(a => new
+				{
+					a.Holding!.Id,
+					Symbol = a.Holding.SymbolProfiles.Select(p => p.Symbol).FirstOrDefault(),
+					Name = a.Holding.SymbolProfiles.Select(p => p.Name).FirstOrDefault(),
+					ActivityDate = a.Date,
+					Amount = a.Amount.Amount,
+					CurrencySymbol = a.Amount.Currency != null ? a.Amount.Currency.Symbol : (string?)null,
+					Quantity = a.Quantity
+				})
+				.ToListAsync();
 
 			return activities.Select(activity =>
 			{
-				var activityDate = DateOnly.FromDateTime(activity.Date);
-				var symbol = activity.Holding?.SymbolProfiles.Select(p => p.Symbol).FirstOrDefault();
-				var name = activity.Holding?.SymbolProfiles.Select(p => p.Name).FirstOrDefault();
-				var quantity = activity.Holding?.CalculatedSnapshots
-					.Where(s => s.Date <= activityDate)
-					.OrderByDescending(s => s.Date)
-					.Select(s => s.Quantity)
-					.FirstOrDefault() ?? 0m;
-
-				var amount = activity.Amount.Amount;
-				var currency = activity.Amount.Currency?.Symbol ?? string.Empty;
-				var amountPrimary = activity.Amount.Currency?.Symbol == primaryCurrency.Symbol ? amount : (decimal?)null;
+				var amount = activity.Amount;
+				var currency = activity.CurrencySymbol ?? string.Empty;
+				var amountPrimary = activity.CurrencySymbol == primaryCurrency.Symbol ? amount : (decimal?)null;
 
 				return new DividendModel
 				{
-					Symbol = symbol ?? activity.Holding?.Id.ToString() ?? string.Empty,
-					CompanyName = name ?? string.Empty,
-					ExDate = activityDate,
-					PaymentDate = activityDate,
+					Symbol = activity.Symbol ?? activity.Id.ToString() ?? string.Empty,
+					CompanyName = activity.Name ?? string.Empty,
+					ExDate = DateOnly.FromDateTime(activity.ActivityDate),
+					PaymentDate = DateOnly.FromDateTime(activity.ActivityDate),
 					Amount = amount,
 					Currency = currency,
-					DividendPerShare = quantity > 0 ? amount / quantity : 0,
+					DividendPerShare = activity.Quantity > 0 ? amount / activity.Quantity : 0,
 					AmountPrimaryCurrency = amountPrimary,
 					PrimaryCurrency = primaryCurrency.Symbol,
-					DividendPerSharePrimaryCurrency = quantity > 0 && amountPrimary > 0 ? amountPrimary / quantity : null,
-					Quantity = quantity,
+					DividendPerSharePrimaryCurrency = activity.Quantity > 0 && amountPrimary > 0 ? amountPrimary / activity.Quantity : null,
+					Quantity = activity.Quantity,
 					IsPredicted = false
 				};
-			}).ToList();
+			})
+			.ToList();
 		}
 	}
 }

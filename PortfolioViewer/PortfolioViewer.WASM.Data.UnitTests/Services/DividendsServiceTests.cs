@@ -203,7 +203,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
                 null,
                 "Dividend payment")
             {
-                Id = 1
+                Id = 1,
+                Quantity = 100
             };
 
             var mockContext = new Mock<DatabaseContext>();
@@ -268,7 +269,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
                 null,
                 "Dividend payment")
             {
-                Id = 2
+                Id = 2,
+                Quantity = 50
             };
 
             var mockContext = new Mock<DatabaseContext>();
