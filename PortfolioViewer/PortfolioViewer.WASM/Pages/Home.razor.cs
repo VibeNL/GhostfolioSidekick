@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Dashboard KPI data
 		private List<HoldingDisplayModel> Holdings { get; set; } = [];
-		private List<DividendModel> UpcomingDividends { get; set; } = [];
+		private List<DividendModel> DashboardUpcomingDividends { get; set; } = [];
 		private decimal TotalPortfolioValue { get; set; }
 		private decimal TotalInvested { get; set; }
 		private decimal TotalGainLoss { get; set; }
@@ -268,7 +268,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			try
 			{
-				UpcomingDividends = [.. (await DividendsService.GetDividendsAsync())
+				DashboardUpcomingDividends = [.. (await DividendsService.GetDividendsAsync())
 					.Where(d =>
 						d.ExDate < DateOnly.FromDateTime(DateTime.Today) &&
 						d.PaymentDate >= DateOnly.FromDateTime(DateTime.Today))
@@ -276,7 +276,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 			catch
 			{
-				UpcomingDividends = [];
+				DashboardUpcomingDividends = [];
 			}
 		}
 

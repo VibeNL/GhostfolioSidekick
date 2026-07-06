@@ -21,13 +21,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			await using var db = await dbContextFactory.CreateDbContextAsync(CancellationToken.None);
 			var primaryCurrency = await serverConfigurationService.GetPrimaryCurrencyAsync();
 
-			var upcomingResults = await GetUpcomingDividendsAsync(db, primaryCurrency, startDate, endDate);
+			var predictedResults = await GetPredictedDividendsAsync(db, primaryCurrency, startDate, endDate);
 			var activityResults = await GetActivityDividendsAsync(db, primaryCurrency, startDate, endDate);
 
-			return [.. upcomingResults, .. activityResults];
+			return [.. predictedResults, .. activityResults];
 		}
 
-		private static async Task<List<DividendModel>> GetUpcomingDividendsAsync(
+		private static async Task<List<DividendModel>> GetPredictedDividendsAsync(
 			DatabaseContext db,
 			Model.Currency primaryCurrency,
 			DateOnly? startDate,
@@ -73,10 +73,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				holdingData.TryGetValue(entry.HoldingId, out var holding);
 				var quantity = holding?.LatestQuantity ?? 0m;
+				var symbol = holding?.Symbol;
+				var companyName = holding?.Name;
 				return new DividendModel
 				{
-					Symbol = holding?.Symbol ?? entry.HoldingId.ToString(),
-					CompanyName = holding?.Name ?? string.Empty,
+					Symbol = symbol ?? entry.HoldingId.ToString() ?? string.Empty,
+					CompanyName = companyName ?? string.Empty,
 					ExDate = entry.ExDate,
 					PaymentDate = entry.ExpectedDate,
 					Amount = entry.Amount,

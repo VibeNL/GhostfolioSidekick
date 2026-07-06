@@ -76,8 +76,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			isLoading = true;
 			StateHasChanged();
 
-			await Task.Yield();
-
 			dividends = await DividendsService.GetDividendsAsync(FilterState?.StartDate, FilterState?.EndDate);
 			BuildChart();
 			isLoading = false;
@@ -113,7 +111,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					.Sum(d => d.AmountPrimaryCurrency ?? 0))
 				.ToArray();
 
-			var currencySymbol = ServerConfigurationService.PrimaryCurrency.Symbol;
+			var currencySymbol = ServerConfigurationService.PrimaryCurrency?.Symbol ?? "$";
 
 			chartData =
 			[
