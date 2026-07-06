@@ -67,6 +67,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
 		{
+			builder.Property(x => x.Quantity).HasColumnName(nameof(ActivityWithQuantityAndUnitPrice.Quantity));
 			MapMoney(builder, x => x.UnitPrice, nameof(ActivityWithQuantityAndUnitPrice.UnitPrice));
 			MapMoney(builder, x => x.AdjustedUnitPrice, nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice));
 			MapMoney(builder, x => x.TransactionAmount, nameof(ActivityWithQuantityAndUnitPrice.TransactionAmount));
@@ -115,6 +116,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 			MapMoneyList(builder, x => x.Fees, nameof(DividendActivity.Fees));
 			MapMoneyList(builder, x => x.Taxes, nameof(DividendActivity.Taxes));
+			builder.Property(x => x.Quantity).HasColumnName(nameof(DividendActivity.Quantity));
 			_ = builder.Ignore(x => x.Costs);
 		}
 
