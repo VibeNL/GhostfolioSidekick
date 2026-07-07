@@ -86,6 +86,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		var hasError = await topMoversPage.IsErrorDisplayedAsync();
 		Assert.False(hasError, "TopMovers page should not show an error");
 
+		// With seeded test data (holdings with calculated snapshots), the page should show risers/losers
 		var hasRisers = await topMoversPage.HasRiserEntriesAsync();
 		var hasNoRisersMessage = await topMoversPage.HasNoRisersMessageAsync();
 		Assert.True(hasRisers || hasNoRisersMessage, "TopMovers page should show risers or explicit no-risers messaging");
@@ -93,6 +94,9 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		var hasLosers = await topMoversPage.HasLoserEntriesAsync();
 		var hasNoLosersMessage = await topMoversPage.HasNoLosersMessageAsync();
 		Assert.True(hasLosers || hasNoLosersMessage, "TopMovers page should show losers or explicit no-loser message");
+
+		// With seeded test data, at least one of risers/losers should be non-empty
+		Assert.True(hasRisers || hasLosers, "TopMovers page should show risers or losers with seeded test data (not both empty)");
 	}
 
 	[RetryFact]
@@ -129,6 +133,9 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		var hasRows = await dividendsPage.HasDividendRowsAsync();
 		Assert.True(hasRows || isEmpty, "Upcoming Dividends page should show dividend rows or explicit empty state");
 
+		// With seeded test data, the page should be non-empty
+		Assert.False(isEmpty, "Upcoming Dividends page should not be empty with seeded upcoming dividend test data");
+
 		if (hasRows)
 		{
 			var hasVti = await dividendsPage.HasDividendSymbolAsync("VTI");
@@ -147,6 +154,10 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 
 		var hasError = await dataIssuesPage.IsErrorDisplayedAsync();
 		Assert.False(hasError, "DataIssues page should not show an error");
+
+		// With seeded test data (all activities have holdings), the page should show the "No Data Issues Found" success message
+		var hasNoIssuesMessage = await dataIssuesPage.HasNoIssuesMessageAsync();
+		Assert.True(hasNoIssuesMessage, "DataIssues page should display 'No Data Issues Found' when all activities have valid holdings");
 	}
 
 	[RetryFact]
@@ -163,6 +174,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 
 		var hasError = await taskStatusPage.IsErrorDisplayedAsync();
 		Assert.False(hasError, "TaskStatus page should not show an error");
+
+		// With seeded test data, the page should show task rows (not the "no task data" message)
+		var hasNoTaskDataMessage = await taskStatusPage.HasNoTaskDataMessageAsync();
+		Assert.False(hasNoTaskDataMessage, "TaskStatus page should not show 'no task data' message with seeded test data");
+
+		var hasTaskRows = await taskStatusPage.HasTaskRowsAsync();
+		Assert.True(hasTaskRows, "TaskStatus page should show task rows with seeded test data");
 	}
 
 	[RetryFact]
@@ -180,5 +198,32 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 
 		var hasError = await tablesPage.IsErrorDisplayedAsync();
 		Assert.False(hasError, "Tables page should not show an error");
+
+		// With seeded test data, selecting a table should show loaded data
+		var hasTableSelector = await tablesPage.HasTableSelectorAsync();
+		Assert.True(hasTableSelector, "Tables page should have a table selector dropdown");
+
+		// Select the first available table and verify data loaded
+		if (hasTableSelector)
+		{
+			// Get available table options and select the first one
+			var options = await Page!.QuerySelectorAllAsync("#tableSelect option");
+			if (options.Count > 1) // Skip the default empty option
+			{
+				var firstTableName = await options[1].GetAttributeAsync("value") ?? "";
+				if (string.IsNullOrWhiteSpace(firstTableName))
+				{
+					// Fallback: use the text content
+					var text = await options[1].TextContentAsync();
+					firstTableName = text?.Trim() ?? "";
+				}
+				firstTableName = firstTableName.Trim();
+				await tablesPage.SelectTableAsync(firstTableName);
+				await tablesPage.WaitForPageLoadAsync();
+
+				var hasDataLoaded = await tablesPage.HasDataLoadedAsync();
+				Assert.True(hasDataLoaded, "Tables page should show data when a table is selected with seeded test data");
+			}
+		}
 	}
 }
