@@ -6,6 +6,7 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h5.card-title:has-text('Portfolio Overview')";
     private const string TableSelector = "table.table";
+    private const string TableRowSelector = "table.table tbody tr";
     private const string LoadingSpinnerSelector = ".spinner-border";
     private const string EmptyStateSelector = "h5.text-muted:has-text('No Holdings Found')";
     private const string ErrorAlertSelector = ".alert-danger";
@@ -99,6 +100,26 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
         {
             var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
             return element != null && await element.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasHoldingsDataRowsAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(TableRowSelector);
+            return rows.Count >= minimumRows;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasHoldingSymbolAsync(string symbol)
+    {
+        try
+        {
+            var symbolCell = await _page.QuerySelectorAsync($"tbody tr td strong:has-text('{symbol}')");
+            return symbolCell != null && await symbolCell.IsVisibleAsync();
         }
         catch { return false; }
     }

@@ -10,6 +10,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
     private const string TaskStatusLinkSelector = "a.dropdown-item:has-text('Task Status')";
     private const string QuickRefreshButtonSelector = "button:has-text('Quick Refresh')";
     private const string TableSelector = ".table";
+    private const string TaskRowsSelector = ".table.table-striped.table-hover.mb-0 tbody tr";
 
     public async Task NavigateViaMenuAsync()
     {
@@ -96,6 +97,16 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
         {
             var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
             return element != null && await element.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasTaskRowsAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(TaskRowsSelector);
+            return rows.Count >= minimumRows;
         }
         catch { return false; }
     }

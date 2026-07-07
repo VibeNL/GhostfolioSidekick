@@ -10,6 +10,8 @@ public class TopMoversPage(IPage page) : BasePageObject(page)
     private const string TopMoversLinkSelector = "a.dropdown-item:has-text('Top Movers')";
     private const string RisersCardSelector = ".card.border-success";
     private const string LosersCardSelector = ".card.border-danger";
+    private const string RiserEntriesSelector = ".card.border-success .card-body .d-flex.justify-content-between.align-items-center";
+    private const string LoserEntriesSelector = ".card.border-danger .card-body .d-flex.justify-content-between.align-items-center";
 
     public async Task NavigateViaMenuAsync()
     {
@@ -83,6 +85,26 @@ public class TopMoversPage(IPage page) : BasePageObject(page)
         {
             var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
             return element != null && await element.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasRiserEntriesAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(RiserEntriesSelector);
+            return rows.Count >= minimumRows;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasLoserEntriesAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(LoserEntriesSelector);
+            return rows.Count >= minimumRows;
         }
         catch { return false; }
     }
