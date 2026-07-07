@@ -9,7 +9,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	[RetryFact]
 	public async Task HoldingsPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var holdingsPage = PageFactory.CreateHoldingsPage(Page!);
 		await holdingsPage.NavigateViaMenuAsync();
@@ -21,7 +21,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 
 		var isEmpty = await holdingsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await holdingsPage.HasHoldingsDataRowsAsync();
-		Assert.True(hasRows || isEmpty, "Holdings page should resolve to either data rows or an explicit empty state");
+		Assert.True(hasRows || isEmpty, "Holdings page should show holdings rows or an explicit empty state");
 
 		if (hasRows)
 		{
@@ -33,7 +33,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	[RetryFact]
 	public async Task AccountsPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var accountsPage = PageFactory.CreateAccountsPage(Page!);
 		await accountsPage.NavigateViaMenuAsync();
@@ -55,7 +55,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	[RetryFact]
 	public async Task TaxReportPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var taxReportPage = PageFactory.CreateTaxReportPage(Page!);
 		await taxReportPage.NavigateViaMenuAsync();
@@ -77,7 +77,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	[RetryFact]
 	public async Task TopMoversPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var topMoversPage = PageFactory.CreateTopMoversPage(Page!);
 		await topMoversPage.NavigateViaMenuAsync();
@@ -87,18 +87,18 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		Assert.False(hasError, "TopMovers page should not show an error");
 
 		var hasRisers = await topMoversPage.HasRiserEntriesAsync();
-		var hasLosers = await topMoversPage.HasLoserEntriesAsync();
 		var hasNoRisersMessage = await topMoversPage.HasNoRisersMessageAsync();
+		Assert.True(hasRisers || hasNoRisersMessage, "TopMovers page should show risers or explicit no-risers messaging");
+
+		var hasLosers = await topMoversPage.HasLoserEntriesAsync();
 		var hasNoLosersMessage = await topMoversPage.HasNoLosersMessageAsync();
-		Assert.True(
-			hasRisers || hasLosers || hasNoRisersMessage || hasNoLosersMessage,
-			"TopMovers page should show mover entries or explicit no-data messaging");
+		Assert.True(hasLosers || hasNoLosersMessage, "TopMovers page should show losers or explicit no-loser message");
 	}
 
 	[RetryFact]
 	public async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var timeSeriesPage = PageFactory.CreatePortfolioTimeSeriesPage(Page!);
 		await timeSeriesPage.NavigateViaMenuAsync();
@@ -110,13 +110,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 
 		var isEmpty = await timeSeriesPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await timeSeriesPage.HasTimeSeriesRowsAsync();
-		Assert.True(hasRows || isEmpty, "PortfolioTimeSeries page should resolve to either rows or an explicit empty state");
+		Assert.True(hasRows || isEmpty, "PortfolioTimeSeries page should show timeline rows or explicit empty state");
 	}
 
 	[RetryFact]
 	public async Task UpcomingDividendsPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var dividendsPage = PageFactory.CreateUpcomingDividendsPage(Page!);
 		await dividendsPage.NavigateViaMenuAsync();
@@ -127,7 +127,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 
 		var isEmpty = await dividendsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await dividendsPage.HasDividendRowsAsync();
-		Assert.True(hasRows || isEmpty, "Upcoming Dividends page should resolve to either rows or an explicit empty state");
+		Assert.True(hasRows || isEmpty, "Upcoming Dividends page should show dividend rows or explicit empty state");
 
 		if (hasRows)
 		{
@@ -139,7 +139,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	[RetryFact]
 	public async Task DataIssuesPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var dataIssuesPage = PageFactory.CreateDataIssuesPage(Page!);
 		await dataIssuesPage.NavigateViaMenuAsync();
@@ -152,7 +152,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	[RetryFact]
 	public async Task TaskStatusPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var taskStatusPage = PageFactory.CreateTaskStatusPage(Page!);
 		await taskStatusPage.NavigateViaMenuAsync();
@@ -168,7 +168,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	[RetryFact]
 	public async Task TablesPage_ShouldLoadViaMenu()
 	{
-		await SetupAsync();
+		await SetupAsync(reseedAfterSync: true);
 
 		var tablesPage = PageFactory.CreateTablesPage(Page!);
 		// Navigate directly to avoid ExecuteWithErrorCheckAsync triggering false positive Blazor error detection

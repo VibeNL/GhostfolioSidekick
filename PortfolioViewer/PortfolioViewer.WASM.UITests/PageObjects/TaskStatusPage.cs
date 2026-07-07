@@ -44,7 +44,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
             catch { }
 
             await _page.WaitForSelectorAsync(
-                $"{PageHeadingSelector}, {ErrorAlertSelector}, {TableSelector}",
+                $"{PageHeadingSelector}, {ErrorAlertSelector}, {TableSelector}, {NoTaskDataMessageSelector}",
                 new PageWaitForSelectorOptions { Timeout = timeout });
         });
     }

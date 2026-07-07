@@ -158,11 +158,20 @@ public static class TestDataSeeder
 		// 10. CalculatedSnapshots
 		var snapshots = new List<CalculatedSnapshot>
 		{
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-28)), 20m, Currency.USD, 175m, 190m, 3500m, 3800m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-28)), 0.5m, Currency.USD, 50000m, 60000m, 25000m, 30000m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-20)), 5m, Currency.USD, 400m, 145m, 2000m, 725m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-10)), 30m, Currency.USD, 190m, 195m, 5700m, 5850m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-5)), 10m, Currency.USD, 98m, 98m, 980m, 980m)
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-28)), 20m, Currency.USD, 175m, 170m, 3500m, 3400m) { HoldingId = holding1.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-5)), 25m, Currency.USD, 180m, 198m, 4500m, 4950m) { HoldingId = holding1.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-20)), 5m, Currency.USD, 400m, 140m, 2000m, 700m) { HoldingId = holding2.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-5)), 5m, Currency.USD, 400m, 145m, 2000m, 725m) { HoldingId = holding2.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-25)), 0.5m, Currency.USD, 50000m, 60000m, 25000m, 30000m) { HoldingId = holding3.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(0)), 0.5m, Currency.USD, 50000m, 65000m, 25000m, 32500m) { HoldingId = holding3.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-10)), 30m, Currency.USD, 190m, 190m, 5700m, 5700m) { HoldingId = holding4.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(0)), 30m, Currency.USD, 190m, 195m, 5700m, 5850m) { HoldingId = holding4.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-5)), 10m, Currency.USD, 98m, 99m, 980m, 990m) { HoldingId = holding5.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(0)), 10m, Currency.USD, 98m, 97m, 980m, 970m) { HoldingId = holding5.Id }
 		};
 		db.CalculatedSnapshots.AddRange(snapshots);
 		db.SaveChanges(); // Save snapshots before dividends
