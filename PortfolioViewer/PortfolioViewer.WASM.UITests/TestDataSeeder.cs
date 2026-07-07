@@ -24,6 +24,9 @@ public static class TestDataSeeder
 		if (db.Accounts.Any() || db.SymbolProfiles.Any())
 			return;
 
+		// Keep seeded data anchored to "now" so date-range based pages are populated over time.
+		DateTime baseDate = DateTime.UtcNow.Date;
+
 		// 1. Platforms
 		var platform = new Platform("Test Platform");
 		db.Platforms.Add(platform);
@@ -36,9 +39,9 @@ public static class TestDataSeeder
 		// 3. Balances
 		var balances = new List<Balance>
 		{
-			new(DateOnly.FromDateTime(new DateTime(2025, 1, 1)), new Money(Currency.USD, 50000m)),
-			new(DateOnly.FromDateTime(new DateTime(2025, 2, 1)), new Money(Currency.USD, 55000m)),
-			new(DateOnly.FromDateTime(new DateTime(2025, 3, 1)), new Money(Currency.USD, 62000m))
+			new(DateOnly.FromDateTime(baseDate.AddDays(-60)), new Money(Currency.USD, 50000m)),
+			new(DateOnly.FromDateTime(baseDate.AddDays(-30)), new Money(Currency.USD, 55000m)),
+			new(DateOnly.FromDateTime(baseDate), new Money(Currency.USD, 62000m))
 		};
 		foreach (var b in balances)
 		{
@@ -84,7 +87,6 @@ public static class TestDataSeeder
 		}
 
 		// 7. Activities
-		DateTime baseDate = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		var activities = new List<Activity>
 		{
 			// Cash deposit

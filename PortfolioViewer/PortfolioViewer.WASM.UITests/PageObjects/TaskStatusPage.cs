@@ -11,6 +11,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
     private const string QuickRefreshButtonSelector = "button:has-text('Quick Refresh')";
     private const string TableSelector = ".table";
     private const string TaskRowsSelector = ".table.table-striped.table-hover.mb-0 tbody tr";
+    private const string NoTaskDataMessageSelector = "p:has-text('No task data available. Tasks may not be initialized yet.')";
 
     public async Task NavigateViaMenuAsync()
     {
@@ -107,6 +108,16 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
         {
             var rows = await _page.QuerySelectorAllAsync(TaskRowsSelector);
             return rows.Count >= minimumRows;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasNoTaskDataMessageAsync()
+    {
+        try
+        {
+            var message = await _page.QuerySelectorAsync(NoTaskDataMessageSelector);
+            return message != null && await message.IsVisibleAsync();
         }
         catch { return false; }
     }
