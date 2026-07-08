@@ -66,19 +66,27 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	/// <summary>
 	/// Performs login and waits for sync to complete. Called by derived tests before their assertions.
 	/// </summary>
-	protected async Task SetupAsync()
+	protected async Task SetupAsync(bool performSync = true, bool reseedAfterSync = false)
 	{
 		await LoginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken, CancellationToken);
 		await LoginPage.WaitForSuccessfulLoginAsync();
 		await HomePage.WaitForPageLoadAsync();
 
-		// Click sync and wait for completion using WaitForFunction (no magic timeouts)
-		var syncButton = await Page!.QuerySelectorAsync("button.btn-primary:has-text('Sync')");
-		if (syncButton != null)
+		if (performSync)
 		{
-			await syncButton.ClickAsync();
-			// Wait for sync button to become enabled again (sync completed)
-			await Page.WaitForSelectorAsync("button.btn-primary:has-text('Sync'):not([disabled])", new PageWaitForSelectorOptions { Timeout = 120000 });
+			// Click sync and wait for completion using WaitForFunction (no magic timeouts)
+			var syncButton = await Page!.QuerySelectorAsync("button.btn-primary:has-text('Sync')");
+			if (syncButton != null)
+			{
+				await syncButton.ClickAsync();
+				// Wait for sync button to become enabled again (sync completed)
+				await Page.WaitForSelectorAsync("button.btn-primary:has-text('Sync'):not([disabled])", new PageWaitForSelectorOptions { Timeout = 120000 });
+			}
+		}
+
+		if (reseedAfterSync)
+		{
+			Fixture.ResetAndReseedTestData();
 		}
 	}
 

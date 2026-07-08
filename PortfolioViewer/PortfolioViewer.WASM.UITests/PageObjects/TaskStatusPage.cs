@@ -10,6 +10,8 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
     private const string TaskStatusLinkSelector = "a.dropdown-item:has-text('Task Status')";
     private const string QuickRefreshButtonSelector = "button:has-text('Quick Refresh')";
     private const string TableSelector = ".table";
+    private const string TaskRowsSelector = ".table.table-striped.table-hover.mb-0 tbody tr";
+    private const string NoTaskDataMessageSelector = "p:has-text('No task data available. Tasks may not be initialized yet.')";
 
     public async Task NavigateViaMenuAsync()
     {
@@ -42,7 +44,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
             catch { }
 
             await _page.WaitForSelectorAsync(
-                $"{PageHeadingSelector}, {ErrorAlertSelector}, {TableSelector}",
+                $"{PageHeadingSelector}, {ErrorAlertSelector}, {TableSelector}, {NoTaskDataMessageSelector}",
                 new PageWaitForSelectorOptions { Timeout = timeout });
         });
     }
@@ -96,6 +98,26 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
         {
             var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
             return element != null && await element.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasTaskRowsAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(TaskRowsSelector);
+            return rows.Count >= minimumRows;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasNoTaskDataMessageAsync()
+    {
+        try
+        {
+            var message = await _page.QuerySelectorAsync(NoTaskDataMessageSelector);
+            return message != null && await message.IsVisibleAsync();
         }
         catch { return false; }
     }

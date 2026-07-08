@@ -10,6 +10,7 @@ public class TaxReportPage(IPage page) : BasePageObject(page)
     private const string ErrorAlertSelector = ".alert-danger";
     private const string TaxReportLinkSelector = "a.dropdown-item:has-text('Tax Report')";
     private const string TableButtonSelector = "button:has-text('Table')";
+    private const string TableRowSelector = "table.table tbody tr";
 
     public async Task NavigateViaMenuAsync()
     {
@@ -98,5 +99,25 @@ public class TaxReportPage(IPage page) : BasePageObject(page)
                 await _page.WaitForTimeoutAsync(500);
             }
         });
+    }
+
+    public async Task<bool> HasReportRowsAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(TableRowSelector);
+            return rows.Count >= minimumRows;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasAccountNameAsync(string accountName)
+    {
+        try
+        {
+            var accountLink = await _page.QuerySelectorAsync($"table.table tbody tr td a:has-text('{accountName}')");
+            return accountLink != null && await accountLink.IsVisibleAsync();
+        }
+        catch { return false; }
     }
 }

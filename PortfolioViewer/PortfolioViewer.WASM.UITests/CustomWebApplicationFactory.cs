@@ -152,6 +152,12 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
+		public void ResetAndReseedTestData()
+		{
+			EnsureServer();
+			SeedTestData(_host!.Services, _connection, resetDatabase: true);
+		}
+
 
 		// Tracks whether WASM has been published this run to avoid redundant publishes
 		private static bool _wasmPublished = false;
@@ -245,12 +251,17 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		private static void SeedTestData(IServiceProvider services, Microsoft.Data.Sqlite.SqliteConnection? connection)
+		private static void SeedTestData(IServiceProvider services, Microsoft.Data.Sqlite.SqliteConnection? connection, bool resetDatabase = false)
 		{
 			try
 			{
 				using IServiceScope scope = services.CreateScope();
 				DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+
+				if (resetDatabase)
+				{
+					_ = dbContext.Database.EnsureDeleted();
+				}
 
 				// Create the database schema for the in-memory database
 				_ = dbContext.Database.EnsureCreated();
@@ -288,5 +299,3 @@ namespace PortfolioViewer.WASM.UITests
 		}
 	}
 }
-
-
