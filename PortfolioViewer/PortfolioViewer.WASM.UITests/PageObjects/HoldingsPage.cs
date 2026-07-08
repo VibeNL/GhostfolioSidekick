@@ -6,6 +6,7 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h5.card-title:has-text('Portfolio Overview')";
     private const string TableSelector = "table.table";
+    private const string TableRowSelector = "table.table tbody tr";
     private const string LoadingSpinnerSelector = ".spinner-border";
     private const string EmptyStateSelector = "h5.text-muted:has-text('No Holdings Found')";
     private const string ErrorAlertSelector = ".alert-danger";
@@ -78,7 +79,8 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
             if (tableBtn != null)
             {
                 await tableBtn.ClickAsync();
-                await _page.WaitForTimeoutAsync(500);
+                // Wait for Blazor to re-render the table view
+                await _page.WaitForSelectorAsync(TableRowSelector, new PageWaitForSelectorOptions { Timeout = 5000 });
             }
         });
     }
@@ -99,6 +101,33 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
         {
             var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
             return element != null && await element.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasHoldingsDataRowsAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(TableRowSelector);
+            return rows.Count >= minimumRows;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasHoldingSymbolAsync(string symbol)
+    {
+        try
+        {
+            // Find rows with the symbol text in any cell (more reliable than :has-text pseudo-selector)
+            var rows = await _page.QuerySelectorAllAsync("table.table tbody tr");
+            foreach (var row in rows)
+            {
+                var text = await row.TextContentAsync() ?? "";
+                if (text.Contains(symbol, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
         catch { return false; }
     }

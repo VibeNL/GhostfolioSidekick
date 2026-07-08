@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Database;
+using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
@@ -21,8 +22,13 @@ public static class TestDataSeeder
 	public static void Seed(DatabaseContext db)
 	{
 		// Skip if data already exists
-		if (db.Accounts.Any() || db.SymbolProfiles.Any())
+		var accountCount = db.Accounts.Count();
+		var symbolCount = db.SymbolProfiles.Count();
+		if (accountCount > 0 || symbolCount > 0)
 			return;
+
+		// Keep seeded data anchored to "now" so date-range based pages are populated over time.
+		DateTime baseDate = DateTime.UtcNow.Date;
 
 		// 1. Platforms
 		var platform = new Platform("Test Platform");
@@ -36,9 +42,9 @@ public static class TestDataSeeder
 		// 3. Balances
 		var balances = new List<Balance>
 		{
-			new(DateOnly.FromDateTime(new DateTime(2025, 1, 1)), new Money(Currency.USD, 50000m)),
-			new(DateOnly.FromDateTime(new DateTime(2025, 2, 1)), new Money(Currency.USD, 55000m)),
-			new(DateOnly.FromDateTime(new DateTime(2025, 3, 1)), new Money(Currency.USD, 62000m))
+			new(DateOnly.FromDateTime(baseDate.AddDays(-60)), new Money(Currency.USD, 50000m)),
+			new(DateOnly.FromDateTime(baseDate.AddDays(-30)), new Money(Currency.USD, 55000m)),
+			new(DateOnly.FromDateTime(baseDate), new Money(Currency.USD, 62000m))
 		};
 		foreach (var b in balances)
 		{
@@ -84,7 +90,6 @@ public static class TestDataSeeder
 		}
 
 		// 7. Activities
-		DateTime baseDate = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		var activities = new List<Activity>
 		{
 			// Cash deposit
@@ -153,14 +158,47 @@ public static class TestDataSeeder
 		};
 		db.MarketDatas.AddRange(marketDataList);
 
+		// Set required shadow properties for MarketData FK (unique composite: DataSource, Symbol, Date)
+		for (int i = 0; i < marketDataList.Count; i++)
+		{
+			var md = marketDataList[i];
+			// Each entry needs a unique (DataSource, Symbol, Date) combination
+			var symbolData = new (string Symbol, string DataSource)[]
+			{
+				("AAPL", "NASDAQ"),   // i=0: AAPL -30 days
+				("AAPL", "NASDAQ"),   // i=1: AAPL -20 days (different date)
+				("AAPL", "NASDAQ"),   // i=2: AAPL -10 days (different date)
+				("AAPL", "NASDAQ"),   // i=3: AAPL -5 days (different date)
+				("AAPL", "NASDAQ"),   // i=4: AAPL today (different date)
+				("GOOGL", "NASDAQ"),  // i=5: GOOGL -30 days
+				("GOOGL", "NASDAQ"),  // i=6: GOOGL today (different date)
+				("BTC", "Crypto"),    // i=7: BTC -30 days
+				("BTC", "Crypto"),    // i=8: BTC today (different date)
+				("VTI", "NYSE"),      // i=9: VTI -30 days
+				("VTI", "NYSE"),      // i=10: VTI today (different date)
+			};
+			db.Entry(md).Property("SymbolProfileSymbol").CurrentValue = symbolData[i].Symbol;
+			db.Entry(md).Property("SymbolProfileDataSource").CurrentValue = symbolData[i].DataSource;
+		}
+		db.MarketDatas.AddRange(marketDataList);
+
 		// 10. CalculatedSnapshots
 		var snapshots = new List<CalculatedSnapshot>
 		{
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-28)), 20m, Currency.USD, 175m, 190m, 3500m, 3800m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-28)), 0.5m, Currency.USD, 50000m, 60000m, 25000m, 30000m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-20)), 5m, Currency.USD, 400m, 145m, 2000m, 725m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-10)), 30m, Currency.USD, 190m, 195m, 5700m, 5850m),
-			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-5)), 10m, Currency.USD, 98m, 98m, 980m, 980m)
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-28)), 20m, Currency.USD, 175m, 170m, 3500m, 3400m) { HoldingId = holding1.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate), 25m, Currency.USD, 180m, 198m, 4500m, 4950m) { HoldingId = holding1.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-20)), 5m, Currency.USD, 400m, 140m, 2000m, 700m) { HoldingId = holding2.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate), 5m, Currency.USD, 400m, 145m, 2000m, 725m) { HoldingId = holding2.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-25)), 0.5m, Currency.USD, 50000m, 60000m, 25000m, 30000m) { HoldingId = holding3.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate), 0.5m, Currency.USD, 50000m, 65000m, 25000m, 32500m) { HoldingId = holding3.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-10)), 30m, Currency.USD, 190m, 190m, 5700m, 5700m) { HoldingId = holding4.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate), 30m, Currency.USD, 190m, 195m, 5700m, 5850m) { HoldingId = holding4.Id },
+
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate.AddDays(-5)), 10m, Currency.USD, 98m, 99m, 980m, 990m) { HoldingId = holding5.Id },
+			new(Guid.NewGuid(), account.Id, DateOnly.FromDateTime(baseDate), 10m, Currency.USD, 98m, 97m, 980m, 970m) { HoldingId = holding5.Id }
 		};
 		db.CalculatedSnapshots.AddRange(snapshots);
 		db.SaveChanges(); // Save snapshots before dividends
@@ -205,6 +243,7 @@ public static class TestDataSeeder
 		};
 		db.TaskRunLogs.AddRange(taskLogs);
 
+
 		// 15. ExternalDataCacheEntry
 		var cacheEntries = new List<GhostfolioSidekick.Database.Cache.ExternalDataCacheEntry>
 		{
@@ -213,6 +252,6 @@ public static class TestDataSeeder
 		};
 		db.ExternalDataCacheEntries.AddRange(cacheEntries);
 
-		db.SaveChanges();
+		var rows = db.SaveChanges();
 	}
 }

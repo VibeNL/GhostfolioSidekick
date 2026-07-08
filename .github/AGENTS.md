@@ -2,3 +2,4 @@
 @./skills/caveman-commit/SKILL.md
 @./skills/caveman-review/SKILL.md
 @./skills/caveman-compress/SKILL.md
+@./skills/uitest/SkILL.md

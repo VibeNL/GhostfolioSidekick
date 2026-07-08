@@ -11,6 +11,7 @@ public class PortfolioTimeSeriesPage(IPage page) : BasePageObject(page)
     private const string TimeSeriesLinkSelector = "a.dropdown-item:has-text('Performance Timeline')";
     private const string ChartButtonSelector = "button:has-text('Chart')";
     private const string TableButtonSelector = "button:has-text('Table')";
+    private const string TableRowSelector = "table.table tbody tr";
 
     public async Task NavigateViaMenuAsync()
     {
@@ -98,6 +99,16 @@ public class PortfolioTimeSeriesPage(IPage page) : BasePageObject(page)
         {
             var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
             return element != null && await element.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasTimeSeriesRowsAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(TableRowSelector);
+            return rows.Count >= minimumRows;
         }
         catch { return false; }
     }

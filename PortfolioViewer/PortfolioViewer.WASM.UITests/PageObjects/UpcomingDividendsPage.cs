@@ -9,6 +9,7 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
     private const string EmptyStateSelector = "h5.text-muted:has-text('No Dividends')";
     private const string DividendsLinkSelector = "a.dropdown-item:has-text('Dividends')";
     private const string TableSelector = "table.table-hover";
+    private const string TableRowSelector = "table.table-hover tbody tr";
 
     public async Task NavigateViaMenuAsync()
     {
@@ -72,6 +73,26 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
         {
             var element = await _page.QuerySelectorAsync(EmptyStateSelector);
             return element != null && await element.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasDividendRowsAsync(int minimumRows = 1)
+    {
+        try
+        {
+            var rows = await _page.QuerySelectorAllAsync(TableRowSelector);
+            return rows.Count >= minimumRows;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> HasDividendSymbolAsync(string symbol)
+    {
+        try
+        {
+            var symbolCell = await _page.QuerySelectorAsync($"table.table-hover tbody tr td strong:has-text('{symbol}')");
+            return symbolCell != null && await symbolCell.IsVisibleAsync();
         }
         catch { return false; }
     }
