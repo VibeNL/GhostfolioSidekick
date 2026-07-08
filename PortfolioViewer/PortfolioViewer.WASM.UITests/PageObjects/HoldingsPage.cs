@@ -79,7 +79,8 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
             if (tableBtn != null)
             {
                 await tableBtn.ClickAsync();
-                await _page.WaitForTimeoutAsync(500);
+                // Wait for Blazor to re-render the table view
+                await _page.WaitForSelectorAsync(TableRowSelector, new PageWaitForSelectorOptions { Timeout = 5000 });
             }
         });
     }
@@ -118,8 +119,15 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
     {
         try
         {
-            var symbolCell = await _page.QuerySelectorAsync($"tbody tr td strong:has-text('{symbol}')");
-            return symbolCell != null && await symbolCell.IsVisibleAsync();
+            // Find rows with the symbol text in any cell (more reliable than :has-text pseudo-selector)
+            var rows = await _page.QuerySelectorAllAsync("table.table tbody tr");
+            foreach (var row in rows)
+            {
+                var text = await row.TextContentAsync() ?? "";
+                if (text.Contains(symbol, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
         catch { return false; }
     }

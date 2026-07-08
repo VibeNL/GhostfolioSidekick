@@ -108,8 +108,14 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			try
 			{
-				var element = await _page.QuerySelectorAsync(LastSyncTimeSelector);
-				return element != null;
+				// After sync, last sync time is shown inline as text-muted "Last updated: ..."
+				var element = await _page.QuerySelectorAsync("small.text-muted:has-text('Last updated')");
+				if (element != null && await element.IsVisibleAsync())
+					return true;
+
+				// Fallback: also check for .alert-info (legacy/alternative rendering)
+				element = await _page.QuerySelectorAsync(LastSyncTimeSelector);
+				return element != null && await element.IsVisibleAsync();
 			}
 			catch
 			{
