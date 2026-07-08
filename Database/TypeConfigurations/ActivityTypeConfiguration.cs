@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 			MapMoneyList(builder, x => x.Fees, nameof(DividendActivity.Fees));
 			MapMoneyList(builder, x => x.Taxes, nameof(DividendActivity.Taxes));
-			builder.Property(x => x.Quantity).HasColumnName(nameof(DividendActivity.Quantity));
+			MapQuantity(builder, x => x.Quantity, nameof(DividendActivity.Quantity));
 			_ = builder.Ignore(x => x.Costs);
 		}
 
@@ -206,10 +206,36 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			);
 		}
 
+		private static readonly ValueConverter<decimal, string> DecimalConverter = new(
+			v => v.ToString("G17", System.Globalization.CultureInfo.InvariantCulture),
+			v => TryParseDecimal(v));
+
 		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money?>> navigationExpression, string name) where TEntity : class
 		{
-			_ = builder.ComplexProperty(navigationExpression).IsRequired().Property(x => x.Amount).HasColumnName(name);
+			// Handle invalid decimal values in SQLite (e.g., empty strings from corrupted data)
+			_ = builder.ComplexProperty(navigationExpression).IsRequired().Property(x => x.Amount).HasColumnName(name).HasConversion(DecimalConverter);
 			_ = builder.ComplexProperty(navigationExpression).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
+		}
+
+		private static void MapQuantity<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, decimal>> propertyExpression, string columnName) where TEntity : class
+		{
+			_ = builder.Property(propertyExpression).HasColumnName(columnName).HasConversion(DecimalConverter);
+		}
+
+		private static decimal TryParseDecimal(string v)
+		{
+			if (string.IsNullOrWhiteSpace(v))
+			{
+				return 0m;
+			}
+			try
+			{
+				return decimal.Parse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture);
+			}
+			catch
+			{
+				return 0m;
+			}
 		}
 
 		private static void MapMoneyList<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, List<Money>>> propertyExpression, string columnName) where TEntity : class

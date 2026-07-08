@@ -158,6 +158,57 @@ namespace PortfolioViewer.WASM.UITests
 			SeedTestData(_host!.Services, _connection, resetDatabase: true);
 		}
 
+		/// <summary>
+		/// Returns the test host's services for direct DB access during tests.
+		/// </summary>
+		public IServiceProvider GetTestHostServices()
+		{
+			EnsureServer();
+			return _host!.Services;
+		}
+
+		/// <summary>
+		/// Seeds a DividendActivity with an invalid decimal Amount value directly into SQLite.
+		/// This reproduces the FormatException that occurs when production data contains corrupted decimal columns.
+		/// </summary>
+		public void SeedInvalidDividendData()
+		{
+			EnsureServer();
+			using var scope = _host!.Services.CreateScope();
+			var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+
+			// Ensure basic data exists (account, holding)
+			var account = db.Accounts.FirstOrDefault();
+			if (account == null)
+			{
+				ResetAndReseedTestData();
+				account = db.Accounts.First();
+			}
+
+			var holding = db.Holdings.FirstOrDefault();
+			if (holding == null)
+			{
+				ResetAndReseedTestData();
+				holding = db.Holdings.First();
+			}
+
+			// First create a valid dividend via EF, then corrupt its Amount column
+			var baseDate = DateTimeOffset.UtcNow.Date;
+			var dividend = new GhostfolioSidekick.Model.Activities.Types.DividendActivity(
+				account, holding, [], baseDate.AddDays(-1),
+				new GhostfolioSidekick.Model.Money(GhostfolioSidekick.Model.Currency.USD, 50m),
+				"DIV-INVALID-001", 0, "Test invalid dividend");
+			db.Activities.Add(dividend);
+			db.SaveChanges();
+
+			// Corrupt the Amount column to an empty string (simulates corrupted SQLite data)
+			// The column name for Money.Amount in DividendActivity is "Amount"
+#pragma warning disable EF1003 // Suppress SQL injection warning — this is test code with controlled values
+			db.Database.ExecuteSqlRaw(
+				"UPDATE Activities SET Amount = '' WHERE Id = " + dividend.Id + " AND Discriminator = 'Dividend'");
+#pragma warning restore EF1003
+		}
+
 
 		// Tracks whether WASM has been published this run to avoid redundant publishes
 		private static bool _wasmPublished = false;

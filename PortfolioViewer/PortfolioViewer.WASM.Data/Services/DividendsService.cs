@@ -99,6 +99,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			DateOnly? startDate,
 			DateOnly? endDate)
 		{
+			try
+			{
+				var activities = await GetActivityDividendsCoreAsync(db, primaryCurrency, startDate, endDate);
+				return activities;
+			}
+			catch (FormatException)
+			{
+				// SQLite decimal column contains invalid data (e.g., empty string from corruption)
+				// Return empty list to avoid crashing the page — the corrupted row is effectively skipped
+				return [];
+			}
+		}
+
+		private static async Task<List<DividendModel>> GetActivityDividendsCoreAsync(
+			DatabaseContext db,
+			Model.Currency primaryCurrency,
+			DateOnly? startDate,
+			DateOnly? endDate)
+		{
 			var query = db.Activities
 				.AsNoTracking()
 				.OfType<DividendActivity>()

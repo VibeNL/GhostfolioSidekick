@@ -22,12 +22,12 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
         });
     }
 
-    public async Task NavigateDirectAsync()
+    public async Task NavigateDirectAsync(string serverAddress, CancellationToken ct = default)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {
-            await _page.GotoAsync("/dividends");
-        });
+            await _page.GotoAsync(serverAddress + "/dividends");
+        }, ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000)
@@ -41,9 +41,30 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
             }
             catch { }
 
-            await _page.WaitForSelectorAsync(
-                $"{PageHeadingSelector}, {EmptyStateSelector}, {TableSelector}",
-                new PageWaitForSelectorOptions { Timeout = timeout });
+            // Wait for any of the page elements, with a short retry loop
+            var deadline = DateTime.UtcNow + TimeSpan.FromMilliseconds(timeout);
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    var el = await _page.QuerySelectorAsync(PageHeadingSelector);
+                    if (el != null && await el.IsVisibleAsync()) return;
+                }
+                catch { }
+                try
+                {
+                    var el = await _page.QuerySelectorAsync(EmptyStateSelector);
+                    if (el != null && await el.IsVisibleAsync()) return;
+                }
+                catch { }
+                try
+                {
+                    var el = await _page.QuerySelectorAsync(TableSelector);
+                    if (el != null && await el.IsVisibleAsync()) return;
+                }
+                catch { }
+                await _page.WaitForTimeoutAsync(200);
+            }
         });
     }
 
@@ -93,6 +114,22 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
         {
             var symbolCell = await _page.QuerySelectorAsync($"table.table-hover tbody tr td strong:has-text('{symbol}')");
             return symbolCell != null && await symbolCell.IsVisibleAsync();
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> IsErrorDisplayedAsync()
+    {
+        try
+        {
+            var errorElement = await _page.QuerySelectorAsync("#blazor-error-ui");
+            if (errorElement != null && await errorElement.IsVisibleAsync())
+            {
+                var errorText = await errorElement.TextContentAsync() ?? string.Empty;
+                Console.WriteLine($"Blazor error detected on Dividends page: {errorText}");
+                return true;
+            }
+            return false;
         }
         catch { return false; }
     }

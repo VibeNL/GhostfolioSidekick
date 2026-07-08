@@ -1,3 +1,4 @@
+using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
 using xRetry.v3;
 
@@ -126,6 +127,10 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		await dividendsPage.NavigateViaMenuAsync();
 		await dividendsPage.WaitForPageLoadAsync();
 
+		// Verify no Blazor errors occurred during page load (catches FormatException, etc.)
+		var hasError = await dividendsPage.IsErrorDisplayedAsync();
+		Assert.False(hasError, "Upcoming Dividends page should not show a Blazor error during load");
+
 		var hasDividendsTitle = await dividendsPage.HasDividendsTitleAsync();
 		Assert.True(hasDividendsTitle, "Upcoming Dividends page should display its title");
 
@@ -136,11 +141,11 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		// With seeded test data, the page should be non-empty
 		Assert.False(isEmpty, "Upcoming Dividends page should not be empty with seeded upcoming dividend test data");
 
-		if (hasRows)
-		{
-			var hasVti = await dividendsPage.HasDividendSymbolAsync("VTI");
-			Assert.True(hasVti, "Upcoming Dividends page should include seeded VTI dividend when rows are present");
-		}
+		// With seeded test data, must have data rows (not just the empty state)
+		Assert.True(hasRows, "Upcoming Dividends page should show dividend data rows with seeded test data");
+
+		var hasVti = await dividendsPage.HasDividendSymbolAsync("VTI");
+		Assert.True(hasVti, "Upcoming Dividends page should include seeded VTI dividend when rows are present");
 	}
 
 	[RetryFact]
@@ -181,6 +186,32 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 
 		var hasTaskRows = await taskStatusPage.HasTaskRowsAsync();
 		Assert.True(hasTaskRows, "TaskStatus page should show task rows with seeded test data");
+	}
+
+	[RetryFact]
+	public async Task DividendsPage_ShouldHandleInvalidDecimalDataGracefully()
+	{
+		await SetupAsync(reseedAfterSync: true);
+
+		// Seed invalid decimal data directly into SQLite (empty string in Amount column)
+		Fixture.SeedInvalidDividendData();
+
+		var dividendsPage = PageFactory.CreateUpcomingDividendsPage(Page!);
+		await dividendsPage.NavigateDirectAsync(ServerAddress, CancellationToken);
+
+		// Wait for the page to settle
+		await dividendsPage.WaitForPageLoadAsync(timeout: 10000);
+
+		// The page should NOT crash — the corrupted data should be handled gracefully
+		// Check that the Blazor app container is not empty (indicates unhandled exception)
+		var appDiv = await Page!.QuerySelectorAsync("#app");
+		var appEmpty = appDiv != null && (await appDiv.InnerHTMLAsync()).Trim() == string.Empty;
+
+		var errorUi = await Page!.QuerySelectorAsync("#blazor-error-ui");
+		var errorVisible = errorUi != null && await errorUi.IsVisibleAsync();
+
+		Assert.False(appEmpty, "Dividends page should not crash and clear the Blazor app container when handling invalid decimal data");
+		Assert.False(errorVisible, "Dividends page should not show Blazor error UI when handling invalid decimal data");
 	}
 
 	[RetryFact]
