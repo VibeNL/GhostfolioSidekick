@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Database;
+using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
@@ -155,6 +156,30 @@ public static class TestDataSeeder
 		};
 		db.MarketDatas.AddRange(marketDataList);
 
+		// Set required shadow properties for MarketData FK (unique composite: DataSource, Symbol, Date)
+		for (int i = 0; i < marketDataList.Count; i++)
+		{
+			var md = marketDataList[i];
+			// Each entry needs a unique (DataSource, Symbol, Date) combination
+			var symbolData = new (string Symbol, string DataSource)[]
+			{
+				("AAPL", "NASDAQ"),   // i=0: AAPL -30 days
+				("AAPL", "NASDAQ"),   // i=1: AAPL -20 days (different date)
+				("AAPL", "NASDAQ"),   // i=2: AAPL -10 days (different date)
+				("AAPL", "NASDAQ"),   // i=3: AAPL -5 days (different date)
+				("AAPL", "NASDAQ"),   // i=4: AAPL today (different date)
+				("GOOGL", "NASDAQ"),  // i=5: GOOGL -30 days
+				("GOOGL", "NASDAQ"),  // i=6: GOOGL today (different date)
+				("BTC", "Crypto"),    // i=7: BTC -30 days
+				("BTC", "Crypto"),    // i=8: BTC today (different date)
+				("VTI", "NYSE"),      // i=9: VTI -30 days
+				("VTI", "NYSE"),      // i=10: VTI today (different date)
+			};
+			db.Entry(md).Property("SymbolProfileSymbol").CurrentValue = symbolData[i].Symbol;
+			db.Entry(md).Property("SymbolProfileDataSource").CurrentValue = symbolData[i].DataSource;
+		}
+		db.MarketDatas.AddRange(marketDataList);
+
 		// 10. CalculatedSnapshots
 		var snapshots = new List<CalculatedSnapshot>
 		{
@@ -216,6 +241,7 @@ public static class TestDataSeeder
 		};
 		db.TaskRunLogs.AddRange(taskLogs);
 
+
 		// 15. ExternalDataCacheEntry
 		var cacheEntries = new List<GhostfolioSidekick.Database.Cache.ExternalDataCacheEntry>
 		{
@@ -224,6 +250,6 @@ public static class TestDataSeeder
 		};
 		db.ExternalDataCacheEntries.AddRange(cacheEntries);
 
-		db.SaveChanges();
+		var rows = db.SaveChanges();
 	}
 }
