@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			chartConfig = new Config { Responsive = true };
 		}
 
-		private bool showUpcomingOnly;
+		private bool showUpcomingOnly = true;
 		private DividendModel? selectedDividend;
 
 		private void ShowDetails(DividendModel div)
