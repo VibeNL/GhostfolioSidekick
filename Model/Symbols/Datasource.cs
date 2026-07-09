@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public static readonly string DividendMax = "DIVIDENDMAX";
 
+		public static readonly string TIPRANKS = "TIPRANKS";
+
 		public static string GetUnderlyingDataSource(string dataSource)
 		{
 			if (!IsGhostfolio(dataSource))
@@ -48,8 +50,8 @@ namespace GhostfolioSidekick.Model.Symbols
 				return 2;
 			}
 
-			// Prefer Ghostfolio data source
-			if (IsGhostfolio(dataSource))
+			// Prefer Ghostfolio and DividendMax data sources
+			if (IsGhostfolio(dataSource) || dataSource.Equals(DividendMax, StringComparison.InvariantCultureIgnoreCase))
 			{
 				return 3;
 			}
