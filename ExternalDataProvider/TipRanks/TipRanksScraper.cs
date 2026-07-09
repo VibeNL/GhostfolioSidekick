@@ -88,9 +88,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 
 			return new PriceTarget
 			{
-				HighestTargetPrice = new Model.Money(currency, analystRatings.HighPriceTarget),
-				AverageTargetPrice = new Model.Money(currency, analystRatings.PriceTarget?.Value ?? 0),
-				LowestTargetPrice = new Model.Money(currency, analystRatings.LowPriceTarget),
+				HighestTargetPriceAmount = analystRatings.HighPriceTarget,
+				HighestTargetCurrency = currency,
+				AverageTargetPriceAmount = analystRatings.PriceTarget?.Value ?? 0,
+				AverageTargetCurrency = currency,
+				LowestTargetPriceAmount = analystRatings.LowPriceTarget,
+				LowestTargetCurrency = currency,
 				Rating = rating,
 				NumberOfBuys = analystRatings.Buy,
 				NumberOfHolds = analystRatings.Hold,

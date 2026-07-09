@@ -1,3 +1,5 @@
+using GhostfolioSidekick.Model.Symbols;
+
 namespace GhostfolioSidekick.Model.Market
 {
 	public class PriceTarget
@@ -6,11 +8,17 @@ namespace GhostfolioSidekick.Model.Market
 
 		public string Symbol { get; set; } = default!;
 
-		public Money HighestTargetPrice { get; set; } = default!;
+		public decimal HighestTargetPriceAmount { get; set; }
 
-		public Money AverageTargetPrice { get; set; } = default!;
+		public Currency HighestTargetCurrency { get; set; } = default!;
 
-		public Money LowestTargetPrice { get; set; } = default!;
+		public decimal AverageTargetPriceAmount { get; set; }
+
+		public Currency AverageTargetCurrency { get; set; } = default!;
+
+		public decimal LowestTargetPriceAmount { get; set; }
+
+		public Currency LowestTargetCurrency { get; set; } = default!;
 
 		public AnalystRating Rating { get; set; }
 
