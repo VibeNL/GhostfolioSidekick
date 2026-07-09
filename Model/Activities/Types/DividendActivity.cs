@@ -23,6 +23,8 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
 		}
 
+		public decimal Quantity { get; set; }
+
 		public List<Money> Fees { get; set; } = [];
 
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];

@@ -32,10 +32,23 @@ public class Program
 		});
 
 		// Configure the default HttpClient for all consumers
-		builder.Services.AddHttpClient(string.Empty, client =>
+		// Dev override: set 'DevApiBaseUrl' in appsettings.Development.json or via environment variable
+		string? devBaseUrl = builder.Configuration.GetValue<string?>("DevApiBaseUrl");
+		if (!string.IsNullOrEmpty(devBaseUrl)
+			&& builder.HostEnvironment.IsDevelopment())
 		{
-			client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
-		});
+			builder.Services.AddHttpClient(string.Empty, client =>
+			{
+				client.BaseAddress = new Uri(devBaseUrl);
+			});
+		}
+		else
+		{
+			builder.Services.AddHttpClient(string.Empty, client =>
+			{
+				client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+			});
+		}
 
 		// Configure custom authentication
 		builder.Services.AddAuthorizationCore();
@@ -92,8 +105,8 @@ public class Program
 		// Holding Identifier Mapping Service
 		builder.Services.AddScoped<IHoldingIdentifierMappingService, HoldingIdentifierMappingService>();
 
-		// Register UpcomingDividendsService for DI
-		builder.Services.AddScoped<IUpcomingDividendsService, UpcomingDividendsService>();
+		// Register DividendsService for DI
+		builder.Services.AddScoped<IDividendsService, DividendsService>();
 
 		var app = builder.Build();
 

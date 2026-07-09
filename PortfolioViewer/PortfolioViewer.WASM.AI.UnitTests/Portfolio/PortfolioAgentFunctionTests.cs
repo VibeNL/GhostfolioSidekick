@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 		private readonly Mock<IServiceScope> _scopeMock;
 		private readonly Mock<IServiceProvider> _serviceProviderMock;
 		private readonly Mock<IHoldingsDataService> _holdingsServiceMock;
-		private readonly Mock<IUpcomingDividendsService> _dividendsServiceMock;
+		private readonly Mock<IDividendsService> _dividendsServiceMock;
 		private readonly PortfolioAgentFunction _sut;
 
 		public PortfolioAgentFunctionTests()
@@ -23,13 +23,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 			_scopeMock = new Mock<IServiceScope>();
 			_serviceProviderMock = new Mock<IServiceProvider>();
 			_holdingsServiceMock = new Mock<IHoldingsDataService>();
-			_dividendsServiceMock = new Mock<IUpcomingDividendsService>();
+			_dividendsServiceMock = new Mock<IDividendsService>();
 
 			_serviceProviderMock
 				.Setup(sp => sp.GetService(typeof(IHoldingsDataService)))
 				.Returns(_holdingsServiceMock.Object);
 			_serviceProviderMock
-				.Setup(sp => sp.GetService(typeof(IUpcomingDividendsService)))
+				.Setup(sp => sp.GetService(typeof(IDividendsService)))
 				.Returns(_dividendsServiceMock.Object);
 
 			_scopeMock.Setup(s => s.ServiceProvider).Returns(_serviceProviderMock.Object);
@@ -226,7 +226,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 		public async Task GetUpcomingDividends_WhenNone_ReturnsNoDataMessage()
 		{
 			_dividendsServiceMock
-				.Setup(s => s.GetUpcomingDividendsAsync())
+				.Setup(s => s.GetDividendsAsync())
 				.ReturnsAsync([]);
 
 			var result = await _sut.GetUpcomingDividends();
@@ -238,7 +238,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 		public async Task GetUpcomingDividends_WithDividends_ReturnsFormattedList()
 		{
 			var today = DateOnly.FromDateTime(DateTime.UtcNow);
-			var dividends = new List<UpcomingDividendModel>
+			var dividends = new List<DividendModel>
 			{
 				new()
 				{
@@ -265,7 +265,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 			};
 
 			_dividendsServiceMock
-				.Setup(s => s.GetUpcomingDividendsAsync())
+				.Setup(s => s.GetDividendsAsync())
 				.ReturnsAsync(dividends);
 
 			var result = await _sut.GetUpcomingDividends();

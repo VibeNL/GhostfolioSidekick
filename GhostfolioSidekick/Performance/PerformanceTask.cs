@@ -76,6 +76,25 @@ namespace GhostfolioSidekick.Performance
 							newSnapshot.HoldingId = holding.Id;
 							batchDbContext.CalculatedSnapshots.Add(newSnapshot);
 						}
+
+						// Set Quantity on DividendActivity for this holding using the latest snapshot
+							var latestQuantity = newSnapshots
+								.OrderByDescending(s => s.Date)
+								.Select(s => s.Quantity)
+								.FirstOrDefault();
+
+							if (latestQuantity > 0)
+							{
+								var dividendActivities = await batchDbContext.Activities
+									.OfType<GhostfolioSidekick.Model.Activities.Types.DividendActivity>()
+									.Where(a => a.Holding != null && a.Holding.Id == holding.Id)
+									.ToListAsync(cancellationToken: cancellationToken);
+
+								foreach (var activity in dividendActivities)
+								{
+									activity.Quantity = latestQuantity;
+								}
+							}
 					}
 				}
 				catch (Exception ex)

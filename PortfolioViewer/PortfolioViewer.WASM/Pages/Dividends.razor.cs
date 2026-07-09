@@ -1,31 +1,83 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
-	public partial class UpcomingDividends : ComponentBase
+	public partial class Dividends : ComponentBase, IDisposable
 	{
 		[Inject]
-		private IUpcomingDividendsService DividendsService { get; set; } = default!;
+		private IDividendsService DividendsService { get; set; } = default!;
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
-		protected List<UpcomingDividendModel>? dividends;
+		[CascadingParameter]
+		private FilterState? FilterState { get; set; }
+
+		protected List<DividendModel>? dividends;
 		protected bool isLoading = true;
 
 		protected IList<ITrace> chartData = [];
 		protected Plotly.Blazor.Layout chartLayout = new();
 		protected Config chartConfig = new();
+		protected int chartKey;
+
+		private FilterState? _previousFilterState;
 
 		protected override async Task OnInitializedAsync()
 		{
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged += OnFilterStateChanged;
+				_previousFilterState = FilterState;
+			}
+
+			await LoadDividendsAsync();
+		}
+
+		protected override async Task OnParametersSetAsync()
+		{
+			// Re-subscribe if FilterState instance changed
+			if (!ReferenceEquals(FilterState, _previousFilterState))
+			{
+				if (_previousFilterState != null)
+				{
+					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+				}
+				if (FilterState != null)
+				{
+					FilterState.PropertyChanged += OnFilterStateChanged;
+				}
+				_previousFilterState = FilterState;
+				await LoadDividendsAsync();
+			}
+		}
+
+		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(FilterState.StartDate) ||
+				e.PropertyName == nameof(FilterState.EndDate))
+			{
+				await InvokeAsync(async () =>
+				{
+					await LoadDividendsAsync();
+					StateHasChanged();
+				});
+			}
+		}
+
+		private async Task LoadDividendsAsync()
+		{
 			isLoading = true;
-			dividends = await DividendsService.GetUpcomingDividendsAsync();
+			StateHasChanged();
+
+			dividends = await DividendsService.GetDividendsAsync(FilterState?.StartDate, FilterState?.EndDate);
 			BuildChart();
 			isLoading = false;
 		}
@@ -60,7 +112,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					.Sum(d => d.AmountPrimaryCurrency ?? 0))
 				.ToArray();
 
-			var currencySymbol = ServerConfigurationService.PrimaryCurrency.Symbol;
+			var currencySymbol = ServerConfigurationService.PrimaryCurrency?.Symbol ?? "$";
 
 			chartData =
 			[
@@ -82,7 +134,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			chartLayout = new Plotly.Blazor.Layout
 			{
-				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Expected Monthly Dividends" },
+				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Monthly Dividends" },
 				XAxis = [new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Month" } }],
 				YAxis = [new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Amount ({currencySymbol})" } }],
 				BarMode = Plotly.Blazor.LayoutLib.BarModeEnum.Stack,
@@ -98,18 +150,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				]
 			};
 			chartConfig = new Config { Responsive = true };
+
+			// Force Plotly chart to re-render with the updated data
+			chartKey++;
 		}
 
-        private UpcomingDividendModel? selectedDividend;
+		private bool showUpcomingOnly = true;
+		private DividendModel? selectedDividend;
 
-        private void ShowDetails(UpcomingDividendModel div)
-        {
-            selectedDividend = div;
-        }
+		private void ShowDetails(DividendModel div)
+		{
+			selectedDividend = div;
+		}
 
 		private void CloseDetails()
 		{
 			selectedDividend = null;
+		}
+
+		private DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+
+		private IEnumerable<DividendModel> FilteredDividends =>
+			showUpcomingOnly
+				? dividends!.Where(d => d.PaymentDate >= Today).OrderBy(d => d.PaymentDate)
+				: dividends!.OrderBy(d => d.PaymentDate);
+
+		public void Dispose()
+		{
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged -= OnFilterStateChanged;
+			}
 		}
 	}
 }

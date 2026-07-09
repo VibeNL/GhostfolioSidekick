@@ -130,9 +130,9 @@ else
     {
         var gainClass = TotalGainLoss >= 0 ? "success" : "danger";
         var gainSign = TotalGainLoss >= 0 ? "+" : "";
-        var dividendCount = UpcomingDividends.Count;
-        var dividendTotal = UpcomingDividends.Where(d => d.AmountPrimaryCurrency.HasValue).Sum(d => d.AmountPrimaryCurrency!.Value);
-        var dividendCurrency = UpcomingDividends.FirstOrDefault(d => !string.IsNullOrEmpty(d.PrimaryCurrency))?.PrimaryCurrency ?? PortfolioCurrency;
+        var dividendCount = DashboardUpcomingDividends.Count;
+        var dividendTotal = DashboardUpcomingDividends.Where(d => d.AmountPrimaryCurrency.HasValue).Sum(d => d.AmountPrimaryCurrency!.Value);
+        var dividendCurrency = DashboardUpcomingDividends.FirstOrDefault(d => !string.IsNullOrEmpty(d.PrimaryCurrency))?.PrimaryCurrency ?? PortfolioCurrency;
 
         <div class="card compact-table-card border-0 shadow-sm mb-4">
             <div class="card-header bg-transparent border-0">
@@ -254,7 +254,7 @@ else
             </div>
         </div>
 
-        @if (UpcomingDividends.Count > 0)
+        @if (DashboardUpcomingDividends.Count > 0)
         {
             <div class="card compact-table-card border-0 shadow-sm mb-4">
                 <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between">
@@ -274,7 +274,7 @@ else
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var div in UpcomingDividends)
+                                @foreach (var div in DashboardUpcomingDividends)
                                 {
                                     <tr>
                                         <td class="fw-semibold">@div.CompanyName</td>
