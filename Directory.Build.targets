@@ -4,8 +4,10 @@
 		<Compile Include="$(MSBuildThisFileDirectory)GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
 	</ItemGroup>
 
-	<!-- Suppress SQLite warning until a fix is available -->
 	<ItemGroup>
+		<!-- Suppress SQLite warning until a fix is available -->
 		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
+		<!-- Suppress Microsoft.OpenApi warning until a fix is available -->
+		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v5pm-xwqc-g5wc" />
 	</ItemGroup>
 </Project>
