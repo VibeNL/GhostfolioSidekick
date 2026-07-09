@@ -5,7 +5,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- Suppress SQLite warning until a fix is available -->
+		<!-- Suppress SQLitePCLRaw.lib.e_sqlite3 warning until a fix is available -->
 		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
 		<!-- Suppress Microsoft.OpenApi warning until a fix is available -->
 		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v5pm-xwqc-g5wc" />
