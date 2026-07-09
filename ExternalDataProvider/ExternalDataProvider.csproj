@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="CoinGecko.Net" Version="6.0.0" />
-	  <PackageReference Include="CryptoExchange.Net" Version="12.0.2" />
+	  <PackageReference Include="CryptoExchange.Net" Version="12.1.0" />
 	  <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
 	  <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
