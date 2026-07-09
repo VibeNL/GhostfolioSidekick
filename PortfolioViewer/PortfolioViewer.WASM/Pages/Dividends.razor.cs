@@ -151,6 +151,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			chartConfig = new Config { Responsive = true };
 		}
 
+		private bool showUpcomingOnly;
 		private DividendModel? selectedDividend;
 
 		private void ShowDetails(DividendModel div)
@@ -162,6 +163,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			selectedDividend = null;
 		}
+
+		private DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+
+		private IEnumerable<DividendModel> FilteredDividends =>
+			showUpcomingOnly
+				? dividends!.Where(d => d.PaymentDate >= Today).OrderBy(d => d.PaymentDate)
+				: dividends!.OrderBy(d => d.PaymentDate);
 
 		public void Dispose()
 		{

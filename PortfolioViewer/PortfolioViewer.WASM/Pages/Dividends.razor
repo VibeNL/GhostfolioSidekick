@@ -50,6 +50,12 @@
                     }
                     else
                     {
+                        <div class="d-flex justify-content-end mb-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="upcomingOnlyToggle" @bind="showUpcomingOnly" />
+                                <label class="form-check-label" for="upcomingOnlyToggle">Upcoming only</label>
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead class="table-dark">
@@ -62,7 +68,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var div in dividends.OrderBy(d => d.PaymentDate))
+                                    @foreach (var div in FilteredDividends)
                                     {
                                         var divAmountText = div.Amount.ToString("F2") + " " + div.Currency;
                                         <tr class="@(div.IsPredicted ? "table-secondary" : "")">
