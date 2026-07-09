@@ -26,6 +26,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected IList<ITrace> chartData = [];
 		protected Plotly.Blazor.Layout chartLayout = new();
 		protected Config chartConfig = new();
+		protected int chartKey;
 
 		private FilterState? _previousFilterState;
 
@@ -149,6 +150,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				]
 			};
 			chartConfig = new Config { Responsive = true };
+
+			// Force Plotly chart to re-render with the updated data
+			chartKey++;
 		}
 
 		private bool showUpcomingOnly = true;
