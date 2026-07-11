@@ -20,4 +20,5 @@ public static class PageFactory
 	public static TablesPage CreateTablesPage(IPage page) => new(page);
 	public static DataIssuesPage CreateDataIssuesPage(IPage page) => new(page);
 	public static TransactionsPage CreateTransactionsPage(IPage page) => new(page);
+	public static PriceTargetsPage CreatePriceTargetsPage(IPage page) => new(page);
 }

@@ -1,0 +1,183 @@
+@page "/price-targets"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+@inject IPriceTargetsService PriceTargetsService
+@attribute [Authorize]
+
+<PageTitle>Price Targets</PageTitle>
+
+<div class="container-fluid">
+    @if (IsLoading)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Price Targets...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch analyst price targets.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!PriceTargetsList.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-tag text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No Price Targets Found</h5>
+                        <p class="text-muted mb-3">No analyst price targets available. Run a sync to fetch the latest data.</p>
+                        <button class="btn btn-primary" @onclick="RefreshDataAsync">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Analyst Price Targets</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">Symbol</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col" class="text-end">Highest Target</th>
+                                        <th scope="col" class="text-end">Average Target</th>
+                                        <th scope="col" class="text-end">Lowest Target</th>
+                                        <th scope="col" class="text-center">Rating</th>
+                                        <th scope="col" class="text-center">Buys</th>
+                                        <th scope="col" class="text-center">Holds</th>
+                                        <th scope="col" class="text-center">Sells</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var target in PriceTargetsList)
+                                    {
+                                        <tr class="price-target-row">
+                                            <td><strong>@target.Symbol</strong></td>
+                                            <td>@target.Name</td>
+                                            <td class="text-end">@FormatPrice(target.HighestTargetAmount, target.HighestTargetCurrency)</td>
+                                            <td class="text-end"><strong>@FormatPrice(target.AverageTargetAmount, target.AverageTargetCurrency)</strong></td>
+                                            <td class="text-end">@FormatPrice(target.LowestTargetAmount, target.LowestTargetCurrency)</td>
+                                            <td class="text-center">@GetRatingBadge(target.Rating)</td>
+                                            <td class="text-center">@target.NumberOfBuys</td>
+                                            <td class="text-center">@target.NumberOfHolds</td>
+                                            <td class="text-center">@target.NumberOfSells</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .price-target-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+    .price-target-row {
+        transition: background-color 0.15s ease-in-out;
+    }
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
+
+@code {
+    private List<PriceTargetDisplayModel> PriceTargetsList = [];
+    private bool IsLoading = true;
+    private bool HasError = false;
+    private string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        IsLoading = true;
+        HasError = false;
+        try
+        {
+            PriceTargetsList = await PriceTargetsService.GetPriceTargetsAsync();
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task RefreshDataAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private string FormatPrice(decimal amount, string currency)
+    {
+        return $"{amount:N2} {currency}";
+    }
+
+    private string GetRatingBadge(string rating)
+    {
+        var lower = rating?.ToLowerInvariant() ?? "unknown";
+        return lower switch
+        {
+            "strongbuy" => "<span class=\"badge bg-success\">Strong Buy</span>",
+            "buy" => "<span class=\"badge bg-info\">Buy</span>",
+            "hold" => "<span class=\"badge bg-warning text-dark\">Hold</span>",
+            "sell" => "<span class=\"badge bg-danger\">Sell</span>",
+            "strongsell" => "<span class=\"badge bg-dark\">Strong Sell</span>",
+            _ => "<span class=\"badge bg-secondary\">N/A</span>"
+        };
+    }
+}

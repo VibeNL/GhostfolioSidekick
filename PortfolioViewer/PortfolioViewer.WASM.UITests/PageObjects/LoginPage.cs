@@ -25,6 +25,11 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			});
 		}
 
+		public async Task<string> CapturePageContentAsync()
+		{
+			return await _page.ContentAsync();
+		}
+
 		public async Task FillAccessTokenAsync(string token)
 		{
 			await _page.FillAsync(AccessTokenInputSelector, token);

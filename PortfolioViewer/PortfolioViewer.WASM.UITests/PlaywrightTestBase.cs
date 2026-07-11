@@ -18,12 +18,16 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 
 	protected string ScreenshotDir = string.Empty;
 	protected string VideoDir = string.Empty;
+	private List<string> _testConsoleLogs = [];
+	protected IReadOnlyList<string> TestConsoleLogs => _testConsoleLogs;
 
 	// Lazy-initialized page objects to avoid creating them before Page is available
 	private LoginPage? _loginPage;
 	private HomePage? _homePage;
+	private PriceTargetsPage? _priceTargetsPage;
 	protected LoginPage LoginPage => _loginPage ??= new LoginPage(Page!);
 	protected HomePage HomePage => _homePage ??= new HomePage(Page!);
+	protected PriceTargetsPage PriceTargetsPage => _priceTargetsPage ??= new PriceTargetsPage(Page!);
 
 	protected static CancellationToken CancellationToken => TestContext.Current?.CancellationToken ?? CancellationToken.None;
 
