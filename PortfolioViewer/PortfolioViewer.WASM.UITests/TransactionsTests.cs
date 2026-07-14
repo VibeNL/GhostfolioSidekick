@@ -11,7 +11,7 @@ public class TransactionsTests(CustomWebApplicationFactory fixture) : Playwright
 	{
 		await SetupAsync();
 
-		var transactionsPage = PageFactory.CreateTransactionsPage(Page!);
+		var transactionsPage = new TransactionsPage(Page!);
 		await transactionsPage.NavigateViaMenuAsync();
 		await transactionsPage.WaitForPageLoadAsync();
 		await transactionsPage.SetDateFilterToAllAsync();
@@ -22,17 +22,8 @@ public class TransactionsTests(CustomWebApplicationFactory fixture) : Playwright
 
 		// The page should have rendered without Blazor errors.
 		// In the test environment, the WASM client syncs from Ghostfolio API which may not be configured,
-		// so we may see an error message, a table with data, or an empty state - all are valid.
-		// The key assertion is that the page rendered (not blank/white screen).
+		// so we may see a table with data, an empty state, or an error message — all are valid renders.
 		Assert.True(isTableDisplayed || isEmpty || hasError,
-			"Transaction page should show either a table, empty state, or error message (table: {isTableDisplayed}, empty: {isEmpty}, error: {hasError})");
-
-		// If there's data, verify it has valid structure
-		if (isTableDisplayed)
-		{
-			var hasValidData = await transactionsPage.VerifyTransactionDataAsync();
-			// Data may or may not exist depending on sync success; just verify the page rendered correctly
-			Assert.True(true, "Transaction page rendered correctly");
-		}
+			"Transaction page should render (table: {isTableDisplayed}, empty: {isEmpty}, error: {hasError})");
 	}
 }

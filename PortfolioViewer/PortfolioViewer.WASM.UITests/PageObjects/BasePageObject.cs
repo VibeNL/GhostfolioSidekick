@@ -54,6 +54,43 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 	}
 
 		/// <summary>
+		/// Standard page load wait: spinner hidden → any stable state (heading/empty/error/table).
+		/// Override in derived classes only if the page has unique load requirements.
+		/// </summary>
+		protected async Task WaitForPageLoadAsync(IEnumerable<string> stableStateSelectors, int timeout = 30000, CancellationToken ct = default)
+		{
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				// Wait for loading spinner to disappear (optional — may not exist)
+				try
+				{
+					await _page.WaitForSelectorAsync(".spinner-border", new PageWaitForSelectorOptions { State = WaitForSelectorState.Hidden, Timeout = Math.Min(5000, timeout / 2) });
+				}
+				catch
+				{
+					// No spinner or already hidden — continue
+				}
+
+				// Wait for any stable state
+				foreach (var selector in stableStateSelectors)
+				{
+					try
+					{
+						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = timeout });
+						return;
+					}
+					catch
+					{
+						// Try next selector
+					}
+				}
+
+				// None matched — throw with list of attempted selectors
+				throw new TimeoutException($"WaitForPageLoadAsync: none of the stable state selectors matched within {timeout}ms. Tried: {string.Join(", ", stableStateSelectors)}");
+			}, ct);
+		}
+
+		/// <summary>
 		/// Executes an action and automatically checks for Blazor errors afterwards.
 		/// Use this wrapper for critical operations that should detect framework errors.
 		/// </summary>
@@ -61,9 +98,6 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			await action();
 			await CheckForBlazorErrorAsync();
-
-			// Automatically capture screenshot after every operation
-			await CaptureAutoScreenshotAsync("action");
 		}
 
 		/// <summary>
@@ -74,36 +108,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			var result = await action();
 			await CheckForBlazorErrorAsync();
-
-			// Automatically capture screenshot after every operation
-			await CaptureAutoScreenshotAsync("action");
-
 			return result;
 		}
 
-		/// <summary>
-		/// Automatically captures a screenshot after each test step.
-		/// </summary>
-		private async Task CaptureAutoScreenshotAsync(string stepName)
-		{
-			if (TestContext.Current?.Test == null || _page == null) return;
-
-			var testName = TestContext.Current.Test.TestDisplayName ?? "unknown";
-			var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss-fff}";
-			var safeTestName = new string(testName.Where(c => !Path.GetInvalidFileNameChars().Contains(c)).ToArray()).Replace(" ", "_");
-			var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
-			Directory.CreateDirectory(screenshotDir);
-			var path = Path.Combine(screenshotDir, $"{safeTestName}-{stepName}-{timestamp}.png");
-
-			try
-			{
-				await _page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = true });
-				Console.WriteLine($"[Auto Screenshot] {stepName} -> {path}");
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"[Auto Screenshot] Failed for '{stepName}': {ex.Message}");
-			}
-		}
 	}
 }

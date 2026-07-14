@@ -22,37 +22,23 @@ public class DataIssuesPage(IPage page) : BasePageObject(page)
         });
     }
 
-    public async Task NavigateDirectAsync()
+    public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {
-            await _page.GotoAsync("/data-issues");
-        });
+            var targetUrl = relativePath ?? "/data-issues";
+            if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
+            {
+                var baseUri = new Uri(_page.Url);
+                targetUrl = new Uri(baseUri, targetUrl).ToString();
+            }
+            await _page.GotoAsync(targetUrl);
+        }, ct);
     }
 
-    public async Task WaitForPageLoadAsync(int timeout = 30000)
+    public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
     {
-        try
-        {
-            await ExecuteWithErrorCheckAsync(async () =>
-            {
-                try
-                {
-                    await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
-                    await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
-                }
-                catch { }
-
-                // Use flexible selectors that match the actual HTML structure
-                await _page.WaitForSelectorAsync(
-                    "h5:has-text('No Data Issues Found'), .alert-danger, .list-group, .card",
-                    new PageWaitForSelectorOptions { Timeout = timeout });
-            });
-        }
-        catch
-        {
-            // Navigation or wait may fail; that's acceptable in test env
-        }
+        await base.WaitForPageLoadAsync(["h5:has-text('No Data Issues Found')", ErrorAlertSelector, ".list-group", ".card"], timeout, ct);
     }
 
     public async Task<bool> HasNoIssuesMessageAsync()

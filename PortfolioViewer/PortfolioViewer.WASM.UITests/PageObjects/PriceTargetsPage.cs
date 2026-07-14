@@ -23,69 +23,26 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 		});
 	}
 
-	public async Task NavigateDirectAsync(string? serverBaseUrl = null)
+	public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
 	{
 		await ExecuteWithErrorCheckAsync(async () =>
 		{
-			var url = serverBaseUrl ?? _page.Url;
-			if (string.IsNullOrEmpty(url))
+			var targetUrl = relativePath ?? "/price-targets";
+			if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
 			{
-				throw new InvalidOperationException("Cannot navigate: no base URL available");
+				var baseUri = new Uri(_page.Url);
+				targetUrl = new Uri(baseUri, targetUrl).ToString();
 			}
-			var baseUri = new Uri(url);
-			var targetUrl = new Uri(baseUri, "/price-targets").ToString();
 			await _page.GotoAsync(targetUrl);
-		});
+		}, ct);
 	}
 
-	public async Task WaitForPageLoadAsync(int timeout = 30000)
+	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 	{
-		try
-		{
-			await ExecuteWithErrorCheckAsync(async () =>
-			{
-				// Wait for the page to reach a stable state (not loading).
-				// First wait for loading to complete, then wait for content.
-				var shortTimeout = Math.Min(5000, timeout / 5);
-				var contentTimeout = Math.Max(10000, timeout / 2);
-
-				// Wait for loading spinner to disappear (or timeout quickly)
-				try
-				{
-					await _page.WaitForSelectorAsync(".spinner-border", new PageWaitForSelectorOptions { State = WaitForSelectorState.Hidden, Timeout = shortTimeout });
-				}
-				catch
-				{
-					// No spinner or already hidden - continue
-				}
-
-				// Wait for any stable state: heading, empty state, error, or content
-				var selectors = new[]
-				{
-					"h5:has-text('Analyst Price Targets')",
-					"h4:has-text('Error Loading Data')",
-					"h5:has-text('No Price Targets Found')",
-					".alert-danger",
-					".card-body"
-				};
-				foreach (var selector in selectors)
-				{
-					try
-					{
-						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = contentTimeout });
-						return; // Found a stable state
-					}
-					catch
-					{
-						// Try next selector
-					}
-				}
-			});
-		}
-		catch
-		{
-			// Navigation or wait may fail; that's acceptable in test env
-		}
+		await base.WaitForPageLoadAsync(
+			["h5:has-text('Analyst Price Targets')", "h4:has-text('Error Loading Data')", "h5:has-text('No Price Targets Found')", ErrorAlertSelector, ".card-body", ".alert-danger", ".card", "#app"],
+			timeout,
+			ct);
 	}
 
 	public async Task<bool> HasPriceTargetsHeadingAsync()

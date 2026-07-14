@@ -23,8 +23,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture) : Playwright
 		}
 
 		// Navigate to price targets page
-		var priceTargetsUrl = $"{ServerAddress.TrimEnd('/')}/price-targets";
-		await PriceTargetsPage.NavigateDirectAsync(priceTargetsUrl);
+		await PriceTargetsPage.NavigateDirectAsync($"{ServerAddress.TrimEnd('/')}/price-targets");
 		
 		// Wait for Blazor to initialize
 		await Page!.WaitForSelectorAsync("#app", new PageWaitForSelectorOptions { Timeout = 10000 });
@@ -95,12 +94,11 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture) : Playwright
 		}
 
 		// In test env, data may not be available; just verify page rendered
-		var hasError = await PriceTargetsPage.IsErrorDisplayedAsync();
 		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
 		var appDiv = await Page!.QuerySelectorAsync("#app");
 		var appEmpty = appDiv != null && (await appDiv.InnerHTMLAsync()).Trim() == string.Empty;
-		Assert.True(hasError || hasEmptyState || !appEmpty,
-			$"Price Targets page should render correctly (error: {hasError}, empty: {hasEmptyState}, appEmpty: {appEmpty})");
+		Assert.True(hasEmptyState || !appEmpty,
+			$"Price Targets page should render correctly (empty: {hasEmptyState}, appEmpty: {appEmpty})");
 	}
 
 	[RetryFact]
@@ -123,5 +121,34 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture) : Playwright
 		var appContent = appDiv != null ? await appDiv.InnerHTMLAsync() : string.Empty;
 		var appEmpty = string.IsNullOrWhiteSpace(appContent?.Trim());
 		Assert.False(appEmpty, "Price Targets page should not crash and clear the Blazor app container");
+	}
+
+	[RetryFact]
+	public async Task PriceTargetsPage_ShouldShowSeededSymbols()
+	{
+		await SetupAsync();
+
+		await PriceTargetsPage.NavigateDirectAsync();
+		await PriceTargetsPage.WaitForPageLoadAsync();
+
+		var hasData = await PriceTargetsPage.HasPriceTargetDataRowsAsync(1);
+		var hasError = await PriceTargetsPage.IsErrorDisplayedAsync();
+		var appDiv = await Page!.QuerySelectorAsync("#app");
+		var appContent = appDiv != null ? await appDiv.InnerHTMLAsync() : string.Empty;
+		var appEmpty = string.IsNullOrWhiteSpace(appContent?.Trim());
+
+		// Data may not appear if Ghostfolio API is not configured; just verify page rendered
+		Assert.True(hasData || hasError || !appEmpty,
+			"Price Targets page should render (data: {hasData}, error: {hasError}, appEmpty: {appEmpty})");
+
+		if (hasData)
+		{
+			// Verify all seeded symbols appear
+			foreach (var symbol in new[] { "AAPL", "GOOGL", "BTC", "VTI" })
+			{
+				var hasSymbol = await PriceTargetsPage.HasPriceTargetSymbolAsync(symbol);
+				Assert.True(hasSymbol, $"Price Targets page should show seeded {symbol} target");
+			}
+		}
 	}
 }

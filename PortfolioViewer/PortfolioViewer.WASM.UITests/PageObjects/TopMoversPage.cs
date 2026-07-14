@@ -26,29 +26,23 @@ public class TopMoversPage(IPage page) : BasePageObject(page)
         });
     }
 
-    public async Task NavigateDirectAsync()
+    public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {
-            await _page.GotoAsync("/top-movers");
-        });
+            var targetUrl = relativePath ?? "/top-movers";
+            if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
+            {
+                var baseUri = new Uri(_page.Url);
+                targetUrl = new Uri(baseUri, targetUrl).ToString();
+            }
+            await _page.GotoAsync(targetUrl);
+        }, ct);
     }
 
-    public async Task WaitForPageLoadAsync(int timeout = 30000)
+    public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
     {
-        await ExecuteWithErrorCheckAsync(async () =>
-        {
-            try
-            {
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
-            }
-            catch { }
-
-            await _page.WaitForSelectorAsync(
-                $"{PageHeadingSelector}, {ErrorAlertSelector}, {RisersCardSelector}",
-                new PageWaitForSelectorOptions { Timeout = timeout });
-        });
+        await base.WaitForPageLoadAsync([PageHeadingSelector, ErrorAlertSelector, RisersCardSelector, ".alert-danger"], timeout, ct);
     }
 
     public async Task<bool> HasTopMoversTitleAsync()

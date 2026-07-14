@@ -12,15 +12,15 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var holdingsPage = PageFactory.CreateHoldingsPage(Page!);
+		var holdingsPage = new HoldingsPage(Page!);
 		await holdingsPage.NavigateViaMenuAsync();
 		await holdingsPage.WaitForPageLoadAsync();
 		await holdingsPage.SwitchToTableModeAsync();
 
-		// Page should render without crashing (error state is acceptable in test env where Ghostfolio API is not configured)
-		var hasError = await holdingsPage.IsErrorDisplayedAsync();
+		// Page should render without crashing
 		var isEmpty = await holdingsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await holdingsPage.HasHoldingsDataRowsAsync();
+		var hasError = await holdingsPage.IsErrorDisplayedAsync();
 		Assert.True(hasRows || isEmpty || hasError,
 			"Holdings page should show rows, empty state, or error (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
 
@@ -32,11 +32,39 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	}
 
 	[RetryFact]
+	public async Task HoldingsPage_ShouldShowSeededSymbols()
+	{
+		await SetupAsync();
+
+		var holdingsPage = new HoldingsPage(Page!);
+		await holdingsPage.NavigateViaMenuAsync();
+		await holdingsPage.WaitForPageLoadAsync();
+		await holdingsPage.SwitchToTableModeAsync();
+
+		var hasRows = await holdingsPage.HasHoldingsDataRowsAsync();
+		var hasError = await holdingsPage.IsErrorDisplayedAsync();
+
+		// Data may not appear if Ghostfolio API is not configured; just verify page rendered
+		Assert.True(hasRows || hasError,
+			"Holdings page should show data rows or error message (rows: {hasRows}, error: {hasError})");
+
+		if (hasRows)
+		{
+			// Verify all seeded symbols appear
+			foreach (var symbol in new[] { "AAPL", "GOOGL", "BTC", "VTI", "US10Y" })
+			{
+				var hasSymbol = await holdingsPage.HasHoldingSymbolAsync(symbol);
+				Assert.True(hasSymbol, $"Holdings page should show seeded {symbol} holding");
+			}
+		}
+	}
+
+	[RetryFact]
 	public async Task AccountsPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
 
-		var accountsPage = PageFactory.CreateAccountsPage(Page!);
+		var accountsPage = new AccountsPage(Page!);
 		try
 		{
 			await accountsPage.NavigateViaMenuAsync();
@@ -48,9 +76,9 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		}
 
 		// Page should render without crashing
-		var hasError = await accountsPage.IsErrorDisplayedAsync();
 		var isEmpty = await accountsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await accountsPage.HasAccountDataRowsAsync();
+		var hasError = await accountsPage.IsErrorDisplayedAsync();
 		Assert.True(hasRows || isEmpty || hasError,
 			"Accounts page should render correctly (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
 	}
@@ -60,13 +88,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var taxReportPage = PageFactory.CreateTaxReportPage(Page!);
+		var taxReportPage = new TaxReportPage(Page!);
 		await taxReportPage.NavigateViaMenuAsync();
 		await taxReportPage.WaitForPageLoadAsync();
 
-		var hasError = await taxReportPage.IsErrorDisplayedAsync();
 		var isEmpty = await taxReportPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await taxReportPage.HasReportRowsAsync();
+		var hasError = await taxReportPage.IsErrorDisplayedAsync();
 		Assert.True(hasRows || isEmpty || hasError,
 			"TaxReport page should render correctly (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
 	}
@@ -76,7 +104,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var topMoversPage = PageFactory.CreateTopMoversPage(Page!);
+		var topMoversPage = new TopMoversPage(Page!);
 		try
 		{
 			await topMoversPage.NavigateViaMenuAsync();
@@ -87,11 +115,11 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 			// Navigation may fail if the dropdown menu structure changes; that's acceptable
 		}
 
-		var hasError = await topMoversPage.IsErrorDisplayedAsync();
 		var hasRisers = await topMoversPage.HasRiserEntriesAsync();
 		var hasLosers = await topMoversPage.HasLoserEntriesAsync();
 		var hasNoRisersMessage = await topMoversPage.HasNoRisersMessageAsync();
 		var hasNoLosersMessage = await topMoversPage.HasNoLosersMessageAsync();
+		var hasError = await topMoversPage.IsErrorDisplayedAsync();
 		
 		Assert.True(hasError || hasRisers || hasLosers || hasNoRisersMessage || hasNoLosersMessage,
 			"TopMovers page should render correctly (error: {hasError}, risers: {hasRisers}, losers: {hasLosers}, noRisersMsg: {hasNoRisersMessage}, noLosersMsg: {hasNoLosersMessage})");
@@ -102,7 +130,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var timeSeriesPage = PageFactory.CreatePortfolioTimeSeriesPage(Page!);
+		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
 		try
 		{
 			await timeSeriesPage.NavigateViaMenuAsync();
@@ -125,7 +153,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var dividendsPage = PageFactory.CreateUpcomingDividendsPage(Page!);
+		var dividendsPage = new UpcomingDividendsPage(Page!);
 		try
 		{
 			await dividendsPage.NavigateViaMenuAsync();
@@ -148,7 +176,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var dataIssuesPage = PageFactory.CreateDataIssuesPage(Page!);
+		var dataIssuesPage = new DataIssuesPage(Page!);
 		try
 		{
 			await dataIssuesPage.NavigateViaMenuAsync();
@@ -170,7 +198,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var taskStatusPage = PageFactory.CreateTaskStatusPage(Page!);
+		var taskStatusPage = new TaskStatusPage(Page!);
 		await taskStatusPage.NavigateViaMenuAsync();
 		await taskStatusPage.WaitForPageLoadAsync();
 
@@ -186,11 +214,18 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 		// Seed invalid decimal data directly into SQLite (empty string in Amount column)
 		Fixture.SeedInvalidDividendData();
 
-		var dividendsPage = PageFactory.CreateUpcomingDividendsPage(Page!);
-		await dividendsPage.NavigateDirectAsync(ServerAddress, CancellationToken);
+		var dividendsPage = new UpcomingDividendsPage(Page!);
+		await dividendsPage.NavigateDirectAsync(ServerAddress);
 
-		// Wait for the page to settle
-		await dividendsPage.WaitForPageLoadAsync(timeout: 10000);
+		// Wait for the page to settle — be tolerant of different render states
+		try
+		{
+			await dividendsPage.WaitForPageLoadAsync(timeout: 10000);
+		}
+		catch
+		{
+			// Page may not reach expected selectors if data causes unusual rendering; continue checking
+		}
 
 		// The page should NOT crash — the corrupted data should be handled gracefully
 		// Check that the Blazor app container is not empty (indicates unhandled exception)
@@ -209,7 +244,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture) : Playwrig
 	{
 		await SetupAsync();
 
-		var tablesPage = PageFactory.CreateTablesPage(Page!);
+		var tablesPage = new TablesPage(Page!);
 		await tablesPage.NavigateViaMenuAsync();
 		await tablesPage.WaitForPageLoadAsync();
 

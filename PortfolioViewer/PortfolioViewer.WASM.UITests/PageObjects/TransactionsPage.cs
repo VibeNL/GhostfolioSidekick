@@ -29,46 +29,23 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			});
 		}
 
-		public async Task NavigateDirectAsync()
+		public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				await _page.GotoAsync("/transactions");
-			});
+				var targetUrl = relativePath ?? "/transactions";
+				if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
+				{
+					var baseUri = new Uri(_page.Url);
+					targetUrl = new Uri(baseUri, targetUrl).ToString();
+				}
+				await _page.GotoAsync(targetUrl);
+			}, ct);
 		}
 
-		public async Task WaitForPageLoadAsync(int timeout = 30000)
+		public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 		{
-			await ExecuteWithErrorCheckAsync(async () =>
-			{
-				// Wait for loading spinner to appear (optional - it might load too fast)
-				try
-				{
-					await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
-					Console.WriteLine("Loading spinner appeared");
-				}
-				catch
-				{
-					// Loading was too fast, that's okay
-				}
-
-				// Wait for loading spinner to disappear OR for content to appear
-				try
-				{
-					await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
-					Console.WriteLine("Loading spinner disappeared");
-				}
-				catch
-				{
-					// Loading spinner might not have appeared
-				}
-
-				// Wait for either the table, empty state, or error state
-				await _page.WaitForSelectorAsync(
-					$"{PageHeadingSelector}, {EmptyStateSelector}, {ErrorAlertSelector}",
-					new PageWaitForSelectorOptions { Timeout = timeout }
-				);
-			});
+			await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector, ".alert-danger"], timeout, ct);
 		}
 
 		public async Task<bool> HasTransactionsAsync()
