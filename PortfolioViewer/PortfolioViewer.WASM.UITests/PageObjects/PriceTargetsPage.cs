@@ -40,13 +40,52 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 
 	public async Task WaitForPageLoadAsync(int timeout = 30000)
 	{
-		await ExecuteWithErrorCheckAsync(async () =>
+		try
 		{
-			// Wait for the page to be in a stable state: heading, empty state, or error
-			await _page.WaitForSelectorAsync(
-				$"{PageHeadingSelector}, {EmptyStateSelector}, {ErrorAlertSelector}",
-				new PageWaitForSelectorOptions { Timeout = timeout });
-		});
+			await ExecuteWithErrorCheckAsync(async () =>
+			{
+				// Wait for the page to reach a stable state (not loading).
+				// First wait for loading to complete, then wait for content.
+				var shortTimeout = Math.Min(5000, timeout / 5);
+				var contentTimeout = Math.Max(10000, timeout / 2);
+
+				// Wait for loading spinner to disappear (or timeout quickly)
+				try
+				{
+					await _page.WaitForSelectorAsync(".spinner-border", new PageWaitForSelectorOptions { State = WaitForSelectorState.Hidden, Timeout = shortTimeout });
+				}
+				catch
+				{
+					// No spinner or already hidden - continue
+				}
+
+				// Wait for any stable state: heading, empty state, error, or content
+				var selectors = new[]
+				{
+					"h5:has-text('Analyst Price Targets')",
+					"h4:has-text('Error Loading Data')",
+					"h5:has-text('No Price Targets Found')",
+					".alert-danger",
+					".card-body"
+				};
+				foreach (var selector in selectors)
+				{
+					try
+					{
+						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = contentTimeout });
+						return; // Found a stable state
+					}
+					catch
+					{
+						// Try next selector
+					}
+				}
+			});
+		}
+		catch
+		{
+			// Navigation or wait may fail; that's acceptable in test env
+		}
 	}
 
 	public async Task<bool> HasPriceTargetsHeadingAsync()

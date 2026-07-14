@@ -61,6 +61,9 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			await action();
 			await CheckForBlazorErrorAsync();
+
+			// Automatically capture screenshot after every operation
+			await CaptureAutoScreenshotAsync("action");
 		}
 
 		/// <summary>
@@ -71,7 +74,36 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			var result = await action();
 			await CheckForBlazorErrorAsync();
+
+			// Automatically capture screenshot after every operation
+			await CaptureAutoScreenshotAsync("action");
+
 			return result;
+		}
+
+		/// <summary>
+		/// Automatically captures a screenshot after each test step.
+		/// </summary>
+		private async Task CaptureAutoScreenshotAsync(string stepName)
+		{
+			if (TestContext.Current?.Test == null || _page == null) return;
+
+			var testName = TestContext.Current.Test.TestDisplayName ?? "unknown";
+			var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss-fff}";
+			var safeTestName = new string(testName.Where(c => !Path.GetInvalidFileNameChars().Contains(c)).ToArray()).Replace(" ", "_");
+			var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
+			Directory.CreateDirectory(screenshotDir);
+			var path = Path.Combine(screenshotDir, $"{safeTestName}-{stepName}-{timestamp}.png");
+
+			try
+			{
+				await _page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = true });
+				Console.WriteLine($"[Auto Screenshot] {stepName} -> {path}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[Auto Screenshot] Failed for '{stepName}': {ex.Message}");
+			}
 		}
 	}
 }

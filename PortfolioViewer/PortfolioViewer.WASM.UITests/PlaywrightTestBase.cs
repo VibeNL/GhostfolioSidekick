@@ -65,16 +65,142 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 		{
 			Console.WriteLine($"[Browser Console] {msg.Type}: {msg.Text}");
 		};
-	}
+		}
+
+		/// <summary>
+		/// Captures a screenshot at every test step for debugging.
+		/// Automatically called after each major test operation.
+		/// </summary>
+		protected async Task CaptureStepScreenshotAsync(string stepName)
+		{
+			if (Page == null) return;
+
+			var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss-fff}";
+			var path = Path.Combine(ScreenshotDir, $"{stepName}-{timestamp}.png");
+
+			try
+			{
+				await Page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = true });
+				Console.WriteLine($"[Step Screenshot] {stepName} -> {path}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[Step Screenshot] Failed for '{stepName}': {ex.Message}");
+			}
+		}
+
+		/// <summary>
+		/// Captures comprehensive failure artifacts: screenshot, HTML, and console logs.
+		/// Called automatically when a test fails.
+		/// </summary>
+		protected async void CaptureFailureArtifacts(string testName)
+		{
+			if (Page == null) return;
+
+			var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss}";
+			var baseName = $"{testName}-failure-{timestamp}";
+
+			// Capture full-page screenshot
+			try
+			{
+				var screenshotPath = Path.Combine(ScreenshotDir, $"{baseName}.png");
+				await Page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath, FullPage = true });
+				Console.WriteLine($"[Screenshot] Saved to: {screenshotPath}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[Screenshot] Failed to capture screenshot: {ex.Message}");
+			}
+
+			// Capture HTML source
+			try
+			{
+				var htmlPath = Path.Combine(ScreenshotDir, $"{baseName}.html");
+				var html = await Page.ContentAsync();
+				await File.WriteAllTextAsync(htmlPath, html, CancellationToken);
+				Console.WriteLine($"[HTML] Saved to: {htmlPath}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[HTML] Failed to capture HTML: {ex.Message}");
+			}
+
+			// Capture console logs to file
+			if (TestConsoleLogs.Count > 0)
+			{
+				try
+				{
+					var logsPath = Path.Combine(ScreenshotDir, $"{baseName}-console.log");
+					await File.WriteAllLinesAsync(logsPath, TestConsoleLogs, CancellationToken);
+					Console.WriteLine($"[Console Logs] Saved {TestConsoleLogs.Count} entries to: {logsPath}");
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"[Console Logs] Failed to save logs: {ex.Message}");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Takes a manual screenshot during test execution.
+		/// </summary>
+		/// <param name="name">Descriptive name for the screenshot</param>
+		/// <param name="fullPage">Whether to capture the full page or just the viewport</param>
+		protected async Task<string> TakeScreenshotAsync(string name, bool fullPage = false)
+		{
+			if (Page == null) return string.Empty;
+
+			var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss}";
+			var path = Path.Combine(ScreenshotDir, $"{name}-{timestamp}.png");
+
+			await Page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = fullPage });
+			Console.WriteLine($"[Screenshot] {name} -> {path}");
+			return path;
+		}
+
+		/// <summary>
+		/// Takes a screenshot of a specific element.
+		/// </summary>
+		/// <param name="selector">CSS selector for the element to capture</param>
+		/// <param name="name">Descriptive name for the screenshot</param>
+		protected async Task<string> TakeElementScreenshotAsync(string selector, string name)
+		{
+			if (Page == null) return string.Empty;
+
+			var element = await Page.QuerySelectorAsync(selector);
+			if (element == null)
+			{
+				Console.WriteLine($"[Screenshot] Element not found: {selector}");
+				return string.Empty;
+			}
+
+			var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss}";
+			var path = Path.Combine(ScreenshotDir, $"{name}-{timestamp}.png");
+
+			await element.ScreenshotAsync(new ElementHandleScreenshotOptions { Path = path });
+			Console.WriteLine($"[Screenshot] {name} (element) -> {path}");
+			return path;
+		}
 
 	/// <summary>
-	/// Performs login and waits for sync to complete. Called by derived tests before their assertions.
+	/// Performs login and optionally syncs data. Called by derived tests before their assertions.
+	/// Sync is skipped by default in test environments since data is already seeded in the database.
 	/// </summary>
-	protected async Task SetupAsync(bool performSync = true, bool reseedAfterSync = false)
+	protected async Task SetupAsync(bool performSync = false, bool reseedAfterSync = false)
 	{
+		// Screenshot: Before login
+		await CaptureStepScreenshotAsync("01-before-login");
+
 		await LoginPage.LoginAsync(ServerAddress, CustomWebApplicationFactory.TestAccessToken, CancellationToken);
 		await LoginPage.WaitForSuccessfulLoginAsync();
+
+		// Screenshot: After login
+		await CaptureStepScreenshotAsync("02-after-login");
+
 		await HomePage.WaitForPageLoadAsync();
+
+		// Screenshot: After home page load
+		await CaptureStepScreenshotAsync("03-home-loaded");
 
 		if (performSync)
 		{
@@ -86,6 +212,9 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 				// Wait for sync button to become enabled again (sync completed)
 				await Page.WaitForSelectorAsync("button.btn-primary:has-text('Sync'):not([disabled])", new PageWaitForSelectorOptions { Timeout = 120000 });
 			}
+
+			// Screenshot: After sync
+			await CaptureStepScreenshotAsync("04-after-sync");
 		}
 
 		if (reseedAfterSync)
