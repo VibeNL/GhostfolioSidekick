@@ -5,7 +5,7 @@ using xRetry.v3;
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
-public class PageNavigationTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
+public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
 	[RetryFact]
 	public async Task HoldingsPage_ShouldLoadViaMenu()

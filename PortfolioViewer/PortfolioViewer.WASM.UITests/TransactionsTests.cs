@@ -4,7 +4,7 @@ using xRetry.v3;
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
-public class TransactionsTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
+public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
 	[RetryFact]
 	public async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions()

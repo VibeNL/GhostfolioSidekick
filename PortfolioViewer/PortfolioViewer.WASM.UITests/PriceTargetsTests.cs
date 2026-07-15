@@ -5,7 +5,7 @@ using xRetry.v3;
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
-public class PriceTargetsTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
+public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
 	[RetryFact]
 	public async Task NavigateToPriceTargets_ShouldLoadWithoutBlazorError()

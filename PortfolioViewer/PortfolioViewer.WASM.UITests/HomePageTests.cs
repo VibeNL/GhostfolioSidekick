@@ -4,7 +4,7 @@ using xRetry.v3;
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
-public class HomePageTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
+public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
 	[RetryFact]
 	public async Task Sync_ShouldStartAndComplete()

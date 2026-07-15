@@ -4,15 +4,16 @@ using PortfolioViewer.WASM.UITests.PageObjects;
 namespace PortfolioViewer.WASM.UITests;
 
 /// <summary>
-/// Base class for Playwright UI tests. Provides browser lifecycle, login+sync setup, and error checking.
+/// Base class for Playwright UI tests. Uses shared browser from BrowserFixture.
+/// Creates a new context per test for isolation. Provides login+sync setup and error checking.
 /// </summary>
 public abstract class PlaywrightTestBase : IAsyncLifetime
 {
 	protected readonly CustomWebApplicationFactory Fixture;
+	protected readonly BrowserFixture BrowserFixture;
 	protected string ServerAddress => Fixture.ServerAddress;
 
 	protected IPlaywright? Playwright;
-	protected IBrowser? Browser;
 	protected IBrowserContext? Context;
 	protected IPage? Page;
 
@@ -31,30 +32,26 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 
 	protected static CancellationToken CancellationToken => TestContext.Current?.CancellationToken ?? CancellationToken.None;
 
-	protected PlaywrightTestBase(CustomWebApplicationFactory fixture)
+	protected PlaywrightTestBase(CustomWebApplicationFactory fixture, BrowserFixture browserFixture)
 	{
 		Fixture = fixture;
+		BrowserFixture = browserFixture;
 	}
 
 	public virtual async ValueTask InitializeAsync()
 	{
-		Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-		Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-
-		// Create test-specific video directory
-		var baseVideoDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-videos");
+		// Create a new context from the shared browser — no per-test browser startup
+		var videoDir = string.Empty;
 		var testName = GetCurrentTestName();
-		VideoDir = !string.IsNullOrEmpty(testName)
-			? Path.Combine(baseVideoDir, SanitizeFileName(testName))
-			: baseVideoDir;
-		Directory.CreateDirectory(VideoDir);
-
-		Context = await Browser.NewContextAsync(new BrowserNewContextOptions
+		if (!string.IsNullOrEmpty(testName))
 		{
-			RecordVideoDir = VideoDir,
-			ViewportSize = new ViewportSize { Width = 1920, Height = 1080 }
-		});
+			var baseVideoDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-videos");
+			VideoDir = Path.Combine(baseVideoDir, SanitizeFileName(testName));
+			Directory.CreateDirectory(VideoDir);
+			videoDir = VideoDir;
+		}
 
+		Context = await BrowserFixture.CreateContextAsync(videoDir);
 		Page = await Context.NewPageAsync();
 
 		ScreenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
@@ -225,16 +222,11 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 
 	public virtual async ValueTask DisposeAsync()
 	{
+		// Dispose context (isolated per test) but NOT the shared browser
 		if (Context != null)
 		{
 			await Context.CloseAsync();
 		}
-
-		if (Browser != null)
-		{
-			await Browser.CloseAsync();
-		}
-
 		Playwright?.Dispose();
 	}
 
