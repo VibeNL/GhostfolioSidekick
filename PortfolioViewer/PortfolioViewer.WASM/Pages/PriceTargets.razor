@@ -11,7 +11,7 @@
 <PageTitle>Price Targets</PageTitle>
 
 <div class="container-fluid">
-    @if (IsLoading)
+    @if (_isLoading)
     {
         <div class="row">
             <div class="col-12">
@@ -27,13 +27,13 @@
             </div>
         </div>
     }
-    else if (HasError)
+    else if (_hasError)
     {
         <div class="row">
             <div class="col-12">
                 <div class="alert alert-danger" role="alert">
                     <h4 class="alert-heading">Error Loading Data</h4>
-                    <p>@ErrorMessage</p>
+                    <p>@_errorMessage</p>
                     <hr>
                     <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
                         <i class="bi bi-arrow-clockwise"></i> Try Again
@@ -42,7 +42,7 @@
             </div>
         </div>
     }
-    else if (!PriceTargetsList.Any())
+    else if (!_priceTargetsList.Any())
     {
         <div class="row">
             <div class="col-12">
@@ -67,7 +67,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Analyst Price Targets</h5>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@_isLoading">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh
                             </button>
                         </div>
@@ -89,7 +89,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var target in PriceTargetsList)
+                                    @foreach (var target in _priceTargetsList)
                                     {
                                         <tr class="price-target-row">
                                             <td><strong>@target.Symbol</strong></td>
@@ -127,57 +127,4 @@
     }
 </style>
 
-@code {
-    private List<PriceTargetDisplayModel> PriceTargetsList = [];
-    private bool IsLoading = true;
-    private bool HasError = false;
-    private string ErrorMessage = string.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadDataAsync();
-    }
-
-    private async Task LoadDataAsync()
-    {
-        IsLoading = true;
-        HasError = false;
-        try
-        {
-            PriceTargetsList = await PriceTargetsService.GetPriceTargetsAsync();
-        }
-        catch (Exception ex)
-        {
-            HasError = true;
-            ErrorMessage = ex.Message;
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private async Task RefreshDataAsync()
-    {
-        await LoadDataAsync();
-    }
-
-    private static string FormatPrice(decimal amount, string currency)
-    {
-        return $"{amount:N2} {currency}";
-    }
-
-    private static string GetRatingBadge(string rating)
-    {
-        var lower = rating?.ToLowerInvariant() ?? "unknown";
-        return lower switch
-        {
-            "strongbuy" => "<span class=\"badge bg-success\">Strong Buy</span>",
-            "buy" => "<span class=\"badge bg-info\">Buy</span>",
-            "hold" => "<span class=\"badge bg-warning text-dark\">Hold</span>",
-            "sell" => "<span class=\"badge bg-danger\">Sell</span>",
-            "strongsell" => "<span class=\"badge bg-dark\">Strong Sell</span>",
-            _ => "<span class=\"badge bg-secondary\">N/A</span>"
-        };
-    }
-}
