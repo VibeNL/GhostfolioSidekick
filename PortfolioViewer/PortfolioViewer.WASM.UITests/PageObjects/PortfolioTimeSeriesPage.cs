@@ -18,9 +18,9 @@ public class PortfolioTimeSeriesPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Portfolio')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(TimeSeriesLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(TimeSeriesLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/portfolio-timeseries", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 
@@ -72,7 +72,7 @@ public class PortfolioTimeSeriesPage(IPage page) : BasePageObject(page)
             if (tableBtn != null)
             {
                 await tableBtn.ClickAsync();
-                await _page.WaitForTimeoutAsync(500);
+                await _page.WaitForSelectorAsync(TableRowSelector, new PageWaitForSelectorOptions { Timeout = 5000 });
             }
         });
     }

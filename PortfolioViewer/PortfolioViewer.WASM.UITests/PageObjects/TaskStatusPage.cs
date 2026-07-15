@@ -18,9 +18,9 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('System')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(TaskStatusLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(TaskStatusLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/task-status", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 
@@ -71,7 +71,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
             if (btn != null)
             {
                 await btn.ClickAsync();
-                await _page.WaitForTimeoutAsync(1000);
+                await _page.WaitForSelectorAsync(TableSelector, new PageWaitForSelectorOptions { Timeout = 10000 });
             }
         });
     }

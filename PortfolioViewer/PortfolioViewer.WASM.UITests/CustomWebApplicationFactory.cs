@@ -46,14 +46,28 @@ namespace PortfolioViewer.WASM.UITests
 			_connection.Open();
 		}
 
+		// Cache the first Kestrel server address across instances to avoid per-test host restart
+		private static string? _cachedServerAddress;
+		private static readonly object _addressLock = new();
+
 		public string ServerAddress
 		{
 			get
 			{
+				// Use cached server address if available
+				if (!string.IsNullOrEmpty(_cachedServerAddress))
+				{
+					return _cachedServerAddress;
+				}
+
 				// Force the host to start by accessing CreateDefaultClient
 				// This triggers CreateHost which sets up Kestrel and ClientOptions.BaseAddress
 				using var _ = CreateDefaultClient();
-				return ClientOptions.BaseAddress.ToString();
+				lock (_addressLock)
+				{
+					_cachedServerAddress ??= ClientOptions.BaseAddress.ToString();
+				}
+				return _cachedServerAddress;
 			}
 		}
 

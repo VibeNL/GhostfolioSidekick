@@ -16,9 +16,9 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(DividendsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(DividendsLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/dividends", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 

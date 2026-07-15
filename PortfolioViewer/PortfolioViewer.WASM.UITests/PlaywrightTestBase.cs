@@ -13,6 +13,10 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	protected readonly BrowserFixture BrowserFixture;
 	protected string ServerAddress => Fixture.ServerAddress;
 
+	// Screenshot control — set to true to enable step screenshots (default: false for speed)
+	// Enable via: CaptureStepScreenshots = true; in test setup
+	protected bool CaptureStepScreenshots { get; set; } = false;
+
 	protected IPlaywright? Playwright;
 	protected IBrowserContext? Context;
 	protected IPage? Page;
@@ -64,13 +68,14 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 		};
 		}
 
-		/// <summary>
-		/// Captures a screenshot at every test step for debugging.
-		/// Automatically called after each major test operation.
-		/// </summary>
-		protected async Task CaptureStepScreenshotAsync(string stepName)
-		{
-			if (Page == null) return;
+	/// <summary>
+	/// Captures a screenshot at every test step for debugging.
+	/// Only captures if CaptureStepScreenshots is enabled (default: false for speed).
+	/// Enable via: CaptureStepScreenshots = true; in test setup.
+	/// </summary>
+	protected async Task CaptureStepScreenshotAsync(string stepName)
+	{
+		if (Page == null || !CaptureStepScreenshots) return;
 
 			var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss-fff}";
 			var path = Path.Combine(ScreenshotDir, $"{stepName}-{timestamp}.png");

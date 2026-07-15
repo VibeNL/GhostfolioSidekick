@@ -17,9 +17,9 @@ public class TaxReportPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Portfolio')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(TaxReportLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(TaxReportLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/tax-report", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 
@@ -90,7 +90,7 @@ public class TaxReportPage(IPage page) : BasePageObject(page)
             if (tableBtn != null)
             {
                 await tableBtn.ClickAsync();
-                await _page.WaitForTimeoutAsync(500);
+                await _page.WaitForSelectorAsync(TableRowSelector, new PageWaitForSelectorOptions { Timeout = 5000 });
             }
         });
     }

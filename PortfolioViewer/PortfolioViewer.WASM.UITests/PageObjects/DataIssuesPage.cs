@@ -16,9 +16,9 @@ public class DataIssuesPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('System')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(DataIssuesLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(DataIssuesLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/data-issues", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 

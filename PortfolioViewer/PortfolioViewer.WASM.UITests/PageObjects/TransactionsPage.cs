@@ -20,12 +20,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			{
 				// Click the Transactions dropdown
 				await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
-				await _page.WaitForTimeoutAsync(500); // Wait for dropdown to open
+					await _page.WaitForSelectorAsync(TransactionsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
 
 				// Click the Transaction History link
 				await _page.ClickAsync(TransactionsLinkSelector);
-				// Wait for navigation to complete
-				await _page.WaitForTimeoutAsync(1000);
+					// Wait for SPA navigation to complete
+					await _page.WaitForURLAsync("**/transactions", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
 			});
 		}
 
@@ -205,7 +205,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			}
 
 			// Wait for the filter to apply and data to reload
-			await _page.WaitForTimeoutAsync(1000);
+			await _page.WaitForSelectorAsync(TableSelector, new PageWaitForSelectorOptions { Timeout = 10000 });
 		}
 		catch
 		{
