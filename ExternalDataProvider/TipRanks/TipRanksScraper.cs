@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 			// Deserialize the JSON response
 			var apiResponse = System.Text.Json.JsonSerializer.Deserialize<TipRanksApiResponse>(jsonContent);
 
-			if (apiResponse?.Models?.Stocks == null || !apiResponse.Models.Stocks.Any())
+			if (apiResponse?.Models?.Stocks == null || apiResponse.Models.Stocks.Count == 0)
 			{
 				logger.LogWarning("No stock data found in TipRanks API response for {StockIdentifier}", stockIdentifier);
 				return null;

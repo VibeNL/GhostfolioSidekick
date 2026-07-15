@@ -6,14 +6,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo;
 
 public class PriceTargetRepositoryTests
 {
-    private DatabaseContext CreateDbContext()
-    {
-        var options = new DbContextOptionsBuilder<DatabaseContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        return new DatabaseContext(options);
-    }
-
     [Fact]
     public void Constructor_WithValidContext_ShouldCreateInstance()
     {
@@ -23,7 +15,7 @@ public class PriceTargetRepositoryTests
 
         // Assert
         Assert.NotNull(repository);
-        Assert.IsAssignableFrom<IPriceTargetRepository>(repository);
+        Assert.IsType<IPriceTargetRepository>(repository, exactMatch: false);
     }
 
     [Fact]
@@ -34,6 +26,16 @@ public class PriceTargetRepositoryTests
         var repository = new PriceTargetRepository(db);
 
         // Assert
-        Assert.IsAssignableFrom<IPriceTargetRepository>(repository);
+        Assert.IsType<IPriceTargetRepository>(repository, exactMatch: false);
     }
+
+	private static DatabaseContext CreateDbContext()
+	{
+		var options = new DbContextOptionsBuilder<DatabaseContext>()
+			.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+			.Options;
+		return new DatabaseContext(options);
+	}
+
+
 }

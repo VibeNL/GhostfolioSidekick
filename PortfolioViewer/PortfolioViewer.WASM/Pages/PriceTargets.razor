@@ -162,12 +162,12 @@
         await LoadDataAsync();
     }
 
-    private string FormatPrice(decimal amount, string currency)
+    private static string FormatPrice(decimal amount, string currency)
     {
         return $"{amount:N2} {currency}";
     }
 
-    private string GetRatingBadge(string rating)
+    private static string GetRatingBadge(string rating)
     {
         var lower = rating?.ToLowerInvariant() ?? "unknown";
         return lower switch
