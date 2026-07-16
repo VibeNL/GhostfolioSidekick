@@ -625,6 +625,32 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleScripStockDividend_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/Specials/single_scrip_stock_dividend.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(
+						Currency.USD,
+						new DateTime(2025, 03, 15, 10, 30, 45, 123, DateTimeKind.Utc),
+						new[] {
+							PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, "US0378331005", Currency.USD),
+							PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "AAPL", Currency.USD),
+							PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, "Apple Inc.", Currency.USD),
+						},
+						0.0054347800M,
+						new Money(Currency.USD, 0M),
+						new Money(Currency.EUR, 0M),
+						"EOF45230981756"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_InvalidAction_ThrowNotSupported()
 		{
 			// Arrange

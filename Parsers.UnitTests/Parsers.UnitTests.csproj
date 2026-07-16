@@ -23,8 +23,8 @@
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
 		<PackageReference Include="AwesomeAssertions" Version="9.4.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
 		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
@@ -566,6 +566,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trading212\Specials\single_stock_dividend.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\Specials\single_scrip_stock_dividend.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trine\single_investment.csv">
