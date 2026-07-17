@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -24,9 +25,10 @@ namespace GhostfolioSidekick.Database.Migrations
                     NumberOfBuys = table.Column<int>(type: "INTEGER", nullable: false),
                     NumberOfHolds = table.Column<int>(type: "INTEGER", nullable: false),
                     NumberOfSells = table.Column<int>(type: "INTEGER", nullable: false),
-                    AverageTargetPrice = table.Column<string>(type: "TEXT", nullable: false),
-                    HighestTargetPrice = table.Column<string>(type: "TEXT", nullable: false),
-                    LowestTargetPrice = table.Column<string>(type: "TEXT", nullable: false)
+                    LastUpdated = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    AverageTargetCurrencyCode = table.Column<string>(type: "TEXT", nullable: false),
+                    HighestTargetCurrencyCode = table.Column<string>(type: "TEXT", nullable: false),
+                    LowestTargetCurrencyCode = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

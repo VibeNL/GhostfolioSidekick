@@ -12,13 +12,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(x => x.Symbol).IsRequired().HasMaxLength(50);
 			builder.HasIndex(x => x.Symbol);
 
-			builder.ComplexProperty(x => x.HighestTargetCurrency).Property(x => x.Symbol).HasColumnName("HighestTargetPrice");
+			builder.ComplexProperty(x => x.HighestTargetCurrency).Property(x => x.Symbol).HasColumnName("HighestTargetCurrencyCode");
 			builder.Property(x => x.HighestTargetPriceAmount).IsRequired();
 
-			builder.ComplexProperty(x => x.AverageTargetCurrency).Property(x => x.Symbol).HasColumnName("AverageTargetPrice");
+			builder.ComplexProperty(x => x.AverageTargetCurrency).Property(x => x.Symbol).HasColumnName("AverageTargetCurrencyCode");
 			builder.Property(x => x.AverageTargetPriceAmount).IsRequired();
 
-			builder.ComplexProperty(x => x.LowestTargetCurrency).Property(x => x.Symbol).HasColumnName("LowestTargetPrice");
+			builder.ComplexProperty(x => x.LowestTargetCurrency).Property(x => x.Symbol).HasColumnName("LowestTargetCurrencyCode");
 			builder.Property(x => x.LowestTargetPriceAmount).IsRequired();
 
 			builder.Property(x => x.Rating).IsRequired();

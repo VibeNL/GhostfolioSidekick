@@ -29,6 +29,19 @@ public class PriceTargetRepositoryTests
         Assert.IsType<IPriceTargetRepository>(repository, exactMatch: false);
     }
 
+    [Fact]
+    public async Task ClearPriceTargetsAsync_CanBeCancelled()
+    {
+        // Arrange
+        using var db = CreateDbContext();
+        var repository = new PriceTargetRepository(db);
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<TaskCanceledException>(() => repository.ClearPriceTargetsAsync("TEST", cts.Token));
+    }
+
 	private static DatabaseContext CreateDbContext()
 	{
 		var options = new DbContextOptionsBuilder<DatabaseContext>()

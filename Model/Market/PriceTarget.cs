@@ -27,5 +27,7 @@ namespace GhostfolioSidekick.Model.Market
 		public int NumberOfHolds { get; set; }
 
 		public int NumberOfSells { get; set; }
+
+		public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 	}
 }

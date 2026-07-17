@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20260709124348_AddPriceTargetEntity")]
+    [Migration("20260717074507_AddPriceTargetEntity")]
     partial class AddPriceTargetEntity
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -472,6 +472,9 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<decimal>("HighestTargetPriceAmount")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("LowestTargetPriceAmount")
                         .HasColumnType("TEXT");
 
@@ -499,7 +502,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.Property<string>("Symbol")
                                 .IsRequired()
                                 .HasColumnType("TEXT")
-                                .HasColumnName("AverageTargetPrice");
+                                .HasColumnName("AverageTargetCurrencyCode");
                         });
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "HighestTargetCurrency", "GhostfolioSidekick.Model.Market.PriceTarget.HighestTargetCurrency#Currency", b1 =>
@@ -509,7 +512,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.Property<string>("Symbol")
                                 .IsRequired()
                                 .HasColumnType("TEXT")
-                                .HasColumnName("HighestTargetPrice");
+                                .HasColumnName("HighestTargetCurrencyCode");
                         });
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "LowestTargetCurrency", "GhostfolioSidekick.Model.Market.PriceTarget.LowestTargetCurrency#Currency", b1 =>
@@ -519,7 +522,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.Property<string>("Symbol")
                                 .IsRequired()
                                 .HasColumnType("TEXT")
-                                .HasColumnName("LowestTargetPrice");
+                                .HasColumnName("LowestTargetCurrencyCode");
                         });
 
                     b.HasKey("Id");

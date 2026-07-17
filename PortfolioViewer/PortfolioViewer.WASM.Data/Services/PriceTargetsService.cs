@@ -13,6 +13,7 @@ public class PriceTargetsService(
 		using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 		var priceTargets = await db.PriceTargets
 			.Where(x => x.AverageTargetPriceAmount > 0)
+			.OrderBy(x => x.Symbol)
 			.ToListAsync(cancellationToken);
 
 		return priceTargets.Select(pt => new PriceTargetDisplayModel
@@ -29,7 +30,7 @@ public class PriceTargetsService(
 			NumberOfBuys = pt.NumberOfBuys,
 			NumberOfHolds = pt.NumberOfHolds,
 			NumberOfSells = pt.NumberOfSells,
-		}).OrderBy(x => x.Symbol).ToList();
+		}).ToList();
 	}
 
 	public async Task<PriceTargetDisplayModel?> GetPriceTargetForSymbolAsync(string symbol, CancellationToken cancellationToken = default)

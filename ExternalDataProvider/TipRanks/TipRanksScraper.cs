@@ -13,12 +13,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 
 		public async Task<PriceTarget?> GetPriceTarget(SymbolProfile symbol)
 		{
-			if (symbol == null || symbol.WebsiteUrl == null || symbol.DataSource != Datasource.TIPRANKS)
+			if (symbol == null || string.IsNullOrWhiteSpace(symbol.WebsiteUrl) || symbol.DataSource != Datasource.TIPRANKS)
 			{
 				return null;
 			}
 
-			var uri = new Uri(symbol.WebsiteUrl); // https://www.tipranks.com/stocks/nl:asrnl
+			if (!Uri.TryCreate(symbol.WebsiteUrl, UriKind.Absolute, out var uri))
+			{
+				logger.LogWarning("Invalid TipRanks URL format: {Url}", symbol.WebsiteUrl);
+				return null;
+			}
 			var segments = uri.Segments;
 			if (segments.Length < 3)
 			{
@@ -56,7 +60,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 			// Deserialize the JSON response
 			var apiResponse = System.Text.Json.JsonSerializer.Deserialize<TipRanksApiResponse>(jsonContent);
 
-			if (apiResponse?.Models?.Stocks == null || apiResponse.Models.Stocks.Count == 0)
+			if (apiResponse == null)
+			{
+				logger.LogWarning("Failed to deserialize TipRanks API response for {StockIdentifier}", stockIdentifier);
+				return null;
+			}
+
+			if (apiResponse.Models?.Stocks == null || apiResponse.Models.Stocks.Count == 0)
 			{
 				logger.LogWarning("No stock data found in TipRanks API response for {StockIdentifier}", stockIdentifier);
 				return null;

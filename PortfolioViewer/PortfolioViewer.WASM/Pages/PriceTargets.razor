@@ -97,7 +97,7 @@
                                             <td class="text-end">@FormatPrice(target.HighestTargetAmount, target.HighestTargetCurrency)</td>
                                             <td class="text-end"><strong>@FormatPrice(target.AverageTargetAmount, target.AverageTargetCurrency)</strong></td>
                                             <td class="text-end">@FormatPrice(target.LowestTargetAmount, target.LowestTargetCurrency)</td>
-                                            <td class="text-center">@GetRatingBadge(target.Rating)</td>
+                                            <td class="text-center">@((MarkupString)GetRatingBadge(target.Rating))</td>
                                             <td class="text-center">@target.NumberOfBuys</td>
                                             <td class="text-center">@target.NumberOfHolds</td>
                                             <td class="text-center">@target.NumberOfSells</td>

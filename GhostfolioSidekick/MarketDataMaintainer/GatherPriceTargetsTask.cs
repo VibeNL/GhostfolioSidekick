@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		ITargetPriceRepository targetPriceRepository) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.MarketDataDividends;
+		public TaskPriority Priority => TaskPriority.MarketDataPriceTargets;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			var symbols = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
+			await using var symbols = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 
 			foreach (var symbol in symbols.SymbolProfiles.Where(x => x.DataSource == Datasource.TIPRANKS))
 			{
