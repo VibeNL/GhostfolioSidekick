@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 		{
 			return consensusRating?.ToLowerInvariant() switch
 			{
-				"strong buy" or "strongbuy" or "strongbuy" => AnalystRating.StrongBuy,
+				"strong buy" or "strongbuy" => AnalystRating.StrongBuy,
 				"buy" or "moderatebuy" => AnalystRating.Buy,
 				"hold" => AnalystRating.Hold,
 				"sell" or "moderatesell" => AnalystRating.Sell,
