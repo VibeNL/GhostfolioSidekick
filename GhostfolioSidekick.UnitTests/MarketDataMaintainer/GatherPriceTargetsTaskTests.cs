@@ -25,9 +25,9 @@ public class GatherPriceTargetsTaskTests
 	}
 
 	[Fact]
-	public void Priority_ShouldReturnMarketDataDividends()
+	public void Priority_ShouldReturnMarketDataPriceTargets()
 	{
-		_task.Priority.Should().Be(TaskPriority.MarketDataDividends);
+		_task.Priority.Should().Be(TaskPriority.MarketDataPriceTargets);
 	}
 
 	[Fact]
