@@ -39,7 +39,7 @@ public class PriceTargetRepositoryTests
         cts.Cancel();
 
         // Act & Assert
-        await Assert.ThrowsAsync<TaskCanceledException>(() => repository.ClearPriceTargetsAsync("TEST", cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => repository.ClearPriceTargetsAsync("TEST", cts.Token));
     }
 
 	private static DatabaseContext CreateDbContext()

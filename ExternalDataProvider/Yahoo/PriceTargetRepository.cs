@@ -21,6 +21,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task ClearPriceTargetsAsync(string symbol, CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
+
 			var existing = await databaseContext.PriceTargets
 				.Where(x => x.Symbol == symbol)
 				.ToListAsync(cancellationToken);
