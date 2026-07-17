@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.Model.Symbols
 			}
 
 			// Prefer Ghostfolio and DividendMax data sources
-			if (IsGhostfolio(dataSource) || dataSource.Equals(DividendMax, StringComparison.InvariantCultureIgnoreCase))
+			if (IsGhostfolio(dataSource))
 			{
 				return 3;
 			}
