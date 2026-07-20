@@ -15,10 +15,11 @@ Upgrade NuGet packages across the GhostfolioSidekick solution with safe, verifie
 
 1. **Audit** — `dotnet list package --outdated --include-transitive`
 2. **Upgrade** — `dotnet add <project> package <name> --version <ver>`
-3. **Build** — `dotnet build` (must be 0 errors, 0 warnings)
-4. **Test** — `dotnet test` (must pass)
-5. **Security** — `dotnet list package --vulnerable` (must be clean)
-6. **Commit** — descriptive message with package names
+3. **Consolidate** — verify every upgraded package has exactly one version across all `.csproj` files
+4. **Build** — `dotnet build` (must be 0 errors, 0 warnings)
+5. **Test** — `dotnet test` (must pass)
+6. **Security** — `dotnet list package --vulnerable` (must be clean)
+7. **Commit** — descriptive message with package names
 
 ## Risk Tiers
 

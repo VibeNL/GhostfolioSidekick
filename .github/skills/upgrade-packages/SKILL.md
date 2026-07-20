@@ -59,9 +59,36 @@ Use when user asks any of:
    dotnet workload restore
    ```
 
+### Phase 2b: Consolidate Versions
+
+**Always consolidate — no package should have multiple versions across projects.**
+
+5. Check for duplicate package versions:
+   ```
+   dotnet list package --vulnerable --include-transitive
+   ```
+   Also grep all .csproj files for each upgraded package to verify uniform versions:
+   ```
+   grep -r "PackageReference Include=\"<PackageName>\"" --include="*.csproj"
+   ```
+   Or on Windows:
+   ```
+   findstr /s /i "PackageReference Include=\"<PackageName>\"" *.csproj
+   ```
+
+6. Align all projects to the same version:
+   - Upgrade any project still on an older version
+   - If a project intentionally needs a different version, justify and document it
+   - Never leave the same package at multiple versions unless there is a hard compatibility reason
+
+7. Rebuild after consolidation to catch version conflicts:
+   ```
+   dotnet build
+   ```
+
 ### Phase 3: Validate Build
 
-5. Build entire solution:
+8. Build entire solution:
    ```
    dotnet build
    ```
@@ -69,7 +96,7 @@ Use when user asks any of:
    - TreatWarningsAsErrors=true — fix ALL new warnings
    - If warnings appear, fix them immediately before proceeding
 
-6. Fix compile issues:
+9. Fix compile issues:
    - API changes from package upgrades (removed methods, renamed types, changed signatures)
    - Breaking changes in dependency contracts
    - Nullable reference type issues
@@ -77,7 +104,7 @@ Use when user asks any of:
 
 ### Phase 4: Validate Tests
 
-7. Run all tests:
+10. Run all tests:
    ```
    dotnet test
    ```
@@ -85,21 +112,21 @@ Use when user asks any of:
    - If UI tests fail, check Playwright browser compatibility
    - Fix test failures caused by package changes
 
-8. Run with coverage (if available):
+11. Run with coverage (if available):
    ```
    dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
    ```
 
 ### Phase 5: Security Verification
 
-9. Scan for vulnerable packages:
+12. Scan for vulnerable packages:
    ```
    dotnet list package --vulnerable --include-transitive
    ```
    - Must show no vulnerable packages
    - If vulnerabilities found, upgrade those packages immediately
 
-10. Check for deprecated packages:
+13. Check for deprecated packages:
     ```
     dotnet list package --deprecated
     ```
@@ -107,7 +134,7 @@ Use when user asks any of:
 
 ### Phase 6: Commit
 
-11. Commit changes with a descriptive message:
+14. Commit changes with a descriptive message:
     ```
     chore(deps): upgrade NuGet packages
     ```
@@ -136,10 +163,11 @@ Use when user asks any of:
 Before marking upgrade complete:
 1. ✅ `dotnet build` — 0 errors, 0 warnings
 2. ✅ `dotnet test` — all pass
-3. ✅ `dotnet list package --vulnerable` — no vulnerabilities
-4. ✅ `dotnet list package --deprecated` — no deprecated packages
-5. ✅ No `.editorconfig` violations (tabs, CRLF, UTF-8)
-6. ✅ .NET 10.0 compatibility maintained
+3. ✅ All upgraded packages at single version across all projects (no duplicates)
+4. ✅ `dotnet list package --vulnerable` — no vulnerabilities
+5. ✅ `dotnet list package --deprecated` — no deprecated packages
+6. ✅ No `.editorconfig` violations (tabs, CRLF, UTF-8)
+7. ✅ .NET 10.0 compatibility maintained
 
 ## Boundaries
 
