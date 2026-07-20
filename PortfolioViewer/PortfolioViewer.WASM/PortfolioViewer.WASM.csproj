@@ -38,7 +38,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.10" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.10" />
 		<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.8.0" />
-		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="6.0.3">
+		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="7.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
