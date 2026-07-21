@@ -4,7 +4,7 @@ using xRetry.v3;
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
-public class AuthTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
+public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
 	[RetryFact]
 	public async Task Api_HealthEndpoint_GivesResponse()

@@ -109,6 +109,9 @@ public class Program
 		// Register DividendsService for DI
 		builder.Services.AddScoped<IDividendsService, DividendsService>();
 
+		// Register PriceTargetsService for DI
+		builder.Services.AddScoped<IPriceTargetsService, PriceTargetsService>();
+
 		var app = builder.Build();
 
 		// Initialize the database after building the app

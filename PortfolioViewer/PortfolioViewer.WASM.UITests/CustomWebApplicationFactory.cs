@@ -28,28 +28,46 @@ namespace PortfolioViewer.WASM.UITests
 	{
 		public const string TestAccessToken = "test-token-12345";
 		private IHost? _host;
-		private readonly Microsoft.Data.Sqlite.SqliteConnection? _connection;
+		private Microsoft.Data.Sqlite.SqliteConnection _connection;
+		private readonly string _dbPath;
 
 		public CustomWebApplicationFactory()
 		{
 			// Ensure WASM publish/copy target is executed
 			EnsureWasmPublishedToApiStaticFiles();
 
-			// Create and open an in-memory SQLite connection using a named in-memory database ("TestDb")
-			// with a shared cache. We keep a single connection open for the lifetime of the factory
-			// and share that connection across all DbContext instances.
-			_connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=TestDb;Mode=Memory;Cache=Shared");
+			// Use a file-based SQLite database so EF Core migrations can be applied properly.
+			// In-memory SQLite with EnsureCreated() does not create __EFMigrationsHistory,
+			// causing GetPendingMigrationsAsync() to fail with "no such table".
+			_dbPath = Path.Combine(Path.GetTempPath(), $"GhostfolioSidekickUITest_{Guid.NewGuid():n}.db");
+
+			// Create and open the file-based SQLite connection
+			_connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_dbPath}");
 			_connection.Open();
 		}
+
+		// Cache the first Kestrel server address across instances to avoid per-test host restart
+		private static string? _cachedServerAddress;
+		private static readonly object _addressLock = new();
 
 		public string ServerAddress
 		{
 			get
 			{
+				// Use cached server address if available
+				if (!string.IsNullOrEmpty(_cachedServerAddress))
+				{
+					return _cachedServerAddress;
+				}
+
 				// Force the host to start by accessing CreateDefaultClient
 				// This triggers CreateHost which sets up Kestrel and ClientOptions.BaseAddress
 				using var _ = CreateDefaultClient();
-				return ClientOptions.BaseAddress.ToString();
+				lock (_addressLock)
+				{
+					_cachedServerAddress ??= ClientOptions.BaseAddress.ToString();
+				}
+				return _cachedServerAddress;
 			}
 		}
 
@@ -67,42 +85,43 @@ namespace PortfolioViewer.WASM.UITests
 														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
 															.ConfigureServices(services =>
 															{
-																// Replace IApplicationSettings with a mock that provides the test token
-																Mock<IApplicationSettings> mockSettings = new();
-																_ = mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
+																	// Replace IApplicationSettings with a mock that provides the test token
+																	Mock<IApplicationSettings> mockSettings = new();
+																	_ = mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
 
-																// Remove existing registration and add our mock
-																ServiceDescriptor? descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
-																if (descriptor != null)
-																{
-																	_ = services.Remove(descriptor);
-																}
-																_ = services.AddSingleton(mockSettings.Object);
+																	// Remove existing registration and add our mock
+																	ServiceDescriptor? descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
+																	if (descriptor != null)
+																	{
+																		_ = services.Remove(descriptor);
+																	}
+																	_ = services.AddSingleton(mockSettings.Object);
 
-																// Remove existing DbContext registrations and replace with in-memory SQLite
-																var dbContextDescriptors = services.Where(d =>
-																		d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
-																		d.ServiceType == typeof(DatabaseContext) ||
-																		d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
-																		.ToList();
+																	// Remove existing DbContext registrations and replace with file-based SQLite
+																	var dbContextDescriptors = services.Where(d =>
+																			d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
+																			d.ServiceType == typeof(DatabaseContext) ||
+																			d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
+																			.ToList();
 
-																// Remove by index to avoid modifying collection during enumeration
-																for (int i = dbContextDescriptors.Count - 1; i >= 0; i--)
-																{
-																	services.Remove(dbContextDescriptors[i]);
-																}
+																	// Remove by index to avoid modifying collection during enumeration
+																	for (int i = dbContextDescriptors.Count - 1; i >= 0; i--)
+																	{
+																		services.Remove(dbContextDescriptors[i]);
+																	}
 
-																// Register in-memory SQLite database for testing
-																// Important: Share the same connection across all DbContext instances
-																// to ensure in-memory database persists
-																_ = services.AddDbContext<DatabaseContext>(options =>
-																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared"),
-																	ServiceLifetime.Scoped);
+																	// Register file-based SQLite database for testing
+																	// Important: Share the same connection across all DbContext instances
+																	// to ensure the database persists
+																	var connectionString = $"Data Source={_dbPath}";
+																	_ = services.AddDbContext<DatabaseContext>(options =>
+																		_ = options.UseSqlite(connectionString),
+																		ServiceLifetime.Scoped);
 
-																// Also register DbContextFactory with the same connection
-																_ = services.AddDbContextFactory<DatabaseContext>(options =>
-																	_ = options.UseSqlite("DataSource=TestDb;Mode=Memory;Cache=Shared"),
-																	ServiceLifetime.Scoped);
+																	// Also register DbContextFactory with the same connection
+																	_ = services.AddDbContextFactory<DatabaseContext>(options =>
+																		_ = options.UseSqlite(connectionString),
+																		ServiceLifetime.Scoped);
 															}));
 
 
@@ -115,7 +134,7 @@ namespace PortfolioViewer.WASM.UITests
 			_host.Start();
 
 			// Seed test data
-			SeedTestData(_host.Services, _connection);
+			SeedTestData(_host.Services, ref _connection);
 
 			// Extract the selected dynamic port out of the Kestrel server
 			// and assign it onto the client options for convenience so it
@@ -140,6 +159,18 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			_host?.Dispose();
 			_connection?.Dispose();
+			// Clean up the temp database file
+			if (File.Exists(_dbPath))
+			{
+				try
+				{
+					File.Delete(_dbPath);
+				}
+				catch
+				{
+					// Ignore cleanup failures in disposal
+				}
+			}
 			base.Dispose(disposing);
 		}
 
@@ -155,7 +186,7 @@ namespace PortfolioViewer.WASM.UITests
 		public void ResetAndReseedTestData()
 		{
 			EnsureServer();
-			SeedTestData(_host!.Services, _connection, resetDatabase: true);
+			SeedTestData(_host!.Services, ref _connection, resetDatabase: true, dbPath: _dbPath);
 		}
 
 		/// <summary>
@@ -302,23 +333,63 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		private static void SeedTestData(IServiceProvider services, Microsoft.Data.Sqlite.SqliteConnection? connection, bool resetDatabase = false)
+		private static void SeedTestData(IServiceProvider services, ref Microsoft.Data.Sqlite.SqliteConnection connection, bool resetDatabase = false, string? dbPath = null)
 		{
 			try
 			{
-				using IServiceScope scope = services.CreateScope();
-				DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-
 				if (resetDatabase)
 				{
-					_ = dbContext.Database.EnsureDeleted();
+					// Drop all application tables and reseed (avoids file-lock issues with EnsureDeleted)
+					using IServiceScope scope = services.CreateScope();
+					DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+
+					// Disable foreign keys, drop all tables, then re-enable
+					var dbConn = dbContext.Database.GetDbConnection();
+					if (dbConn.State == System.Data.ConnectionState.Closed)
+					{
+						dbConn.Open();
+					}
+					using var fkCmd = dbConn.CreateCommand();
+					fkCmd.CommandText = "PRAGMA foreign_keys = OFF";
+					_ = fkCmd.ExecuteNonQuery();
+
+					// Drop all user tables (keep sqlite_sequence for auto-increment)
+					var dropTableNames = new List<string>();
+					using var dropCmd = dbConn.CreateCommand();
+					dropCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
+					using var dropReader = dropCmd.ExecuteReader();
+					while (dropReader.Read())
+					{
+						dropTableNames.Add(dropReader.GetString(0));
+					}
+					dropReader.Dispose();
+
+					foreach (var table in dropTableNames)
+					{
+						dropCmd.CommandText = $"DROP TABLE [{table}]";
+						_ = dropCmd.ExecuteNonQuery();
+					}
+
+					// Re-enable foreign keys
+					fkCmd.CommandText = "PRAGMA foreign_keys = ON";
+					_ = fkCmd.ExecuteNonQuery();
+
+					// Now apply migrations fresh
+					dbContext.Database.EnsureCreated();
+					dbContext.Database.Migrate();
+				}
+				else
+				{
+					// Apply all migrations to set up the schema and __EFMigrationsHistory
+					using IServiceScope scope = services.CreateScope();
+					DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+					dbContext.Database.Migrate();
 				}
 
-				// Create the database schema for the in-memory database
-				_ = dbContext.Database.EnsureCreated();
-
-				// Seed all tables via TestDataSeeder
-				TestDataSeeder.Seed(dbContext);
+				// Seed all tables via TestDataSeeder (uses shared connection for table listing)
+				using IServiceScope scope2 = services.CreateScope();
+				DatabaseContext dbContext2 = scope2.ServiceProvider.GetRequiredService<DatabaseContext>();
+				TestDataSeeder.Seed(dbContext2);
 
 				// List all tables in the database
 				connection!.Open();
