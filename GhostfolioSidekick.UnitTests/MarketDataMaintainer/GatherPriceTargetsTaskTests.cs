@@ -14,13 +14,18 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer;
 public class GatherPriceTargetsTaskTests
 {
 	private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
+	private readonly Mock<DatabaseContext> _mockContext;
 	private readonly Mock<ITargetPriceRepository> _mockTargetPriceRepository;
 	private readonly GatherPriceTargetsTask _task;
 
 	public GatherPriceTargetsTaskTests()
 	{
 		_mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+		_mockContext = new Mock<DatabaseContext>();
 		_mockTargetPriceRepository = new Mock<ITargetPriceRepository>();
+		_mockDbContextFactory
+			.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+			.ReturnsAsync(_mockContext.Object);
 		_task = new GatherPriceTargetsTask(_mockDbContextFactory.Object, _mockTargetPriceRepository.Object);
 	}
 
@@ -167,18 +172,33 @@ public class GatherPriceTargetsTaskTests
 		priceTarget.Symbol.Should().Be("AAPL");
 	}
 
+	[Fact]
+	public async Task DoWork_ShouldCallDbContextFactoryExactlyThreeTimesPerSymbol()
+	{
+		// Arrange
+		var symbolProfile = BuildSymbolProfile("AAPL", Datasource.TIPRANKS);
+		var (_, loggerMock) = SetupDbContext([symbolProfile]);
+		var priceTarget = new PriceTarget { Rating = AnalystRating.Buy };
+		_mockTargetPriceRepository.Setup(r => r.GetPriceTarget(symbolProfile)).ReturnsAsync(priceTarget);
+
+		// Act
+		await _task.DoWork(loggerMock.Object, CancellationToken.None);
+
+		// Assert — 1 for symbol query + 1 for ClearPriceTargets + 1 for saving price target
+		_mockDbContextFactory.Verify(
+			f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()),
+			Times.Exactly(3),
+			"DbContext should be created once for the symbol query, once for clearing old targets, and once for saving the new target");
+	}
+
 	private (Mock<DatabaseContext> Context, Mock<ILogger> LoggerMock) SetupDbContext(List<SymbolProfile> symbolProfiles)
 	{
-		var mockDbContext = new Mock<DatabaseContext>();
-		mockDbContext.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
-		mockDbContext.Setup(db => db.PriceTargets).ReturnsDbSet(new List<PriceTarget>());
-		mockDbContext.Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
+		_mockContext.Reset();
+		_mockContext.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+		_mockContext.Setup(db => db.PriceTargets).ReturnsDbSet(new List<PriceTarget>());
+		_mockContext.Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
 
-		_mockDbContextFactory
-			.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(mockDbContext.Object);
-
-		return (mockDbContext, new Mock<ILogger>());
+		return (_mockContext, new Mock<ILogger>());
 	}
 
 	private static SymbolProfile BuildSymbolProfile(string symbol, string dataSource)
