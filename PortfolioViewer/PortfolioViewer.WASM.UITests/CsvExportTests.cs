@@ -4,7 +4,7 @@ using xRetry.v3;
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
-public class CsvExportTests(CustomWebApplicationFactory fixture) : PlaywrightTestBase(fixture)
+public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
 	[RetryFact]
 	public async Task TransactionsPage_HasExportButton()
