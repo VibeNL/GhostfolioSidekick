@@ -57,8 +57,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
 				await _page.ClickAsync(SyncButtonSelector);
-				// Wait for sync to start
-				await _page.WaitForTimeoutAsync(1000);
+					// Wait for sync to start (progress bar appears)
+					await _page.WaitForSelectorAsync(ProgressBarSelector, new PageWaitForSelectorOptions { Timeout = 30000 });
 			});
 		}
 
@@ -148,12 +148,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				
 				if (progress == 100 || isEnabled)
 				{
-					// Give it a bit more time to complete UI updates
-					await _page.WaitForTimeoutAsync(1000);
+						// Wait for sync button to become enabled again (sync completed)
+						await _page.WaitForSelectorAsync(SyncButtonSelector, new PageWaitForSelectorOptions { Timeout = 5000 });
 					return;
 				}
 				
-				await _page.WaitForTimeoutAsync(500);
+					await _page.WaitForSelectorAsync(SyncButtonSelector, new PageWaitForSelectorOptions { Timeout = 2000 });
 			}
 			
 			throw new TimeoutException($"Sync did not complete within {timeoutInMilliseconds}ms");

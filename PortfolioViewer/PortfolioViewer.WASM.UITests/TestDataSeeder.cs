@@ -252,6 +252,16 @@ public static class TestDataSeeder
 		};
 		db.ExternalDataCacheEntries.AddRange(cacheEntries);
 
+		// 16. PriceTargets (analyst price targets)
+		var priceTargets = new List<PriceTarget>
+		{
+			new() { Symbol = "AAPL", HighestTargetPriceAmount = 250m, HighestTargetCurrency = Currency.USD, AverageTargetPriceAmount = 210m, AverageTargetCurrency = Currency.USD, LowestTargetPriceAmount = 175m, LowestTargetCurrency = Currency.USD, Rating = AnalystRating.Buy, NumberOfBuys = 15, NumberOfHolds = 8, NumberOfSells = 2 },
+			new() { Symbol = "GOOGL", HighestTargetPriceAmount = 220m, HighestTargetCurrency = Currency.USD, AverageTargetPriceAmount = 185m, AverageTargetCurrency = Currency.USD, LowestTargetPriceAmount = 140m, LowestTargetCurrency = Currency.USD, Rating = AnalystRating.Hold, NumberOfBuys = 10, NumberOfHolds = 12, NumberOfSells = 5 },
+			new() { Symbol = "BTC", HighestTargetPriceAmount = 120000m, HighestTargetCurrency = Currency.USD, AverageTargetPriceAmount = 85000m, AverageTargetCurrency = Currency.USD, LowestTargetPriceAmount = 50000m, LowestTargetCurrency = Currency.USD, Rating = AnalystRating.StrongBuy, NumberOfBuys = 20, NumberOfHolds = 3, NumberOfSells = 0 },
+			new() { Symbol = "VTI", HighestTargetPriceAmount = 320m, HighestTargetCurrency = Currency.USD, AverageTargetPriceAmount = 270m, AverageTargetCurrency = Currency.USD, LowestTargetPriceAmount = 230m, LowestTargetCurrency = Currency.USD, Rating = AnalystRating.Buy, NumberOfBuys = 8, NumberOfHolds = 5, NumberOfSells = 1 }
+		};
+		db.PriceTargets.AddRange(priceTargets);
+
 		var rows = db.SaveChanges();
 	}
 }

@@ -18,35 +18,29 @@ public class PortfolioTimeSeriesPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Portfolio')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(TimeSeriesLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(TimeSeriesLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/portfolio-timeseries", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 
-    public async Task NavigateDirectAsync()
+    public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {
-            await _page.GotoAsync("/portfolio-timeseries");
-        });
-    }
-
-    public async Task WaitForPageLoadAsync(int timeout = 30000)
-    {
-        await ExecuteWithErrorCheckAsync(async () =>
-        {
-            try
+            var targetUrl = relativePath ?? "/portfolio-timeseries";
+            if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
             {
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
+                var baseUri = new Uri(_page.Url);
+                targetUrl = new Uri(baseUri, targetUrl).ToString();
             }
-            catch { }
+            await _page.GotoAsync(targetUrl);
+        }, ct);
+    }
 
-            await _page.WaitForSelectorAsync(
-                $"{PageHeadingSelector}, {EmptyStateSelector}, {ErrorAlertSelector}",
-                new PageWaitForSelectorOptions { Timeout = timeout });
-        });
+    public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
+    {
+        await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector, ".alert-danger"], timeout, ct);
     }
 
     public async Task<bool> HasTimeSeriesTitleAsync()
@@ -78,7 +72,7 @@ public class PortfolioTimeSeriesPage(IPage page) : BasePageObject(page)
             if (tableBtn != null)
             {
                 await tableBtn.ClickAsync();
-                await _page.WaitForTimeoutAsync(500);
+                await _page.WaitForSelectorAsync(TableRowSelector, new PageWaitForSelectorOptions { Timeout = 5000 });
             }
         });
     }

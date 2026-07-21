@@ -16,56 +16,29 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(DividendsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(DividendsLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/dividends", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 
-    public async Task NavigateDirectAsync(string serverAddress, CancellationToken ct = default)
+    public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {
-            await _page.GotoAsync(serverAddress + "/dividends");
+            var targetUrl = relativePath ?? "/dividends";
+            if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
+            {
+                var baseUri = new Uri(_page.Url);
+                targetUrl = new Uri(baseUri, targetUrl).ToString();
+            }
+            await _page.GotoAsync(targetUrl);
         }, ct);
     }
 
-    public async Task WaitForPageLoadAsync(int timeout = 30000)
+    public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
     {
-        await ExecuteWithErrorCheckAsync(async () =>
-        {
-            try
-            {
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
-            }
-            catch { }
-
-            // Wait for any of the page elements, with a short retry loop
-            var deadline = DateTime.UtcNow + TimeSpan.FromMilliseconds(timeout);
-            while (DateTime.UtcNow < deadline)
-            {
-                try
-                {
-                    var el = await _page.QuerySelectorAsync(PageHeadingSelector);
-                    if (el != null && await el.IsVisibleAsync()) return;
-                }
-                catch { }
-                try
-                {
-                    var el = await _page.QuerySelectorAsync(EmptyStateSelector);
-                    if (el != null && await el.IsVisibleAsync()) return;
-                }
-                catch { }
-                try
-                {
-                    var el = await _page.QuerySelectorAsync(TableSelector);
-                    if (el != null && await el.IsVisibleAsync()) return;
-                }
-                catch { }
-                await _page.WaitForTimeoutAsync(200);
-            }
-        });
+        await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, TableSelector, ".alert-danger"], timeout, ct);
     }
 
     public async Task<bool> HasDividendsTitleAsync()

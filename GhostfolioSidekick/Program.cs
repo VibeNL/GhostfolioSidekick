@@ -10,6 +10,7 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
+using GhostfolioSidekick.ExternalDataProvider.TipRanks;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -112,11 +113,20 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton<GhostfolioSymbolMatcher>();
 							_ = services.AddSingleton<ManualSymbolRepository>();
 							_ = services.AddSingleton<DividendMaxMatcher>();
+							_ = services.AddSingleton<TipRanksMatcher>();
+							_ = services.AddSingleton<ITargetPriceRepository>(sp => new TipRanksScraper(
+								sp.GetRequiredService<ILogger<TipRanksScraper>>(),
+								sp.GetRequiredService<IHttpClientFactory>().CreateClient("TipRanks")));
 							_ = services.AddTransient<ICoinGeckoRestClient>(sp =>
 								new CoinGeckoRestClient(
 									sp.GetRequiredService<HttpClient>(),
 									sp.GetRequiredService<ILoggerFactory>(),
 									Options.Create(new CoinGeckoRestOptions())));
+
+							services.AddHttpClient("TipRanks", client =>
+							{
+								client.DefaultRequestHeaders.Add("User-Agent", "GhostfolioSidekick/1.0");
+							});
 
 							_ = services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
 							_ = services.AddSingleton<ISymbolMatcher[]>(sp => [
@@ -124,10 +134,12 @@ namespace GhostfolioSidekick
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
 									sp.GetRequiredService<ManualSymbolRepository>(),
-									sp.GetRequiredService<DividendMaxMatcher>()
+									sp.GetRequiredService<DividendMaxMatcher>(),
+								sp.GetRequiredService<TipRanksMatcher>()
 								]);
 							_ = services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							_ = services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
+							_ = services.AddSingleton<IPriceTargetRepository, PriceTargetRepository>();
 							_ = services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							_ = services.AddSingleton<IRestCall>(sp =>
 							{

@@ -20,35 +20,29 @@ public class TopMoversPage(IPage page) : BasePageObject(page)
         await ExecuteWithErrorCheckAsync(async () =>
         {
             await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Portfolio')");
-            await _page.WaitForTimeoutAsync(500);
+            await _page.WaitForSelectorAsync(TopMoversLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync(TopMoversLinkSelector);
-            await _page.WaitForTimeoutAsync(1000);
+            await _page.WaitForURLAsync("**/top-movers", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
     }
 
-    public async Task NavigateDirectAsync()
+    public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
     {
         await ExecuteWithErrorCheckAsync(async () =>
         {
-            await _page.GotoAsync("/top-movers");
-        });
-    }
-
-    public async Task WaitForPageLoadAsync(int timeout = 30000)
-    {
-        await ExecuteWithErrorCheckAsync(async () =>
-        {
-            try
+            var targetUrl = relativePath ?? "/top-movers";
+            if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
             {
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = 2000, State = WaitForSelectorState.Visible });
-                await _page.WaitForSelectorAsync(LoadingSpinnerSelector, new PageWaitForSelectorOptions { Timeout = timeout, State = WaitForSelectorState.Hidden });
+                var baseUri = new Uri(_page.Url);
+                targetUrl = new Uri(baseUri, targetUrl).ToString();
             }
-            catch { }
+            await _page.GotoAsync(targetUrl);
+        }, ct);
+    }
 
-            await _page.WaitForSelectorAsync(
-                $"{PageHeadingSelector}, {ErrorAlertSelector}, {RisersCardSelector}",
-                new PageWaitForSelectorOptions { Timeout = timeout });
-        });
+    public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
+    {
+        await base.WaitForPageLoadAsync([PageHeadingSelector, ErrorAlertSelector, RisersCardSelector, ".alert-danger"], timeout, ct);
     }
 
     public async Task<bool> HasTopMoversTitleAsync()

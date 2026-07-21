@@ -154,6 +154,7 @@ dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 - **Migrations**: `Database/Migrations/`
 - **Context**: `DatabaseContext` in `Database/`
 - **Add Migration**: `dotnet ef migrations add <name> --project Database`
+- **CRITICAL**: Always use `dotnet ef migrations add` for EF Core migrations. Never manually write migration files — the tooling generates correct snapshot diffs, rename operations, and Down methods. After adding, verify the generated migration matches the model state.
 - **Update DB**: Apps handle migrations at startup
 
 ### Testing Infrastructure

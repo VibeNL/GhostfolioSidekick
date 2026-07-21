@@ -37,6 +37,8 @@ namespace GhostfolioSidekick.Database
 
 		public virtual DbSet<MarketData> MarketDatas { get; set; }
 
+		public virtual DbSet<PriceTarget> PriceTargets { get; set; }
+
 		// Performance sets
 		public virtual DbSet<CalculatedSnapshot> CalculatedSnapshots { get; set; }
 

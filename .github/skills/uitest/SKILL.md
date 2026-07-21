@@ -18,7 +18,8 @@ Core files/patterns:
 - `PlaywrightTestBase.cs` for browser lifecycle, login + sync setup, screenshots/videos, console logging.
 - `CustomWebApplicationFactory.cs` for Kestrel host, in-memory SQLite, seeded data, WASM publish-to-wwwroot bootstrap.
 - `WebApplicationFactoryCollection.cs` disables parallelization for shared DB safety.
-- `PageObjects/*` + `PageFactory.cs` for page-object model.
+- `PageObjects/BasePageObject.cs` for shared `WaitForPageLoadAsync` (spinner hidden → any stable state), `ExecuteWithErrorCheckAsync` (auto Blazor error check), `CheckForBlazorErrorAsync`.
+- `PageObjects/*` for page objects — all use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)`.
 - Tests use `[RetryFact]` from `xRetry.v3`.
 
 ## Trigger
@@ -63,7 +64,10 @@ Use this skill when user asks any of:
 - Add stable waits (`WaitForSelectorAsync`, `WaitForURLAsync`) over sleeps/timeouts.
 - Keep assertions behavior-focused (visible state, no error UI, expected records loaded).
 - Preserve collection fixture model; do not enable parallel execution for this suite.
-- Keep selectors precise to avoid false positives (same principle as `#blazor-error-ui` check in `BasePageObject`).
+- Use `base.WaitForPageLoadAsync([selectors], timeout, ct)` from `BasePageObject` — it waits for spinner hidden then any stable state selector.
+- Use `ExecuteWithErrorCheckAsync()` for navigation actions to auto-catch Blazor errors.
+- All page objects use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)` — pass full URL for absolute paths.
+- In test env, pages may render `.alert-danger` when Ghostfolio API is not configured — assertions must accept error state as valid render.
 
 ## Investigation Checklist
 
@@ -74,7 +78,8 @@ When UI test fails, check in order:
 4. Sync completion gate (Sync button enabled again).
 5. Screenshot evidence from `playwright-screenshots/` (actual visible UI state).
 6. Page-specific selectors and expected seeded data (`TestDataSeeder`).
-7. Blazor error UI presence.
+7. Blazor error UI presence (`#blazor-error-ui`).
+8. `WaitForPageLoadAsync` timeout — check if page renders error state (`.alert-danger`) instead of expected selectors.
 
 ## Boundaries
 
