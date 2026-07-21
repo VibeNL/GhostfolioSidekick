@@ -14,6 +14,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         [Inject]
         private IPrivacyModeService PrivacyModeService { get; set; } = default!;
 
+        [Inject]
+        private ICsvExportService CsvExportService { get; set; } = default!;
+
         protected bool IsLoading { get; set; }
         protected bool HasError { get; set; }
         protected string ErrorMessage { get; set; } = string.Empty;
@@ -24,6 +27,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         protected IEnumerable<int> Years => ReportData.Select(r => r.Year).Distinct().OrderBy(y => y);
 
         protected IEnumerable<int> VisibleYears => SelectedYear.HasValue ? [SelectedYear.Value] : Years;
+
+        protected async Task ExportToCsv()
+        {
+            await CsvExportService.ExportToCsvAsync(ReportData, "tax-report");
+        }
 
         protected void SelectYear(int? year) => SelectedYear = year;
 

@@ -2,6 +2,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -20,6 +21,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
+
+		[Inject]
+		private ICsvExportService CsvExportService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -332,6 +336,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				default:
 					break;
 			}
+		}
+
+		private async Task ExportToCsv()
+		{
+			await CsvExportService.ExportToCsvAsync(TimeSeriesData, "portfolio-time-series");
 		}
 
 		public void Dispose()

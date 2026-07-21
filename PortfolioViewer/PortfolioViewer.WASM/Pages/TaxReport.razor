@@ -92,10 +92,13 @@
             var compTotal = GetComparisonTotal(year);
 
             <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-calendar3 me-2"></i>@year
                     </h5>
+                    <button class="btn btn-sm btn-light" @onclick="ExportToCsv" title="Export to CSV">
+                        <i class="bi bi-download me-1"></i>Export CSV
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">

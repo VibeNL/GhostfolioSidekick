@@ -126,14 +126,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				var amountProp = value.GetType().GetProperty("Amount");
 				if (amountProp != null)
 				{
-						var amount = amountProp.GetValue(value);
-						var amountStr = amount is decimal d ? d.ToString(CultureInfo.InvariantCulture) : amount?.ToString() ?? "";
-						var currencyProp = value.GetType().GetProperty("Currency");
-						var currency = currencyProp?.GetValue(value)?.ToString() ?? "";
-						return FormatCsvValue($"{amountStr} {currency}");
-					}
-					return FormatCsvValue(value.ToString() ?? "");
+					var amount = amountProp.GetValue(value);
+					var amountStr = amount is decimal d ? d.ToString(CultureInfo.InvariantCulture) : amount?.ToString() ?? "";
+					var currencyProp = value.GetType().GetProperty("Currency");
+					var currency = currencyProp?.GetValue(value)?.ToString() ?? "";
+					return FormatCsvValue($"{amountStr} {currency}");
 				}
+				return FormatCsvValue(value.ToString() ?? "");
+			}
 
 			// Handle DateTime
 			if (value is DateTime dt)
@@ -154,16 +154,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					return FormatCsvValue(dateStr);
 				}
 				return FormatCsvValue(value.ToString() ?? "");
-			}
-
-			// Handle DateOnly directly via reflection
-			if (value.GetType().Name == "DateOnly")
-			{
-				var year = (int)value.GetType().GetProperty("Year")!.GetValue(value)!;
-				var month = (int)value.GetType().GetProperty("Month")!.GetValue(value)!;
-				var day = (int)value.GetType().GetProperty("Day")!.GetValue(value)!;
-				var dateStr = $"{year:D4}-{month:D2}-{day:D2}";
-				return FormatCsvValue(dateStr);
 			}
 
 			// Handle enumerable (lists, arrays)

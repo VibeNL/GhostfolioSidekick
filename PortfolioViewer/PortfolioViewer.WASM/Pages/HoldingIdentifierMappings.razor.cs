@@ -34,6 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject] protected Services.IHoldingIdentifierMappingService HoldingIdentifierMappingService { get; set; } = default!;
 		[Inject] protected Services.ITestContextService TestContextService { get; set; } = default!;
 		[Inject] protected NavigationManager Navigation { get; set; } = default!;
+		[Inject] protected Services.ICsvExportService CsvExportService { get; set; } = default!;
 
 		protected override async Task OnInitializedAsync()
 		{
@@ -166,6 +167,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			ShowTransactionModal = false;
 			SelectedTransaction = null;
+		}
+
+		private async Task ExportToCsv()
+		{
+			await CsvExportService.ExportToCsvAsync(HoldingMappings, "holding-identifier-mappings");
 		}
 
 		public void Dispose()

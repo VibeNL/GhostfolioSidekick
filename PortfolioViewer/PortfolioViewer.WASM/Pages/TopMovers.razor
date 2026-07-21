@@ -40,11 +40,14 @@
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="card border-success">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-trending-up"></i> Top 3 Risers
                             <small class="text-white-50 ms-2">(@StartDate.ToString("yyyy-MM-dd") to @EndDate.ToString("yyyy-MM-dd"))</small>
                         </h5>
+                        <button class="btn btn-sm btn-light" @onclick="ExportToCsv" title="Export to CSV">
+                            <i class="bi bi-download me-1"></i>Export CSV
+                        </button>
                     </div>
                     <div class="card-body">
                         @if (TopRisers.Any())
