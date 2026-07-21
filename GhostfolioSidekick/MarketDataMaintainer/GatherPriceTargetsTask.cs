@@ -24,9 +24,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
-			await using var symbols = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
+			var symbolList = await GetSymbolProfilesForTipRanksAsync(cancellationToken);
 
-			foreach (var symbol in symbols.SymbolProfiles.Where(x => x.DataSource == Datasource.TIPRANKS))
+			foreach (var symbol in symbolList)
 			{
 				try
 				{
@@ -37,6 +37,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					logger.LogError(ex, "Failed to gather price targets for {Symbol}", symbol.Symbol);
 				}
 			}
+		}
+
+		private async Task<List<SymbolProfile>> GetSymbolProfilesForTipRanksAsync(CancellationToken cancellationToken)
+		{
+			await using var db = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
+			return await db.SymbolProfiles
+				.Where(x => x.DataSource == Datasource.TIPRANKS)
+				.ToListAsync(cancellationToken);
 		}
 
 		private async Task GatherPriceTargetForSymbol(SymbolProfile symbol, CancellationToken cancellationToken)
@@ -51,7 +59,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			priceTarget.Symbol = symbol.Symbol;
 
 			await ClearPriceTargetsAsync(symbol.Symbol, cancellationToken);
+			await SaveToDatabase(priceTarget, cancellationToken);
+		}
 
+		private async Task SaveToDatabase(PriceTarget priceTarget, CancellationToken cancellationToken)
+		{
 			using var db = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 			db.PriceTargets.Add(priceTarget);
 			await db.SaveChangesAsync(cancellationToken);
