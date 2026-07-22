@@ -17,6 +17,8 @@ namespace PortfolioViewer.WASM.UITests
 	// https://danieldonbavand.com/2022/06/13/using-playwright-with-the-webapplicationfactory-to-test-a-blazor-application/
 	public class CustomWebApplicationFactory : WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program>
 	{
+		private static bool _isInitiated = false;
+
 		public const string TestAccessToken = "test-token-12345";
 		private IHost? _host;
 		private Microsoft.Data.Sqlite.SqliteConnection _connection;
@@ -24,8 +26,12 @@ namespace PortfolioViewer.WASM.UITests
 
 		public CustomWebApplicationFactory()
 		{
-			// Ensure WASM publish/copy target is executed
-			EnsureWasmPublishedToApiStaticFiles();
+			if (!_isInitiated)
+			{
+				_isInitiated = true;
+				// Ensure WASM publish/copy target is executed
+				EnsureWasmPublishedToApiStaticFiles();
+			}
 
 			// Use a file-based SQLite database so EF Core migrations can be applied properly.
 			// In-memory SQLite with EnsureCreated() does not create __EFMigrationsHistory,

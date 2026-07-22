@@ -120,7 +120,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var hasNoRisersMessage = await topMoversPage.HasNoRisersMessageAsync();
 		var hasNoLosersMessage = await topMoversPage.HasNoLosersMessageAsync();
 		var hasError = await topMoversPage.IsErrorDisplayedAsync();
-		
+
 		Assert.True(hasError || hasRisers || hasLosers || hasNoRisersMessage || hasNoLosersMessage,
 			"TopMovers page should render correctly (error: {hasError}, risers: {hasRisers}, losers: {hasLosers}, noRisersMsg: {hasNoRisersMessage}, noLosersMsg: {hasNoLosersMessage})");
 	}
@@ -131,21 +131,15 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
-		try
-		{
-			await timeSeriesPage.NavigateViaMenuAsync();
-			await timeSeriesPage.WaitForPageLoadAsync();
-		}
-		catch
-		{
-			// Navigation may fail due to Blazor errors; that's acceptable in test env
-		}
 
-		var isEmpty = await timeSeriesPage.IsEmptyStateDisplayedAsync();
+		await timeSeriesPage.NavigateViaMenuAsync();
+		await timeSeriesPage.WaitForPageLoadAsync();
+		await timeSeriesPage.SwitchToTableModeAsync();
+		await timeSeriesPage.WaitForPageLoadAsync();
+
 		var hasRows = await timeSeriesPage.HasTimeSeriesRowsAsync();
-		var hasError = await timeSeriesPage.IsErrorDisplayedAsync();
-		Assert.True(hasRows || isEmpty || hasError,
-			"PortfolioTimeSeries page should render correctly (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
+		Assert.True(hasRows,
+			$"PortfolioTimeSeries page should render correctly (rows: {hasRows})");
 	}
 
 	[RetryFact]
@@ -211,14 +205,12 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	{
 		await SetupAsync();
 
-		
 		var dividendsPage = new UpcomingDividendsPage(Page!);
-		await dividendsPage.NavigateDirectAsync(ServerAddress);
-
+		await dividendsPage.NavigateViaMenuAsync();
+		await dividendsPage.WaitForPageLoadAsync();
 
 		var hasTitle = await dividendsPage.HasDividendsTitleAsync();
 		Assert.True(hasTitle, "Dividends page should display its title");
-
 	}
 
 	[RetryFact]
