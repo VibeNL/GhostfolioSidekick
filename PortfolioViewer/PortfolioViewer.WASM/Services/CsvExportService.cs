@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 
 			var dataList = data.ToList();
-			if (!dataList.Any())
+			if (dataList.Count == 0)
 			{
 				return string.Empty;
 			}
@@ -36,10 +36,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				.ToList();
 
 			var headerList = headers?.ToList();
-			if (headerList == null)
-			{
-				headerList = properties.Select(p => FormatHeader(p.Name)).ToList();
-			}
+			headerList ??= properties.Select(p => FormatHeader(p.Name)).ToList();
 
 			var sb = new StringBuilder();
 
