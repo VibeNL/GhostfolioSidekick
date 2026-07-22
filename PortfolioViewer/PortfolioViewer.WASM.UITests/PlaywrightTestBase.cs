@@ -188,7 +188,7 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	/// Performs login and optionally syncs data. Called by derived tests before their assertions.
 	/// Sync is skipped by default in test environments since data is already seeded in the database.
 	/// </summary>
-	protected async Task SetupAsync(bool performSync = false, bool reseedAfterSync = false)
+	protected async Task SetupAsync(bool performSync = true, bool reseedAfterSync = false)
 	{
 		// Screenshot: Before login
 		await CaptureStepScreenshotAsync("01-before-login");

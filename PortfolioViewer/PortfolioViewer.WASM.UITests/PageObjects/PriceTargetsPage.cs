@@ -40,7 +40,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 	{
 		await base.WaitForPageLoadAsync(
-			["h5:has-text('Analyst Price Targets')", "h4:has-text('Error Loading Data')", "h5:has-text('No Price Targets Found')", ErrorAlertSelector, ".card-body", ".alert-danger", ".card", "#app"],
+			["h5:has-text('Analyst Price Targets')"],
 			timeout,
 			ct);
 	}
