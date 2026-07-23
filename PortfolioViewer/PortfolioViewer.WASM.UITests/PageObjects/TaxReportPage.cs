@@ -5,8 +5,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 public class TaxReportPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h2:has-text('Tax Report')";
-    private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Tax Report')";
-    private const string EmptyStateSelector = "h5.text-muted:has-text('No Tax Data Found')";
+	private const string EmptyStateSelector = "h5.text-muted:has-text('No Tax Data Found')";
     private const string ErrorAlertSelector = ".alert-danger";
     private const string TaxReportLinkSelector = "a.dropdown-item:has-text('Tax Report')";
     private const string TableButtonSelector = "button:has-text('Table')";
@@ -21,7 +20,7 @@ public class TaxReportPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(TaxReportLinkSelector);
             await _page.WaitForURLAsync("**/tax-report", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: CancellationToken.None);
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -36,7 +35,7 @@ public class TaxReportPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

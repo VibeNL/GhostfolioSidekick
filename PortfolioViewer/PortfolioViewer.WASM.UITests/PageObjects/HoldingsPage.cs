@@ -5,10 +5,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 public class HoldingsPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h5.card-title:has-text('Portfolio Overview')";
-    private const string TableSelector = "table.table";
-    private const string TableRowSelector = "table.table tbody tr";
-    private const string LoadingSpinnerSelector = ".spinner-border";
-    private const string EmptyStateSelector = "h5.text-muted:has-text('No Holdings Found')";
+	private const string TableRowSelector = "table.table tbody tr";
+	private const string EmptyStateSelector = "h5.text-muted:has-text('No Holdings Found')";
     private const string ErrorAlertSelector = ".alert-danger";
     private const string HoldingsLinkSelector = "a.dropdown-item:has-text('Holdings Overview')";
     private const string TreemapButtonSelector = "button:has-text('Treemap')";
@@ -23,7 +21,7 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(HoldingsLinkSelector);
             await _page.WaitForURLAsync("**/holdings", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: CancellationToken.None);
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -38,7 +36,7 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

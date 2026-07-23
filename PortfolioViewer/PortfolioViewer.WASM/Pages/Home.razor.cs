@@ -25,8 +25,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject] private IHoldingsDataService HoldingsDataService { get; set; } = default!;
 
-		[Inject] private IAccountDataService AccountDataService { get; set; } = default!;
-
 		[Inject] private IDividendsService DividendsService { get; set; } = default!;
 
 		private IJSObjectReference? mermaidmodule;

@@ -199,7 +199,7 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 		// Screenshot: After login
 		await CaptureStepScreenshotAsync("02-after-login");
 
-		await HomePage.WaitForPageLoadAsync();
+		await HomePage.WaitForPageLoadAsync(ct: CancellationToken);
 
 		// Screenshot: After home page load
 		await CaptureStepScreenshotAsync("03-home-loaded");

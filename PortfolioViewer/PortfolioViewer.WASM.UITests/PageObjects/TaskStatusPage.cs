@@ -5,8 +5,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 public class TaskStatusPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h1:has-text('Task Status')";
-    private const string LoadingSpinnerSelector = ".spinner-border";
-    private const string ErrorAlertSelector = ".alert-danger";
+	private const string ErrorAlertSelector = ".alert-danger";
     private const string TaskStatusLinkSelector = "a.dropdown-item:has-text('Task Status')";
     private const string QuickRefreshButtonSelector = "button:has-text('Quick Refresh')";
     private const string TableSelector = ".table";
@@ -22,7 +21,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(TaskStatusLinkSelector);
             await _page.WaitForURLAsync("**/task-status", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: CancellationToken.None);
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -37,7 +36,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

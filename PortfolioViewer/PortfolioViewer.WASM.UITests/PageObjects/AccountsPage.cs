@@ -7,8 +7,7 @@ public class AccountsPage(IPage page) : BasePageObject(page)
     private const string PageHeadingSelector = "h5.card-title:has-text('Account Details')";
     private const string TableSelector = "table.table";
     private const string TableRowSelector = "table.table tbody tr";
-    private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Account Data')";
-    private const string EmptyStateSelector = "h5.text-muted:has-text('No Account Data Found')";
+	private const string EmptyStateSelector = "h5.text-muted:has-text('No Account Data Found')";
     private const string ErrorAlertSelector = ".alert-danger";
     private const string AccountsLinkSelector = "a.dropdown-item:has-text('Account Details')";
 
@@ -21,7 +20,7 @@ public class AccountsPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(AccountsLinkSelector);
             await _page.WaitForURLAsync("**/accounts", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: CancellationToken.None);
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -36,7 +35,7 @@ public class AccountsPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
-        await WaitForPageLoadAsync();
+        await WaitForPageLoadAsync(ct: ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

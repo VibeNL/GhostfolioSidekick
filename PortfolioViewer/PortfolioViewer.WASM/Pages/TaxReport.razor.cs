@@ -11,10 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         [Inject]
         private IAccountDataService AccountDataService { get; set; } = default!;
 
-        [Inject]
-        private IPrivacyModeService PrivacyModeService { get; set; } = default!;
-
-        [Inject]
+		[Inject]
         private ICsvExportService CsvExportService { get; set; } = default!;
 
         protected bool IsLoading { get; set; }
