@@ -13,7 +13,6 @@ public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 
 		var transactionsPage = new TransactionsPage(Page!);
 		await transactionsPage.NavigateViaMenuAsync();
-		await transactionsPage.WaitForPageLoadAsync();
 		await transactionsPage.SetDateFilterToAllAsync();
 
 		var hasError = await transactionsPage.IsErrorDisplayedAsync();

@@ -26,6 +26,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private IPrivacyModeService PrivacyModeService { get; set; } = default!;
 
+		[Inject]
+		private ICsvExportService CsvExportService { get; set; } = default!;
+
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
@@ -465,6 +468,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			await PrepareAccountDetailsCharts();
 			ChartKey++;
 			await InvokeAsync(StateHasChanged);
+		}
+
+		private async Task ExportToCsv()
+		{
+			await CsvExportService.ExportToCsvAsync(AccountDisplayData, "accounts");
 		}
 
 		public void Dispose()

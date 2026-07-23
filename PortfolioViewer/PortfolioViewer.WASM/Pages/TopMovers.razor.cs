@@ -2,6 +2,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
 
@@ -11,6 +12,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	{
 		[Inject]
 		private IHoldingsDataService HoldingsDataService { get; set; } = default!;
+
+		[Inject]
+		private ICsvExportService CsvExportService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -156,6 +160,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				.Where(h => h.PercentageChange < 0)
 				.OrderBy(h => h.PercentageChange)
 				.Take(3)];
+		}
+
+		private async Task ExportToCsv()
+		{
+			await CsvExportService.ExportToCsvAsync(HoldingsData, "top-movers");
 		}
 
 		public void Dispose()

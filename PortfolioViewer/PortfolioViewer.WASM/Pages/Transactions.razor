@@ -60,7 +60,7 @@
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 class="card-title mb-0">
                             Transactions (@totalRecords total)
                             @if (totalRecords != TransactionsList.Count)
@@ -68,6 +68,9 @@
                                 <small class="text-muted">- Showing @TransactionsList.Count on this page</small>
                             }
                         </h5>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="ExportToCsv" title="Export to CSV">
+                            <i class="bi bi-download me-1"></i>Export CSV
+                        </button>
                     </div>
                     <div class="card-body position-relative">
                         <!-- Page Loading Overlay -->

@@ -17,12 +17,12 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			}, ct);
 		}
 
-		public async Task WaitForPageLoadAsync(int timeout = 10000)
+		public async Task WaitForPageLoadAsync(int timeout = 10000, CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
 				await _page.WaitForSelectorAsync(AccessTokenInputSelector, new PageWaitForSelectorOptions { Timeout = timeout });
-			});
+			}, ct);
 		}
 
 		public async Task<string> CapturePageContentAsync()
@@ -72,7 +72,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		public async Task LoginAsync(string serverAddress, string token, CancellationToken ct = default)
 		{
 			await NavigateAsync(serverAddress, ct);
-			await WaitForPageLoadAsync();
+			await WaitForPageLoadAsync(ct: ct);
 			await FillAccessTokenAsync(token);
 			await ClickLoginAsync(ct);
 		}

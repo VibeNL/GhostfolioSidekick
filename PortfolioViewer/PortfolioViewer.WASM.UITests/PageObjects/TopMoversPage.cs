@@ -5,8 +5,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 public class TopMoversPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h2:has-text('Top 3 Risers')";
-    private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Top Movers')";
-    private const string ErrorAlertSelector = ".alert-danger";
+	private const string ErrorAlertSelector = ".alert-danger";
     private const string TopMoversLinkSelector = "a.dropdown-item:has-text('Top Movers')";
     private const string RisersCardSelector = ".card.border-success";
     private const string LosersCardSelector = ".card.border-danger";
@@ -24,6 +23,7 @@ public class TopMoversPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(TopMoversLinkSelector);
             await _page.WaitForURLAsync("**/top-movers", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync(ct: CancellationToken.None);
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -38,6 +38,7 @@ public class TopMoversPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
+        await WaitForPageLoadAsync(ct: ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

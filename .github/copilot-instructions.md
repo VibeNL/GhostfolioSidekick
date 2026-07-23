@@ -9,9 +9,9 @@
 3. **AI Components** - Semantic Kernel + Web LLM for chat
 4. **Supporting Libraries** - Parsers, DB, API integrations, utilities
 
-**Size**: ~45 projects, single solution
-**Lang**: C# 14.0 (preview)
-**Framework**: .NET 10.0 (preview)
+**Size**: ~45 projects, single solution  
+**Lang**: C# 14.0 (preview)  
+**Framework**: .NET 10.0 (preview)  
 **Tech**: Blazor WebAssembly, .NET Aspire, EF Core, Playwright (UI testing), xUnit
 
 ## Build & Validation
@@ -27,11 +27,7 @@
 ### Build Commands
 
 Build all 45 projects:
-
-```bash
 dotnet build
-```
-
 **Expected**: Succeeds ~15s, up to 2 warnings OK. Warnings = errors via `Directory.Build.props` `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`.
 
 **Important**: Run `dotnet workload restore` after clone or if WASM builds fail.
@@ -39,21 +35,11 @@ dotnet build
 ### Testing
 
 **Run all tests**:
-
-```bash
 dotnet test
-```
-
 **Tests with coverage** (CI):
-
-```bash
 dotnet tool install --global dotnet-coverage
 dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
-```
-
 **Install Playwright browsers** (before UI tests):
-
-```bash
 # Install for all test projects
 find . -type f -name 'playwright.ps1' | while read script; do
   pwsh "$script" install
@@ -61,8 +47,6 @@ done
 
 # Or on Windows PowerShell:
 Get-ChildItem -Recurse -Include "playwright.ps1" | ForEach-Object { pwsh $_.FullName install }
-```
-
 **Test Projects**: `*.UnitTests` suffix + integration tests:
 - `PortfolioViewer.WASM.UITests` - Playwright UI tests (screenshots/videos on failure)
 - `IntegrationTests` - General integration tests
@@ -70,19 +54,11 @@ Get-ChildItem -Recurse -Include "playwright.ps1" | ForEach-Object { pwsh $_.Full
 ### Running the Application
 
 **Development (Aspire AppHost)**:
-
-```bash
 dotnet run --project PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj
-```
-
 Launches Aspire dashboard + API service + Blazor WASM client.
 
 **GhostfolioSidekick Console App**:
-
-```bash
 dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
-```
-
 **Docker Build** (see `Dockerfile`):
 - Multi-stage build
 - Installs Python, Node.js, wasm-tools, supervisord
@@ -92,8 +68,6 @@ dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 ## Project Layout & Architecture
 
 ### Repository Structure
-
-```
 /
 ├── .github/workflows/docker-publish.yml    # Main CI/CD pipeline
 ├── Directory.Build.props                   # TreatWarningsAsErrors=true for entire solution

@@ -24,12 +24,9 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 
 		// Navigate to price targets page
 		await PriceTargetsPage.NavigateDirectAsync($"{ServerAddress.TrimEnd('/')}/price-targets");
-		
+
 		// Wait for Blazor to initialize
 		await Page!.WaitForSelectorAsync("#app", new PageWaitForSelectorOptions { Timeout = 10000 });
-		
-		// Wait for page content to render (any stable state)
-		await PriceTargetsPage.WaitForPageLoadAsync(30000);
 
 		// Check for Blazor errors
 		var errorEl = await Page.QuerySelectorAsync("#blazor-error-ui");
@@ -44,15 +41,15 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
 		var hasData = await PriceTargetsPage.HasPriceTargetDataRowsAsync(1);
 		var hasHeading = await PriceTargetsPage.HasPriceTargetsHeadingAsync();
-		
+
 		// Page should render without crashing - just verify the app container has content
 		var appDiv = await Page!.QuerySelectorAsync("#app");
 		var appContent = appDiv != null ? await appDiv.InnerHTMLAsync() : string.Empty;
 		var appEmpty = string.IsNullOrWhiteSpace(appContent?.Trim());
-		
+
 		// Also check for Blazor errors (reuse the errorEl from above)
 		var hasBlazorError = errorEl != null && await errorEl.IsVisibleAsync();
-		
+
 		Assert.False(appEmpty, "Price Targets page should not crash and clear the Blazor app container");
 		Assert.False(hasBlazorError, "Price Targets page should not have Blazor errors");
 	}
@@ -62,15 +59,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	{
 		await SetupAsync();
 
-		try
-		{
-			await PriceTargetsPage.NavigateDirectAsync();
-			await PriceTargetsPage.WaitForPageLoadAsync();
-		}
-		catch
-		{
-			// Navigation or wait may fail; that's acceptable in test env
-		}
+		await PriceTargetsPage.NavigateDirectAsync();
 
 		// Page should render without crashing - just verify the page is not blank
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -83,17 +72,8 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	{
 		await SetupAsync();
 
-		try
-		{
-			await PriceTargetsPage.NavigateDirectAsync();
-			await PriceTargetsPage.WaitForPageLoadAsync();
-		}
-		catch
-		{
-			// Navigation or wait may fail; that's acceptable in test env
-		}
+		await PriceTargetsPage.NavigateDirectAsync();
 
-		// In test env, data may not be available; just verify page rendered
 		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
 		var appDiv = await Page!.QuerySelectorAsync("#app");
 		var appEmpty = appDiv != null && (await appDiv.InnerHTMLAsync()).Trim() == string.Empty;
@@ -106,15 +86,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	{
 		await SetupAsync();
 
-		try
-		{
-			await PriceTargetsPage.NavigateViaMenuAsync();
-			await PriceTargetsPage.WaitForPageLoadAsync();
-		}
-		catch
-		{
-			// Navigation or wait may fail; that's acceptable in test env
-		}
+		await PriceTargetsPage.NavigateViaMenuAsync();
 
 		// Page should render without crashing - just verify the app container has content
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -129,7 +101,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		await SetupAsync();
 
 		await PriceTargetsPage.NavigateDirectAsync();
-		await PriceTargetsPage.WaitForPageLoadAsync();
 
 		var hasData = await PriceTargetsPage.HasPriceTargetDataRowsAsync(1);
 		var hasError = await PriceTargetsPage.IsErrorDisplayedAsync();

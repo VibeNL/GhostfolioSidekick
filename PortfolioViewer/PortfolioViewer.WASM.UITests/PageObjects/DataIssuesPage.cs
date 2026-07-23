@@ -5,9 +5,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 public class DataIssuesPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h5.text-success:has-text('No Data Issues Found')";
-    private const string LoadingSpinnerSelector = ".spinner-border:has-text('Analyzing Data Quality')";
-    private const string EmptyStateSelector = "h5.text-success:has-text('No Data Issues Found')";
-    private const string ErrorAlertSelector = ".alert-danger";
+	private const string ErrorAlertSelector = ".alert-danger";
     private const string DataIssuesLinkSelector = "a.dropdown-item:has-text('Data Issues')";
     private const string IssuesListSelector = ".list-group";
 
@@ -20,6 +18,7 @@ public class DataIssuesPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(DataIssuesLinkSelector);
             await _page.WaitForURLAsync("**/data-issues", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync(ct: CancellationToken.None);
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -34,6 +33,7 @@ public class DataIssuesPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
+        await WaitForPageLoadAsync(ct: ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

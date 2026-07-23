@@ -5,9 +5,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 public class PriceTargetsPage(IPage page) : BasePageObject(page)
 {
 	private const string PageHeadingSelector = "h5.card-title:has-text('Analyst Price Targets')";
-	private const string TableSelector = "table.table";
 	private const string TableRowSelector = "table.table tbody tr";
-	private const string LoadingSpinnerSelector = ".spinner-border";
 	private const string EmptyStateSelector = "h5.text-muted:has-text('No Price Targets Found')";
 	private const string ErrorAlertSelector = ".alert-danger";
 	private const string PriceTargetsLinkSelector = "a.dropdown-item:has-text('Price Targets')";
@@ -21,6 +19,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 			await _page.ClickAsync(PriceTargetsLinkSelector);
 			await _page.WaitForURLAsync("**/price-targets", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
 		});
+		await WaitForPageLoadAsync(ct: CancellationToken.None);
 	}
 
 	public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -35,12 +34,13 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 			}
 			await _page.GotoAsync(targetUrl);
 		}, ct);
+		await WaitForPageLoadAsync(ct: ct);
 	}
 
 	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 	{
 		await base.WaitForPageLoadAsync(
-			["h5:has-text('Analyst Price Targets')", "h4:has-text('Error Loading Data')", "h5:has-text('No Price Targets Found')", ErrorAlertSelector, ".card-body", ".alert-danger", ".card", "#app"],
+			["h5:has-text('Analyst Price Targets')"],
 			timeout,
 			ct);
 	}

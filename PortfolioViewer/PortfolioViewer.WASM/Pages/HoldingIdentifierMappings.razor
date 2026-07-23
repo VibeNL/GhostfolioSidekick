@@ -127,9 +127,12 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h5 class="card-title mb-0">Holdings Identifier Mappings Overview</h5>
-                        </div>
+                                <button class="btn btn-sm btn-outline-primary" @onclick="ExportToCsv" title="Export to CSV">
+                                    <i class="bi bi-download me-1"></i>Export CSV
+                                </button>
+                            </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-hover">

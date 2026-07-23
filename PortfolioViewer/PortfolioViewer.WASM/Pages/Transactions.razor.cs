@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
@@ -17,6 +18,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject]
 		private NavigationManager Navigation { get; set; } = default!;
+
+		[Inject]
+		private ICsvExportService CsvExportService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -358,6 +362,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				_previousFilterState.PropertyChanged -= OnFilterStateChanged;
 			}
+		}
+
+		private async Task ExportToCsv()
+		{
+			// Export all filtered transactions (not just current page)
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = ServerConfigurationService.PrimaryCurrency,
+				StartDate = FilterState.StartDate,
+				EndDate = FilterState.EndDate,
+				AccountId = FilterState.SelectedAccountId,
+				Symbol = FilterState.SelectedSymbol ?? "",
+				TransactionTypes = FilterState.SelectedTransactionType ?? [],
+				SearchText = FilterState.SearchText ?? "",
+				SortColumn = sortColumn,
+				SortAscending = sortAscending,
+				PageNumber = 1,
+				PageSize = int.MaxValue
+			};
+
+			var result = await HoldingsDataService.GetTransactionsPaginatedAsync(parameters);
+			var allTransactions = result?.Transactions ?? [];
+
+			await CsvExportService.ExportToCsvAsync(allTransactions, "transactions");
 		}
 	}
 }

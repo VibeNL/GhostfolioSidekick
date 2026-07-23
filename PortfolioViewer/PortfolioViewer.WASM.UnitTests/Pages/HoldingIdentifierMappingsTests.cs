@@ -20,11 +20,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var mockAuthStateProvider = new Mock<AuthenticationStateProvider>();
 			var mockTestContextService = new Mock<ITestContextService>();
 			var mockTransactionService = new Mock<ITransactionService>();
+			var mockCsvExportService = new Mock<ICsvExportService>();
 
 			Services.AddScoped(_ => mockService.Object);
 			Services.AddScoped(_ => mockAuthStateProvider.Object);
 			Services.AddScoped(_ => mockTestContextService.Object);
 			Services.AddScoped(_ => mockTransactionService.Object);
+			Services.AddScoped(_ => mockCsvExportService.Object);
 
 			// Setup authentication
 			var authState = Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal()));
@@ -51,11 +53,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var mockAuthStateProvider = new Mock<AuthenticationStateProvider>();
 			var mockTestContextService = new Mock<ITestContextService>();
 			var mockTransactionService = new Mock<ITransactionService>();
+			var mockCsvExportService = new Mock<ICsvExportService>();
 
 			Services.AddScoped(_ => mockService.Object);
 			Services.AddScoped(_ => mockAuthStateProvider.Object);
 			Services.AddScoped(_ => mockTestContextService.Object);
 			Services.AddScoped(_ => mockTransactionService.Object);
+			Services.AddScoped(_ => mockCsvExportService.Object);
 
 			// Setup authentication
 			var authState = Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal()));
@@ -87,11 +91,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var mockAuthStateProvider = new Mock<AuthenticationStateProvider>();
 			var mockTestContextService = new Mock<ITestContextService>();
 			var mockTransactionService = new Mock<ITransactionService>();
+			var mockCsvExportService = new Mock<ICsvExportService>();
 
 			Services.AddScoped(_ => mockService.Object);
 			Services.AddScoped(_ => mockAuthStateProvider.Object);
 			Services.AddScoped(_ => mockTestContextService.Object);
 			Services.AddScoped(_ => mockTransactionService.Object);
+			Services.AddScoped(_ => mockCsvExportService.Object);
 
 			// Setup authentication
 			var authState = Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal()));

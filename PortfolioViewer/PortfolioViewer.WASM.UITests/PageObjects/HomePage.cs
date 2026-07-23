@@ -13,14 +13,14 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		private const string ForceFullSyncSelector = "button.dropdown-item:has-text('Force Full Sync')";
 		private const string DeleteAllDataSelector = "button.dropdown-item:has-text('Delete All Data')";
 
-		public async Task WaitForPageLoadAsync(int timeout = 10000)
+		public async Task WaitForPageLoadAsync(int timeout = 10000, CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
 				// Wait for either the sync button or the dashboard heading
 				await _page.WaitForSelectorAsync("h1:has-text('Dashboard')", new PageWaitForSelectorOptions { Timeout = timeout });
 				await _page.WaitForSelectorAsync(SyncButtonSelector, new PageWaitForSelectorOptions { Timeout = timeout });
-			});
+			}, ct);
 		}
 
 		public async Task<bool> IsSyncButtonVisibleAsync()

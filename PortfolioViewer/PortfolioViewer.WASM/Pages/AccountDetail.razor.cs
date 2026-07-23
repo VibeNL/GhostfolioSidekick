@@ -27,9 +27,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private IHoldingsDataService? HoldingsDataService { get; set; }
 
 		[Inject]
-		private ICurrencyExchange? CurrencyExchange { get; set; }
-
-		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
 		[Inject]

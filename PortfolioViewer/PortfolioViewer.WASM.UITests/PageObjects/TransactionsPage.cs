@@ -6,7 +6,6 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 	{
 		private const string PageHeadingSelector = "h5.card-title:has-text('Transactions')";
 		private const string TableSelector = "table.table";
-		private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Transaction Data')";
 		private const string EmptyStateSelector = "h5.text-muted:has-text('No Transactions Found')";
 		private const string ErrorAlertSelector = ".alert-danger";
 		private const string TransactionRowSelector = "tbody tr";
@@ -27,6 +26,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 					// Wait for SPA navigation to complete
 					await _page.WaitForURLAsync("**/transactions", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
 			});
+			await WaitForPageLoadAsync(ct: CancellationToken.None);
 		}
 
 		public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -41,9 +41,10 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				}
 				await _page.GotoAsync(targetUrl);
 			}, ct);
+			await WaitForPageLoadAsync(ct: ct);
 		}
 
-		public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
+			public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 		{
 			await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector, ".alert-danger"], timeout, ct);
 		}

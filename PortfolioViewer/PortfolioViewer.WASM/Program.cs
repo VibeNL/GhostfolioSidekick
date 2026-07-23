@@ -101,6 +101,7 @@ public class Program
 
 		// Data Issues Service
 		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();
+		builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 
 		// Holding Identifier Mapping Service
 		builder.Services.AddScoped<IHoldingIdentifierMappingService, HoldingIdentifierMappingService>();

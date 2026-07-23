@@ -5,8 +5,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
 {
     private const string PageHeadingSelector = "h4.card-title:has-text('Dividends')";
-    private const string LoadingSpinnerSelector = ".spinner-border:has-text('Loading Dividends')";
-    private const string EmptyStateSelector = "h5.text-muted:has-text('No Dividends')";
+	private const string EmptyStateSelector = "h5.text-muted:has-text('No Dividends')";
     private const string DividendsLinkSelector = "a.dropdown-item:has-text('Dividends')";
     private const string TableSelector = "table.table-hover";
     private const string TableRowSelector = "table.table-hover tbody tr";
@@ -20,6 +19,7 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(DividendsLinkSelector);
             await _page.WaitForURLAsync("**/dividends", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync(ct: CancellationToken.None);
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -34,6 +34,7 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
+        await WaitForPageLoadAsync(ct: ct);
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

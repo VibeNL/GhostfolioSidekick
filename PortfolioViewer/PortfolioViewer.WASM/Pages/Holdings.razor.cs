@@ -21,6 +21,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private IPrivacyModeService PrivacyModeService { get; set; } = default!;
 
+		[Inject]
+		private ICsvExportService CsvExportService { get; set; } = default!;
+
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
@@ -321,6 +324,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private void NavigateToHoldingDetail(string symbol)
 		{
 			Navigation?.NavigateTo($"/holding/{Uri.EscapeDataString(symbol)}");
+		}
+
+		private async Task ExportToCsv()
+		{
+			await CsvExportService.ExportToCsvAsync(HoldingsList, "holdings");
 		}
 
 		public void Dispose()

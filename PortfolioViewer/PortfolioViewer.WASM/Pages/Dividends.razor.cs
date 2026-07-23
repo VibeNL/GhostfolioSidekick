@@ -1,6 +1,7 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -16,6 +17,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
+
+		[Inject]
+		private ICsvExportService CsvExportService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState? FilterState { get; set; }
@@ -174,6 +178,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			showUpcomingOnly
 				? dividends!.Where(d => d.PaymentDate >= Today).OrderBy(d => d.PaymentDate)
 				: dividends!.OrderBy(d => d.PaymentDate);
+
+		private async Task ExportToCsv()
+		{
+			if (dividends != null)
+			{
+				await CsvExportService.ExportToCsvAsync(dividends, "dividends");
+			}
+		}
 
 		public void Dispose()
 		{

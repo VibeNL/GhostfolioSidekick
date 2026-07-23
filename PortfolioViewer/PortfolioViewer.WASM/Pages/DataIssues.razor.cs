@@ -1,5 +1,6 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
@@ -8,6 +9,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	{
 		[Inject]
 		private IDataIssuesService? DataIssuesService { get; set; }
+
+		[Inject]
+		private ICsvExportService CsvExportService { get; set; } = default!;
 
 		// State
 		private bool IsLoading { get; set; } = true;
@@ -181,6 +185,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			IsListExpanded = !IsListExpanded;
 			StateHasChanged();
+		}
+
+		private async Task ExportToCsv()
+		{
+			await CsvExportService.ExportToCsvAsync(FilteredDataIssuesList, "data-issues");
 		}
 
 		public void Dispose()

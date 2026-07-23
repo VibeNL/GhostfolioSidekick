@@ -1,14 +1,5 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Cache;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Performance;
-using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Model.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -26,6 +17,8 @@ namespace PortfolioViewer.WASM.UITests
 	// https://danieldonbavand.com/2022/06/13/using-playwright-with-the-webapplicationfactory-to-test-a-blazor-application/
 	public class CustomWebApplicationFactory : WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program>
 	{
+		private static bool _isInitiated = false;
+
 		public const string TestAccessToken = "test-token-12345";
 		private IHost? _host;
 		private Microsoft.Data.Sqlite.SqliteConnection _connection;
@@ -33,8 +26,12 @@ namespace PortfolioViewer.WASM.UITests
 
 		public CustomWebApplicationFactory()
 		{
-			// Ensure WASM publish/copy target is executed
-			EnsureWasmPublishedToApiStaticFiles();
+			if (!_isInitiated)
+			{
+				_isInitiated = true;
+				// Ensure WASM publish/copy target is executed
+				EnsureWasmPublishedToApiStaticFiles();
+			}
 
 			// Use a file-based SQLite database so EF Core migrations can be applied properly.
 			// In-memory SQLite with EnsureCreated() does not create __EFMigrationsHistory,
@@ -85,43 +82,43 @@ namespace PortfolioViewer.WASM.UITests
 														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production")
 															.ConfigureServices(services =>
 															{
-																	// Replace IApplicationSettings with a mock that provides the test token
-																	Mock<IApplicationSettings> mockSettings = new();
-																	_ = mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
+																// Replace IApplicationSettings with a mock that provides the test token
+																Mock<IApplicationSettings> mockSettings = new();
+																_ = mockSettings.Setup(x => x.GhostfolioAccessToken).Returns(TestAccessToken);
 
-																	// Remove existing registration and add our mock
-																	ServiceDescriptor? descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
-																	if (descriptor != null)
-																	{
-																		_ = services.Remove(descriptor);
-																	}
-																	_ = services.AddSingleton(mockSettings.Object);
+																// Remove existing registration and add our mock
+																ServiceDescriptor? descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IApplicationSettings));
+																if (descriptor != null)
+																{
+																	_ = services.Remove(descriptor);
+																}
+																_ = services.AddSingleton(mockSettings.Object);
 
-																	// Remove existing DbContext registrations and replace with file-based SQLite
-																	var dbContextDescriptors = services.Where(d =>
-																			d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
-																			d.ServiceType == typeof(DatabaseContext) ||
-																			d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
-																			.ToList();
+																// Remove existing DbContext registrations and replace with file-based SQLite
+																var dbContextDescriptors = services.Where(d =>
+																		d.ServiceType == typeof(DbContextOptions<DatabaseContext>) ||
+																		d.ServiceType == typeof(DatabaseContext) ||
+																		d.ServiceType == typeof(IDbContextFactory<DatabaseContext>))
+																		.ToList();
 
-																	// Remove by index to avoid modifying collection during enumeration
-																	for (int i = dbContextDescriptors.Count - 1; i >= 0; i--)
-																	{
-																		services.Remove(dbContextDescriptors[i]);
-																	}
+																// Remove by index to avoid modifying collection during enumeration
+																for (int i = dbContextDescriptors.Count - 1; i >= 0; i--)
+																{
+																	services.Remove(dbContextDescriptors[i]);
+																}
 
-																	// Register file-based SQLite database for testing
-																	// Important: Share the same connection across all DbContext instances
-																	// to ensure the database persists
-																	var connectionString = $"Data Source={_dbPath}";
-																	_ = services.AddDbContext<DatabaseContext>(options =>
-																		_ = options.UseSqlite(connectionString),
-																		ServiceLifetime.Scoped);
+																// Register file-based SQLite database for testing
+																// Important: Share the same connection across all DbContext instances
+																// to ensure the database persists
+																var connectionString = $"Data Source={_dbPath}";
+																_ = services.AddDbContext<DatabaseContext>(options =>
+																	_ = options.UseSqlite(connectionString),
+																	ServiceLifetime.Scoped);
 
-																	// Also register DbContextFactory with the same connection
-																	_ = services.AddDbContextFactory<DatabaseContext>(options =>
-																		_ = options.UseSqlite(connectionString),
-																		ServiceLifetime.Scoped);
+																// Also register DbContextFactory with the same connection
+																_ = services.AddDbContextFactory<DatabaseContext>(options =>
+																	_ = options.UseSqlite(connectionString),
+																	ServiceLifetime.Scoped);
 															}));
 
 
@@ -183,12 +180,6 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		public void ResetAndReseedTestData()
-		{
-			EnsureServer();
-			SeedTestData(_host!.Services, ref _connection, resetDatabase: true, dbPath: _dbPath);
-		}
-
 		/// <summary>
 		/// Returns the test host's services for direct DB access during tests.
 		/// </summary>
@@ -198,126 +189,139 @@ namespace PortfolioViewer.WASM.UITests
 			return _host!.Services;
 		}
 
-		/// <summary>
-		/// Seeds a DividendActivity with an invalid decimal Amount value directly into SQLite.
-		/// This reproduces the FormatException that occurs when production data contains corrupted decimal columns.
-		/// </summary>
-		public void SeedInvalidDividendData()
-		{
-			EnsureServer();
-			using var scope = _host!.Services.CreateScope();
-			var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-
-			// Ensure basic data exists (account, holding)
-			var account = db.Accounts.FirstOrDefault();
-			if (account == null)
-			{
-				ResetAndReseedTestData();
-				account = db.Accounts.First();
-			}
-
-			var holding = db.Holdings.FirstOrDefault();
-			if (holding == null)
-			{
-				ResetAndReseedTestData();
-				holding = db.Holdings.First();
-			}
-
-			// First create a valid dividend via EF, then corrupt its Amount column
-			var baseDate = DateTimeOffset.UtcNow.Date;
-			var dividend = new GhostfolioSidekick.Model.Activities.Types.DividendActivity(
-				account, holding, [], baseDate.AddDays(-1),
-				new GhostfolioSidekick.Model.Money(GhostfolioSidekick.Model.Currency.USD, 50m),
-				"DIV-INVALID-001", 0, "Test invalid dividend");
-			db.Activities.Add(dividend);
-			db.SaveChanges();
-
-			// Corrupt the Amount column to an empty string (simulates corrupted SQLite data)
-			// The column name for Money.Amount in DividendActivity is "Amount"
-#pragma warning disable EF1003 // Suppress SQL injection warning — this is test code with controlled values
-			db.Database.ExecuteSqlRaw(
-				"UPDATE Activities SET Amount = '' WHERE Id = " + dividend.Id + " AND Discriminator = 'Dividend'");
-#pragma warning restore EF1003
-		}
-
-
-		// Tracks whether WASM has been published this run to avoid redundant publishes
-		private static bool _wasmPublished = false;
-		private static readonly object _wasmPublishLock = new();
-
 		private static void EnsureWasmPublishedToApiStaticFiles()
 		{
-			if (_wasmPublished) return;
+			// Build WASM first to ensure source is up-to-date (TypeScript compilation, etc.)
+			var assemblyPath = Assembly.GetExecutingAssembly().Location;
+			var testDir = Path.GetDirectoryName(assemblyPath) ?? Directory.GetCurrentDirectory();
+			var solutionDir = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", ".."));
+			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
 
-			lock (_wasmPublishLock)
+			var buildPsi = new ProcessStartInfo("dotnet", $"build \"{wasmProj}\" -c Debug --no-restore")
 			{
-				if (_wasmPublished) return;
-
-				// Resolve solution dir from assembly location (robust vs AppContext.BaseDirectory)
-				var assemblyPath = Assembly.GetExecutingAssembly().Location;
-				var testDir = Path.GetDirectoryName(assemblyPath) ?? Directory.GetCurrentDirectory();
-				var solutionDir = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", ".."));
-
-				var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
-				var apiroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService");
-				var apiDebugWwwroot = Path.Combine(apiroot, "wwwroot");
-				var localWwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-				var expectedIndex = Path.Combine(apiDebugWwwroot, "index.html");
-
-				// Skip if already published (e.g., by build)
-				if (File.Exists(expectedIndex))
-				{
-					_wasmPublished = true;
-					return;
-				}
-
-				var tempFolder = Path.Combine(Path.GetTempPath(), "WasmPublish_" + Guid.NewGuid().ToString("n")[..8]);
-
-				// Clean temp folder
-				if (Directory.Exists(tempFolder))
-				{
-					Directory.Delete(tempFolder, true);
-				}
-
-				// Delete old debug wwwroot
-				if (Directory.Exists(apiDebugWwwroot))
-				{
-					Directory.Delete(apiDebugWwwroot, true);
-				}
-
-				_ = Directory.CreateDirectory(apiDebugWwwroot);
-
-				// Publish WASM project directly into temp folder (async to avoid deadlock)
-				ProcessStartInfo psi = new("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
-				{
-					WorkingDirectory = solutionDir,
-					RedirectStandardOutput = true,
-					RedirectStandardError = true,
-					UseShellExecute = false
-				};
-				using Process proc = System.Diagnostics.Process.Start(psi)!;
-				Task<string> outputTask = proc.StandardOutput.ReadToEndAsync();
-				Task<string> errorTask = proc.StandardError.ReadToEndAsync();
-				proc.WaitForExit();
-				var output = outputTask.Result;
-				var error = errorTask.Result;
-				if (proc.ExitCode != 0)
-				{
-					throw new Exception($"WASM publish failed: {error}\n{output}");
-				}
-
-				// Copy published files to API debug wwwroot
-				CopyDirectory(Path.Combine(tempFolder, "wwwroot"), apiDebugWwwroot);
-				CopyDirectory(Path.Combine(tempFolder, "wwwroot"), localWwwroot);
-
-				// Ensure index.html exists in API debug wwwroot
-				if (!File.Exists(expectedIndex))
-				{
-					throw new FileNotFoundException($"WASM index.html not found in API debug wwwroot: {expectedIndex}");
-				}
-
-				_wasmPublished = true;
+				WorkingDirectory = solutionDir,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				UseShellExecute = false
+			};
+			try
+			{
+				using var buildProc = Process.Start(buildPsi)!;
+				_ = buildProc.StandardOutput.ReadToEndAsync();
+				_ = buildProc.StandardError.ReadToEndAsync();
+				buildProc.WaitForExit();
 			}
+			catch
+			{
+				// Build failure is non-fatal — proceed with whatever is in wwwroot
+			}
+
+			var apiDebugWwwroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService", "wwwroot");
+			var expectedIndex = Path.Combine(apiDebugWwwroot, "index.html");
+
+			// Skip if wwwroot is newer than every WASM source file (robust to rebuilds).
+			// Comparing only against the .csproj file's timestamp is not sufficient: editing
+			// a .razor/.cs/.ts/.js file does not touch the .csproj, so that check can incorrectly
+			// treat a stale published wwwroot (e.g. missing a newly added JS interop function) as up-to-date.
+			if (File.Exists(expectedIndex))
+			{
+				try
+				{
+					var wwwrootTime = Directory.GetLastWriteTimeUtc(apiDebugWwwroot);
+					var wasmProjDir = Path.GetDirectoryName(wasmProj)!;
+					var latestSourceTime = GetLatestSourceWriteTimeUtc(wasmProjDir);
+					if (wwwrootTime > latestSourceTime)
+					{
+						return; // wwwroot is up-to-date
+					}
+				}
+				catch
+				{
+					// If we can't compare timestamps, republish to be safe
+				}
+			}
+
+			// Republish: clean and publish WASM to API wwwroot
+			var tempFolder =
+				Path.Combine(Path.GetTempPath(), "WasmPublish_" + Guid.NewGuid().ToString("n")[..8]);
+			if (Directory.Exists(tempFolder))
+			{
+				Directory.Delete(tempFolder, true);
+			}
+
+			if (Directory.Exists(apiDebugWwwroot))
+			{
+				Directory.Delete(apiDebugWwwroot, true);
+			}
+
+			_ = Directory.CreateDirectory(apiDebugWwwroot);
+
+			var localWwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+			// Publish WASM to temp folder
+			ProcessStartInfo psi = new("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
+			{
+				WorkingDirectory = solutionDir,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				UseShellExecute = false
+			};
+			using Process proc = Process.Start(psi)!;
+			_ = proc.StandardOutput.ReadToEndAsync();
+			_ = proc.StandardError.ReadToEndAsync();
+			proc.WaitForExit();
+
+			if (proc.ExitCode != 0)
+			{
+				throw new Exception("WASM publish failed — check build output above.");
+			}
+
+			// Copy published files to API wwwroot and test project wwwroot
+			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), apiDebugWwwroot);
+			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), localWwwroot);
+
+			// Ensure index.html exists
+			if (!File.Exists(expectedIndex))
+			{
+				throw new FileNotFoundException($"WASM index.html not found in API wwwroot: {expectedIndex}");
+			}
+		}
+
+		/// <summary>
+		/// Returns the most recent LastWriteTimeUtc among the WASM project's source files
+		/// (.cs, .razor, .ts, .js, .css, .json, .csproj), ignoring build output (bin/obj) and node_modules.
+		/// Used to detect whether the previously published wwwroot is stale.
+		/// </summary>
+		private static DateTime GetLatestSourceWriteTimeUtc(string wasmProjDir)
+		{
+			var latest = DateTime.MinValue;
+			var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+			{
+				".cs", ".razor", ".ts", ".js", ".css", ".json", ".csproj"
+			};
+
+			foreach (var file in Directory.EnumerateFiles(wasmProjDir, "*", SearchOption.AllDirectories))
+			{
+				if (file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+					file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+					file.Contains($"{Path.DirectorySeparatorChar}node_modules{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+				{
+					continue;
+				}
+
+				if (!extensions.Contains(Path.GetExtension(file)))
+				{
+					continue;
+				}
+
+				var writeTime = File.GetLastWriteTimeUtc(file);
+				if (writeTime > latest)
+				{
+					latest = writeTime;
+				}
+			}
+
+			return latest;
 		}
 
 		private static void CopyDirectory(string tempFolder, string apiWwwroot)
