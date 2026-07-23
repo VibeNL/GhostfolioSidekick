@@ -219,14 +219,18 @@ namespace PortfolioViewer.WASM.UITests
 			var apiDebugWwwroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService", "wwwroot");
 			var expectedIndex = Path.Combine(apiDebugWwwroot, "index.html");
 
-			// Skip if wwwroot is newer than the WASM project file (robust to rebuilds)
+			// Skip if wwwroot is newer than every WASM source file (robust to rebuilds).
+			// Comparing only against the .csproj file's timestamp is not sufficient: editing
+			// a .razor/.cs/.ts/.js file does not touch the .csproj, so that check can incorrectly
+			// treat a stale published wwwroot (e.g. missing a newly added JS interop function) as up-to-date.
 			if (File.Exists(expectedIndex))
 			{
 				try
 				{
 					var wwwrootTime = Directory.GetLastWriteTimeUtc(apiDebugWwwroot);
-					var wasmTime = File.GetLastWriteTimeUtc(wasmProj);
-					if (wwwrootTime > wasmTime)
+					var wasmProjDir = Path.GetDirectoryName(wasmProj)!;
+					var latestSourceTime = GetLatestSourceWriteTimeUtc(wasmProjDir);
+					if (wwwrootTime > latestSourceTime)
 					{
 						return; // wwwroot is up-to-date
 					}
@@ -281,6 +285,43 @@ namespace PortfolioViewer.WASM.UITests
 			{
 				throw new FileNotFoundException($"WASM index.html not found in API wwwroot: {expectedIndex}");
 			}
+		}
+
+		/// <summary>
+		/// Returns the most recent LastWriteTimeUtc among the WASM project's source files
+		/// (.cs, .razor, .ts, .js, .css, .json, .csproj), ignoring build output (bin/obj) and node_modules.
+		/// Used to detect whether the previously published wwwroot is stale.
+		/// </summary>
+		private static DateTime GetLatestSourceWriteTimeUtc(string wasmProjDir)
+		{
+			var latest = DateTime.MinValue;
+			var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+			{
+				".cs", ".razor", ".ts", ".js", ".css", ".json", ".csproj"
+			};
+
+			foreach (var file in Directory.EnumerateFiles(wasmProjDir, "*", SearchOption.AllDirectories))
+			{
+				if (file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+					file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+					file.Contains($"{Path.DirectorySeparatorChar}node_modules{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+				{
+					continue;
+				}
+
+				if (!extensions.Contains(Path.GetExtension(file)))
+				{
+					continue;
+				}
+
+				var writeTime = File.GetLastWriteTimeUtc(file);
+				if (writeTime > latest)
+				{
+					latest = writeTime;
+				}
+			}
+
+			return latest;
 		}
 
 		private static void CopyDirectory(string tempFolder, string apiWwwroot)

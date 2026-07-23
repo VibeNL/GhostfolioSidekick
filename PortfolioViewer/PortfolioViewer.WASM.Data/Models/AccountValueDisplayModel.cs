@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 
 		public string Currency { get; set; } = "USD";
 
-		// Computed properties for convenience
-		public Money AssetValue => Value.Subtract(Balance);
+		// Computed properties for convenience — safe version that doesn't throw if currencies differ
+		public Money AssetValue => Value.Currency == Balance.Currency ? Value.Subtract(Balance) : new Money(Value.Currency, 0m);
 	}
 }

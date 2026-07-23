@@ -26,3 +26,18 @@ const forceBlazorReload = async (): Promise<void> => {
 };
 
 (globalThis as any).forceBlazorReload = forceBlazorReload;
+
+// CSV download helper for CsvExportService JS interop
+const downloadCsv = (fileName: string, csvContent: string): void => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
+(globalThis as any).downloadCsv = downloadCsv;

@@ -48,8 +48,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			{
 				var values = properties.Select(p =>
 				{
-					var value = p.GetValue(item);
-					return FormatCellValue(value);
+					try
+					{
+						var value = p.GetValue(item);
+						return FormatCellValue(value);
+					}
+					catch
+					{
+						// Property getter may throw (e.g., computed properties with currency mismatch)
+						return "\"\"";
+					}
 				});
 				sb.AppendLine(string.Join(",", values));
 			}
@@ -59,17 +67,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 		public async Task ExportToCsvAsync<T>(IEnumerable<T> data, string fileName, IEnumerable<string>? headers = null)
 		{
-			var csvContent = ExportToCsvString(data, headers);
-
-			if (string.IsNullOrEmpty(csvContent))
+			try
 			{
-				return;
+				var csvContent = ExportToCsvString(data, headers);
+
+				if (string.IsNullOrEmpty(csvContent))
+				{
+					return;
+				}
+
+				var fileNameWithExtension = EnsureCsvExtension(fileName);
+
+				// Use JavaScript interop to trigger browser download
+				await _jsRuntime.InvokeVoidAsync("downloadCsv", fileNameWithExtension, csvContent);
 			}
-
-			var fileNameWithExtension = EnsureCsvExtension(fileName);
-
-			// Use JavaScript interop to trigger browser download
-			await _jsRuntime.InvokeVoidAsync("downloadCsv", fileNameWithExtension, csvContent);
+			catch
+			{
+				// Silently handle export errors (JS interop failures, CSV generation issues)
+				// to avoid showing Blazor error UI to users
+			}
 		}
 
 		private static string FormatHeader(string? name)

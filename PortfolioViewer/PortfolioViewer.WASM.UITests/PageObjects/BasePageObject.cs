@@ -94,7 +94,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		/// Executes an action and automatically checks for Blazor errors afterwards.
 		/// Use this wrapper for critical operations that should detect framework errors.
 		/// </summary>
-		protected async Task ExecuteWithErrorCheckAsync(Func<Task> action, CancellationToken ct = default)
+			public async Task ExecuteWithErrorCheckAsync(Func<Task> action, CancellationToken ct = default)
 		{
 			await action();
 			await CheckForBlazorErrorAsync();
@@ -104,7 +104,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		/// Executes an action and automatically checks for Blazor errors afterwards.
 		/// Returns the result of the action.
 		/// </summary>
-		protected async Task<T> ExecuteWithErrorCheckAsync<T>(Func<Task<T>> action, CancellationToken ct = default)
+			public async Task<T> ExecuteWithErrorCheckAsync<T>(Func<Task<T>> action, CancellationToken ct = default)
 		{
 			var result = await action();
 			await CheckForBlazorErrorAsync();
