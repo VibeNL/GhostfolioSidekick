@@ -20,14 +20,9 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var isEmpty = await holdingsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await holdingsPage.HasHoldingsDataRowsAsync();
 		var hasError = await holdingsPage.IsErrorDisplayedAsync();
-		Assert.True(hasRows || isEmpty || hasError,
-			"Holdings page should show rows, empty state, or error (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
+		PageRenderAssertions.AssertRendered("Holdings", hasRows, isEmpty, hasError);
 
-		if (hasRows)
-		{
-			var hasAapl = await holdingsPage.HasHoldingSymbolAsync("AAPL");
-			Assert.True(hasAapl, "Holdings page should show seeded AAPL holding when data rows are present");
-		}
+		await PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync("Holdings", hasRows, ["AAPL"], holdingsPage.HasHoldingSymbolAsync);
 	}
 
 	[RetryFact]
@@ -43,18 +38,10 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var hasError = await holdingsPage.IsErrorDisplayedAsync();
 
 		// Data may not appear if Ghostfolio API is not configured; just verify page rendered
-		Assert.True(hasRows || hasError,
-			"Holdings page should show data rows or error message (rows: {hasRows}, error: {hasError})");
+		PageRenderAssertions.AssertRendered("Holdings", hasRows, hasError);
 
-		if (hasRows)
-		{
-			// Verify all seeded symbols appear
-			foreach (var symbol in new[] { "AAPL", "GOOGL", "BTC", "VTI", "US10Y" })
-			{
-				var hasSymbol = await holdingsPage.HasHoldingSymbolAsync(symbol);
-				Assert.True(hasSymbol, $"Holdings page should show seeded {symbol} holding");
-			}
-		}
+		// Verify all seeded symbols appear when rows are present
+		await PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync("Holdings", hasRows, ["AAPL", "GOOGL", "BTC", "VTI", "US10Y"], holdingsPage.HasHoldingSymbolAsync);
 	}
 
 	[RetryFact]
@@ -76,8 +63,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var isEmpty = await accountsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await accountsPage.HasAccountDataRowsAsync();
 		var hasError = await accountsPage.IsErrorDisplayedAsync();
-		Assert.True(hasRows || isEmpty || hasError,
-			"Accounts page should render correctly (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
+		PageRenderAssertions.AssertRendered("Accounts", hasRows, isEmpty, hasError);
 	}
 
 	[RetryFact]
@@ -91,8 +77,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var isEmpty = await taxReportPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await taxReportPage.HasReportRowsAsync();
 		var hasError = await taxReportPage.IsErrorDisplayedAsync();
-		Assert.True(hasRows || isEmpty || hasError,
-			"TaxReport page should render correctly (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
+		PageRenderAssertions.AssertRendered("TaxReport", hasRows, isEmpty, hasError);
 	}
 
 	[RetryFact]
@@ -117,7 +102,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var hasError = await topMoversPage.IsErrorDisplayedAsync();
 
 		Assert.True(hasError || hasRisers || hasLosers || hasNoRisersMessage || hasNoLosersMessage,
-			"TopMovers page should render correctly (error: {hasError}, risers: {hasRisers}, losers: {hasLosers}, noRisersMsg: {hasNoRisersMessage}, noLosersMsg: {hasNoLosersMessage})");
+			$"TopMovers page should render correctly (error: {hasError}, risers: {hasRisers}, losers: {hasLosers}, noRisersMsg: {hasNoRisersMessage}, noLosersMsg: {hasNoLosersMessage}). Check screenshots/HTML in playwright-screenshots/ for actual DOM state.");
 	}
 
 	[RetryFact]
@@ -154,8 +139,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var isEmpty = await dividendsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await dividendsPage.HasDividendRowsAsync();
 		var hasError = await dividendsPage.IsErrorDisplayedAsync();
-		Assert.True(hasRows || isEmpty || hasError,
-			"Upcoming Dividends page should render correctly (rows: {hasRows}, empty: {isEmpty}, error: {hasError})");
+		PageRenderAssertions.AssertRendered("Upcoming Dividends", hasRows, isEmpty, hasError);
 	}
 
 	[RetryFact]

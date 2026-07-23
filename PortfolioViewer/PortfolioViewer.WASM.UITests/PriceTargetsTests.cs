@@ -110,7 +110,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 
 		// Data may not appear if Ghostfolio API is not configured; just verify page rendered
 		Assert.True(hasData || hasError || !appEmpty,
-			"Price Targets page should render (data: {hasData}, error: {hasError}, appEmpty: {appEmpty})");
+			$"Price Targets page should render (data: {hasData}, error: {hasError}, appEmpty: {appEmpty})");
 
 		if (hasData)
 		{

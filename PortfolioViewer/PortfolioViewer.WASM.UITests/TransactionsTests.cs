@@ -22,7 +22,6 @@ public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		// The page should have rendered without Blazor errors.
 		// In the test environment, the WASM client syncs from Ghostfolio API which may not be configured,
 		// so we may see a table with data, an empty state, or an error message — all are valid renders.
-		Assert.True(isTableDisplayed || isEmpty || hasError,
-			"Transaction page should render (table: {isTableDisplayed}, empty: {isEmpty}, error: {hasError})");
+		PageRenderAssertions.AssertRendered("Transactions", isTableDisplayed, isEmpty, hasError);
 	}
 }

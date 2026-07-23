@@ -45,6 +45,11 @@ Generated\ Files/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
+# Playwright UI test artifacts (PortfolioViewer.WASM.UITests)
+playwright-screenshots/
+playwright-videos/
+*.hangdump.dmp
+
 # NUnit
 *.VisualState.xml
 TestResult.xml

@@ -95,9 +95,9 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 
 	/// <summary>
 	/// Captures comprehensive failure artifacts: screenshot, HTML, and console logs.
-	/// Called automatically when a test fails.
+	/// Called automatically from DisposeAsync when TestContext reports a failed test.
 	/// </summary>
-	protected async void CaptureFailureArtifacts(string testName)
+	protected async Task CaptureFailureArtifacts(string testName)
 	{
 		if (Page == null) return;
 
@@ -211,8 +211,12 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 		if (syncButton != null)
 		{
 			await syncButton.ClickAsync();
-			// Wait for sync button to become enabled again (sync completed)
-			await Page.WaitForSelectorAsync("button.btn-primary:has-text('Sync'):not([disabled])", new PageWaitForSelectorOptions { Timeout = 120000 });
+			// Wait for sync button to become enabled again (sync completed).
+			// Wrapped in WaitAsync(CancellationToken) so a stuck sync aborts promptly via the test's
+			// cancellation token instead of always blocking for the full 120s Playwright timeout -
+			// this was a suspected contributor to the hangdump artifacts previously observed in TestResults.
+			await Page.WaitForSelectorAsync("button.btn-primary:has-text('Sync'):not([disabled])", new PageWaitForSelectorOptions { Timeout = 120000 })
+				.WaitAsync(CancellationToken);
 		}
 
 		// Screenshot: After sync
@@ -221,6 +225,24 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 
 	public virtual async ValueTask DisposeAsync()
 	{
+		// Automatically capture debugging artifacts (screenshot, HTML, console log) when the test
+		// failed. xUnit v3 populates TestContext.Current.TestState before DisposeAsync runs, so this
+		// requires no per-test try/catch boilerplate to be "easily debuggable" out of the box.
+		try
+		{
+			var testState = TestContext.Current?.TestState;
+			if (testState?.Result == TestResult.Failed)
+			{
+				var testName = GetCurrentTestName();
+				await CaptureFailureArtifacts(string.IsNullOrEmpty(testName) ? "UnknownTest" : testName);
+				await CaptureErrorStateAsync(string.IsNullOrEmpty(testName) ? "UnknownTest" : testName);
+			}
+		}
+		catch
+		{
+			// Never let artifact capture prevent test cleanup from completing.
+		}
+
 		// Dispose context (isolated per test) but NOT the shared browser
 		if (Context != null)
 		{
