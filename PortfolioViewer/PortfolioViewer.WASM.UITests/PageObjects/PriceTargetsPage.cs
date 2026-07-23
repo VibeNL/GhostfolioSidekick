@@ -14,7 +14,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 	{
 		await ExecuteWithErrorCheckAsync(async () =>
 		{
-			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Portfolio')");
+			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('System')");
 			await _page.WaitForSelectorAsync(PriceTargetsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
 			await _page.ClickAsync(PriceTargetsLinkSelector);
 			await _page.WaitForURLAsync("**/price-targets", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
