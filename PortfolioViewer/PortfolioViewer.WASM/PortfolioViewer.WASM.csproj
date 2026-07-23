@@ -43,11 +43,11 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Plotly.Blazor" Version="7.1.0" />
+		<PackageReference Include="Plotly.Blazor" Version="7.2.0" />
 		<PackageReference Include="Grpc.Net.Client.Web" Version="2.80.0" />
 		<PackageReference Include="Grpc.Net.Client" Version="2.80.0" />
 		<PackageReference Include="Google.Protobuf" Version="3.35.1" />
-		<PackageReference Include="Grpc.Tools" Version="2.82.0" PrivateAssets="All" />
+		<PackageReference Include="Grpc.Tools" Version="2.83.0" PrivateAssets="All" />
 		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="10.0.10" />
 	</ItemGroup>
 
