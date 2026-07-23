@@ -22,6 +22,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(TaskStatusLinkSelector);
             await _page.WaitForURLAsync("**/task-status", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync();
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -36,6 +37,7 @@ public class TaskStatusPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
+        await WaitForPageLoadAsync();
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

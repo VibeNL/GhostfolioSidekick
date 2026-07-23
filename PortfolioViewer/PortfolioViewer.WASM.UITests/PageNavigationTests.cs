@@ -14,7 +14,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		var holdingsPage = new HoldingsPage(Page!);
 		await holdingsPage.NavigateViaMenuAsync();
-		await holdingsPage.WaitForPageLoadAsync();
 		await holdingsPage.SwitchToTableModeAsync();
 
 		// Page should render without crashing
@@ -38,7 +37,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		var holdingsPage = new HoldingsPage(Page!);
 		await holdingsPage.NavigateViaMenuAsync();
-		await holdingsPage.WaitForPageLoadAsync();
 		await holdingsPage.SwitchToTableModeAsync();
 
 		var hasRows = await holdingsPage.HasHoldingsDataRowsAsync();
@@ -68,7 +66,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		try
 		{
 			await accountsPage.NavigateViaMenuAsync();
-			await accountsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -90,7 +87,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		var taxReportPage = new TaxReportPage(Page!);
 		await taxReportPage.NavigateViaMenuAsync();
-		await taxReportPage.WaitForPageLoadAsync();
 
 		var isEmpty = await taxReportPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await taxReportPage.HasReportRowsAsync();
@@ -108,7 +104,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		try
 		{
 			await topMoversPage.NavigateViaMenuAsync();
-			await topMoversPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -133,7 +128,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
 
 		await timeSeriesPage.NavigateViaMenuAsync();
-		await timeSeriesPage.WaitForPageLoadAsync();
 		await timeSeriesPage.SwitchToTableModeAsync();
 		await timeSeriesPage.WaitForPageLoadAsync();
 
@@ -151,7 +145,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		try
 		{
 			await dividendsPage.NavigateViaMenuAsync();
-			await dividendsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -174,7 +167,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		try
 		{
 			await dataIssuesPage.NavigateViaMenuAsync();
-			await dataIssuesPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -194,7 +186,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		var taskStatusPage = new TaskStatusPage(Page!);
 		await taskStatusPage.NavigateViaMenuAsync();
-		await taskStatusPage.WaitForPageLoadAsync();
 
 		var hasTaskStatusTitle = await taskStatusPage.HasTaskStatusTitleAsync();
 		Assert.True(hasTaskStatusTitle, "TaskStatus page should display its title");
@@ -207,7 +198,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		var dividendsPage = new UpcomingDividendsPage(Page!);
 		await dividendsPage.NavigateViaMenuAsync();
-		await dividendsPage.WaitForPageLoadAsync();
 
 		var hasTitle = await dividendsPage.HasDividendsTitleAsync();
 		Assert.True(hasTitle, "Dividends page should display its title");
@@ -220,7 +210,6 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		var tablesPage = new TablesPage(Page!);
 		await tablesPage.NavigateViaMenuAsync();
-		await tablesPage.WaitForPageLoadAsync();
 
 		var hasTableViewerTitle = await tablesPage.HasTableViewerTitleAsync();
 		Assert.True(hasTableViewerTitle, "Tables page should display its title");

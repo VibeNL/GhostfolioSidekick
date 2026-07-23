@@ -27,6 +27,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 					// Wait for SPA navigation to complete
 					await _page.WaitForURLAsync("**/transactions", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
 			});
+			await WaitForPageLoadAsync();
 		}
 
 		public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -41,9 +42,10 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				}
 				await _page.GotoAsync(targetUrl);
 			}, ct);
+			await WaitForPageLoadAsync();
 		}
 
-		public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
+			public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 		{
 			await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector, ".alert-danger"], timeout, ct);
 		}

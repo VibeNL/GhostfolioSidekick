@@ -21,6 +21,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 			await _page.ClickAsync(PriceTargetsLinkSelector);
 			await _page.WaitForURLAsync("**/price-targets", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
 		});
+		await WaitForPageLoadAsync();
 	}
 
 	public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -35,6 +36,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 			}
 			await _page.GotoAsync(targetUrl);
 		}, ct);
+		await WaitForPageLoadAsync();
 	}
 
 	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

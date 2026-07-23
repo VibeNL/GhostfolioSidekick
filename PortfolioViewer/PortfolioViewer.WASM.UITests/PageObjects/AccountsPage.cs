@@ -21,6 +21,7 @@ public class AccountsPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(AccountsLinkSelector);
             await _page.WaitForURLAsync("**/accounts", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync();
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -35,6 +36,7 @@ public class AccountsPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
+        await WaitForPageLoadAsync();
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

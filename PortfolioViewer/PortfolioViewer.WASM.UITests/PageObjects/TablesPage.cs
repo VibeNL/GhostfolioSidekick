@@ -20,6 +20,7 @@ public class TablesPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(TablesLinkSelector);
             await _page.WaitForURLAsync("**/tables", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync();
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -32,6 +33,7 @@ public class TablesPage(IPage page) : BasePageObject(page)
             await _page.WaitForSelectorAsync("a.dropdown-item:has-text('Data Tables')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await _page.ClickAsync("a.dropdown-item:has-text('Data Tables')");
         }, ct);
+        await WaitForPageLoadAsync();
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

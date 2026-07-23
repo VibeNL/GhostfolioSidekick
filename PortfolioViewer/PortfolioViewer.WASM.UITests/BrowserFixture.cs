@@ -14,7 +14,7 @@ public sealed class BrowserFixture : IAsyncLifetime
 	public async ValueTask InitializeAsync()
 	{
 		var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-		Browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = false });
+		Browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 	}
 
 	public async ValueTask DisposeAsync()

@@ -15,7 +15,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await transactionsPage.NavigateDirectAsync();
-			await transactionsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -43,7 +42,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await holdingsPage.NavigateDirectAsync();
-			await holdingsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -71,7 +69,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await accountsPage.NavigateDirectAsync();
-			await accountsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -94,7 +91,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await dividendsPage.NavigateDirectAsync();
-			await dividendsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -117,7 +113,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await timeSeriesPage.NavigateDirectAsync();
-			await timeSeriesPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -140,7 +135,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await dataIssuesPage.NavigateDirectAsync();
-			await dataIssuesPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -168,7 +162,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await topMoversPage.NavigateDirectAsync();
-			await topMoversPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -196,7 +189,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await taxReportPage.NavigateDirectAsync();
-			await taxReportPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -224,7 +216,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await transactionsPage.NavigateDirectAsync();
-			await transactionsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{
@@ -252,7 +243,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		try
 		{
 			await holdingsPage.NavigateDirectAsync();
-			await holdingsPage.WaitForPageLoadAsync();
 		}
 		catch
 		{

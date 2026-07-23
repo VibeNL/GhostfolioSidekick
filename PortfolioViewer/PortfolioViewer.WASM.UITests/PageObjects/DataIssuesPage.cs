@@ -20,6 +20,7 @@ public class DataIssuesPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(DataIssuesLinkSelector);
             await _page.WaitForURLAsync("**/data-issues", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync();
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -34,6 +35,7 @@ public class DataIssuesPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
+        await WaitForPageLoadAsync();
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

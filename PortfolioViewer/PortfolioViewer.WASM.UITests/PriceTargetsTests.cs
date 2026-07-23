@@ -28,9 +28,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		// Wait for Blazor to initialize
 		await Page!.WaitForSelectorAsync("#app", new PageWaitForSelectorOptions { Timeout = 10000 });
 
-		// Wait for page content to render (any stable state)
-		await PriceTargetsPage.WaitForPageLoadAsync(30000);
-
 		// Check for Blazor errors
 		var errorEl = await Page.QuerySelectorAsync("#blazor-error-ui");
 		if (errorEl != null && await errorEl.IsVisibleAsync())
@@ -63,7 +60,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		await SetupAsync();
 
 		await PriceTargetsPage.NavigateDirectAsync();
-		await PriceTargetsPage.WaitForPageLoadAsync();
 
 		// Page should render without crashing - just verify the page is not blank
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -77,7 +73,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		await SetupAsync();
 
 		await PriceTargetsPage.NavigateDirectAsync();
-		await PriceTargetsPage.WaitForPageLoadAsync();
 
 		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -92,7 +87,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		await SetupAsync();
 
 		await PriceTargetsPage.NavigateViaMenuAsync();
-		await PriceTargetsPage.WaitForPageLoadAsync();
 
 		// Page should render without crashing - just verify the app container has content
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -107,7 +101,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		await SetupAsync();
 
 		await PriceTargetsPage.NavigateDirectAsync();
-		await PriceTargetsPage.WaitForPageLoadAsync();
 
 		var hasData = await PriceTargetsPage.HasPriceTargetDataRowsAsync(1);
 		var hasError = await PriceTargetsPage.IsErrorDisplayedAsync();

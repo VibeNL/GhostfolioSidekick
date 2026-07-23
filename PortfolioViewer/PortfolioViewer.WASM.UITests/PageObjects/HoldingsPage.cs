@@ -23,6 +23,7 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
             await _page.ClickAsync(HoldingsLinkSelector);
             await _page.WaitForURLAsync("**/holdings", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
         });
+        await WaitForPageLoadAsync();
     }
 
     public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -37,6 +38,7 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
             }
             await _page.GotoAsync(targetUrl);
         }, ct);
+        await WaitForPageLoadAsync();
     }
 
     public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)

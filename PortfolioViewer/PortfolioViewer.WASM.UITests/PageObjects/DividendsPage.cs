@@ -20,6 +20,7 @@ public class DividendsPage(IPage page) : BasePageObject(page)
 			}
 			await _page.GotoAsync(targetUrl);
 		}, ct);
+		await WaitForPageLoadAsync();
 	}
 
 	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
