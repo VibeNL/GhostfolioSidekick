@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Moq;
 
@@ -15,7 +16,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
 		public CsvExportServiceTests()
 		{
 			var jsRuntimeMock = new Mock<IJSRuntime>();
-			_service = new CsvExportService(jsRuntimeMock.Object);
+			var loggerMock = new Mock<ILogger<CsvExportService>>();
+			_service = new CsvExportService(jsRuntimeMock.Object, loggerMock.Object);
 		}
 
 		[Fact]

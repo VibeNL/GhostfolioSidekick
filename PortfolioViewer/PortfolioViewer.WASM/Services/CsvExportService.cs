@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text;
+using GhostfolioSidekick.Model;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
@@ -11,10 +13,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 	public class CsvExportService : ICsvExportService
 	{
 		private readonly IJSRuntime _jsRuntime;
+		private readonly ILogger<CsvExportService> _logger;
 
-		public CsvExportService(IJSRuntime jsRuntime)
+		public CsvExportService(IJSRuntime jsRuntime, ILogger<CsvExportService> logger)
 		{
 			_jsRuntime = jsRuntime;
+			_logger = logger;
 		}
 
 		public string ExportToCsvString<T>(IEnumerable<T> data, IEnumerable<string>? headers = null)
@@ -81,10 +85,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				// Use JavaScript interop to trigger browser download
 				await _jsRuntime.InvokeVoidAsync("downloadCsv", fileNameWithExtension, csvContent);
 			}
-			catch
+			catch (Exception ex)
 			{
-				// Silently handle export errors (JS interop failures, CSV generation issues)
-				// to avoid showing Blazor error UI to users
+				// Swallow export errors (JS interop failures, CSV generation issues)
+				// to avoid showing Blazor error UI to users, but log for diagnostics
+				_logger.LogError(ex, "Failed to export data to CSV file '{FileName}'", fileName);
 			}
 		}
 
@@ -133,19 +138,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				return "\"\"";
 			}
 
-			// Handle Money types
-			if (value.GetType().Name == "Money" || value.GetType().FullName?.Contains("Money") == true)
+			// Handle Money type
+			if (value is Money money)
 			{
-				var amountProp = value.GetType().GetProperty("Amount");
-				if (amountProp != null)
-				{
-					var amount = amountProp.GetValue(value);
-					var amountStr = amount is decimal d ? d.ToString(CultureInfo.InvariantCulture) : amount?.ToString() ?? "";
-					var currencyProp = value.GetType().GetProperty("Currency");
-					var currency = currencyProp?.GetValue(value)?.ToString() ?? "";
-					return FormatCsvValue($"{amountStr} {currency}");
-				}
-				return FormatCsvValue(value.ToString() ?? "");
+				var amountStr = money.Amount.ToString(CultureInfo.InvariantCulture);
+				return FormatCsvValue($"{amountStr} {money.Currency}");
 			}
 
 			// Handle DateTime
