@@ -36,7 +36,7 @@ const downloadCsv = (fileName: string, csvContent: string): void => {
     link.download = fileName;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
 };
 
