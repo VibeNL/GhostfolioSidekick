@@ -179,8 +179,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// Get all table names dynamically from the database
-				var allTables = await GetDatabaseTablesAsync(databaseContext);
-				var tablesWithDateColumns = await GetTablesWithDateColumnsAsync(databaseContext, allTables);
+				var allTables = await GetDatabaseTablesAsync(databaseContext, cancellationToken);
+				var tablesWithDateColumns = await GetTablesWithDateColumnsAsync(databaseContext, allTables, cancellationToken);
 				var tablesWithoutDateColumns = allTables.Except(tablesWithDateColumns).ToList();
 
 				// Get latest dates from server for tables with date columns
@@ -266,12 +266,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private async Task<List<string>> GetDatabaseTablesAsync(DatabaseContext databaseContext)
+		private async Task<List<string>> GetDatabaseTablesAsync(DatabaseContext databaseContext, CancellationToken cancellationToken)
 		{
 			var query = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN (@ignore1, @ignore2, @ignore3)";
 
 			using var connection = databaseContext.Database.GetDbConnection();
-			await connection.OpenAsync();
+			await connection.OpenAsync(cancellationToken);
 			using var command = connection.CreateCommand();
 			command.CommandText = query;
 
@@ -287,8 +287,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			command.Parameters.AddRange(parameters);
 
 			var tables = new List<string>();
-			using var reader = await command.ExecuteReaderAsync();
-			while (await reader.ReadAsync())
+			using var reader = await command.ExecuteReaderAsync(cancellationToken);
+			while (await reader.ReadAsync(cancellationToken))
 			{
 				tables.Add(reader.GetString(0));
 			}
@@ -296,12 +296,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return tables;
 		}
 
-		private static async Task<List<string>> GetTablesWithDateColumnsAsync(DatabaseContext databaseContext, List<string> tables)
+		private static async Task<List<string>> GetTablesWithDateColumnsAsync(DatabaseContext databaseContext, List<string> tables, CancellationToken cancellationToken)
 		{
 			var tablesWithDateColumns = new List<string>();
 
 			using var connection = databaseContext.Database.GetDbConnection();
-			await connection.OpenAsync();
+			await connection.OpenAsync(cancellationToken);
 
 			foreach (var table in tables)
 			{
@@ -309,8 +309,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				using var command = connection.CreateCommand();
 				command.CommandText = $"PRAGMA table_info({table})";
 
-				using var reader = await command.ExecuteReaderAsync();
-				while (await reader.ReadAsync())
+				using var reader = await command.ExecuteReaderAsync(cancellationToken);
+				while (await reader.ReadAsync(cancellationToken))
 				{
 					var columnName = reader.GetString(1); // Column name is at index 1
 					if (string.Equals(columnName, "Date", StringComparison.OrdinalIgnoreCase))
@@ -327,7 +327,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private static async Task<int> DeleteRecordsSinceDate(DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
 		{
 			// Check if table has a Date column
-			var hasDateColumn = await TableHasDateColumn(databaseContext, tableName);
+			var hasDateColumn = await TableHasDateColumn(databaseContext, tableName, cancellationToken);
 			if (!hasDateColumn)
 			{
 				return 0;
@@ -348,15 +348,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return await command.ExecuteNonQueryAsync(cancellationToken);
 		}
 
-		private static async Task<bool> TableHasDateColumn(DatabaseContext databaseContext, string tableName)
+		private static async Task<bool> TableHasDateColumn(DatabaseContext databaseContext, string tableName, CancellationToken cancellationToken)
 		{
 			using var connection = databaseContext.Database.GetDbConnection();
-			await connection.OpenAsync();
+			await connection.OpenAsync(cancellationToken);
 			using var command = connection.CreateCommand();
 			command.CommandText = $"PRAGMA table_info({tableName})";
 
-			using var reader = await command.ExecuteReaderAsync();
-			while (await reader.ReadAsync())
+			using var reader = await command.ExecuteReaderAsync(cancellationToken);
+			while (await reader.ReadAsync(cancellationToken))
 			{
 				var columnName = reader.GetString(1); // Column name is at index 1
 				if (string.Equals(columnName, "Date", StringComparison.OrdinalIgnoreCase))
