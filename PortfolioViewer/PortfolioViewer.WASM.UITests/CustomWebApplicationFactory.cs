@@ -207,9 +207,22 @@ namespace PortfolioViewer.WASM.UITests
 			try
 			{
 				using var buildProc = Process.Start(buildPsi)!;
-				_ = buildProc.StandardOutput.ReadToEndAsync();
-				_ = buildProc.StandardError.ReadToEndAsync();
-				buildProc.WaitForExit();
+				var stdOutTask = buildProc.StandardOutput.ReadToEndAsync();
+				var stdErrTask = buildProc.StandardError.ReadToEndAsync();
+				// Bounded wait: an unbounded WaitForExit() here previously risked hanging the entire
+				// test host (and process) indefinitely if the child `dotnet build` process stalled
+				// (e.g. MSBuild server/NuGet lock contention) — a suspected cause of hangdump artifacts
+				// found in TestResults. Fail fast with diagnostics instead.
+				if (!buildProc.WaitForExit(TimeSpan.FromMinutes(5)))
+				{
+					try { buildProc.Kill(entireProcessTree: true); } catch { /* best effort */ }
+					Console.WriteLine("[EnsureWasmPublishedToApiStaticFiles] WASM pre-build process timed out after 5 minutes and was killed.");
+				}
+				else
+				{
+					Console.WriteLine(stdOutTask.Result);
+					Console.WriteLine(stdErrTask.Result);
+				}
 			}
 			catch
 			{
@@ -267,9 +280,18 @@ namespace PortfolioViewer.WASM.UITests
 				UseShellExecute = false
 			};
 			using Process proc = Process.Start(psi)!;
-			_ = proc.StandardOutput.ReadToEndAsync();
-			_ = proc.StandardError.ReadToEndAsync();
-			proc.WaitForExit();
+			var publishStdOutTask = proc.StandardOutput.ReadToEndAsync();
+			var publishStdErrTask = proc.StandardError.ReadToEndAsync();
+			// Bounded wait — see comment in EnsureWasmPublishedToApiStaticFiles's build step above.
+			// A stuck publish here previously could hang the whole test host with no diagnostics.
+			if (!proc.WaitForExit(TimeSpan.FromMinutes(10)))
+			{
+				try { proc.Kill(entireProcessTree: true); } catch { /* best effort */ }
+				throw new TimeoutException("WASM publish timed out after 10 minutes and was killed. Check for MSBuild/NuGet lock contention.");
+			}
+
+			Console.WriteLine(publishStdOutTask.Result);
+			Console.WriteLine(publishStdErrTask.Result);
 
 			if (proc.ExitCode != 0)
 			{
