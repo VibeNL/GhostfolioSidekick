@@ -182,7 +182,12 @@ Maintaining symbols in ghostfolio
 | name | any string | The name of the symbol |
 | assetSubClass | one of: 'CRYPTOCURRENCY', 'ETF', 'STOCK', 'MUTUALFUND', 'BOND', 'COMMODITY', 'PRECIOUS_METAL', 'PRIVATE_EQUITY'| Same list as Ghostfolio |
 | assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
+| underlyingSharesPerReceipt | decimal, optional | Number of underlying ordinary shares represented by one unit of this symbol. Use this for ADR (American Depositary Receipt) / GDR (Global Depositary Receipt) symbols where one receipt does not equal one underlying share (e.g. Samsung ADR US7960508882 represents 25 ordinary shares, so set this to 25). Defaults to 1 (no conversion) when omitted. Note: for Yahoo-sourced symbols this ratio is also detected automatically on a best-effort basis (see below); this field lets you override or correct it. |
 | scraperConfiguration| object with url, selector and optional locale | The scraperconfiguration as used in Ghostfolio (NOTE: no support for headers yet)|
+
+#### ADR/GDR ratio detection
+
+There is no dedicated free API that publishes ADR/GDR "shares per receipt" ratios. For symbols matched via Yahoo Finance, GhostfolioSidekick makes a best-effort attempt to detect the ratio by scanning the security's name and business summary for common phrasings (e.g. `"GDR (EACH REP 25 COM STK KRW100)"`, `"each ADR represents 4 ordinary shares"`, `"ADR ratio of 10:1"`). When no phrasing is recognized, the ratio defaults to 1 (no conversion). Use `underlyingSharesPerReceipt` in `manualSymbolConfiguration` to set or correct the ratio explicitly.
 
 ### Supported formats
 The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.

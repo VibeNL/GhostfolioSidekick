@@ -210,7 +210,17 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				GetSectors(securityProfile))
 			{
 				WebsiteUrl = $"https://finance.yahoo.com/quote/{symbol.Symbol}",
+				SharesPerReceipt = GetSharesPerReceipt(symbol, securityProfile),
 			};
+		}
+
+		private static decimal GetSharesPerReceipt(Security symbol, SecurityProfile? securityProfile)
+		{
+			var longBusinessSummary = securityProfile?.Fields.ContainsKey(ProfileFields.LongBusinessSummary.ToString()) == true
+				? securityProfile.LongBusinessSummary
+				: null;
+
+			return AdrRatioParser.TryParseSharesPerReceipt(symbol.LongName, symbol.ShortName, longBusinessSummary) ?? 1;
 		}
 
 		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)

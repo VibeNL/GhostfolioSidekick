@@ -65,6 +65,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			symbol.AssetSubClass = EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass);
 			symbol.ISIN = manualSymbolConfiguration.ISIN;
 			symbol.Currency = Currency.GetCurrency(manualSymbolConfiguration.Currency);
+			symbol.SharesPerReceipt = manualSymbolConfiguration.UnderlyingSharesPerReceipt ?? 1;
 			symbol.Identifiers = [
 				.. ListExtensions.FilterEmpty(new string?[] { symbol.Name }).Select(id => new SymbolIdentifier { Identifier = id, IdentifierType = IdentifierType.Name }),
 				.. ListExtensions.FilterEmpty(new string?[] { symbol.ISIN }).Select(id => new SymbolIdentifier { Identifier = id, IdentifierType = IdentifierType.ISIN })

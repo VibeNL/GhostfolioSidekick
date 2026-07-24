@@ -55,6 +55,14 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string? ISIN { get; set; }
 
+		/// <summary>
+		/// Number of underlying ordinary shares represented by one unit of this symbol.
+		/// Used for ADR (American Depositary Receipt) / GDR (Global Depositary Receipt) symbols
+		/// where one receipt does not represent a single underlying share (e.g. 1 ADR = 25 shares).
+		/// Defaults to 1 (no conversion) for regular symbols.
+		/// </summary>
+		public decimal SharesPerReceipt { get; set; } = 1;
+
 		public List<SymbolIdentifier> Identifiers { get; set; }
 
 		public string? Comment { get; set; }
