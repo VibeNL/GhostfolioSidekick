@@ -8,8 +8,8 @@ public interface IPriceTargetsService
 	Task<PriceTargetDisplayModel?> GetPriceTargetForSymbolAsync(string symbol, CancellationToken cancellationToken = default);
 
 	/// <summary>
-	/// Gets current holdings joined with their analyst price targets, sorted by proximity
-	/// (smallest absolute percentage difference between current price and average target first).
+	/// Gets current holdings joined with their analyst price targets, sorted by proximity percentage
+	/// (CurrentPrice / AverageTarget * 100) in descending order (passed targets first).
 	/// </summary>
 	Task<List<HoldingPriceTargetDisplayModel>> GetHoldingsPriceTargetsAsync(CancellationToken cancellationToken = default);
 }

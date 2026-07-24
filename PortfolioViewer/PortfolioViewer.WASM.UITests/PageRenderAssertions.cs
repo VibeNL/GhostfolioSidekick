@@ -9,8 +9,8 @@ namespace PortfolioViewer.WASM.UITests;
 public static class PageRenderAssertions
 {
 	/// <summary>
-	/// Asserts the page rendered into one of the three tolerated states (rows/empty/error) and
-	/// returns which state was observed so callers can conditionally tighten further checks
+	/// Asserts the page rendered into one of the three tolerated states (rows/empty/error).
+	/// Callers can use their own <paramref name="hasRows"/> flag to conditionally tighten further checks
 	/// (e.g. verifying specific seeded symbols only when hasRows is true).
 	/// </summary>
 	public static void AssertRendered(string pageName, bool hasRows, bool isEmpty, bool hasError)
