@@ -1,3 +1,4 @@
+using GhostfolioSidekick.ExternalDataProvider.Citi;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -10,7 +11,7 @@ using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository(ILogger<YahooRepository> logger) :
+	public class YahooRepository(ILogger<YahooRepository> logger, IAdrRatioProvider adrRatioProvider) :
 			ICurrencyRepository,
 			ISymbolMatcher,
 			IStockPriceRepository,
@@ -96,7 +97,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				if (bestMatch != null)
 				{
-					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult, bestMatch.PartialSymbolIdentifier.Identifier);
 				}
 
 				// Match by ticker
@@ -105,7 +106,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				if (bestMatch != null)
 				{
-					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult, null);
 				}
 
 				// Match by name
@@ -117,7 +118,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				if (bestMatch != null)
 				{
-					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult, null);
 				}
 
 				return null;
@@ -179,7 +180,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				.ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(searchTerm));
 		}
 
-		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match)
+		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match, string? isin)
 		{
 			IReadOnlyDictionary<string, Security>? symbols = await GetSymbolDetails(match.Symbol);
 			if (symbols == null)
@@ -210,7 +211,26 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				GetSectors(securityProfile))
 			{
 				WebsiteUrl = $"https://finance.yahoo.com/quote/{symbol.Symbol}",
+				ISIN = isin,
+				SharesPerReceipt = await GetSharesPerReceipt(symbol, securityProfile, isin),
 			};
+		}
+
+		private async Task<decimal> GetSharesPerReceipt(Security symbol, SecurityProfile? securityProfile, string? isin)
+		{
+			// Prefer the free Citi Depositary Receipts "DR Program Information" lookup, which exposes
+			// the ratio (ORD:DRS) directly by CUSIP, derived from a US-issued ISIN.
+			var citiRatio = await adrRatioProvider.GetSharesPerReceiptAsync(isin);
+			if (citiRatio.HasValue)
+			{
+				return citiRatio.Value;
+			}
+
+			var longBusinessSummary = securityProfile?.Fields.ContainsKey(ProfileFields.LongBusinessSummary.ToString()) == true
+				? securityProfile.LongBusinessSummary
+				: null;
+
+			return AdrRatioParser.TryParseSharesPerReceipt(symbol.LongName, symbol.ShortName, longBusinessSummary) ?? 1;
 		}
 
 		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)

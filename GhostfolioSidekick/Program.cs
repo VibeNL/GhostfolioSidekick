@@ -7,6 +7,7 @@ using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.ExternalDataProvider.Citi;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
@@ -107,6 +108,14 @@ namespace GhostfolioSidekick
 							_ = services.AddSingleton<GhostfolioAPI.Cache.IGhostfolioSyncCacheService, GhostfolioAPI.Cache.GhostfolioSyncCacheService>();
 
 							AddHooksToCacheExternalServices(services);
+
+							_ = services.AddSingleton<IAdrRatioProvider>(sp => new CitiAdrRatioProvider(
+								sp.GetRequiredService<ILogger<CitiAdrRatioProvider>>(),
+								sp.GetRequiredService<IHttpClientFactory>().CreateClient("Citi")));
+							services.AddHttpClient("Citi", client =>
+							{
+								client.DefaultRequestHeaders.Add("User-Agent", "GhostfolioSidekick/1.0");
+							});
 
 							_ = services.AddSingleton<YahooRepository>();
 							_ = services.AddSingleton<CoinGeckoRepository>();

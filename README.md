@@ -182,7 +182,12 @@ Maintaining symbols in ghostfolio
 | name | any string | The name of the symbol |
 | assetSubClass | one of: 'CRYPTOCURRENCY', 'ETF', 'STOCK', 'MUTUALFUND', 'BOND', 'COMMODITY', 'PRECIOUS_METAL', 'PRIVATE_EQUITY'| Same list as Ghostfolio |
 | assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
+| underlyingSharesPerReceipt | decimal, optional | Number of underlying ordinary shares represented by one unit of this symbol. Use this for ADR (American Depositary Receipt) / GDR (Global Depositary Receipt) symbols where one receipt does not equal one underlying share (e.g. Samsung ADR US7960508882 represents 25 ordinary shares, so set this to 25). Defaults to 1 (no conversion) when omitted. Note: for Yahoo-sourced symbols this ratio is also detected automatically on a best-effort basis (see below); this field lets you override or correct it. |
 | scraperConfiguration| object with url, selector and optional locale | The scraperconfiguration as used in Ghostfolio (NOTE: no support for headers yet)|
+
+#### ADR/GDR ratio detection
+
+For symbols matched via Yahoo Finance with a US-issued ISIN, GhostfolioSidekick automatically looks up the "shares per receipt" ratio for free using Citi's public Depositary Receipts "DR Program Information" lookup (by CUSIP, derived from the ISIN), which directly exposes a `Ratio (ORD:DRS)` field (e.g. Samsung ADR US7960508882 → CUSIP 796050888 → ratio 25:1). If that lookup fails or the symbol isn't a US-issued receipt, GhostfolioSidekick falls back to a best-effort scan of the security's name and business summary for common phrasings (e.g. `"GDR (EACH REP 25 COM STK KRW100)"`, `"each ADR represents 4 ordinary shares"`, `"ADR ratio of 10:1"`). When neither source yields a ratio, it defaults to 1 (no conversion). Use `underlyingSharesPerReceipt` in `manualSymbolConfiguration` to set or correct the ratio explicitly.
 
 ### Supported formats
 The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.
