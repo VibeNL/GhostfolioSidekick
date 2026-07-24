@@ -1,4 +1,6 @@
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +9,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 public class PriceTargetsService(
 	IDbContextFactory<DatabaseContext> dbContextFactory,
-	IHoldingsDataService holdingsDataService) : IPriceTargetsService
+	IHoldingsDataService holdingsDataService,
+	ICurrencyExchange currencyExchange) : IPriceTargetsService
 {
 	public async Task<List<PriceTargetDisplayModel>> GetPriceTargetsAsync(CancellationToken cancellationToken = default)
 	{
@@ -82,9 +85,19 @@ public class PriceTargetsService(
 			}
 
 			var currentPriceAmount = holding.CurrentPrice.Amount;
-			var proximityPercentage = pt.AverageTargetPriceAmount == 0
+			var averageTargetCurrency = pt.AverageTargetCurrency ?? Currency.USD;
+			var averageTargetPrice = new Money(averageTargetCurrency, pt.AverageTargetPriceAmount);
+			if (averageTargetCurrency != holding.CurrentPrice.Currency)
+			{
+				averageTargetPrice = await currencyExchange.ConvertMoney(
+					averageTargetPrice,
+					holding.CurrentPrice.Currency,
+					DateOnly.FromDateTime(DateTime.Today));
+			}
+
+			var proximityPercentage = averageTargetPrice.Amount == 0
 				? 0
-				: currentPriceAmount / pt.AverageTargetPriceAmount * 100;
+				: currentPriceAmount / averageTargetPrice.Amount * 100;
 
 			result.Add(new HoldingPriceTargetDisplayModel
 			{

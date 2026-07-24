@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
@@ -23,7 +24,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -75,7 +76,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -120,7 +121,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -156,7 +157,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -194,7 +195,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetForSymbolAsync("AAPL", TestContext.Current.CancellationToken);
@@ -222,7 +223,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetForSymbolAsync("NONEXISTENT", TestContext.Current.CancellationToken);
@@ -264,7 +265,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -287,7 +288,7 @@ public class PriceTargetsServiceTests
         mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockContext.Object);
 
-        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>());
+        var service = new PriceTargetsService(mockFactory.Object, Mock.Of<IHoldingsDataService>(), Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetPriceTargetsAsync(new CancellationToken(canceled: true));
@@ -311,7 +312,7 @@ public class PriceTargetsServiceTests
         mockHoldingsService.Setup(x => x.GetHoldingsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<HoldingDisplayModel>());
 
-        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object);
+        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object, Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetHoldingsPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -346,7 +347,7 @@ public class PriceTargetsServiceTests
                 CreateHolding("AAPL", 150m)
             });
 
-        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object);
+        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object, Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetHoldingsPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -389,7 +390,7 @@ public class PriceTargetsServiceTests
                 CreateHolding("AAPL", 90m) // 90 / 180 * 100 = 50%
             });
 
-        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object);
+        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object, Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetHoldingsPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -441,7 +442,7 @@ public class PriceTargetsServiceTests
                 CreateHolding("GOOGL", 171m)
             });
 
-        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object);
+        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object, Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetHoldingsPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -479,7 +480,7 @@ public class PriceTargetsServiceTests
                 CreateHolding("AAPL", 90m)
             });
 
-        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object);
+        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object, Mock.Of<ICurrencyExchange>());
 
         // Act
         var result = await service.GetHoldingsPriceTargetsAsync(TestContext.Current.CancellationToken);
@@ -489,9 +490,101 @@ public class PriceTargetsServiceTests
         Assert.Empty(result);
     }
 
-    private static HoldingDisplayModel CreateHolding(string symbol, decimal currentPrice)
+    [Fact]
+    public async Task GetHoldingsPriceTargetsAsync_WhenCurrenciesDiffer_ConvertsTargetToHoldingCurrency()
     {
-        var currency = Currency.USD;
+        // Arrange: holding is priced in EUR, target price is quoted in USD.
+        var mockContext = new Mock<DatabaseContext>();
+        mockContext.Setup(x => x.PriceTargets).ReturnsDbSet(new List<PriceTarget>
+        {
+            new()
+            {
+                Symbol = "AAPL",
+                AverageTargetPriceAmount = 180m,
+                AverageTargetCurrency = Currency.USD
+            }
+        });
+
+        var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+        mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockContext.Object);
+
+        var mockHoldingsService = new Mock<IHoldingsDataService>();
+        mockHoldingsService.Setup(x => x.GetHoldingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<HoldingDisplayModel>
+            {
+                CreateHolding("AAPL", 90m, Currency.EUR)
+            });
+
+        // 180 USD converts to 90 EUR (rate of 0.5), so proximity should be 90 / 90 * 100 = 100%.
+        var mockCurrencyExchange = new Mock<ICurrencyExchange>();
+        mockCurrencyExchange
+            .Setup(x => x.ConvertMoney(
+                It.Is<Money>(m => m.Currency == Currency.USD && m.Amount == 180m),
+                Currency.EUR,
+                It.IsAny<DateOnly>()))
+            .ReturnsAsync(new Money(Currency.EUR, 90m));
+
+        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object, mockCurrencyExchange.Object);
+
+        // Act
+        var result = await service.GetHoldingsPriceTargetsAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(100m, result[0].ProximityPercentage);
+        mockCurrencyExchange.Verify(
+            x => x.ConvertMoney(
+                It.Is<Money>(m => m.Currency == Currency.USD && m.Amount == 180m),
+                Currency.EUR,
+                It.IsAny<DateOnly>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetHoldingsPriceTargetsAsync_WhenCurrenciesMatch_DoesNotCallCurrencyExchange()
+    {
+        // Arrange
+        var mockContext = new Mock<DatabaseContext>();
+        mockContext.Setup(x => x.PriceTargets).ReturnsDbSet(new List<PriceTarget>
+        {
+            new()
+            {
+                Symbol = "AAPL",
+                AverageTargetPriceAmount = 180m,
+                AverageTargetCurrency = Currency.USD
+            }
+        });
+
+        var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+        mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockContext.Object);
+
+        var mockHoldingsService = new Mock<IHoldingsDataService>();
+        mockHoldingsService.Setup(x => x.GetHoldingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<HoldingDisplayModel>
+            {
+                CreateHolding("AAPL", 90m, Currency.USD)
+            });
+
+        var mockCurrencyExchange = new Mock<ICurrencyExchange>();
+
+        var service = new PriceTargetsService(mockFactory.Object, mockHoldingsService.Object, mockCurrencyExchange.Object);
+
+        // Act
+        var result = await service.GetHoldingsPriceTargetsAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(50m, result[0].ProximityPercentage);
+        mockCurrencyExchange.Verify(
+            x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()),
+            Times.Never);
+    }
+
+    private static HoldingDisplayModel CreateHolding(string symbol, decimal currentPrice, Currency? currency = null)
+    {
+        currency ??= Currency.USD;
         return new HoldingDisplayModel
         {
             Symbols = [symbol],
