@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.Database
 			_ = configurationBuilder.DefaultTypeMapping<decimal>(builder => builder.HasPrecision(18, 8));
 		}
 
-		public Task ExecutePragma(string pragmaCommand, CancellationToken cancellationToken = default)
+		public Task ExecutePragma(string pragmaCommand, CancellationToken cancellationToken)
 		{
 			DbConnection connection = Database.GetDbConnection();
 			connection.Open();

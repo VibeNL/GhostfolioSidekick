@@ -878,9 +878,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// Enable performance optimizations
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;", cancellationToken);
 
 				progress?.Report(($"Clearing existing data in table: {tableName}...", 20));
 
@@ -900,9 +900,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Finalizing sync for table: {tableName}...", 90));
 
 				// Re-enable constraints and finalize
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;", cancellationToken);
 
 				await sqlitePersistence.SaveChangesAsync();
 
