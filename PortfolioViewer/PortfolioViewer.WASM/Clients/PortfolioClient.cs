@@ -218,9 +218,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Performing partial sync for {tablesToActuallySync.Count} tables since {sinceDateString}...", 10));
 
 				// Enable performance optimizations
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;", cancellationToken);
 
 				var totalProgress = 0;
 				var progressStep = 80 / tablesToActuallySync.Count; // Reserve 20% for cleanup
@@ -249,9 +249,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				}
 
 				// Re-enable constraints and finalize
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;", cancellationToken);
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;", cancellationToken);
 
 				await sqlitePersistence.SaveChangesAsync();
 
@@ -463,13 +463,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			// Step 2: Clear Tables
 			// Disable contraints on DB
-			await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
-			await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
-			await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
-			await databaseContext.ExecutePragma("PRAGMA cache_size =1000000;");
-			await databaseContext.ExecutePragma("PRAGMA locking_mode=EXCLUSIVE;");
-			await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
-			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
+			await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA cache_size =1000000;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA locking_mode=EXCLUSIVE;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;", cancellationToken);
 
 			// Clear all non-ignored tables using LINQ
 			var tablesToClear = tableNames.Zip(totalRows, (name, count) => new { Name = name, Count = count })
@@ -506,15 +506,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			// Step 4: Enable constraints on DB
-			await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
-			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
-			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
-			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
+			await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;", cancellationToken);
+			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;", cancellationToken);
 
 			// Step 5: Finalize sync
-			await databaseContext.ExecutePragma("PRAGMA journal_mode = DELETE;"); // Use simpler journaling mode
-			await databaseContext.ExecutePragma("PRAGMA synchronous = FULL;"); // Force immediate writes
-			await databaseContext.ExecutePragma("PRAGMA cache_size = -2000;"); // Limit cache size to force writes
+			await databaseContext.ExecutePragma("PRAGMA journal_mode = DELETE;", cancellationToken); // Use simpler journaling mode
+			await databaseContext.ExecutePragma("PRAGMA synchronous = FULL;", cancellationToken); // Force immediate writes
+			await databaseContext.ExecutePragma("PRAGMA cache_size = -2000;", cancellationToken); // Limit cache size to force writes
 
 			await sqlitePersistence.SaveChangesAsync();
 

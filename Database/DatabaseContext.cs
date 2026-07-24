@@ -82,13 +82,13 @@ namespace GhostfolioSidekick.Database
 			_ = configurationBuilder.DefaultTypeMapping<decimal>(builder => builder.HasPrecision(18, 8));
 		}
 
-		public Task ExecutePragma(string pragmaCommand)
+		public Task ExecutePragma(string pragmaCommand, CancellationToken cancellationToken = default)
 		{
 			DbConnection connection = Database.GetDbConnection();
 			connection.Open();
 			using DbCommand command = connection.CreateCommand();
 			command.CommandText = pragmaCommand;
-			return command.ExecuteNonQueryAsync();
+			return command.ExecuteNonQueryAsync(cancellationToken);
 		}
 
 		public virtual IQueryable<T> SqlQueryRaw<T>(string sql)
