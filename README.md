@@ -187,7 +187,7 @@ Maintaining symbols in ghostfolio
 
 #### ADR/GDR ratio detection
 
-There is no dedicated free API that publishes ADR/GDR "shares per receipt" ratios. For symbols matched via Yahoo Finance, GhostfolioSidekick makes a best-effort attempt to detect the ratio by scanning the security's name and business summary for common phrasings (e.g. `"GDR (EACH REP 25 COM STK KRW100)"`, `"each ADR represents 4 ordinary shares"`, `"ADR ratio of 10:1"`). When no phrasing is recognized, the ratio defaults to 1 (no conversion). Use `underlyingSharesPerReceipt` in `manualSymbolConfiguration` to set or correct the ratio explicitly.
+For symbols matched via Yahoo Finance with a US-issued ISIN, GhostfolioSidekick automatically looks up the "shares per receipt" ratio for free using Citi's public Depositary Receipts "DR Program Information" lookup (by CUSIP, derived from the ISIN), which directly exposes a `Ratio (ORD:DRS)` field (e.g. Samsung ADR US7960508882 → CUSIP 796050888 → ratio 25:1). If that lookup fails or the symbol isn't a US-issued receipt, GhostfolioSidekick falls back to a best-effort scan of the security's name and business summary for common phrasings (e.g. `"GDR (EACH REP 25 COM STK KRW100)"`, `"each ADR represents 4 ordinary shares"`, `"ADR ratio of 10:1"`). When neither source yields a ratio, it defaults to 1 (no conversion). Use `underlyingSharesPerReceipt` in `manualSymbolConfiguration` to set or correct the ratio explicitly.
 
 ### Supported formats
 The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.
