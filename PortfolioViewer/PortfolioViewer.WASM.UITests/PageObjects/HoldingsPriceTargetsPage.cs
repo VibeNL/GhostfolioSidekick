@@ -2,22 +2,22 @@ using Microsoft.Playwright;
 
 namespace PortfolioViewer.WASM.UITests.PageObjects;
 
-public class PriceTargetsPage(IPage page) : BasePageObject(page)
+public class HoldingsPriceTargetsPage(IPage page) : BasePageObject(page)
 {
-	private const string PageHeadingSelector = "h5.card-title:has-text('Analyst Price Targets')";
+	private const string PageHeadingSelector = "h5.card-title:has-text('Holdings vs. Price Targets')";
 	private const string TableRowSelector = "table.table tbody tr";
-	private const string EmptyStateSelector = "h5.text-muted:has-text('No Price Targets Found')";
+	private const string EmptyStateSelector = "h5.text-muted:has-text('No Matching Holdings Found')";
 	private const string ErrorAlertSelector = ".alert-danger";
-	private const string PriceTargetsLinkSelector = "a.dropdown-item[href='price-targets']";
+	private const string HoldingsPriceTargetsLinkSelector = "a.dropdown-item[href='holdings-price-targets']";
 
 	public async Task NavigateViaMenuAsync()
 	{
 		await ExecuteWithErrorCheckAsync(async () =>
 		{
-			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('System')");
-			await _page.WaitForSelectorAsync(PriceTargetsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
-			await _page.ClickAsync(PriceTargetsLinkSelector);
-			await _page.WaitForURLAsync("**/price-targets", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
+			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Portfolio')");
+			await _page.WaitForSelectorAsync(HoldingsPriceTargetsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
+			await _page.ClickAsync(HoldingsPriceTargetsLinkSelector);
+			await _page.WaitForURLAsync("**/holdings-price-targets", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
 		});
 		await WaitForPageLoadAsync(ct: CancellationToken.None);
 	}
@@ -26,7 +26,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 	{
 		await ExecuteWithErrorCheckAsync(async () =>
 		{
-			var targetUrl = relativePath ?? "/price-targets";
+			var targetUrl = relativePath ?? "/holdings-price-targets";
 			if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
 			{
 				var baseUri = new Uri(_page.Url);
@@ -40,12 +40,12 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 	{
 		await base.WaitForPageLoadAsync(
-			["h5:has-text('Analyst Price Targets')"],
+			["h5:has-text('Holdings vs. Price Targets')"],
 			timeout,
 			ct);
 	}
 
-	public async Task<bool> HasPriceTargetsHeadingAsync()
+	public async Task<bool> HasHoldingsPriceTargetsHeadingAsync()
 	{
 		try
 		{
@@ -75,7 +75,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 		catch { return false; }
 	}
 
-	public async Task<bool> HasPriceTargetDataRowsAsync(int minimumRows = 1)
+	public async Task<bool> HasDataRowsAsync(int minimumRows = 1)
 	{
 		try
 		{
@@ -85,11 +85,11 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 		catch { return false; }
 	}
 
-	public async Task<bool> HasPriceTargetSymbolAsync(string symbol)
+	public async Task<bool> HasSymbolAsync(string symbol)
 	{
 		try
 		{
-			var rows = await _page.QuerySelectorAllAsync("table.table tbody tr");
+			var rows = await _page.QuerySelectorAllAsync(TableRowSelector);
 			foreach (var row in rows)
 			{
 				var text = await row.TextContentAsync() ?? "";
@@ -101,7 +101,7 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 		catch { return false; }
 	}
 
-	public async Task<List<string>> GetPriceTargetSymbolsAsync()
+	public async Task<List<string>> GetSymbolsAsync()
 	{
 		var symbols = new List<string>();
 		try
@@ -109,7 +109,6 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 			var rows = await _page.QuerySelectorAllAsync(TableRowSelector);
 			foreach (var row in rows)
 			{
-				var text = await row.TextContentAsync() ?? "";
 				var cells = await row.QuerySelectorAllAsync("td");
 				if (cells.Count > 0)
 				{

@@ -1,0 +1,124 @@
+@page "/holdings-price-targets"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+@inject IPriceTargetsService PriceTargetsService
+@attribute [Authorize]
+
+<PageTitle>Holdings Price Targets</PageTitle>
+
+<div class="container-fluid">
+    @if (_isLoading)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Holdings Price Targets...</h5>
+                        <p class="text-muted mb-0">Please wait while we compare your holdings to analyst price targets.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (_hasError)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@_errorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!_holdingsPriceTargetsList.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-tag text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No Matching Holdings Found</h5>
+                        <p class="text-muted mb-3">None of your current holdings have analyst price targets available yet.</p>
+                        <button class="btn btn-primary" @onclick="RefreshDataAsync">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Holdings vs. Price Targets</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@_isLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">Symbol</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col" class="text-end">Quantity</th>
+                                        <th scope="col" class="text-end">Current Price</th>
+                                        <th scope="col" class="text-end">Average Target</th>
+                                        <th scope="col" class="text-end">% of Target</th>
+                                        <th scope="col" class="text-center">Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in _holdingsPriceTargetsList)
+                                    {
+                                        <tr class="price-target-row">
+                                            <td><strong>@item.Symbol</strong></td>
+                                            <td>@item.Name</td>
+                                            <td class="text-end">@item.Quantity.ToString("N2")</td>
+                                            <td class="text-end">@FormatPrice(item.CurrentPrice.Amount, item.CurrentPrice.Currency.Symbol)</td>
+                                            <td class="text-end">@FormatPrice(item.AverageTargetAmount, item.AverageTargetCurrency)</td>
+                                            <td class="text-end">@((MarkupString)GetProximityBadge(item.ProximityPercentage))</td>
+                                            <td class="text-center">@((MarkupString)GetRatingBadge(item.Rating))</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .price-target-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+    .price-target-row {
+        transition: background-color 0.15s ease-in-out;
+    }
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
