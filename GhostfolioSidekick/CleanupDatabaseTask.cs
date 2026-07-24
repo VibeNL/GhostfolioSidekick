@@ -20,7 +20,7 @@ namespace GhostfolioSidekick
 		public async Task DoWork(ILogger logger, CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Cleanup database...");
-			await dbContext.ExecutePragma("PRAGMA integrity_check;");
+			await dbContext.ExecutePragma("PRAGMA integrity_check;", cancellationToken);
 			await dbContext.Database.ExecuteSqlRawAsync("VACUUM;", cancellationToken: cancellationToken);
 			logger.LogInformation("Database cleaned.");
 		}

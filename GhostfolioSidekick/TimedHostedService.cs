@@ -23,7 +23,7 @@ namespace GhostfolioSidekick
 			this.databaseContext = databaseContext;
 			this.logger = logger;
 
-			GenerateDatabase().Wait();
+			GenerateDatabase().Wait(CancellationToken.None);
 
 			var activeTypeNames = new HashSet<string>();
 			foreach (var todo in workItems.OrderBy(x => x.Priority))
@@ -40,20 +40,20 @@ namespace GhostfolioSidekick
 		{
 			logger.LogInformation("Generating / Updating database...");
 
-			await databaseContext.Database.MigrateAsync().ConfigureAwait(false);
-			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
-			await databaseContext.ExecutePragma("PRAGMA fullfsync=ON;");
-			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
-			await databaseContext.ExecutePragma("PRAGMA busy_timeout=5000;");
+			await databaseContext.Database.MigrateAsync(CancellationToken.None).ConfigureAwait(false);
+			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;", CancellationToken.None);
+			await databaseContext.ExecutePragma("PRAGMA fullfsync=ON;", CancellationToken.None);
+			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;", CancellationToken.None);
+			await databaseContext.ExecutePragma("PRAGMA busy_timeout=5000;", CancellationToken.None);
 
 			logger.LogInformation("Integrity checks...");
-			await databaseContext.ExecutePragma("PRAGMA integrity_check;");
+			await databaseContext.ExecutePragma("PRAGMA integrity_check;", CancellationToken.None);
 
 			logger.LogInformation("Deleting task data...");
-			await databaseContext.Tasks.ExecuteDeleteAsync();
+			await databaseContext.Tasks.ExecuteDeleteAsync(CancellationToken.None);
 
 			logger.LogInformation("Vacuum...");
-			await databaseContext.Database.ExecuteSqlRawAsync("VACUUM;");
+			await databaseContext.Database.ExecuteSqlRawAsync("VACUUM;", CancellationToken.None);
 
 			logger.LogInformation("Database generated / updated.");
 		}
