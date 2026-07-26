@@ -15,10 +15,11 @@ Primary target:
 - `PortfolioViewer/PortfolioViewer.WASM.UITests`
 
 Core files/patterns:
-- `PlaywrightTestBase.cs` for browser lifecycle, login + sync setup, screenshots/videos, console logging.
-- `CustomWebApplicationFactory.cs` for Kestrel host, in-memory SQLite, seeded data, WASM publish-to-wwwroot bootstrap.
+- `PlaywrightTestBase.cs` for browser lifecycle, login + sync setup, screenshots/videos, console logging. `DisposeAsync` automatically captures failure artifacts (screenshot/HTML/console log) using `TestContext.Current.TestState.Result` — no per-test try/catch needed.
+- `CustomWebApplicationFactory.cs` for Kestrel host, in-memory SQLite, seeded data, WASM publish-to-wwwroot bootstrap. The `dotnet build`/`dotnet publish` child processes use **bounded** `WaitForExit(TimeSpan)` (5min/10min) with `Kill(entireProcessTree: true)` on timeout — never revert to unbounded `WaitForExit()`, that previously caused whole-test-host hangs (see hangdump files historically found under `TestResults/`).
 - `WebApplicationFactoryCollection.cs` disables parallelization for shared DB safety.
-- `PageObjects/BasePageObject.cs` for shared `WaitForPageLoadAsync` (spinner hidden → any stable state), `ExecuteWithErrorCheckAsync` (auto Blazor error check), `CheckForBlazorErrorAsync`.
+- `PageObjects/BasePageObject.cs` for shared `WaitForPageLoadAsync` (spinner hidden → any stable state, waits are wrapped in `.WaitAsync(ct)` for cancellation responsiveness), `ExecuteWithErrorCheckAsync` (auto Blazor error check), `CheckForBlazorErrorAsync`.
+- `PageRenderAssertions.cs` (test project root) — shared helper for the common "page rendered" tri-state assertion (`AssertRendered(pageName, hasRows, isEmpty, hasError)`) and `AssertSeededSymbolsWhenRowsPresentAsync(...)` for tightening checks against `TestDataSeeder` data only when rows are actually present. **Use these instead of copy-pasting `Assert.True(hasRows || isEmpty || hasError, ...)` blocks.**
 - `PageObjects/*` for page objects — all use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)`.
 - Tests use `[RetryFact]` from `xRetry.v3`.
 
@@ -68,6 +69,18 @@ Use this skill when user asks any of:
 - Use `ExecuteWithErrorCheckAsync()` for navigation actions to auto-catch Blazor errors.
 - All page objects use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)` — pass full URL for absolute paths.
 - In test env, pages may render `.alert-danger` when Ghostfolio API is not configured — assertions must accept error state as valid render.
+- Use `PageRenderAssertions.AssertRendered(...)` for the rows/empty/error tri-state check instead of a new inline `Assert.True(hasRows || isEmpty || hasError, ...)`. Use `PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync(...)` to verify specific `TestDataSeeder` symbols only when `hasRows` is true.
+- Always use interpolated strings (`$"...{variable}"`) in assertion messages — a plain non-interpolated string containing `{variable}` silently prints the literal text and hides the actual failure value. Double-check this when writing/reviewing new assertions.
+- Any new child `Process.Start(...)` usage (e.g. build/publish helpers) must use a bounded `WaitForExit(TimeSpan)` with a kill-on-timeout fallback — never an unbounded `WaitForExit()`, since a stuck child process hangs the entire test host with no diagnostics.
+
+## Hang Debugging
+
+If a test run hangs or you find `*.hangdump.dmp` files under `TestResults/`:
+1. Check `CustomWebApplicationFactory.EnsureWasmPublishedToApiStaticFiles` first — the `dotnet build`/`dotnet publish` child processes are the most likely culprit for a full test-host hang since they run once per test process startup.
+2. Confirm those calls still use bounded `WaitForExit(TimeSpan)` + `Kill(entireProcessTree: true)` (do not let a regression reintroduce unbounded `WaitForExit()`).
+3. Check for MSBuild server/NuGet lock contention (a second `dotnet build` running concurrently, e.g. from the IDE) as a common external cause.
+4. Failure artifacts (screenshot/HTML/console log) are captured automatically on test failure via `PlaywrightTestBase.DisposeAsync` — no extra wiring needed; just look in `playwright-screenshots/` for `*-failure-*` and `*-error-*` files.
+5. `TestResults/` and `playwright-screenshots|videos/` are gitignored — delete stale local copies freely, they are never meant to be committed.
 
 ## Investigation Checklist
 

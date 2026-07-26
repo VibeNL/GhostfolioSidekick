@@ -64,7 +64,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				// Wait for loading spinner to disappear (optional — may not exist)
 				try
 				{
-					await _page.WaitForSelectorAsync(".spinner-border", new PageWaitForSelectorOptions { State = WaitForSelectorState.Hidden, Timeout = Math.Min(5000, timeout / 2) });
+					await _page.WaitForSelectorAsync(".spinner-border", new PageWaitForSelectorOptions { State = WaitForSelectorState.Hidden, Timeout = Math.Min(5000, timeout / 2) })
+						.WaitAsync(ct);
 				}
 				catch
 				{
@@ -76,7 +77,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				{
 					try
 					{
-						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = timeout });
+						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = timeout })
+							.WaitAsync(ct);
 						return;
 					}
 					catch
