@@ -19,16 +19,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		private static readonly Regex[] Patterns =
 		[
 			// "EACH REP 25", "EACH REPRESENTING 25", "EACH REPRESENTS 25"
-			new(@"EACH\s+REP(?:RESENTING|RESENTS)?\.?\s+(?<ratio>\d+(\.\d+)?)", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+			EachRepPattern(),
 
 			// "one ADR represents 4 ordinary shares", "each ADS represents 0.5 of one ordinary share"
-			new(@"(?:one|each|1)\s+(?:ADR|ADS|GDR|GDS|DR)s?\s+represents?\s+(?<ratio>\d+(\.\d+)?)", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+			AadrRepresentsPattern(),
 
 			// "ADR ratio of 10:1", "ADR ratio: 10:1", "GDR ratio 4:1"
-			new(@"(?:ADR|ADS|GDR|GDS|DR)\s+ratio\s*(?:of|is|:)?\s*(?<ratio>\d+(\.\d+)?)\s*:\s*1", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+			AdrRatioPattern(),
 
 			// "represents 25 ordinary shares" / "represents 25 common shares"
-			new(@"represents?\s+(?<ratio>\d+(\.\d+)?)\s+(?:ordinary|common)\s+shares?", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+			RepresentsOrdinarySharesPattern(),
 		];
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				foreach (var pattern in Patterns)
 				{
-					var match = pattern.Match(text);
+					var match = Regex.Match(text, pattern.ToString(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 					if (!match.Success)
 					{
 						continue;
@@ -61,5 +61,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			return null;
 		}
+
+		[GeneratedRegex(@"EACH\s+REP(?:RESENTING|RESENTS)?\.?\s+(?<ratio>\d+(\.\d+)?)", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-NL")]
+		private static partial Regex EachRepPattern();
+		[GeneratedRegex(@"(?:one|each|1)\s+(?:ADR|ADS|GDR|GDS|DR)s?\s+represents?\s+(?<ratio>\d+(\.\d+)?)", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-NL")]
+		private static partial Regex AadrRepresentsPattern();
+		[GeneratedRegex(@"(?:ADR|ADS|GDR|GDS|DR)\s+ratio\s*(?:of|is|:)?\s*(?<ratio>\d+(\.\d+)?)\s*:\s*1", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-NL")]
+		private static partial Regex AdrRatioPattern();
+		[GeneratedRegex(@"represents?\s+(?<ratio>\d+(\.\d+)?)\s+(?:ordinary|common)\s+shares?", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-NL")]
+		private static partial Regex RepresentsOrdinarySharesPattern();
 	}
 }
