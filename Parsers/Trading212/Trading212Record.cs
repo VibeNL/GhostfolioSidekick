@@ -1,4 +1,4 @@
-﻿using CsvHelper;
+using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using CsvHelper.TypeConversion;
@@ -11,6 +11,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 	{
 		public required string Action { get; set; }
 
+		[Name("Time (UTC)", "Time")]
 		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
 		public DateTime Time { get; set; }
 

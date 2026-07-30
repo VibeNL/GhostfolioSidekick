@@ -216,6 +216,38 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyUSD_NewTimeHeader_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/BuyOrders/single_buy_usd_time_utc.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(
+						Currency.USD,
+						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
+									new[] {
+										PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, "US67066G1040", Currency.USD),
+										PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, "NVDA", Currency.USD),
+										PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, "NVIDIA", Currency.USD),
+									},
+									0.0267001M,
+									new Money(Currency.USD, 453.33M),
+									new Money(Currency.EUR, 11.02M),
+									"EOF3219953148"),
+									PartialActivity.CreateFee(
+										Currency.EUR,
+										new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
+										0.02M,
+										new Money(Currency.EUR, 0.02M),
+										"EOF3219953148"),
+								]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleLimitBuyUSD_Converted()
 		{
 			// Arrange
