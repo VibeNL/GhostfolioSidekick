@@ -1,3 +1,4 @@
+using GhostfolioSidekick.ExternalDataProvider.Citi;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -14,12 +15,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 	public class YahooRepositoryTests
 	{
 		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
+		private readonly Mock<IAdrRatioProvider> _adrRatioProviderMock;
 		private readonly YahooRepository _repository;
 
 	   public YahooRepositoryTests()
 	   {
 		   _loggerMock = new Mock<ILogger<YahooRepository>>();
-		   _repository = new YahooRepository(_loggerMock.Object);
+		   _adrRatioProviderMock = new Mock<IAdrRatioProvider>();
+		   _repository = new YahooRepository(_loggerMock.Object, _adrRatioProviderMock.Object);
 	   }
 
 		[Fact]

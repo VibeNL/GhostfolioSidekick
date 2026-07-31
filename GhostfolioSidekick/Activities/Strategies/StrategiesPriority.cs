@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Activities.Strategies
+namespace GhostfolioSidekick.Activities.Strategies
 {
 	public enum StrategiesPriority
 	{
@@ -9,5 +9,7 @@
 		DeterminePrice,
 
 		StockSplit,
+
+		ReceiptRatio,
 	}
 }
