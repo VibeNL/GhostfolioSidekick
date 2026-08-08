@@ -12,8 +12,6 @@
 
 		public string? Comment { get; set; }
 
-		public bool IsExcluded { get; set; }
-
 		public string? PlatformId { get; set; }
 	}
 }

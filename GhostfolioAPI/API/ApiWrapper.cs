@@ -27,7 +27,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["currency"] = account.Balance.FirstOrDefault()?.Money.Currency.Symbol ?? Currency.EUR.ToString(),
 				["comment"] = account.Comment,
 				["platformId"] = null,
-				["isExcluded"] = false,
 				["balance"] = 0,
 			};
 
