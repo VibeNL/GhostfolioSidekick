@@ -109,13 +109,13 @@ namespace GhostfolioSidekick
 
 							AddHooksToCacheExternalServices(services);
 
-							_ = services.AddSingleton<IAdrRatioProvider>(sp => new CitiAdrRatioProvider(
-								sp.GetRequiredService<ILogger<CitiAdrRatioProvider>>(),
-								sp.GetRequiredService<IHttpClientFactory>().CreateClient("Citi")));
 							services.AddHttpClient("Citi", client =>
 							{
 								client.DefaultRequestHeaders.Add("User-Agent", "GhostfolioSidekick/1.0");
 							});
+							_ = services.AddSingleton<IAdrRatioProvider>(sp => new CitiAdrRatioProvider(
+								sp.GetRequiredService<ILogger<CitiAdrRatioProvider>>(),
+								sp.GetRequiredService<IHttpClientFactory>().CreateClient("Citi")));
 
 							_ = services.AddSingleton<YahooRepository>();
 							_ = services.AddSingleton<CoinGeckoRepository>();

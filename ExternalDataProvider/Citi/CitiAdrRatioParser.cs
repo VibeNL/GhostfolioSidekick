@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Citi
 
 			if (!decimal.TryParse(match.Groups["ord"].Value, NumberStyles.Number, CultureInfo.InvariantCulture, out var ord) ||
 				!decimal.TryParse(match.Groups["drs"].Value, NumberStyles.Number, CultureInfo.InvariantCulture, out var drs) ||
-				drs <= 0)
+				ord <= 0 || drs <= 0)
 			{
 				return null;
 			}

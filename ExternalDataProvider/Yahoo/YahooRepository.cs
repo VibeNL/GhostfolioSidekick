@@ -220,6 +220,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		{
 			if (string.IsNullOrWhiteSpace(isin))
 			{
+				logger.LogDebug("No ISIN available for ADR/GDR ratio lookup for symbol {Symbol}", symbol.Symbol);
 				return 1;
 			}
 
@@ -235,7 +236,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				? securityProfile.LongBusinessSummary
 				: null;
 
-			return AdrRatioParser.TryParseSharesPerReceipt(symbol.LongName, symbol.ShortName, longBusinessSummary) ?? 1;
+			var yahooRatio = AdrRatioParser.TryParseSharesPerReceipt(symbol.LongName, symbol.ShortName, longBusinessSummary);
+			if (yahooRatio.HasValue)
+			{
+				return yahooRatio.Value;
+			}
+
+			logger.LogDebug("No ADR/GDR ratio found for symbol {Symbol} (ISIN: {Isin}) via Citi or Yahoo fallback", symbol.Symbol, isin);
+			return 1;
 		}
 
 		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)
