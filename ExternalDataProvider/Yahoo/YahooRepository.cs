@@ -180,7 +180,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				.ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(searchTerm));
 		}
 
-		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match, string? isin)
+		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match, string? explicitIsin)
 		{
 			IReadOnlyDictionary<string, Security>? symbols = await GetSymbolDetails(match.Symbol);
 			if (symbols == null)
@@ -211,8 +211,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				GetSectors(securityProfile))
 			{
 				WebsiteUrl = $"https://finance.yahoo.com/quote/{symbol.Symbol}",
-				ISIN = isin,
-				SharesPerReceipt = await GetSharesPerReceipt(symbol, securityProfile, isin),
+				ISIN = explicitIsin,
+				SharesPerReceipt = await GetSharesPerReceipt(symbol, securityProfile, explicitIsin),
 			};
 		}
 
@@ -232,7 +232,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return citiRatio.Value;
 			}
 
-			var longBusinessSummary = securityProfile?.Fields.ContainsKey(ProfileFields.LongBusinessSummary.ToString()) == true
+			var longBusinessSummary = securityProfile != null && securityProfile.Fields.ContainsKey(ProfileFields.LongBusinessSummary.ToString())
 				? securityProfile.LongBusinessSummary
 				: null;
 

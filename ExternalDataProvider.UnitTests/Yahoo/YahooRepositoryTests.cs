@@ -298,5 +298,26 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			Assert.NotNull(result);
 			Assert.Contains("Microsoft", result.Name, StringComparison.OrdinalIgnoreCase);
 		}
+
+		[Fact]
+		public async Task MatchSymbol_WithUSIsin_ShouldCallAdrRatioProvider_AndSetSharesPerReceipt()
+		{
+			// Arrange
+			_adrRatioProviderMock.Setup(x => x.GetSharesPerReceiptAsync("US7960508882"))
+				.ReturnsAsync((decimal?)25);
+
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.ISIN, "US7960508882", null, [], [])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			_adrRatioProviderMock.Verify(x => x.GetSharesPerReceiptAsync("US7960508882"), Times.Once);
+			Assert.Equal(25m, result.SharesPerReceipt);
+		}
 	}
 }
