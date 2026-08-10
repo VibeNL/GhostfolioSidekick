@@ -11,7 +11,7 @@ using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository(ILogger<YahooRepository> logger, IAdrRatioProvider adrRatioProvider) :
+	public class YahooRepository(ILogger<YahooRepository> logger, IAdrRatioProvider AdrRatioProvider) :
 			ICurrencyRepository,
 			ISymbolMatcher,
 			IStockPriceRepository,
@@ -218,9 +218,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		private async Task<decimal> GetSharesPerReceipt(Security symbol, SecurityProfile? securityProfile, string? isin)
 		{
+			if (string.IsNullOrWhiteSpace(isin))
+			{
+				return 1;
+			}
+
 			// Prefer the free Citi Depositary Receipts "DR Program Information" lookup, which exposes
 			// the ratio (ORD:DRS) directly by CUSIP, derived from a US-issued ISIN.
-			var citiRatio = await adrRatioProvider.GetSharesPerReceiptAsync(isin);
+			var citiRatio = await AdrRatioProvider.GetSharesPerReceiptAsync(isin);
 			if (citiRatio.HasValue)
 			{
 				return citiRatio.Value;

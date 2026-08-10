@@ -21,20 +21,23 @@ namespace GhostfolioSidekick.Activities.Strategies
 				return Task.CompletedTask;
 			}
 
-			foreach (var symbolProfile in symbolsWithRatio)
+			var firstRatio = symbolsWithRatio[0].SharesPerReceipt;
+			if (symbolsWithRatio.Any(x => x.SharesPerReceipt != firstRatio))
 			{
-				var ratio = symbolProfile.SharesPerReceipt;
-				var inverseRatio = 1 / ratio;
+				var differentRatios = string.Join(", ", symbolsWithRatio.Select(x => $"{x.Symbol}={x.SharesPerReceipt}"));
+				throw new InvalidOperationException($"Holding contains conflicting SharesPerReceipt values: {differentRatios}");
+			}
 
-				foreach (var activity in holding.Activities.OfType<ActivityWithQuantityAndUnitPrice>())
-				{
-					activity.AdjustedUnitPrice = activity.AdjustedUnitPrice.Times(inverseRatio);
-					activity.AdjustedQuantity *= ratio;
-					activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace(
-						$"Receipt ratio {ratio} ({symbolProfile.Symbol})",
-						activity.AdjustedQuantity,
-						activity.AdjustedUnitPrice));
-				}
+			var inverseRatio = 1 / firstRatio;
+
+			foreach (var activity in holding.Activities.OfType<ActivityWithQuantityAndUnitPrice>())
+			{
+				activity.AdjustedUnitPrice = activity.AdjustedUnitPrice.Times(inverseRatio);
+				activity.AdjustedQuantity *= firstRatio;
+				activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace(
+					$"Receipt ratio {firstRatio}",
+					activity.AdjustedQuantity,
+					activity.AdjustedUnitPrice));
 			}
 
 			return Task.CompletedTask;
