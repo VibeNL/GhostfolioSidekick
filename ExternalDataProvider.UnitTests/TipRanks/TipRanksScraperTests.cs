@@ -199,6 +199,23 @@ public class TipRanksScraperTests
 		Assert.Equal(0m, result!.AverageTargetPriceAmount);
 	}
 
+	[Fact]
+	public async Task GetPriceTarget_WhenHighOrLowPriceTargetIsNull_ShouldDefaultToZero()
+	{
+		// Arrange
+		var validJson = "{\"models\":{\"stocks\":[{\"_id\":\"nl:asrnl\",\"analystRatings\":{\"all\":{\"id\":\"buy\",\"buy\":10,\"hold\":5,\"sell\":2,\"highPriceTarget\":null,\"lowPriceTarget\":90}}}]}}";
+		var (scraper, _) = CreateScraper(validJson: validJson);
+		var symbol = BuildSymbolProfileWithUrl("AAPL", Datasource.TIPRANKS, "https://www.tipranks.com/stocks/nl:asrnl/forecast");
+
+		// Act
+		var result = await scraper.GetPriceTarget(symbol);
+
+		// Assert
+		Assert.NotNull(result);
+		Assert.Equal(0m, result!.HighestTargetPriceAmount);
+		Assert.Equal(90m, result.LowestTargetPriceAmount);
+	}
+
 	private static (TipRanksScraper Scraper, Mock<ILogger<TipRanksScraper>> LoggerMock) CreateScraper(
 		HttpStatusCode httpStatusCode = HttpStatusCode.OK,
 		string? validJson = null,
