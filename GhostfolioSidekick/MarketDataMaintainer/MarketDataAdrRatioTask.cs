@@ -43,11 +43,6 @@ internal sealed class MarketDataAdrRatioTask(
 					.Where(x => !Datasource.IsGhostfolio(x.Item2)));
 		}
 
-		var compareLogic = new CompareLogic()
-		{
-			Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] }
-		};
-
 		foreach (var symbolIds in symbolIdentifiers)
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
