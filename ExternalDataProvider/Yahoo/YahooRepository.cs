@@ -76,6 +76,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
+			// Debug samsung for now:
+			// Check if identifier contain any of these: SSNLF, 5930, SMSN, US7960508882, Samsung Electronics
+			if (symbolIdentifiers.Any(x => x.Identifier.Contains("SSNLF", StringComparison.InvariantCultureIgnoreCase) ||
+										  x.Identifier.Contains("5930", StringComparison.InvariantCultureIgnoreCase) ||
+										  x.Identifier.Contains("SMSN", StringComparison.InvariantCultureIgnoreCase) ||
+										  x.Identifier.Contains("US7960508882", StringComparison.InvariantCultureIgnoreCase) ||
+										  x.Identifier.Contains("Samsung Electronics", StringComparison.InvariantCultureIgnoreCase)))
+			{
+				logger.LogDebug("Matched Samsung Electronics (SSNLF) symbol");
+			}
 
 			AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
 			return (await retryPolicy.ExecuteAsync(async () =>
