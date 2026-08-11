@@ -148,7 +148,6 @@ namespace GhostfolioSidekick
 								]);
 							_ = services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							_ = services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
-							_ = services.AddSingleton<IPriceTargetRepository, PriceTargetRepository>();
 							_ = services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							_ = services.AddSingleton<IRestCall>(sp =>
 							{
