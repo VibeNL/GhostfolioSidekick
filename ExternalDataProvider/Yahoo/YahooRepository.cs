@@ -1,4 +1,3 @@
-using GhostfolioSidekick.ExternalDataProvider.Citi;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -11,7 +10,7 @@ using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository(ILogger<YahooRepository> logger, IAdrRatioProvider AdrRatioProvider) :
+	public class YahooRepository(ILogger<YahooRepository> logger) :
 			ICurrencyRepository,
 			ISymbolMatcher,
 			IStockPriceRepository,
@@ -211,44 +210,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			{
 				WebsiteUrl = $"https://finance.yahoo.com/quote/{symbol.Symbol}",
 				ISIN = explicitIsin,
-				SharesPerReceipt = await GetSharesPerReceipt(symbol, securityProfile, explicitIsin),
+				SharesPerReceipt = 1,
 			};
-		}
-
-		private async Task<decimal> GetSharesPerReceipt(Security symbol, SecurityProfile? securityProfile, string? isin)
-		{
-			if (string.IsNullOrWhiteSpace(isin))
-			{
-				logger.LogDebug("No ISIN available for ADR/GDR ratio lookup for symbol {Symbol}", symbol.Symbol);
-				return 1;
-			}
-
-			// Prefer the free Citi Depositary Receipts "DR Program Information" lookup, which exposes
-			// the ratio (ORD:DRS) directly by CUSIP, derived from a US-issued ISIN.
-			var citiRatio = await AdrRatioProvider.GetSharesPerReceiptAsync(isin);
-			if (citiRatio.HasValue)
-			{
-				return citiRatio.Value;
-			}
-
-			var longBusinessSummary = securityProfile != null && securityProfile.Fields.ContainsKey(ProfileFields.LongBusinessSummary.ToString())
-				? securityProfile.LongBusinessSummary
-				: null;
-
-			var longName = symbol.Fields.ContainsKey(Field.LongName.ToString()) 
-				? symbol.LongName 
-				: null;
-			var shortName = symbol.Fields.ContainsKey(Field.ShortName.ToString()) 
-				? symbol.ShortName 
-				: null;
-			var yahooRatio = AdrRatioParser.TryParseSharesPerReceipt(longName, shortName, longBusinessSummary);
-			if (yahooRatio.HasValue)
-			{
-				return yahooRatio.Value;
-			}
-
-			logger.LogDebug("No ADR/GDR ratio found for symbol {Symbol} (ISIN: {Isin}) via Citi or Yahoo fallback", symbol.Symbol, isin);
-			return 1;
 		}
 
 		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)

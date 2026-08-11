@@ -26,6 +26,8 @@ namespace GhostfolioSidekick
 
 		MarketDataStockSplit,
 
+		MarketDataAdrRatio,
+
 		MarketDataGatherer,
 
 		CalculatePrice,
