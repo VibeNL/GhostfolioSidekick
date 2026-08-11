@@ -21,6 +21,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Citi
 		[InlineData("Ratio (ORD:DRS) 4:1", 4)]
 		[InlineData("Ratio(ORD:DRS)10:1", 10)]
 		[InlineData("Ratio (ORD : DRS) 0.5:1", 0.5)]
+		[InlineData("Ratio (ORD:DR) 25:1", 25)]
+		[InlineData("<td>Ratio (ORD:DR)</td><td>25      :1       </td>", 25)]
 		public void TryParseSharesPerReceipt_VariousFormats_ParsesCorrectly(string content, decimal expected)
 		{
 			// Act

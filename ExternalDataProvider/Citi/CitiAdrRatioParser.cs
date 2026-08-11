@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Citi
 	/// </summary>
 	public static partial class CitiAdrRatioParser
 	{
-		[GeneratedRegex(@"Ratio\s*\(ORD\s*:\s*DRS\)[^0-9]*(?<ord>\d+(\.\d+)?)\s*:\s*(?<drs>\d+(\.\d+)?)", RegexOptions.IgnoreCase)]
+		[GeneratedRegex(@"Ratio\s*\(ORD\s*:\s*DR[S]?\s*\)[^0-9]*(?<ord>\d+(\.\d+)?)\s*:\s*(?<drs>\d+(\.\d+)?)", RegexOptions.IgnoreCase)]
 		private static partial Regex RatioPattern();
 
 		/// <summary>
