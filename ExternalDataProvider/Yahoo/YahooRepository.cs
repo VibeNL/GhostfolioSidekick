@@ -236,7 +236,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				? securityProfile.LongBusinessSummary
 				: null;
 
-			var yahooRatio = AdrRatioParser.TryParseSharesPerReceipt(symbol.LongName, symbol.ShortName, longBusinessSummary);
+			var longName = symbol.Fields.ContainsKey(Field.LongName.ToString()) 
+				? symbol.LongName 
+				: null;
+			var shortName = symbol.Fields.ContainsKey(Field.ShortName.ToString()) 
+				? symbol.ShortName 
+				: null;
+			var yahooRatio = AdrRatioParser.TryParseSharesPerReceipt(longName, shortName, longBusinessSummary);
 			if (yahooRatio.HasValue)
 			{
 				return yahooRatio.Value;
