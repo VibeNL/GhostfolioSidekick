@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using GhostfolioSidekick.Model;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services

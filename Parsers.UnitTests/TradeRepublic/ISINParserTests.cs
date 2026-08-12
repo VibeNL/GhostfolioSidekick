@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
+using GhostfolioSidekick.Utilities;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public void ExtractIsin_Tokens_NullInput_ReturnsEmpty()
 		{
 			// Act
-			var result = ISINParser.ExtractIsin((IReadOnlyList<SingleWordToken>)null!);
+			var result = ISINParserPdfExtensions.ExtractIsin((IReadOnlyList<SingleWordToken>)null!);
 
 			// Assert
 			Assert.Equal(string.Empty, result);
@@ -25,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public void ExtractIsin_Tokens_EmptyList_ReturnsEmpty()
 		{
 			// Act
-			var result = ISINParser.ExtractIsin(new List<SingleWordToken>());
+			var result = ISINParserPdfExtensions.ExtractIsin(new List<SingleWordToken>());
 
 			// Assert
 			Assert.Equal(string.Empty, result);
@@ -42,7 +43,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			};
 
 			// Act
-			var result = ISINParser.ExtractIsin(tokens);
+			var result = ISINParserPdfExtensions.ExtractIsin(tokens);
 
 			// Assert
 			Assert.Equal(ValidIsin, result);
@@ -59,7 +60,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			};
 
 			// Act
-			var result = ISINParser.ExtractIsin(tokens);
+			var result = ISINParserPdfExtensions.ExtractIsin(tokens);
 
 			// Assert
 			Assert.Equal(string.Empty, result);
@@ -76,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			};
 
 			// Act
-			var result = ISINParser.ExtractIsin(tokens);
+			var result = ISINParserPdfExtensions.ExtractIsin(tokens);
 
 			// Assert
 			Assert.Equal(ValidIsin, result);
@@ -92,7 +93,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			};
 
 			// Act
-			var result = ISINParser.ExtractIsin(tokens);
+			var result = ISINParserPdfExtensions.ExtractIsin(tokens);
 
 			// Assert
 			Assert.Equal(ValidIsin, result);
@@ -109,7 +110,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			};
 
 			// Act
-			var result = ISINParser.ExtractIsin(tokens);
+			var result = ISINParserPdfExtensions.ExtractIsin(tokens);
 
 			// Assert
 			Assert.Equal(string.Empty, result);
@@ -127,7 +128,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			};
 
 			// Act
-			var result = ISINParser.ExtractIsin(tokens);
+			var result = ISINParserPdfExtensions.ExtractIsin(tokens);
 
 			// Assert
 			Assert.Equal(ValidIsin, result);
@@ -144,7 +145,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			};
 
 			// Act
-			var result = ISINParser.ExtractIsin(tokens);
+			var result = ISINParserPdfExtensions.ExtractIsin(tokens);
 
 			// Assert
 			Assert.Equal(ValidIsin, result);

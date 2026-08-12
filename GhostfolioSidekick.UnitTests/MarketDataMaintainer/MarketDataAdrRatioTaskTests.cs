@@ -2,9 +2,7 @@ using AwesomeAssertions;
 using GhostfolioSidekick.ExternalDataProvider.Citi;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using Moq;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer;

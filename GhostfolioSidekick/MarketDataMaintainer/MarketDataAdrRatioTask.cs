@@ -2,7 +2,6 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider.Citi;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

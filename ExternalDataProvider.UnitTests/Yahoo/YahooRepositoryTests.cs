@@ -3,7 +3,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 {

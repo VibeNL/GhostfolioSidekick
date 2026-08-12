@@ -1,4 +1,3 @@
-using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
 using xRetry.v3;
 

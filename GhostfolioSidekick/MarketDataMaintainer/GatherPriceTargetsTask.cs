@@ -1,6 +1,5 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.ExternalDataProvider.TipRanks;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;

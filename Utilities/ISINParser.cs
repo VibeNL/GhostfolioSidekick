@@ -1,29 +1,7 @@
-using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-
-namespace GhostfolioSidekick.Parsers.TradeRepublic
+namespace GhostfolioSidekick.Utilities
 {
 	public static class ISINParser
 	{
-		public static string ExtractIsin(IReadOnlyList<SingleWordToken> positionColumn)
-		{
-			if (positionColumn == null || positionColumn.Count == 0)
-			{
-				return string.Empty;
-			}
-
-			var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
-			var isinLine = positionPerLine
-				.Select(g => string.Join(" ", g.OrderBy(t => t.BoundingBox?.Column).Select(t => t.Text)))
-				.FirstOrDefault(line => line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase) || IsIsin(line));
-
-			if (isinLine != null && isinLine.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase))
-			{
-				var value = isinLine.Substring("ISIN:".Length).Trim();
-				return IsIsin(value) ? value : string.Empty;
-			}
-			return isinLine != null && IsIsin(isinLine.Trim()) ? isinLine.Trim() : string.Empty;
-		}
-
 		public static string ExtractIsin(string line)
 		{
 			if (string.IsNullOrWhiteSpace(line))
@@ -60,7 +38,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return string.Empty;
 		}
 
-		private static bool IsIsin(string line)
+		public static bool IsIsin(string line)
 		{
 			if (line.Length != 12)
 			{

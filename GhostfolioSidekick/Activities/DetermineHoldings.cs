@@ -5,6 +5,7 @@ using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -179,10 +180,17 @@ namespace GhostfolioSidekick.Activities
 				SymbolProfile? existing = await databaseContext.SymbolProfiles.FindAsync(symbol, dataSource).ConfigureAwait(false);
 				if (existing != null)
 				{
-					// Update ISIN on existing profile if it's missing but the matched profile has it
+					// Update ISIN on existing profile if it's missing but the matched profile has a valid ISIN identifier
 					if (symbolProfile != null && string.IsNullOrEmpty(existing.ISIN))
 					{
-						existing.ISIN = symbolProfile.Identifiers.FirstOrDefault(x => x.IdentifierType == IdentifierType.ISIN)?.Identifier;
+						foreach (var identifier in symbolProfile.Identifiers)
+						{
+							if (!string.IsNullOrEmpty(identifier.Identifier) && ISINParser.IsIsin(identifier.Identifier))
+							{
+								existing.ISIN = identifier.Identifier;
+								break;
+							}
+						}
 					}
 
 					resolvedProfilesMap[symbolKey] = existing;

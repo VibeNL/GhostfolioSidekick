@@ -7,7 +7,6 @@ using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
 using RestSharp;
-using System.Diagnostics;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {

@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace PortfolioViewer.WASM.UITests
 {
 	[CollectionDefinition("WebApplicationFactory", DisableParallelization = true)]

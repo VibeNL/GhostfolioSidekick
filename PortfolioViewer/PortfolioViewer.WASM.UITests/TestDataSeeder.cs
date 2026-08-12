@@ -1,5 +1,4 @@
 using GhostfolioSidekick.Database;
-using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
