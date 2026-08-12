@@ -144,9 +144,10 @@ namespace GhostfolioSidekick.Activities
 			foreach (ISymbolMatcher symbolMatcher in symbolMatchers.Where(x => x.AllowedForDeterminingHolding))
 			{
 				string cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
+				SymbolProfile? symbolProfile = null;
 				if (!memoryCache.TryGetValue<(string Symbol, string DataSource)>(cacheKey, out (string Symbol, string DataSource) symbolProfileKey))
 				{
-					SymbolProfile? symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
+					symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
 					if (symbolProfile != null)
 					{
 						symbolProfileKey = (symbolProfile.Symbol, symbolProfile.DataSource);
@@ -178,6 +179,12 @@ namespace GhostfolioSidekick.Activities
 				SymbolProfile? existing = await databaseContext.SymbolProfiles.FindAsync(symbol, dataSource).ConfigureAwait(false);
 				if (existing != null)
 				{
+					// Update ISIN on existing profile if it's missing but the matched profile has it
+					if (symbolProfile != null && string.IsNullOrEmpty(existing.ISIN))
+					{
+						existing.ISIN = symbolProfile.Identifiers.FirstOrDefault(x => x.IdentifierType == IdentifierType.ISIN)?.Identifier;
+					}
+
 					resolvedProfilesMap[symbolKey] = existing;
 					if (!allResolvedProfiles.Any(p => p.Symbol == existing.Symbol && p.DataSource == existing.DataSource))
 					{
