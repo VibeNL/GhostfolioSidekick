@@ -75,7 +75,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-
 			AsyncRetryPolicy retryPolicy = RetryPolicyHelper.GetRetryPolicy(logger);
 			return (await retryPolicy.ExecuteAsync(async () =>
 			{
@@ -96,7 +95,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				if (bestMatch != null)
 				{
-					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult, bestMatch.PartialSymbolIdentifier.Identifier);
 				}
 
 				// Match by ticker
@@ -105,7 +104,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				if (bestMatch != null)
 				{
-					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult, null);
 				}
 
 				// Match by name
@@ -117,7 +116,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				if (bestMatch != null)
 				{
-					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult);
+					return await CreateSymbolProfileFromMatch(bestMatch.SearchResult, null);
 				}
 
 				return null;
@@ -179,7 +178,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				.ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(searchTerm));
 		}
 
-		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match)
+		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match, string? explicitIsin)
 		{
 			IReadOnlyDictionary<string, Security>? symbols = await GetSymbolDetails(match.Symbol);
 			if (symbols == null)
@@ -210,6 +209,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				GetSectors(securityProfile))
 			{
 				WebsiteUrl = $"https://finance.yahoo.com/quote/{symbol.Symbol}",
+				ISIN = explicitIsin,
+				SharesPerReceipt = 1,
 			};
 		}
 

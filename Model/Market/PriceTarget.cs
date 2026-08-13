@@ -1,5 +1,3 @@
-using GhostfolioSidekick.Model.Symbols;
-
 namespace GhostfolioSidekick.Model.Market
 {
 	public class PriceTarget

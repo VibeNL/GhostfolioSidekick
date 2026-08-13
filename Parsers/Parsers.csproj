@@ -26,6 +26,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Configuration\Configuration.csproj" />
 		<ProjectReference Include="..\Model\Model.csproj" />
+		<ProjectReference Include="..\Utilities\Utilities.csproj" />
 	</ItemGroup>
 
 <ItemGroup>

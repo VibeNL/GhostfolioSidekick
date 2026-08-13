@@ -3,8 +3,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 {
@@ -13,13 +11,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 	/// </summary>
 	public class YahooRepositoryTests
 	{
-		private readonly Mock<ILogger<YahooRepository>> _loggerMock;
 		private readonly YahooRepository _repository;
 
 	   public YahooRepositoryTests()
 	   {
-		   _loggerMock = new Mock<ILogger<YahooRepository>>();
-		   _repository = new YahooRepository(_loggerMock.Object);
+		   _repository = new YahooRepository(null!);
 	   }
 
 		[Fact]
@@ -294,6 +290,24 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 			// Assert
 			Assert.NotNull(result);
 			Assert.Contains("Microsoft", result.Name, StringComparison.OrdinalIgnoreCase);
+		}
+
+		[Fact]
+		public async Task MatchSymbol_WithUSIsin_ShouldSetDefaultSharesPerReceipt()
+		{
+			// Arrange
+			// SharesPerReceipt is now handled by MarketDataAdrRatioTask, not during matching.
+			var identifiers = new[]
+			{
+				new PartialSymbolIdentifier(IdentifierType.ISIN, "US7960508882", null, [], [])
+			};
+
+			// Act
+			var result = await _repository.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal(1m, result.SharesPerReceipt);
 		}
 	}
 }

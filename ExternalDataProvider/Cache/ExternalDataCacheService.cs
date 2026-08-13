@@ -1,9 +1,4 @@
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Cache;
-using Microsoft.EntityFrameworkCore;
-using System.IO.Compression;
-using System.Text;
-using System.Text.Json;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Cache
 {

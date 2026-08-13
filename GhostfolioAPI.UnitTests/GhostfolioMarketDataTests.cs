@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using Microsoft.Extensions.Logging;

@@ -3,7 +3,6 @@ using AwesomeAssertions;
 using GhostfolioSidekick.PortfolioViewer.WASM.Pages;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Security.Claims;

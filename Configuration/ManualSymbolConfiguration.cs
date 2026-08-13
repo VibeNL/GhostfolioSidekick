@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace GhostfolioSidekick.Configuration
 {
@@ -20,6 +20,14 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("assetClass")]
 		public required string AssetClass { get; set; }
+
+		/// <summary>
+		/// Number of underlying ordinary shares represented by one unit of this symbol.
+		/// Only relevant for ADR (American Depositary Receipt) / GDR (Global Depositary Receipt) symbols.
+		/// Defaults to 1 (no conversion) when not specified.
+		/// </summary>
+		[JsonPropertyName("underlyingSharesPerReceipt")]
+		public decimal? UnderlyingSharesPerReceipt { get; set; }
 
 		[JsonPropertyName("scraperConfiguration")]
 		public ScraperConfiguration? ScraperConfiguration { get; set; }

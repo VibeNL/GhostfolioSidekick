@@ -1,5 +1,8 @@
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.Utilities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
@@ -111,6 +114,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 			
 			return false;
+		}
+
+		/// <summary>
+		/// Creates an ISIN identifier only if the value is a valid ISIN format.
+		/// Returns an empty list if the ISIN is null, empty, or invalid.
+		/// </summary>
+		protected static ICollection<PartialSymbolIdentifier?> CreateValidatedIsinIdentifier(string? isin, Currency currency)
+		{
+			if (string.IsNullOrEmpty(isin) || !ISINParser.IsIsin(isin))
+			{
+				return [];
+			}
+
+			var id = PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, isin, currency);
+			return id != null ? new[] { id } : [];
 		}
 	}
 }

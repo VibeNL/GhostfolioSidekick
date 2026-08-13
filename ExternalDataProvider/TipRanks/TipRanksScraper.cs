@@ -98,11 +98,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 
 			return new PriceTarget
 			{
-				HighestTargetPriceAmount = analystRatings.HighPriceTarget,
+				HighestTargetPriceAmount = analystRatings.HighPriceTarget ?? 0,
 				HighestTargetCurrency = currency,
 				AverageTargetPriceAmount = analystRatings.PriceTarget?.Value ?? 0,
 				AverageTargetCurrency = currency,
-				LowestTargetPriceAmount = analystRatings.LowPriceTarget,
+				LowestTargetPriceAmount = analystRatings.LowPriceTarget ?? 0,
 				LowestTargetCurrency = currency,
 				Rating = rating,
 				NumberOfBuys = analystRatings.Buy,
@@ -170,10 +170,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 			public TipRanksPriceTargetValue? PriceTarget { get; set; }
 
 			[JsonPropertyName("highPriceTarget")]
-			public decimal HighPriceTarget { get; set; }
+			public decimal? HighPriceTarget { get; set; }
 
 			[JsonPropertyName("lowPriceTarget")]
-			public decimal LowPriceTarget { get; set; }
+			public decimal? LowPriceTarget { get; set; }
 		}
 
 		internal class TipRanksPriceTargetValue

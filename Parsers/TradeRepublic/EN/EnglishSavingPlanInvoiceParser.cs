@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			else if (row.HasHeader(SavingPlan))
 			{
 				var positionColumn = row.Columns[0];
-				var isin = ISINParser.ExtractIsin(positionColumn);
+				var isin = ISINParserPdfExtensions.ExtractIsin(positionColumn);
 				var quantity = row.Columns[1][0].Text;
 				var price = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				yield return PartialActivity.CreateBuy(
 					currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, isin, currency)],
+					CreateValidatedIsinIdentifier(isin, currency),
 					ParseDecimal(quantity),
 					new Money(currency, ParseDecimal(price)),
 					new Money(currency, ParseDecimal(amount)),

@@ -52,14 +52,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 			}
 			else if (row.HasHeader(BondRepayment))
 			{
-				var isin = ISINParser.ExtractIsin(row.Columns[2]);
+				var isin = ISINParserPdfExtensions.ExtractIsin(row.Columns[2]);
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
 
 				yield return PartialActivity.CreateBondRepay(
 					currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, isin, currency)],
+					CreateValidatedIsinIdentifier(isin, currency),
 					new Money(currency, ParseDecimal(amount)),
 					new Money(currency, ParseDecimal(amount)),
 					transactionId

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using AwesomeAssertions;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;

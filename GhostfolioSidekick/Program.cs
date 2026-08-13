@@ -7,6 +7,7 @@ using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.ExternalDataProvider.Citi;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
@@ -108,6 +109,14 @@ namespace GhostfolioSidekick
 
 							AddHooksToCacheExternalServices(services);
 
+							services.AddHttpClient("Citi", client =>
+							{
+								client.DefaultRequestHeaders.Add("User-Agent", "GhostfolioSidekick/1.0");
+							});
+							_ = services.AddSingleton<IAdrRatioProvider>(sp => new CitiAdrRatioProvider(
+								sp.GetRequiredService<ILogger<CitiAdrRatioProvider>>(),
+								sp.GetRequiredService<IHttpClientFactory>().CreateClient("Citi")));
+
 							_ = services.AddSingleton<YahooRepository>();
 							_ = services.AddSingleton<CoinGeckoRepository>();
 							_ = services.AddSingleton<GhostfolioSymbolMatcher>();
@@ -139,7 +148,6 @@ namespace GhostfolioSidekick
 								]);
 							_ = services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							_ = services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
-							_ = services.AddSingleton<IPriceTargetRepository, PriceTargetRepository>();
 							_ = services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							_ = services.AddSingleton<IRestCall>(sp =>
 							{
