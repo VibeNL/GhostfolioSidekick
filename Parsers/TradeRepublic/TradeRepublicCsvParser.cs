@@ -1,6 +1,8 @@
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Utilities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
@@ -166,11 +168,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		private static ICollection<PartialSymbolIdentifier?> CreateSymbolIdentifiers(TradeRepublicCsvRecord record, Currency currency)
 		{
-			return
-			[
-				PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, record.Symbol!, currency),
-				PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, record.Name!, currency),
-			];
+			var ids = new List<PartialSymbolIdentifier?>();
+			if (!string.IsNullOrWhiteSpace(record.Symbol) && ISINParser.IsIsin(record.Symbol!))
+			{
+				ids.Add(PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, record.Symbol!, currency));
+			}
+			ids.Add(PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, record.Name!, currency));
+			return ids;
 		}
 
 		protected override CsvConfiguration GetConfig()

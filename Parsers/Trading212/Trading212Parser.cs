@@ -1,6 +1,8 @@
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Utilities;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 
@@ -20,12 +22,13 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			var currency = currencyMapper.Map(currencySymbol!);
 			var currencyTotal = currencyMapper.Map(record.CurrencyTotal!);
 
-			var symbolIds = new [] {
-				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, record.ISIN!, currency),
-				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, record.Ticker!, currency),
-				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, record.Name!, currency)
+			var symbolIds = new List<PartialSymbolIdentifier?>();
+			if (!string.IsNullOrWhiteSpace(record.ISIN) && ISINParser.IsIsin(record.ISIN!))
+			{
+				symbolIds.Add(PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, record.ISIN!, currency));
 			}
-			;
+			symbolIds.Add(PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Ticker, record.Ticker!, currency));
+			symbolIds.Add(PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, record.Name!, currency));
 
 			switch (record.Action)
 			{

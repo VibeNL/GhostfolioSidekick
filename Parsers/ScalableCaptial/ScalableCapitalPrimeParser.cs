@@ -1,6 +1,8 @@
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Utilities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
@@ -17,9 +19,11 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			var currency = currencyMapper.Map(record.Currency);
 			var dateTime = record.Date.ToDateTime(record.Time, DateTimeKind.Utc);
 
-			var symbolIds = new [] { 
-				PartialSymbolIdentifier.CreateStockAndETF( IdentifierType.ISIN, record.Isin, currency) 
-			};
+			var symbolIds = new List<PartialSymbolIdentifier?>();
+			if (!string.IsNullOrWhiteSpace(record.Isin) && ISINParser.IsIsin(record.Isin!))
+			{
+				symbolIds.Add(PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, record.Isin!, currency));
+			}
 
 			switch (record.Type)
 			{

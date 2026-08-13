@@ -38,6 +38,14 @@ namespace GhostfolioSidekick.Utilities
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// Returns the ISIN if it is a valid ISIN format, otherwise null.
+		/// </summary>
+		public static string? GetValidIsin(string? isin)
+		{
+			return !string.IsNullOrEmpty(isin) && IsIsin(isin) ? isin : null;
+		}
+
 		public static bool IsIsin(string line)
 		{
 			if (line.Length != 12)

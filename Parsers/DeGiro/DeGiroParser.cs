@@ -1,6 +1,8 @@
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Utilities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
@@ -31,10 +33,12 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
 
-			var symbolIds = new[] { 
-				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, record.ISIN!, currencyRecord),
-				PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, record.Product!, currencyRecord)
-			};
+			var symbolIds = new List<PartialSymbolIdentifier?>();
+			if (!string.IsNullOrWhiteSpace(record.ISIN) && ISINParser.IsIsin(record.ISIN!))
+			{
+				symbolIds.Add(PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.ISIN, record.ISIN!, currencyRecord));
+			}
+			symbolIds.Add(PartialSymbolIdentifier.CreateStockAndETF(IdentifierType.Name, record.Product!, currencyRecord));
 
 			switch (activityType)
 			{

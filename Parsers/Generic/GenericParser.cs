@@ -1,6 +1,8 @@
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Utilities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Generic
@@ -198,7 +200,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 				yield return new PartialSymbolIdentifier(IdentifierType.Name, record.Name!, currency, assetClass, assetSubClass);
 			}
 
-			if (!string.IsNullOrWhiteSpace(record.ISIN))
+			if (!string.IsNullOrWhiteSpace(record.ISIN) && ISINParser.IsIsin(record.ISIN!))
 			{
 				yield return new PartialSymbolIdentifier(IdentifierType.ISIN, record.ISIN!, currency, assetClass, assetSubClass);
 			}
