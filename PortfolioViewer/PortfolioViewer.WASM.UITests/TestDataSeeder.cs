@@ -180,7 +180,6 @@ public static class TestDataSeeder
 			db.Entry(md).Property("SymbolProfileSymbol").CurrentValue = symbolData[i].Symbol;
 			db.Entry(md).Property("SymbolProfileDataSource").CurrentValue = symbolData[i].DataSource;
 		}
-		db.MarketDatas.AddRange(marketDataList);
 
 		// 10. CalculatedSnapshots
 		var snapshots = new List<CalculatedSnapshot>

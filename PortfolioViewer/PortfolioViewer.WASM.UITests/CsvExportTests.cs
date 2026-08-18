@@ -77,14 +77,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		await SetupAsync();
 
 		var dataIssuesPage = new DataIssuesPage(Page!);
-		try
-		{
-			await dataIssuesPage.NavigateDirectAsync();
-		}
-		catch
-		{
-			// Navigation or wait may fail in test env; verify page rendered
-		}
+		await dataIssuesPage.NavigateDirectAsync();
 
 		// Check for Blazor errors
 		var errorEl = await Page!.QuerySelectorAsync("#blazor-error-ui");
@@ -114,14 +107,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	{
 		await SetupAsync();
 
-		try
-		{
-			await navigate();
-		}
-		catch
-		{
-			// Navigation or wait may fail in test env; verify page rendered
-		}
+		await navigate();
 
 		// Check for Blazor errors before clicking export
 		var errorEl = await Page!.QuerySelectorAsync("#blazor-error-ui");

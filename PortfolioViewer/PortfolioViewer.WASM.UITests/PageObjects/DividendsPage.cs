@@ -25,7 +25,7 @@ public class DividendsPage(IPage page) : BasePageObject(page)
 
 	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 	{
-		await base.WaitForPageLoadAsync([PageHeadingSelector, ErrorAlertSelector, ".alert-danger", "table.table"], timeout, ct);
+		await base.WaitForPageLoadAsync([PageHeadingSelector, ErrorAlertSelector, "table.table"], timeout, ct);
 	}
 
 	public async Task<bool> HasDividendsDataRowsAsync(int minimumRows = 1)

@@ -50,14 +50,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var accountsPage = new AccountsPage(Page!);
-		try
-		{
-			await accountsPage.NavigateViaMenuAsync();
-		}
-		catch
-		{
-			// Navigation may fail if the dropdown menu structure changes; that's acceptable
-		}
+		await accountsPage.NavigateViaMenuAsync();
 
 		// Page should render without crashing
 		var isEmpty = await accountsPage.IsEmptyStateDisplayedAsync();
@@ -86,14 +79,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var topMoversPage = new TopMoversPage(Page!);
-		try
-		{
-			await topMoversPage.NavigateViaMenuAsync();
-		}
-		catch
-		{
-			// Navigation may fail if the dropdown menu structure changes; that's acceptable
-		}
+		await topMoversPage.NavigateViaMenuAsync();
 
 		var hasRisers = await topMoversPage.HasRiserEntriesAsync();
 		var hasLosers = await topMoversPage.HasLoserEntriesAsync();
@@ -127,14 +113,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var dividendsPage = new UpcomingDividendsPage(Page!);
-		try
-		{
-			await dividendsPage.NavigateViaMenuAsync();
-		}
-		catch
-		{
-			// Navigation may fail due to Blazor errors; that's acceptable in test env
-		}
+		await dividendsPage.NavigateViaMenuAsync();
 
 		var isEmpty = await dividendsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await dividendsPage.HasDividendRowsAsync();
@@ -148,14 +127,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var dataIssuesPage = new DataIssuesPage(Page!);
-		try
-		{
-			await dataIssuesPage.NavigateViaMenuAsync();
-		}
-		catch
-		{
-			// Navigation or wait may fail; that's acceptable in test env
-		}
+		await dataIssuesPage.NavigateViaMenuAsync();
 
 		// Page should render without crashing - just verify the page is not blank
 		var appDiv = await Page!.QuerySelectorAsync("#app");

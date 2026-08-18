@@ -15,43 +15,45 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 	/// Checks if the Blazor error UI is displayed and throws an exception if found.
 	/// This is automatically called after page operations to catch framework errors early.
 	/// </summary>
-	protected async Task CheckForBlazorErrorAsync()
-	{
-		try
+		protected async Task CheckForBlazorErrorAsync()
 		{
-			// Only use the official Blazor error UI element selector.
-			// Avoid regex/text-based selectors that trigger false positives
-			// (e.g., any text containing "Reload" or "error").
-			var errorElement = await _page.QuerySelectorAsync("#blazor-error-ui");
-			if (errorElement != null && await errorElement.IsVisibleAsync())
+			try
 			{
-				var errorText = await errorElement.TextContentAsync() ?? string.Empty;
-				var innerHTML = await errorElement.InnerHTMLAsync();
-
-				Console.WriteLine($"Blazor error detected: {errorText}");
-				Console.WriteLine($"Error HTML: {innerHTML}");
-
-				// Take a screenshot for debugging
-				try
+				// Only use the official Blazor error UI element selector.
+				// Avoid regex/text-based selectors that trigger false positives
+				// (e.g., any text containing "Reload" or "error").
+				var errorElement = await _page.QuerySelectorAsync("#blazor-error-ui");
+				if (errorElement != null && await errorElement.IsVisibleAsync())
 				{
-					var screenshotPath = $"blazor-error-{DateTime.Now:yyyyMMdd-HHmmss}.png";
-					await _page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath, FullPage = true });
-					Console.WriteLine($"Screenshot saved to: {screenshotPath}");
-				}
-				catch { }
+					var errorText = await errorElement.TextContentAsync() ?? string.Empty;
+					var innerHTML = await errorElement.InnerHTMLAsync();
 
-				throw new InvalidOperationException($"Blazor framework error occurred: {errorText.Trim()}");
+					Console.WriteLine($"Blazor error detected: {errorText}");
+					Console.WriteLine($"Error HTML: {innerHTML}");
+
+					// Take a screenshot for debugging (same location as test screenshots)
+					try
+					{
+						var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
+						Directory.CreateDirectory(screenshotDir);
+						var screenshotPath = Path.Combine(screenshotDir, $"blazor-error-{DateTime.Now:yyyyMMdd-HHmmss}.png");
+						await _page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath, FullPage = true });
+						Console.WriteLine($"Screenshot saved to: {screenshotPath}");
+					}
+					catch { }
+
+					throw new InvalidOperationException($"Blazor framework error occurred: {errorText.Trim()}");
+				}
+			}
+			catch (InvalidOperationException)
+			{
+				throw; // Re-throw our own exception
+			}
+			catch
+			{
+				// Ignore errors while checking for errors (e.g., page closed, navigation in progress)
 			}
 		}
-		catch (InvalidOperationException)
-		{
-			throw; // Re-throw our own exception
-		}
-		catch
-		{
-			// Ignore errors while checking for errors (e.g., page closed, navigation in progress)
-		}
-	}
 
 		/// <summary>
 		/// Standard page load wait: spinner hidden → any stable state (heading/empty/error/table).
@@ -72,12 +74,15 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 					// No spinner or already hidden — continue
 				}
 
-				// Wait for any stable state
+				// Wait for any stable state. Single shared deadline so the
+				// per-selector attempts split the budget instead of each
+				// consuming the full timeout.
+				var deadline = DateTime.UtcNow.AddMilliseconds(timeout);
 				foreach (var selector in stableStateSelectors)
 				{
 					try
 					{
-						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = timeout })
+						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = Math.Max(1, (long)(deadline - DateTime.UtcNow).TotalMilliseconds) })
 							.WaitAsync(ct);
 						return;
 					}
@@ -96,7 +101,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		/// Executes an action and automatically checks for Blazor errors afterwards.
 		/// Use this wrapper for critical operations that should detect framework errors.
 		/// </summary>
-			public async Task ExecuteWithErrorCheckAsync(Func<Task> action, CancellationToken ct = default)
+		public async Task ExecuteWithErrorCheckAsync(Func<Task> action, CancellationToken ct = default)
 		{
 			await action();
 			await CheckForBlazorErrorAsync();
@@ -106,7 +111,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		/// Executes an action and automatically checks for Blazor errors afterwards.
 		/// Returns the result of the action.
 		/// </summary>
-			public async Task<T> ExecuteWithErrorCheckAsync<T>(Func<Task<T>> action, CancellationToken ct = default)
+		public async Task<T> ExecuteWithErrorCheckAsync<T>(Func<Task<T>> action, CancellationToken ct = default)
 		{
 			var result = await action();
 			await CheckForBlazorErrorAsync();

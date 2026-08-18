@@ -17,7 +17,6 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	// Enable via: CaptureStepScreenshots = true; in test setup
 	protected bool CaptureStepScreenshots { get; set; } = false;
 
-	protected IPlaywright? Playwright;
 	protected IBrowserContext? Context;
 	protected IPage? Page;
 
@@ -66,7 +65,9 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 		// Capture browser console logs for diagnostics
 		Page.Console += (_, msg) =>
 		{
-			Console.WriteLine($"[Browser Console] {msg.Type}: {msg.Text}");
+			var entry = $"[Browser Console] {msg.Type}: {msg.Text}";
+			Console.WriteLine(entry);
+			_testConsoleLogs.Add(entry);
 		};
 	}
 
@@ -146,47 +147,6 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	}
 
 	/// <summary>
-	/// Takes a manual screenshot during test execution.
-	/// </summary>
-	/// <param name="name">Descriptive name for the screenshot</param>
-	/// <param name="fullPage">Whether to capture the full page or just the viewport</param>
-	protected async Task<string> TakeScreenshotAsync(string name, bool fullPage = false)
-	{
-		if (Page == null) return string.Empty;
-
-		var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss}";
-		var path = Path.Combine(ScreenshotDir, $"{name}-{timestamp}.png");
-
-		await Page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = fullPage });
-		Console.WriteLine($"[Screenshot] {name} -> {path}");
-		return path;
-	}
-
-	/// <summary>
-	/// Takes a screenshot of a specific element.
-	/// </summary>
-	/// <param name="selector">CSS selector for the element to capture</param>
-	/// <param name="name">Descriptive name for the screenshot</param>
-	protected async Task<string> TakeElementScreenshotAsync(string selector, string name)
-	{
-		if (Page == null) return string.Empty;
-
-		var element = await Page.QuerySelectorAsync(selector);
-		if (element == null)
-		{
-			Console.WriteLine($"[Screenshot] Element not found: {selector}");
-			return string.Empty;
-		}
-
-		var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss}";
-		var path = Path.Combine(ScreenshotDir, $"{name}-{timestamp}.png");
-
-		await element.ScreenshotAsync(new ElementHandleScreenshotOptions { Path = path });
-		Console.WriteLine($"[Screenshot] {name} (element) -> {path}");
-		return path;
-	}
-
-	/// <summary>
 	/// Performs login and optionally syncs data. Called by derived tests before their assertions.
 	/// Sync is skipped by default in test environments since data is already seeded in the database.
 	/// </summary>
@@ -206,18 +166,8 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 		// Screenshot: After home page load
 		await CaptureStepScreenshotAsync("03-home-loaded");
 
-		// Click sync and wait for completion using WaitForFunction (no magic timeouts)
-		var syncButton = await Page!.QuerySelectorAsync("button.btn-primary:has-text('Sync')");
-		if (syncButton != null)
-		{
-			await syncButton.ClickAsync();
-			// Wait for sync button to become enabled again (sync completed).
-			// Wrapped in WaitAsync(CancellationToken) so a stuck sync aborts promptly via the test's
-			// cancellation token instead of always blocking for the full 120s Playwright timeout -
-			// this was a suspected contributor to the hangdump artifacts previously observed in TestResults.
-			await Page.WaitForSelectorAsync("button.btn-primary:has-text('Sync'):not([disabled])", new PageWaitForSelectorOptions { Timeout = 120000 })
-				.WaitAsync(CancellationToken);
-		}
+		// Click sync and wait for completion (no magic timeouts)
+		await HomePage.ClickSyncAndWaitForCompletionAsync(ct: CancellationToken);
 
 		// Screenshot: After sync
 		await CaptureStepScreenshotAsync("04-after-sync");
@@ -235,7 +185,6 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 			{
 				var testName = GetCurrentTestName();
 				await CaptureFailureArtifacts(string.IsNullOrEmpty(testName) ? "UnknownTest" : testName);
-				await CaptureErrorStateAsync(string.IsNullOrEmpty(testName) ? "UnknownTest" : testName);
 			}
 		}
 		catch
@@ -248,31 +197,6 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 		{
 			await Context.CloseAsync();
 		}
-		Playwright?.Dispose();
-	}
-
-	protected string GetScreenshotPath(string name)
-	{
-		return Path.Combine(ScreenshotDir, $"{name}-{DateTime.Now:yyyyMMddHHmmss}.png");
-	}
-
-	protected string GetErrorScreenshotPath(string name)
-	{
-		return Path.Combine(ScreenshotDir, $"{name}-error-{DateTime.Now:yyyyMMddHHmmss}.png");
-	}
-
-	protected string GetErrorHtmlPath(string name)
-	{
-		return Path.Combine(ScreenshotDir, $"{name}-error-{DateTime.Now:yyyyMMddHHmmss}.html");
-	}
-
-	protected async Task CaptureErrorStateAsync(string testName)
-	{
-		if (Page == null) return;
-
-		await Page.ScreenshotAsync(new PageScreenshotOptions { Path = GetErrorScreenshotPath(testName) });
-		var html = await Page.ContentAsync();
-		await File.WriteAllTextAsync(GetErrorHtmlPath(testName), html, CancellationToken);
 	}
 
 	private static string GetCurrentTestName()

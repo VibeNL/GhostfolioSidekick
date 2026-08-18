@@ -13,20 +13,20 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		private const string DateFilterAllButtonSelector = "button.btn:has-text('All')";
 		private const string DateFilterApplyButtonSelector = "button.btn:has-text('Apply')";
 
-		public async Task NavigateViaMenuAsync()
+		public async Task NavigateViaMenuAsync(CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
 				// Click the Transactions dropdown
 				await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('Transactions')");
-					await _page.WaitForSelectorAsync(TransactionsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
+				await _page.WaitForSelectorAsync(TransactionsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
 
 				// Click the Transaction History link
 				await _page.ClickAsync(TransactionsLinkSelector);
-					// Wait for SPA navigation to complete
-					await _page.WaitForURLAsync("**/transactions", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
-			});
-			await WaitForPageLoadAsync(ct: CancellationToken.None);
+				// Wait for SPA navigation to complete
+				await _page.WaitForURLAsync("**/transactions", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
+			}, ct);
+			await WaitForPageLoadAsync(ct: ct);
 		}
 
 		public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -44,9 +44,9 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			await WaitForPageLoadAsync(ct: ct);
 		}
 
-			public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
+		public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 		{
-			await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector, ".alert-danger"], timeout, ct);
+			await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector], timeout, ct);
 		}
 
 		public async Task<bool> HasTransactionsAsync()
@@ -181,38 +181,32 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				   !string.IsNullOrWhiteSpace(firstTransaction.Symbol);
 		}
 
-		public async Task<string> TakeScreenshotAsync(string path)
+		public async Task SetDateFilterToAllAsync()
 		{
-			await _page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
-			return path;
-		}
-
-	public async Task SetDateFilterToAllAsync()
-	{
-		// The Transactions page may not have explicit date filter buttons.
-		// If they exist, click them; otherwise the page already shows all data by default.
-		try
-		{
-			var allButton = await _page.QuerySelectorAsync(DateFilterAllButtonSelector);
-			if (allButton != null)
+			// The Transactions page may not have explicit date filter buttons.
+			// If they exist, click them; otherwise the page already shows all data by default.
+			try
 			{
-				await allButton.ClickAsync();
-			}
+				var allButton = await _page.QuerySelectorAsync(DateFilterAllButtonSelector);
+				if (allButton != null)
+				{
+					await allButton.ClickAsync();
+				}
 
-			var applyButton = await _page.QuerySelectorAsync(DateFilterApplyButtonSelector);
-			if (applyButton != null)
+				var applyButton = await _page.QuerySelectorAsync(DateFilterApplyButtonSelector);
+				if (applyButton != null)
+				{
+					await applyButton.ClickAsync();
+				}
+
+				// Wait for the filter to apply and data to reload
+				await _page.WaitForSelectorAsync(TableSelector, new PageWaitForSelectorOptions { Timeout = 10000 });
+			}
+			catch
 			{
-				await applyButton.ClickAsync();
+				// Date filter buttons may not exist on this page - that's acceptable
 			}
-
-			// Wait for the filter to apply and data to reload
-			await _page.WaitForSelectorAsync(TableSelector, new PageWaitForSelectorOptions { Timeout = 10000 });
 		}
-		catch
-		{
-			// Date filter buttons may not exist on this page - that's acceptable
-		}
-	}
 	}
 
 	public class TransactionRowData
