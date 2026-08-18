@@ -13,7 +13,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		private const string DateFilterAllButtonSelector = "button.btn:has-text('All')";
 		private const string DateFilterApplyButtonSelector = "button.btn:has-text('Apply')";
 
-		public async Task NavigateViaMenuAsync()
+		public async Task NavigateViaMenuAsync(CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
@@ -25,8 +25,8 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 				await _page.ClickAsync(TransactionsLinkSelector);
 				// Wait for SPA navigation to complete
 				await _page.WaitForURLAsync("**/transactions", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
-			});
-			await WaitForPageLoadAsync(ct: CancellationToken.None);
+			}, ct);
+			await WaitForPageLoadAsync(ct: ct);
 		}
 
 		public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
@@ -46,7 +46,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 
 		public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
 		{
-			await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector, ".alert-danger"], timeout, ct);
+			await base.WaitForPageLoadAsync([PageHeadingSelector, EmptyStateSelector, ErrorAlertSelector], timeout, ct);
 		}
 
 		public async Task<bool> HasTransactionsAsync()

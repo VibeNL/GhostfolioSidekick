@@ -171,24 +171,6 @@ namespace PortfolioViewer.WASM.UITests
 			base.Dispose(disposing);
 		}
 
-		private void EnsureServer()
-		{
-			if (_host is null)
-			{
-				// Forces WebApplicationFactory to bootstrap the server
-				using HttpClient _ = CreateDefaultClient();
-			}
-		}
-
-		/// <summary>
-		/// Returns the test host's services for direct DB access during tests.
-		/// </summary>
-		public IServiceProvider GetTestHostServices()
-		{
-			EnsureServer();
-			return _host!.Services;
-		}
-
 		private static void EnsureWasmPublishedToApiStaticFiles()
 		{
 			// Build WASM first to ensure source is up-to-date (TypeScript compilation, etc.)
@@ -359,58 +341,14 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		private static void SeedTestData(IServiceProvider services, ref Microsoft.Data.Sqlite.SqliteConnection connection, bool resetDatabase = false, string? dbPath = null)
+		private static void SeedTestData(IServiceProvider services, ref Microsoft.Data.Sqlite.SqliteConnection connection)
 		{
 			try
 			{
-				if (resetDatabase)
-				{
-					// Drop all application tables and reseed (avoids file-lock issues with EnsureDeleted)
-					using IServiceScope scope = services.CreateScope();
-					DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-
-					// Disable foreign keys, drop all tables, then re-enable
-					var dbConn = dbContext.Database.GetDbConnection();
-					if (dbConn.State == System.Data.ConnectionState.Closed)
-					{
-						dbConn.Open();
-					}
-					using var fkCmd = dbConn.CreateCommand();
-					fkCmd.CommandText = "PRAGMA foreign_keys = OFF";
-					_ = fkCmd.ExecuteNonQuery();
-
-					// Drop all user tables (keep sqlite_sequence for auto-increment)
-					var dropTableNames = new List<string>();
-					using var dropCmd = dbConn.CreateCommand();
-					dropCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
-					using var dropReader = dropCmd.ExecuteReader();
-					while (dropReader.Read())
-					{
-						dropTableNames.Add(dropReader.GetString(0));
-					}
-					dropReader.Dispose();
-
-					foreach (var table in dropTableNames)
-					{
-						dropCmd.CommandText = $"DROP TABLE [{table}]";
-						_ = dropCmd.ExecuteNonQuery();
-					}
-
-					// Re-enable foreign keys
-					fkCmd.CommandText = "PRAGMA foreign_keys = ON";
-					_ = fkCmd.ExecuteNonQuery();
-
-					// Now apply migrations fresh
-					dbContext.Database.EnsureCreated();
-					dbContext.Database.Migrate();
-				}
-				else
-				{
-					// Apply all migrations to set up the schema and __EFMigrationsHistory
-					using IServiceScope scope = services.CreateScope();
-					DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-					dbContext.Database.Migrate();
-				}
+				// Apply all migrations to set up the schema and __EFMigrationsHistory
+				using IServiceScope scope = services.CreateScope();
+				DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+				dbContext.Database.Migrate();
 
 				// Seed all tables via TestDataSeeder (uses shared connection for table listing)
 				using IServiceScope scope2 = services.CreateScope();

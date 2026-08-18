@@ -36,12 +36,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 			Assert.Fail($"Blazor error on PriceTargets page: {errorText}");
 		}
 
-		// Page should be in a stable state (no loading spinner visible)
-		var hasError = await PriceTargetsPage.IsErrorDisplayedAsync();
-		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
-		var hasData = await PriceTargetsPage.HasPriceTargetDataRowsAsync(1);
-		var hasHeading = await PriceTargetsPage.HasPriceTargetsHeadingAsync();
-
 		// Page should render without crashing - just verify the app container has content
 		var appDiv = await Page!.QuerySelectorAsync("#app");
 		var appContent = appDiv != null ? await appDiv.InnerHTMLAsync() : string.Empty;
@@ -68,20 +62,6 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	}
 
 	[RetryFact]
-	public async Task PriceTargetsPage_ShouldShowSpecificSymbols()
-	{
-		await SetupAsync();
-
-		await PriceTargetsPage.NavigateDirectAsync();
-
-		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
-		var appDiv = await Page!.QuerySelectorAsync("#app");
-		var appEmpty = appDiv != null && (await appDiv.InnerHTMLAsync()).Trim() == string.Empty;
-		Assert.True(hasEmptyState || !appEmpty,
-			$"Price Targets page should render correctly (empty: {hasEmptyState}, appEmpty: {appEmpty})");
-	}
-
-	[RetryFact]
 	public async Task PriceTargetsPage_ShouldNavigateViaMenu()
 	{
 		await SetupAsync();
@@ -103,23 +83,12 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		await PriceTargetsPage.NavigateDirectAsync();
 
 		var hasData = await PriceTargetsPage.HasPriceTargetDataRowsAsync(1);
+		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
 		var hasError = await PriceTargetsPage.IsErrorDisplayedAsync();
-		var appDiv = await Page!.QuerySelectorAsync("#app");
-		var appContent = appDiv != null ? await appDiv.InnerHTMLAsync() : string.Empty;
-		var appEmpty = string.IsNullOrWhiteSpace(appContent?.Trim());
 
-		// Data may not appear if Ghostfolio API is not configured; just verify page rendered
-		Assert.True(hasData || hasError || !appEmpty,
-			$"Price Targets page should render (data: {hasData}, error: {hasError}, appEmpty: {appEmpty})");
-
-		if (hasData)
-		{
-			// Verify all seeded symbols appear
-			foreach (var symbol in new[] { "AAPL", "GOOGL", "BTC", "VTI" })
-			{
-				var hasSymbol = await PriceTargetsPage.HasPriceTargetSymbolAsync(symbol);
-				Assert.True(hasSymbol, $"Price Targets page should show seeded {symbol} target");
-			}
-		}
+		PageRenderAssertions.AssertRendered("Price Targets", hasData, hasEmptyState, hasError);
+		await PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync(
+			"Price Targets", hasData, new[] { "AAPL", "GOOGL", "BTC", "VTI" },
+			PriceTargetsPage.HasPriceTargetSymbolAsync);
 	}
 }
