@@ -196,3 +196,4 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 		}
 	}
 }
+

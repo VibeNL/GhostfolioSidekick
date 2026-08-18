@@ -448,3 +448,4 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 		}
 	}
 }
+

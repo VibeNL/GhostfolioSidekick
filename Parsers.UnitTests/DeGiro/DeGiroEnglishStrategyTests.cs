@@ -55,3 +55,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		}
 	}
 }
+

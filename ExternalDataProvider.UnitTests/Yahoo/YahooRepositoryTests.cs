@@ -297,3 +297,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 		}
 	}
 }
+

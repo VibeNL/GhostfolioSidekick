@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Parsers
 {
@@ -7,3 +7,4 @@ namespace GhostfolioSidekick.Parsers
 		Currency Map(string currency);
 	}
 }
+

@@ -226,3 +226,4 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		private static partial Regex TransactionTestId();
 	}
 }
+

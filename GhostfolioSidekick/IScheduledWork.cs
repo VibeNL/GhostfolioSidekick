@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
@@ -17,3 +17,4 @@ namespace GhostfolioSidekick
 		Task DoWork(ILogger logger, CancellationToken cancellationToken);
 	}
 }
+

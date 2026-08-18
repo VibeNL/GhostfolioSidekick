@@ -5,3 +5,4 @@ namespace GhostfolioSidekick.Model.Activities
 		IReadOnlyList<Money> Costs { get; }
 	}
 }
+

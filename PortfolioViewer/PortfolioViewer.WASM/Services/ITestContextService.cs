@@ -10,3 +10,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		public bool IsTest { get; set; }
 	}
 }
+

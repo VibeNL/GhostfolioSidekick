@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Database.Repository
 {
@@ -11,3 +11,4 @@ namespace GhostfolioSidekick.Database.Repository
 		Task ClearCache();
 	}
 }
+

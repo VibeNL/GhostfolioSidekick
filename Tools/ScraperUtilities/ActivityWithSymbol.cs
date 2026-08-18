@@ -13,3 +13,4 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 		internal string? ISIN { get; set; }
 	}
 }
+

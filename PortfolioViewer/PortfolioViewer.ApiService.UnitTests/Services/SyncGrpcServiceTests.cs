@@ -8,7 +8,7 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.Extensions.Logging;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+// xunit.v3 4.0.0: CollectionBehavior.DisableTestParallelization is obsolete; [Collection] handles serialization
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 {
@@ -460,3 +460,4 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 		}
 	}
 }
+

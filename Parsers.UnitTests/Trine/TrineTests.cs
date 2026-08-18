@@ -147,3 +147,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 		}
 	}
 }
+

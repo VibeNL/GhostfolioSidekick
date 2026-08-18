@@ -175,3 +175,4 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		}
 	}
 }
+

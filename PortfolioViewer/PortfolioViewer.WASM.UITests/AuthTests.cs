@@ -1,12 +1,10 @@
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
-
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task Api_HealthEndpoint_GivesResponse()
 	{
 		var apiClient = Fixture.CreateDefaultClient();
@@ -17,7 +15,7 @@ public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture brows
 		Assert.True(response.IsSuccessStatusCode, $"API health endpoint failed: {response.StatusCode} {content}");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task Login_ShouldSucceedWithValidToken()
 	{
 		await SetupAsync();
@@ -25,3 +23,4 @@ public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture brows
 		Assert.False(LoginPage.IsOnLoginPage(), "Should not be on login page after successful login");
 	}
 }
+

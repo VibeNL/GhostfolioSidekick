@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.ExternalDataProvider
@@ -12,3 +12,4 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate);
 	}
 }
+

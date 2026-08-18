@@ -32,3 +32,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 		public IReadOnlyList<AITool> GetTools() => _tools;
 	}
 }
+

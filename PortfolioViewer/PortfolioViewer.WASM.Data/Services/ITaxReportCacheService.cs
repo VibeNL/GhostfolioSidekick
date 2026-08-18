@@ -11,3 +11,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
         void Invalidate();
     }
 }
+

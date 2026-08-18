@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.AI.Functions
+namespace GhostfolioSidekick.AI.Functions
 {
 	public class SearchResultItem
 	{
@@ -7,3 +7,4 @@
 		public string Content { get; set; } = string.Empty;
 	}
 }
+

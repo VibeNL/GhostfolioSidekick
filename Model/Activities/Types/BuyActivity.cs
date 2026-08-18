@@ -30,3 +30,4 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public IReadOnlyList<Money> Costs => [.. Fees, .. Taxes];
 	}
 }
+

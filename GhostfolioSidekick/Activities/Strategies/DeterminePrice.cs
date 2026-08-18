@@ -60,3 +60,4 @@ namespace GhostfolioSidekick.Activities.Strategies
 		}
 	}
 }
+

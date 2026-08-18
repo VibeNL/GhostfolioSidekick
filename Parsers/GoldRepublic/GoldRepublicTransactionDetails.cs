@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Parsers.GoldRepublic
+namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
 	public record GoldRepublicTransactionDetails(
 		DateOnly? ExecutionDate,
@@ -9,3 +9,4 @@
 		decimal Total
 	);
 }
+

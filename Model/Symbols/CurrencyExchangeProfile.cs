@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
@@ -26,3 +26,4 @@ namespace GhostfolioSidekick.Model.Symbols
 		public Currency TargetCurrency { get; set; }
 	}
 }
+

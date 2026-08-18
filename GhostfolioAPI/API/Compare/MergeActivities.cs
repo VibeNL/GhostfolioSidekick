@@ -128,3 +128,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 		}
 	}
 }
+

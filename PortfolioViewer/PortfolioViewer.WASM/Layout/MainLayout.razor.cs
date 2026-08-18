@@ -79,3 +79,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 		}
 	}
 }
+

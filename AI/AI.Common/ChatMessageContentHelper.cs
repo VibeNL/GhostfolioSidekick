@@ -54,3 +54,4 @@ namespace GhostfolioSidekick.AI.Common
 		private static partial System.Text.RegularExpressions.Regex WhitespaceRegEx();
 	}
 }
+

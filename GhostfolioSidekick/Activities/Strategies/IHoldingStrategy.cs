@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Activities.Strategies
 {
@@ -9,3 +9,4 @@ namespace GhostfolioSidekick.Activities.Strategies
 		Task Execute(Holding holding);
 	}
 }
+

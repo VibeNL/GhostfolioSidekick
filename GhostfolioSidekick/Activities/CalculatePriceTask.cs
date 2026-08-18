@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Activities.Strategies;
+using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -36,3 +36,4 @@ namespace GhostfolioSidekick.Activities
 		}
 	}
 }
+

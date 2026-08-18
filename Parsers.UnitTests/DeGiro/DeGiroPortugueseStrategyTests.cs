@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.DeGiro;
@@ -58,3 +58,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		}
 	}
 }
+

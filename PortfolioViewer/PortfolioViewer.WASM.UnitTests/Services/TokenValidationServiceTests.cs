@@ -127,3 +127,4 @@ class TestHttpMessageHandler : HttpMessageHandler
 		base.Dispose(disposing);
 	}
 }
+

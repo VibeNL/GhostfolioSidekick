@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.PortfolioViewer.Model
+namespace GhostfolioSidekick.PortfolioViewer.Model
 {
 	public class Holding
 	{
@@ -6,3 +6,4 @@
 		public ICollection<SymbolProfileId> Symbols { get; set; }
 	}
 }
+

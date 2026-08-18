@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 using System.Diagnostics.CodeAnalysis;
 

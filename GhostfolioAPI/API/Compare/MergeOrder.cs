@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 {
@@ -18,3 +18,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 		public Activity? Order2 { get; } = null;
 	}
 }
+

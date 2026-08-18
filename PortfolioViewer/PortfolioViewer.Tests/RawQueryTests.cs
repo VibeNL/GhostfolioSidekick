@@ -172,3 +172,4 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 	}
 }
 
+

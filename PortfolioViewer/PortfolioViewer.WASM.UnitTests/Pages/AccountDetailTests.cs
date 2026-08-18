@@ -11,7 +11,6 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using xRetry.v3;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
 	public class AccountDetailTests : BunitContext
@@ -52,7 +51,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			Services.AddSingleton<IPrivacyModeService, PrivacyModeService>();
 		}
 
-		[RetryFact]
+		[Fact]
 		public void AccountDetail_InitialState_ShowsLoadingState()
 		{
 			// Arrange
@@ -561,6 +560,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		}
 	}
 }
+
 
 
 

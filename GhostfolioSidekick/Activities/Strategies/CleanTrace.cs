@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Activities.Strategies
@@ -31,3 +31,4 @@ namespace GhostfolioSidekick.Activities.Strategies
 		}
 	}
 }
+

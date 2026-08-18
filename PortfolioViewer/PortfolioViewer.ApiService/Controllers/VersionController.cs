@@ -29,3 +29,4 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
         }
     }
 }
+

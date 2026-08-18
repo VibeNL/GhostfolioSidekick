@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
@@ -56,3 +56,4 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 		public required string Currency { get; set; }
 	}
 }
+

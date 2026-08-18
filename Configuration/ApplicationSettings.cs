@@ -198,3 +198,4 @@ namespace GhostfolioSidekick.Configuration
 		private readonly ConfigurationInstance configuration;
 	}
 }
+

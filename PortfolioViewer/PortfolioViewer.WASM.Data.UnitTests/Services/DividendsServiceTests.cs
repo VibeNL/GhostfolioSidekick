@@ -297,3 +297,4 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
         }
     }
 }
+

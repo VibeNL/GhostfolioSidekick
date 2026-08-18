@@ -22,3 +22,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components
 		}
 	}
 }
+

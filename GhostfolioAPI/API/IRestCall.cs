@@ -8,3 +8,4 @@ public interface IRestCall
 	Task<RestSharp.RestResponse> DoRestPatch(string suffixUrl, string body);
 	Task<RestSharp.RestResponse> DoRestDelete(string suffixUrl);
 }
+

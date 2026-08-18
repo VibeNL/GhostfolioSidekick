@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Symbols
+namespace GhostfolioSidekick.Model.Symbols
 {
 	public class ScraperConfiguration
 	{

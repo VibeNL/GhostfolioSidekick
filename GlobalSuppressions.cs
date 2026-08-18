@@ -44,3 +44,4 @@ using System.Diagnostics.CodeAnalysis;
 
 // Code Quality suppressions
 [assembly: SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "<Pending>", Scope = "type", Target = "~T:GhostfolioSidekick.ExternalDataProvider.DividendMax.DividendMaxMatcher.SuggestResult")]
+

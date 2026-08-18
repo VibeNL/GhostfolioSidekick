@@ -145,3 +145,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 		}
 	}
 }
+

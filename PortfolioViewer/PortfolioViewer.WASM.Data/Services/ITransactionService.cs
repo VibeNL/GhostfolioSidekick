@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
@@ -22,3 +22,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default);
 	}
 }
+

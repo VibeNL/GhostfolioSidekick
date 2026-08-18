@@ -183,3 +183,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 		}
 	}
 }
+

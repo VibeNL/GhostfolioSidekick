@@ -21,3 +21,4 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 	}
 }
+

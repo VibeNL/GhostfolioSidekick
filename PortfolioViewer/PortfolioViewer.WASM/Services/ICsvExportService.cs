@@ -23,3 +23,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		string ExportToCsvString<T>(IEnumerable<T> data, IEnumerable<string>? headers = null);
 	}
 }
+

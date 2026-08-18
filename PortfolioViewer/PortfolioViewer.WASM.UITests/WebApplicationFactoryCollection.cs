@@ -16,3 +16,4 @@ namespace PortfolioViewer.WASM.UITests
 		}
 	}
 }
+

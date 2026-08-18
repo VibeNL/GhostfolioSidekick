@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.Bunq
@@ -21,3 +21,4 @@ namespace GhostfolioSidekick.Parsers.Bunq
 		public required string Description { get; set; }
 	}
 }
+

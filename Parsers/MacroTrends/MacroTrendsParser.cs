@@ -1,4 +1,4 @@
-﻿using CsvHelper;
+using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 
@@ -87,3 +87,4 @@ namespace GhostfolioSidekick.Parsers.MacroTrends
 		}
 	}
 }
+

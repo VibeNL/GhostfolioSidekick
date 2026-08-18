@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Market
 {

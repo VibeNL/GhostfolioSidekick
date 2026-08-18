@@ -12,3 +12,4 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		Task<IEnumerable<PriceTarget>> GetPriceTargetsAsync(SymbolProfile symbol, CancellationToken cancellationToken = default);
 	}
 }
+

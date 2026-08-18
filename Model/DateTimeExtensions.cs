@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model
+namespace GhostfolioSidekick.Model
 {
 	public static class DateTimeExtensions
 	{
@@ -13,3 +13,4 @@
 		}
 	}
 }
+

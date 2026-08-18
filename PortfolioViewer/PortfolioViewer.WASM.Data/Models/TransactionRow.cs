@@ -10,3 +10,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
         public string Type { get; set; } = string.Empty;
     }
 }
+

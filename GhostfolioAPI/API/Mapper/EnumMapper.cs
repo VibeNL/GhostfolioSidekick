@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
@@ -96,3 +96,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		}
 	}
 }
+

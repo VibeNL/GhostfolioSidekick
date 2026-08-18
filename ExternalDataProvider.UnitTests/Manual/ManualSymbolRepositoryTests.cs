@@ -526,3 +526,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 		}
 	}
 }
+

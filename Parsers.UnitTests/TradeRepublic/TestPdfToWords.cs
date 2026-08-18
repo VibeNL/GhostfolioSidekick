@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {

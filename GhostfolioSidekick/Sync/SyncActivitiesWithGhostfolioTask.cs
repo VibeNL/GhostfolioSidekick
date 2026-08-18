@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.GhostfolioAPI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -33,3 +33,4 @@ namespace GhostfolioSidekick.Sync
 		}
 	}
 }
+

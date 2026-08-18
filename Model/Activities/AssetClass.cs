@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+namespace GhostfolioSidekick.Model.Activities
 {
 	public enum AssetClass
 	{

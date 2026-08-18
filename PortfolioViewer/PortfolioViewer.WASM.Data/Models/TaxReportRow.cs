@@ -19,3 +19,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
         public required Money TotalValue { get; set; }
     }
 }
+

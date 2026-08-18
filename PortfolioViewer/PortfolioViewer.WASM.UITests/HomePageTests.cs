@@ -1,12 +1,10 @@
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
-
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task Sync_ShouldStartAndComplete()
 	{
 		await SetupAsync();
@@ -24,3 +22,4 @@ public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture b
 			"Sync completed (button enabled). Last sync time displayed: {hasLastSyncTime}. Dashboard loaded: {hasDashboardContent}");
 	}
 }
+

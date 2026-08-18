@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -109,3 +109,4 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		}
 	}
 }
+

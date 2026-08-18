@@ -237,3 +237,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 		}
 	}
 }
+

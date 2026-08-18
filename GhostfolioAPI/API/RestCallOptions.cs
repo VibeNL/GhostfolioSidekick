@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.API
+namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class RestCallOptions
 	{

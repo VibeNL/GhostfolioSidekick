@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick
+namespace GhostfolioSidekick
 {
 	internal static class Frequencies
 	{
@@ -7,3 +7,4 @@
 		public static TimeSpan Daily => TimeSpan.FromDays(1);
 	}
 }
+

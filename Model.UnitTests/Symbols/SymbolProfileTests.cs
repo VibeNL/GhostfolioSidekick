@@ -37,3 +37,4 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		}
 	}
 }
+

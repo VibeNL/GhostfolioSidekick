@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 

@@ -110,3 +110,4 @@ public class AuthenticationServiceTests
 		_tokenValidationServiceMock.Verify(x => x.ValidateTokenAsync("bad-stored-token"), Times.Once);
 	}
 }
+

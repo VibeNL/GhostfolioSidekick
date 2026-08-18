@@ -74,3 +74,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 		}
 	}
 }
+

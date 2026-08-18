@@ -108,3 +108,4 @@ public class PortfolioTimeSeriesPage(IPage page) : BasePageObject(page)
         catch { return false; }
     }
 }
+

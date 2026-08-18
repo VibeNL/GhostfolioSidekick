@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
@@ -35,3 +35,4 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		}
 	}
 }
+

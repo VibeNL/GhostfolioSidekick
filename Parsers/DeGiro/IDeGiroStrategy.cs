@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
@@ -16,3 +16,4 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		void SetGenerateTransactionIdIfEmpty(DeGiroRecord record, DateTime recordDate);
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Symbols;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
@@ -15,3 +15,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 		private static partial Regex GeneratedSymbolRegex();
 	}
 }
+

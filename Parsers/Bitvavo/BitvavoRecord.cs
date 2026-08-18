@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 
 namespace GhostfolioSidekick.Parsers.Bitvavo
 {

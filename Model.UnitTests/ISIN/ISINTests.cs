@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Model.ISIN;
 
 namespace GhostfolioSidekick.Model.UnitTests.ISIN
@@ -111,3 +111,4 @@ namespace GhostfolioSidekick.Model.UnitTests.ISIN
 		   => Isin.ValidateCheckDigit("US0378#31005").Should().BeFalse();
 	}
 }
+

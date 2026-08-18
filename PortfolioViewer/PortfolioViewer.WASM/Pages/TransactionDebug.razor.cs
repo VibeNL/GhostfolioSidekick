@@ -193,3 +193,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		}
 	}
 }
+

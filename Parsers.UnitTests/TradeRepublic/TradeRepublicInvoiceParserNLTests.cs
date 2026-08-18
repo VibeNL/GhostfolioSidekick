@@ -65,3 +65,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 	}
 }
+

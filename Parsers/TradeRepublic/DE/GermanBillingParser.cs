@@ -33,3 +33,4 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 		}
 	}
 }
+

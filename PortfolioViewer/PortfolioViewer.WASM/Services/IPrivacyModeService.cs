@@ -9,3 +9,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		event Action? OnChange;
 	}
 }
+

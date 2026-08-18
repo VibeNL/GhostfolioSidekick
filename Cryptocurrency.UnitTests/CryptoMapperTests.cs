@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Cryptocurrency.UnitTests
+namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 {
 	public class CryptoMapperTests
 	{
@@ -56,3 +56,4 @@
 		}
 	}
 }
+

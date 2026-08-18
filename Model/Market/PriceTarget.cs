@@ -31,3 +31,4 @@ namespace GhostfolioSidekick.Model.Market
 		public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 	}
 }
+

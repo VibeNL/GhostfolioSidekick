@@ -61,3 +61,4 @@ namespace GhostfolioSidekick.Model.Symbols
 		}
 	}
 }
+

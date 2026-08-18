@@ -196,3 +196,4 @@ namespace GhostfolioSidekick.Model.UnitTests
 		}
 	}
 }
+

@@ -80,3 +80,4 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Models
         }
     }
 }
+

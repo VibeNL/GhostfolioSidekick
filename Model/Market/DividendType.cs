@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Market
+namespace GhostfolioSidekick.Model.Market
 {
 	public enum DividendType
 	{

@@ -8,3 +8,4 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		Task<PriceTarget?> GetPriceTarget(SymbolProfile symbol);
 	}
 }
+

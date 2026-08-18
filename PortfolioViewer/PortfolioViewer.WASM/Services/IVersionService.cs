@@ -7,3 +7,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		Task<bool> IsUpdateAvailableAsync();
 	}
 }
+

@@ -107,3 +107,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 		}
 	}
 }
+

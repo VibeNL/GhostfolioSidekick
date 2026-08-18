@@ -19,3 +19,4 @@ namespace GhostfolioSidekick.Model.Market
         public string? SymbolProfileDataSource { get; set; }
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
@@ -16,3 +16,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		Task<Currency> GetPrimaryCurrencyAsync();
 	}
 }
+

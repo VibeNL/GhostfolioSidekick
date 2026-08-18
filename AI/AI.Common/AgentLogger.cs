@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.AI.Common
+namespace GhostfolioSidekick.AI.Common
 {
 	public class AgentLogger
 	{

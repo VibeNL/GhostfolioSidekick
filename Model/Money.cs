@@ -1,4 +1,4 @@
-﻿
+
 namespace GhostfolioSidekick.Model
 {
 	public record Money : IComparable<Money>, IEquatable<Money>

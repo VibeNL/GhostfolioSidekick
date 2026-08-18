@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.ISIN
+namespace GhostfolioSidekick.Model.ISIN
 {
 	// https://medium.com/@michael.harges/implementing-the-isin-check-digit-algorithm-in-c-93b199ba0777
 	public static class Isin
@@ -57,3 +57,4 @@
 		}
 	}
 }
+

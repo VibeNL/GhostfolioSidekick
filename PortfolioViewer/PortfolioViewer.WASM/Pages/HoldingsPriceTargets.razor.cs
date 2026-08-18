@@ -69,3 +69,4 @@ public partial class HoldingsPriceTargets
 		};
 	}
 }
+

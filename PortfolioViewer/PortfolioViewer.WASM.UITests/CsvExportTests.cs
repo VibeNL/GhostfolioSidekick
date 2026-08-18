@@ -1,20 +1,18 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
-
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task TransactionsPage_HasExportButton()
 	{
 		var transactionsPage = new TransactionsPage(Page!);
 		await VerifyExportButtonWorksAsync(transactionsPage, () => transactionsPage.NavigateDirectAsync(), "Transactions");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPage_HasExportButton()
 	{
 		CaptureStepScreenshots = true;
@@ -22,56 +20,56 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		await VerifyExportButtonWorksAsync(holdingsPage, () => holdingsPage.NavigateDirectAsync(), "Holdings");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task AccountsPage_HasExportButton()
 	{
 		var accountsPage = new AccountsPage(Page!);
 		await VerifyExportButtonWorksAsync(accountsPage, () => accountsPage.NavigateDirectAsync(), "Accounts");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DividendsPage_HasExportButton()
 	{
 		var dividendsPage = new DividendsPage(Page!);
 		await VerifyExportButtonWorksAsync(dividendsPage, () => dividendsPage.NavigateDirectAsync(), "Dividends");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PortfolioTimeSeriesPage_HasExportButton()
 	{
 		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
 		await VerifyExportButtonWorksAsync(timeSeriesPage, () => timeSeriesPage.NavigateDirectAsync(), "PortfolioTimeSeries");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TopMoversPage_HasExportButton()
 	{
 		var topMoversPage = new TopMoversPage(Page!);
 		await VerifyExportButtonWorksAsync(topMoversPage, () => topMoversPage.NavigateDirectAsync(), "TopMovers");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TaxReportPage_HasExportButton()
 	{
 		var taxReportPage = new TaxReportPage(Page!);
 		await VerifyExportButtonWorksAsync(taxReportPage, () => taxReportPage.NavigateDirectAsync(), "TaxReport");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task ExportButton_VisibleWhenDataPresent()
 	{
 		var transactionsPage = new TransactionsPage(Page!);
 		await VerifyExportButtonWorksAsync(transactionsPage, () => transactionsPage.NavigateDirectAsync(), "Transactions", requireVisible: true);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task ExportButton_Clickable()
 	{
 		var holdingsPage = new HoldingsPage(Page!);
 		await VerifyExportButtonWorksAsync(holdingsPage, () => holdingsPage.NavigateDirectAsync(), "Holdings", requireVisible: true);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DataIssuesPage_HasExportButton()
 	{
 		await SetupAsync();
@@ -79,7 +77,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		var dataIssuesPage = new DataIssuesPage(Page!);
 		try
 		{
-			await dataIssuesPage.NavigateDirectAsync();
+			await dataIssuesPage.NavigateDirectAsync(ct: TestContext.Current.CancellationToken);
 		}
 		catch
 		{
@@ -179,3 +177,4 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 		Assert.False(postAppEmpty, $"{pageName} page should not crash after clicking export CSV button");
 	}
 }
+

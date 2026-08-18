@@ -122,3 +122,4 @@ public class PriceTargetsService(
 		return [.. result.OrderByDescending(x => x.ProximityPercentage)];
 	}
 }
+

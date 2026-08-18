@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace GhostfolioSidekick.Cryptocurrency
 {
@@ -32,3 +32,4 @@ namespace GhostfolioSidekick.Cryptocurrency
 		}
 	}
 }
+

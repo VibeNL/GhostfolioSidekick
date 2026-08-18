@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
@@ -58,3 +58,4 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public string? TransactionId { get; set; }
 	}
 }
+

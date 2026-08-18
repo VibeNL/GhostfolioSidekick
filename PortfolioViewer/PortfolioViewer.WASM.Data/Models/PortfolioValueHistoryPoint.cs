@@ -11,3 +11,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		public decimal Balance { get; set; }
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.PortfolioViewer.Model
+namespace GhostfolioSidekick.PortfolioViewer.Model
 {
 	public class SymbolProfileId
 	{
@@ -6,3 +6,4 @@
 		public string Datasource { get; set; }
 	}
 }
+

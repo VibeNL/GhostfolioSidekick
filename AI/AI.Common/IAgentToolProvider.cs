@@ -18,3 +18,4 @@ namespace GhostfolioSidekick.AI.Common
 		IReadOnlyList<AITool> GetTools();
 	}
 }
+

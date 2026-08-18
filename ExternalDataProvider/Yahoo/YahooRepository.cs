@@ -407,3 +407,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		}
 	}
 }
+

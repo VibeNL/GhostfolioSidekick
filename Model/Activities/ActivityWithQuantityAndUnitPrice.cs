@@ -46,3 +46,4 @@ namespace GhostfolioSidekick.Model.Activities
 		public virtual List<CalculatedPriceTrace> AdjustedUnitPriceSource { get; set; } = [];
 	}
 }
+

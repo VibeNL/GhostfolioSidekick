@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Controllers;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;

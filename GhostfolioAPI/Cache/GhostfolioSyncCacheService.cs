@@ -20,3 +20,4 @@ public class GhostfolioSyncCacheService(DbBackedCacheService cacheService) : IGh
 		return await cacheService.GetOrAddAsync(key, expiry, factory, cancellationToken);
 	}
 }
+

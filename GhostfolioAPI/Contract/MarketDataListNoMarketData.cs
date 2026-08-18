@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Contract
 {
@@ -8,3 +8,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.Contract
 		public required SymbolProfile AssetProfile { get; set; }
 	}
 }
+

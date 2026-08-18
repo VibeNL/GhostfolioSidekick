@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
+namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
 	public interface IPdfToWordsParser
 	{
@@ -13,3 +13,4 @@
 		List<SingleWordToken> ParseTokensIgnoringFooter(string filePath, int footerHeightThreshold = 50);
 	}
 }
+

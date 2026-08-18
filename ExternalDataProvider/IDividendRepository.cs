@@ -9,3 +9,4 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		Task<IList<Dividend>> GetDividends(SymbolProfile symbol);
 	}
 }
+

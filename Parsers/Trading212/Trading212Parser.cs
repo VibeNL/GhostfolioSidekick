@@ -205,3 +205,4 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		}
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model
+namespace GhostfolioSidekick.Model
 {
 	public static class Constants
 	{
@@ -7,3 +7,4 @@
 		public const int NumberOfDecimals = 2;
 	}
 }
+

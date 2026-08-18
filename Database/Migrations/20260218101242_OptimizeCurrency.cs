@@ -328,3 +328,4 @@ namespace GhostfolioSidekick.Database.Migrations
         }
     }
 }
+

@@ -150,3 +150,4 @@ namespace GhostfolioSidekick.Database.Repository
 		private sealed record ExchangeRateKey(Currency SourceCurrency, Currency TargetCurrency);
 	}
 }
+

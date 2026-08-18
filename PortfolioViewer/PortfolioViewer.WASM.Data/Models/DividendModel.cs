@@ -22,3 +22,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
         public bool IsPredicted { get; set; }
     }
 }
+

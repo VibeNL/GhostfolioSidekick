@@ -121,3 +121,4 @@ public class HoldingsPriceTargetsPage(IPage page) : BasePageObject(page)
 		return symbols;
 	}
 }
+

@@ -25,3 +25,4 @@ namespace GhostfolioSidekick.Model.Tasks
 		public virtual ICollection<TaskRunLog> Logs { get; set; } = [];
 	}
 }
+

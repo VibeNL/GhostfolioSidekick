@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
+namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
 	public record SingleWordToken : WordToken
 	{
@@ -20,3 +20,4 @@
 		}
 	}
 }
+

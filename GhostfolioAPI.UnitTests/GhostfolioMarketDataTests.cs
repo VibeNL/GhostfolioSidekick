@@ -185,3 +185,4 @@ public class GhostfolioMarketDataTests
 		mock.Verify(x => x.DoRestDelete(It.IsAny<string>()), Times.Never);
 	}
 }
+

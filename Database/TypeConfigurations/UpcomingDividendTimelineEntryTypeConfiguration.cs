@@ -20,3 +20,4 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		}
 	}
 }
+

@@ -70,3 +70,4 @@ public class CustomAuthenticationStateProviderTests
 			x => x.AuthenticationStateChanged -= It.IsAny<Action<ClaimsPrincipal>>(), Times.Once);
 	}
 }
+

@@ -93,3 +93,4 @@ public class AccountsPage(IPage page) : BasePageObject(page)
         catch { return false; }
     }
 }
+

@@ -108,3 +108,4 @@ public class UpcomingDividendsPage(IPage page) : BasePageObject(page)
         catch { return false; }
     }
 }
+

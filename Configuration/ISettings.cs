@@ -7,3 +7,4 @@ namespace GhostfolioSidekick.Configuration
 		string PrimaryCurrency { get; set; }
 	}
 }
+

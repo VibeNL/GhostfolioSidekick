@@ -1,13 +1,11 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
-
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task NavigateToPriceTargets_ShouldLoadWithoutBlazorError()
 	{
 		try
@@ -23,7 +21,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		}
 
 		// Navigate to price targets page
-		await PriceTargetsPage.NavigateDirectAsync($"{ServerAddress.TrimEnd('/')}/price-targets");
+		await PriceTargetsPage.NavigateDirectAsync($"{ServerAddress.TrimEnd('/')}/price-targets", ct: TestContext.Current.CancellationToken);
 
 		// Wait for Blazor to initialize
 		await Page!.WaitForSelectorAsync("#app", new PageWaitForSelectorOptions { Timeout = 10000 });
@@ -54,12 +52,12 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		Assert.False(hasBlazorError, "Price Targets page should not have Blazor errors");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldDisplayDataRows()
 	{
 		await SetupAsync();
 
-		await PriceTargetsPage.NavigateDirectAsync();
+		await PriceTargetsPage.NavigateDirectAsync(ct: TestContext.Current.CancellationToken);
 
 		// Page should render without crashing - just verify the page is not blank
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -67,12 +65,12 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		Assert.False(appEmpty, "Price Targets page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldShowSpecificSymbols()
 	{
 		await SetupAsync();
 
-		await PriceTargetsPage.NavigateDirectAsync();
+		await PriceTargetsPage.NavigateDirectAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasEmptyState = await PriceTargetsPage.IsEmptyStateDisplayedAsync();
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -81,7 +79,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 			$"Price Targets page should render correctly (empty: {hasEmptyState}, appEmpty: {appEmpty})");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldNavigateViaMenu()
 	{
 		await SetupAsync();
@@ -95,12 +93,12 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		Assert.False(appEmpty, "Price Targets page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldShowSeededSymbols()
 	{
 		await SetupAsync();
 
-		await PriceTargetsPage.NavigateDirectAsync();
+		await PriceTargetsPage.NavigateDirectAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasData = await PriceTargetsPage.HasPriceTargetDataRowsAsync(1);
 		var hasError = await PriceTargetsPage.IsErrorDisplayedAsync();
@@ -123,3 +121,4 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		}
 	}
 }
+

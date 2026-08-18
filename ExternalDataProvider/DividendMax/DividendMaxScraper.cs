@@ -187,3 +187,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		}
 	}
 }
+

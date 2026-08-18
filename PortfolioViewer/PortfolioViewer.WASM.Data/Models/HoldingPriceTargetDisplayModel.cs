@@ -29,3 +29,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		public decimal ProximityPercentage { get; set; }
 	}
 }
+

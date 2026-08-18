@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
@@ -36,3 +36,4 @@ namespace GhostfolioSidekick.Sync
 		}
 	}
 }
+

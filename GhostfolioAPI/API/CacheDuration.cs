@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -15,3 +15,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		}
 	}
 }
+

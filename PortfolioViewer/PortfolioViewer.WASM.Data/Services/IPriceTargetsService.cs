@@ -13,3 +13,4 @@ public interface IPriceTargetsService
 	/// </summary>
 	Task<List<HoldingPriceTargetDisplayModel>> GetHoldingsPriceTargetsAsync(CancellationToken cancellationToken = default);
 }
+

@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.PortfolioViewer.Model
+namespace GhostfolioSidekick.PortfolioViewer.Model
 {
 	public class StockSplit
 	{
@@ -7,3 +7,4 @@
 		public decimal AfterSplit { get; set; }
 	}
 }
+

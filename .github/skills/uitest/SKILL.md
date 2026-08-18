@@ -21,7 +21,7 @@ Core files/patterns:
 - `PageObjects/BasePageObject.cs` for shared `WaitForPageLoadAsync` (spinner hidden → any stable state, waits are wrapped in `.WaitAsync(ct)` for cancellation responsiveness), `ExecuteWithErrorCheckAsync` (auto Blazor error check), `CheckForBlazorErrorAsync`.
 - `PageRenderAssertions.cs` (test project root) — shared helper for the common "page rendered" tri-state assertion (`AssertRendered(pageName, hasRows, isEmpty, hasError)`) and `AssertSeededSymbolsWhenRowsPresentAsync(...)` for tightening checks against `TestDataSeeder` data only when rows are actually present. **Use these instead of copy-pasting `Assert.True(hasRows || isEmpty || hasError, ...)` blocks.**
 - `PageObjects/*` for page objects — all use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)`.
-- Tests use `[RetryFact]` from `xRetry.v3`.
+- Tests use `[Fact]` from xunit.v3 (4.0.0). No retry wrapper — flaky tests handled by CI rerun policy.
 
 ## Trigger
 

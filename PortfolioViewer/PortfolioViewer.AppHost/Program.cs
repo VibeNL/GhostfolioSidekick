@@ -8,3 +8,4 @@ builder.AddProject<Projects.PortfolioViewer_WASM>("blazorServer")
 						.WithReference(apiService);
 
 await builder.Build().RunAsync();
+

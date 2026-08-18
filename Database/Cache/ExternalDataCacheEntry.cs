@@ -20,3 +20,4 @@ namespace GhostfolioSidekick.Database.Cache
 		public DateTime ExpiresAt { get; set; }
 	}
 }
+

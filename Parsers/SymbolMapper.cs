@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Parsers
@@ -23,3 +23,4 @@ namespace GhostfolioSidekick.Parsers
 		}
 	}
 }
+

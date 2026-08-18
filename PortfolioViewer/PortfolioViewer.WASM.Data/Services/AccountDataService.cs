@@ -334,3 +334,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		}
 	}
 }
+

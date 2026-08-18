@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 
 namespace GhostfolioSidekick.Configuration.UnitTests
 {
@@ -169,3 +169,4 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			";
 	}
 }
+

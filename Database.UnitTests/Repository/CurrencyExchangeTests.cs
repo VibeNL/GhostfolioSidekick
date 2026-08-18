@@ -162,3 +162,4 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 		}
 	}
 }
+

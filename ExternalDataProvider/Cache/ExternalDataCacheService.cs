@@ -18,3 +18,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.Cache
 		}
 	}
 }
+

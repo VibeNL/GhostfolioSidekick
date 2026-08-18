@@ -450,3 +450,4 @@ namespace GhostfolioSidekick.UnitTests.Activities.Comparer
 		}
 	}
 }
+

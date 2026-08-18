@@ -8,3 +8,4 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		IMergeRowStrategy? MergeStrategy = null,
 		bool RecheckHeaderOnNextPage = false);
 }
+

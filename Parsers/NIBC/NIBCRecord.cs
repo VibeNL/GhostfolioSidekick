@@ -23,3 +23,4 @@ namespace GhostfolioSidekick.Parsers.NIBC
 		public required string TransactionID { get; set; }
 	}
 }
+

@@ -15,3 +15,4 @@ namespace GhostfolioSidekick.Model.Performance
 		public DividendState DividendState { get; set; }
 	}
 }
+

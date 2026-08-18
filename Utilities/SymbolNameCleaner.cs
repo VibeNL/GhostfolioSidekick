@@ -48,3 +48,4 @@ namespace GhostfolioSidekick.Utilities
 		private static partial Regex MyRegex();
 	}
 }
+

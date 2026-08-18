@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.AI.Functions.OnlineSearch
+namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 {
 	public class WebResult
 	{

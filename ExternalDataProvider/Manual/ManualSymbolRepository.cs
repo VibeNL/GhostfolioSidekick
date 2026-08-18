@@ -101,3 +101,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 		}
 	}
 }
+

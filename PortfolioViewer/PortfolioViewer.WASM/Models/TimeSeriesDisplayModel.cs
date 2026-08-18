@@ -13,3 +13,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		public decimal GainLossPercentage { get; set; }
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using Microsoft.JSInterop;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM
@@ -55,3 +55,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 		}
 	}
 }
+

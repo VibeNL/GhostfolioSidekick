@@ -19,3 +19,4 @@ public class PriceTargetDisplayModel
 	public int NumberOfHolds { get; set; }
 	public int NumberOfSells { get; set; }
 }
+

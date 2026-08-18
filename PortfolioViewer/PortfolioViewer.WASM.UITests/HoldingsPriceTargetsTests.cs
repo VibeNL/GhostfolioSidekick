@@ -1,19 +1,17 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
-
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError()
 	{
 		await SetupAsync();
 
 		// Navigate to holdings price targets page
-		await HoldingsPriceTargetsPage.NavigateDirectAsync($"{ServerAddress.TrimEnd('/')}/holdings-price-targets");
+		await HoldingsPriceTargetsPage.NavigateDirectAsync($"{ServerAddress.TrimEnd('/')}/holdings-price-targets", ct: TestContext.Current.CancellationToken);
 
 		// Wait for Blazor to initialize
 		await Page!.WaitForSelectorAsync("#app", new PageWaitForSelectorOptions { Timeout = 10000 });
@@ -30,12 +28,12 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 		Assert.False(hasBlazorError, $"Holdings Price Targets page should not have Blazor errors: {(hasBlazorError ? await errorEl!.TextContentAsync() : string.Empty)}");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldDisplayDataRows()
 	{
 		await SetupAsync();
 
-		await HoldingsPriceTargetsPage.NavigateDirectAsync();
+		await HoldingsPriceTargetsPage.NavigateDirectAsync(ct: TestContext.Current.CancellationToken);
 
 		// Page should render without crashing - just verify the page is not blank
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -43,7 +41,7 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 		Assert.False(appEmpty, "Holdings Price Targets page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldNavigateViaMenu()
 	{
 		await SetupAsync();
@@ -57,12 +55,12 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 		Assert.False(appEmpty, "Holdings Price Targets page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldShowSeededSymbols()
 	{
 		await SetupAsync();
 
-		await HoldingsPriceTargetsPage.NavigateDirectAsync();
+		await HoldingsPriceTargetsPage.NavigateDirectAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasData = await HoldingsPriceTargetsPage.HasDataRowsAsync(1);
 		Assert.True(hasData, "Holdings Price Targets page should show data rows since test data is seeded with overlapping holdings and price targets");
@@ -75,3 +73,4 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 		}
 	}
 }
+

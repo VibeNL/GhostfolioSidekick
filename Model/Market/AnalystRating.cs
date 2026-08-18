@@ -9,3 +9,4 @@ namespace GhostfolioSidekick.Model.Market
 		StrongSell
 	}
 }
+

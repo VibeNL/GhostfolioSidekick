@@ -303,3 +303,4 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		}
 	}
 }
+

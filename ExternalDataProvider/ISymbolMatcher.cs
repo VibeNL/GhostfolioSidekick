@@ -11,3 +11,4 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers);
 	}
 }
+

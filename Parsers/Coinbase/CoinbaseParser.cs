@@ -161,3 +161,4 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		private static partial Regex NoteRegex();
 	}
 }
+

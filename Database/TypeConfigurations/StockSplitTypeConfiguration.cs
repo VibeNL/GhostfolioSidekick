@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Market;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,3 +20,4 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		}
 	}
 }
+

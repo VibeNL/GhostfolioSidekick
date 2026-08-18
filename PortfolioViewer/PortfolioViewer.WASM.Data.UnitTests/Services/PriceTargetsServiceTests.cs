@@ -597,3 +597,4 @@ public class PriceTargetsServiceTests
         };
     }
 }
+

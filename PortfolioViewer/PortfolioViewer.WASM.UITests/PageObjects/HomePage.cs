@@ -184,3 +184,4 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		}
 	}
 }
+

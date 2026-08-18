@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers
 {
@@ -60,3 +60,4 @@ namespace GhostfolioSidekick.Parsers
 		}
 	}
 }
+

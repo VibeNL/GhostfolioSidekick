@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.AI.Common
+namespace GhostfolioSidekick.AI.Common
 {
 	public class ModelInfo
 	{
@@ -6,3 +6,4 @@
 		public int MaxTokens { get; set; }
 	}
 }
+

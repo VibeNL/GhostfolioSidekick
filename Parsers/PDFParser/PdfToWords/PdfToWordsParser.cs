@@ -142,3 +142,4 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		}
 	}
 }
+

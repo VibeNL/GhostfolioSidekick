@@ -20,3 +20,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		Task<List<TaxReportRow>> GetTaxReportAsync(CancellationToken cancellationToken = default);
 	}
 }
+

@@ -71,3 +71,4 @@ public class DataIssuesPage(IPage page) : BasePageObject(page)
         catch { return false; }
     }
 }
+

@@ -122,3 +122,4 @@ public class PriceTargetsPage(IPage page) : BasePageObject(page)
 		return symbols;
 	}
 }
+

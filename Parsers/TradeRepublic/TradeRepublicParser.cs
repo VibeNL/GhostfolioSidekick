@@ -42,3 +42,4 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		}
 	}
 }
+

@@ -278,3 +278,4 @@ namespace GhostfolioSidekick
 		public string? ContentType { get; set; }
 	}
 }
+

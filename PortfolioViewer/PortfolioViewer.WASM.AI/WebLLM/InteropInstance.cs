@@ -91,3 +91,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		public bool IsStreamComplete => Usage is not null;
 	}
 }
+

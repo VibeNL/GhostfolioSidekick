@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {
@@ -12,3 +12,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 	}
 }
+

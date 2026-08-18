@@ -451,3 +451,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 	}
 
 }
+

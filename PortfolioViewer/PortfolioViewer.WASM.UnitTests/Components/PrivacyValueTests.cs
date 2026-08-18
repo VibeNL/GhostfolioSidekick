@@ -125,3 +125,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Components
         }
     }
 }
+

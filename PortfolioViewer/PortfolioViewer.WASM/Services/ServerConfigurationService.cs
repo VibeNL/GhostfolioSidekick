@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using System.Text.Json;
 
@@ -77,3 +77,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		}
 	}
 }
+

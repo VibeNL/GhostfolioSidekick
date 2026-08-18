@@ -470,3 +470,4 @@ namespace GhostfolioSidekick.Activities
 		}
 	}
 }
+

@@ -1,12 +1,10 @@
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
-
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions()
 	{
 		await SetupAsync();
@@ -25,3 +23,4 @@ public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		PageRenderAssertions.AssertRendered("Transactions", isTableDisplayed, isEmpty, hasError);
 	}
 }
+

@@ -215,3 +215,4 @@ namespace GhostfolioSidekick.Parsers.Generic
 		}
 	}
 }
+

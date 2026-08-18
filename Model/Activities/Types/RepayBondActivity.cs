@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -25,3 +25,4 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 	}
 }
+

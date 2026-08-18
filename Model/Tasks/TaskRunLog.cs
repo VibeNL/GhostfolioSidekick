@@ -20,3 +20,4 @@ namespace GhostfolioSidekick.Model.Tasks
 		public int Severity { get; set; }
 	}
 }
+

@@ -363,3 +363,4 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		private static partial System.Text.RegularExpressions.Regex DateRegEx();
 	}
 }
+

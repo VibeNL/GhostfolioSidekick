@@ -8,3 +8,4 @@ namespace GhostfolioSidekick.PerformanceCalculations
 		Task<IEnumerable<CalculatedSnapshot>> GetCalculatedSnapshots(Holding holding, Currency currency);
 	}
 }
+

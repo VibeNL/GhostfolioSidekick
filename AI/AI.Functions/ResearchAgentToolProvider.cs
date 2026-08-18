@@ -33,3 +33,4 @@ namespace GhostfolioSidekick.AI.Functions
 		public IReadOnlyList<AITool> GetTools() => _tools;
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.AI.Functions
+namespace GhostfolioSidekick.AI.Functions
 {
 	public class SearchResults
 	{
@@ -6,3 +6,4 @@
 		public List<SearchResultItem> Items { get; set; } = [];
 	}
 }
+

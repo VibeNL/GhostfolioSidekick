@@ -48,3 +48,4 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 		}
 	}
 }
+

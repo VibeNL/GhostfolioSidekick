@@ -68,3 +68,4 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		}
 	}
 }
+

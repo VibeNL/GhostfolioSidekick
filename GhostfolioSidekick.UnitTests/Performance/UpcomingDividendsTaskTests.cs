@@ -123,3 +123,4 @@ namespace GhostfolioSidekick.UnitTests.Performance
         }
     }
 }
+

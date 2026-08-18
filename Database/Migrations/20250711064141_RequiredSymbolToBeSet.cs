@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -103,3 +103,4 @@ namespace GhostfolioSidekick.Database.Migrations
 		}
 	}
 }
+

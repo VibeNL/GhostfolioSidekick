@@ -524,3 +524,4 @@ Format function calls like this:
 		private static partial Regex JsonRegex();
 	}
 }
+

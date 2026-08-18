@@ -6,3 +6,4 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 		TradeRepublic
 	}
 }
+

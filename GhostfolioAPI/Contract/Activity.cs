@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.Contract
+namespace GhostfolioSidekick.GhostfolioAPI.Contract
 {
 	public class Activity
 	{

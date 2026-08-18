@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.PortfolioViewer.Model
+namespace GhostfolioSidekick.PortfolioViewer.Model
 {
 	public class SymbolProfile
 	{
@@ -11,3 +11,4 @@
 		public ICollection<MarketData> MarketData { get; set; }
 	}
 }
+

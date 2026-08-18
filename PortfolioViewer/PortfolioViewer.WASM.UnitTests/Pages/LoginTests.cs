@@ -79,3 +79,4 @@ public class LoginTests : BunitContext
 		Services.AddSingleton(authServiceMock.Object);
 	}
 }
+

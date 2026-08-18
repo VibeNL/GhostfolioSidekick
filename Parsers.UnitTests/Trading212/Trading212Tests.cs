@@ -708,3 +708,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 	}
 }
+

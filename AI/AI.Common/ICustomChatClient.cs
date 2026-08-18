@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.AI;
+using Microsoft.Extensions.AI;
 
 namespace GhostfolioSidekick.AI.Common
 {
@@ -18,3 +18,4 @@ namespace GhostfolioSidekick.AI.Common
 		FunctionCalling
 	}
 }
+

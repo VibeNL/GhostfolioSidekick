@@ -89,3 +89,4 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 		}
 	}
 }
+

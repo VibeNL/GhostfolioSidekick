@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
+namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	internal static class TransactionReferenceUtilities
 	{
@@ -23,3 +23,4 @@
 		}
 	}
 }
+

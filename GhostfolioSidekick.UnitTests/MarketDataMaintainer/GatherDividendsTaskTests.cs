@@ -262,3 +262,4 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		}
 	}
 }
+

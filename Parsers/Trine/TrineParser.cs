@@ -83,3 +83,4 @@ namespace GhostfolioSidekick.Parsers.Trine
 		}
 	}
 }
+

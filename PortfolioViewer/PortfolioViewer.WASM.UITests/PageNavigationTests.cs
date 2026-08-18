@@ -1,13 +1,11 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
-
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -25,7 +23,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync("Holdings", hasRows, ["AAPL"], holdingsPage.HasHoldingSymbolAsync);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPage_ShouldShowSeededSymbols()
 	{
 		await SetupAsync();
@@ -44,7 +42,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync("Holdings", hasRows, ["AAPL", "GOOGL", "BTC", "VTI", "US10Y"], holdingsPage.HasHoldingSymbolAsync);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task AccountsPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -66,7 +64,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		PageRenderAssertions.AssertRendered("Accounts", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TaxReportPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -80,7 +78,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		PageRenderAssertions.AssertRendered("TaxReport", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TopMoversPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -105,7 +103,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 			$"TopMovers page should render correctly (error: {hasError}, risers: {hasRisers}, losers: {hasLosers}, noRisersMsg: {hasNoRisersMessage}, noLosersMsg: {hasNoLosersMessage}). Check screenshots/HTML in playwright-screenshots/ for actual DOM state.");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -114,14 +112,14 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		await timeSeriesPage.NavigateViaMenuAsync();
 		await timeSeriesPage.SwitchToTableModeAsync();
-		await timeSeriesPage.WaitForPageLoadAsync();
+		await timeSeriesPage.WaitForPageLoadAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasRows = await timeSeriesPage.HasTimeSeriesRowsAsync();
 		Assert.True(hasRows,
 			$"PortfolioTimeSeries page should render correctly (rows: {hasRows})");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task UpcomingDividendsPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -142,7 +140,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		PageRenderAssertions.AssertRendered("Upcoming Dividends", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DataIssuesPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -163,7 +161,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		Assert.False(appEmpty, "DataIssues page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TaskStatusPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -175,7 +173,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		Assert.True(hasTaskStatusTitle, "TaskStatus page should display its title");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DividendsPage_ShouldHandleInvalidDecimalDataGracefully()
 	{
 		await SetupAsync();
@@ -187,7 +185,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		Assert.True(hasTitle, "Dividends page should display its title");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TablesPage_ShouldLoadViaMenu()
 	{
 		await SetupAsync();
@@ -199,3 +197,4 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		Assert.True(hasTableViewerTitle, "Tables page should display its title");
 	}
 }
+

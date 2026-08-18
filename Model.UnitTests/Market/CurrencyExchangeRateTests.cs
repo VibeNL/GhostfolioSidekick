@@ -247,3 +247,4 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		}
 	}
 }
+

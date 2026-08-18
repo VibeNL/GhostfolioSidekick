@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace GhostfolioSidekick.Configuration
 {
@@ -14,3 +14,4 @@ namespace GhostfolioSidekick.Configuration
 		public ManualSymbolConfiguration? ManualSymbolConfiguration { get; set; }
 	}
 }
+

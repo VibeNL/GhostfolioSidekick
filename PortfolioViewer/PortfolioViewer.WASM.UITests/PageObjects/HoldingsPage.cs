@@ -126,3 +126,4 @@ public class HoldingsPage(IPage page) : BasePageObject(page)
         catch { return false; }
     }
 }
+

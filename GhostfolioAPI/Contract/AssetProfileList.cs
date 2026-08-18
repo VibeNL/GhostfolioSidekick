@@ -5,3 +5,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.Contract
 		public required SymbolProfile[] AssetProfiles { get; set; }
 	}
 }
+

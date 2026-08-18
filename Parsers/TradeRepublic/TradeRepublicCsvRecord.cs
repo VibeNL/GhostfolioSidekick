@@ -74,3 +74,4 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
         public string? MccCode { get; set; }
     }
 }
+

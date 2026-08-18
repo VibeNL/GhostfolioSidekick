@@ -66,3 +66,4 @@ namespace GhostfolioSidekick.AccountMaintainer
 		private sealed record AccountKey(string Name, int Id);
 	}
 }
+

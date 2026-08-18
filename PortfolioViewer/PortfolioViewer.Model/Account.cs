@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.PortfolioViewer.Model
+namespace GhostfolioSidekick.PortfolioViewer.Model
 {
 	public class Account
 	{
@@ -9,3 +9,4 @@
 		public int Id { get; set; }
 	}
 }
+

@@ -95,3 +95,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 		}
 	}
 }
+

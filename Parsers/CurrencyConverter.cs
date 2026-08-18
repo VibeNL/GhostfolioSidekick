@@ -1,4 +1,4 @@
-﻿using CsvHelper;
+using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using System.Diagnostics.CodeAnalysis;
@@ -24,3 +24,4 @@ namespace GhostfolioSidekick.Parsers
 	}
 
 }
+

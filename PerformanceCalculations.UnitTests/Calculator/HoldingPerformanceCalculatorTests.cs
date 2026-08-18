@@ -507,3 +507,4 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 		}
 	}
 }
+

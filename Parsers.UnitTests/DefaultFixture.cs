@@ -45,3 +45,4 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 	}
 }
+

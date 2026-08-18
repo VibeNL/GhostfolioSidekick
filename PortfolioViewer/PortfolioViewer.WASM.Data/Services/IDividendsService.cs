@@ -7,3 +7,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		Task<List<DividendModel>> GetDividendsAsync(DateOnly? startDate = null, DateOnly? endDate = null);
 	}
 }
+

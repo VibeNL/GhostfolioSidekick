@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
+namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 {
 	public enum Operation
 	{
@@ -11,3 +11,4 @@
 		Removed = 1
 	}
 }
+

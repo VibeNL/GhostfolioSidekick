@@ -37,3 +37,4 @@ public class DatabaseContextFactory : IDbContextFactory<DatabaseContext>
 		return new DatabaseContext(optionsBuilder.Options);
 	}
 }
+

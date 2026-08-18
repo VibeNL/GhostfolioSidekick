@@ -1,4 +1,4 @@
-﻿using iText.Kernel.Colors;
+using iText.Kernel.Colors;
 using iText.Kernel.Pdf;
 using iText.PdfCleanup;
 using iText.PdfCleanup.Autosweep;
@@ -25,3 +25,4 @@ namespace GhostfolioSidekick.Tools.AnonymisePDF
 		}
 	}
 }
+

@@ -242,3 +242,4 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		}
 	}
 }
+

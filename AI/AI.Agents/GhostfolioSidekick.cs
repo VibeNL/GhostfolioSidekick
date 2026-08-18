@@ -32,3 +32,4 @@ namespace GhostfolioSidekick.AI.Agents
 		}
 	}
 }
+

@@ -177,3 +177,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		}
 	}
 }
+

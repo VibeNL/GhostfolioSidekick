@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
@@ -64,3 +64,4 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 		}
 	}
 }
+

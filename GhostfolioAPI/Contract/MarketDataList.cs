@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.Contract
+namespace GhostfolioSidekick.GhostfolioAPI.Contract
 {
 	public class MarketDataList
 	{
@@ -7,3 +7,4 @@
 		public required SymbolProfile AssetProfile { get; set; }
 	}
 }
+

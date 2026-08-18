@@ -918,3 +918,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		}
 	}
 }
+

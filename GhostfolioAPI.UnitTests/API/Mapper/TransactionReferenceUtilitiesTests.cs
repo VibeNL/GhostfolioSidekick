@@ -133,3 +133,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		}
 	}
 }
+

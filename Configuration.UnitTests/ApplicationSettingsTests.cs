@@ -134,3 +134,4 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 		}
 	}
 }
+

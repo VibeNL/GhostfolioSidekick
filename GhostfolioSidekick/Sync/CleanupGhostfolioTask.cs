@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using Microsoft.Extensions.Logging;
@@ -50,3 +50,4 @@ namespace GhostfolioSidekick.Sync
 		}
 	}
 }
+

@@ -116,3 +116,4 @@ public class WakeLockServiceTests
 		result.Should().BeFalse();
 	}
 }
+

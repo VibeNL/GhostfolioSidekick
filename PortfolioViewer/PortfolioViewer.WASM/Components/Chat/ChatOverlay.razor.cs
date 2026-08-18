@@ -231,3 +231,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		}
 	}
 }
+

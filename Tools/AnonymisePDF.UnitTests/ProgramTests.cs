@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 
@@ -41,3 +41,4 @@ namespace GhostfolioSidekick.Tools.AnonymisePDF.UnitTests
 		}
 	}
 }
+

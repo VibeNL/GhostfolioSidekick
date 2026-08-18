@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.ExternalDataProvider
@@ -8,3 +8,4 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		Task<IEnumerable<CurrencyExchangeRate>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate);
 	}
 }
+

@@ -205,3 +205,4 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 		}
 	}
 }
+

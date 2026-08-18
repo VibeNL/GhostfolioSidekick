@@ -536,3 +536,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 	}
 }
+

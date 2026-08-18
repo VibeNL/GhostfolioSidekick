@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
@@ -239,3 +239,4 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 		}
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -11,3 +11,4 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		Task<GenericInfo> GetBenchmarks();
 	}
 }
+

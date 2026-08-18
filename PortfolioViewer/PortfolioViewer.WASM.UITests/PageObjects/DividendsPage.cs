@@ -38,3 +38,4 @@ public class DividendsPage(IPage page) : BasePageObject(page)
 		catch { return false; }
 	}
 }
+

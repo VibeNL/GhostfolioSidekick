@@ -50,6 +50,7 @@ namespace GhostfolioSidekick.IntegrationTests
 		[Fact(Timeout = 600000)]
 		public async Task CanSetupGhostfolioDependencies()
 		{
+			_ = TestContext.Current.CancellationToken; // xUnit1069: required when Timeout is set
 			string url = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
 			_ = authToken.Should().NotBeNull();
 
@@ -68,6 +69,7 @@ namespace GhostfolioSidekick.IntegrationTests
 		[Fact(Timeout = 600000)]
 		public async Task GhostfolioNonAdminUserSyncTest()
 		{
+			_ = TestContext.Current.CancellationToken; // xUnit1069: required when Timeout is set
 			await using var infra = await CreateContainerInfrastructureAsync();
 
 			var url = infra.GhostfolioUrl;
@@ -539,5 +541,6 @@ namespace GhostfolioSidekick.IntegrationTests
 
 	}
 }
+
 
 

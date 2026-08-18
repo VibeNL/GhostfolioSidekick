@@ -206,3 +206,4 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 		}
 	}
 }
+
