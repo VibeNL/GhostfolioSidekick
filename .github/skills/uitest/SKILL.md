@@ -49,7 +49,7 @@ Use this skill when user asks any of:
    - Screenshots: `playwright-screenshots/`
    - Videos: `playwright-videos/<TestName>/`
    - Browser console lines prefixed `[Browser Console]`
-   - Optional HTML capture from `CaptureErrorStateAsync()`
+   - HTML + console log capture from `CaptureFailureArtifacts()`
 
 5. Debug/verify with screenshots:
    - Open newest `*-error-*.png` first for failed test.

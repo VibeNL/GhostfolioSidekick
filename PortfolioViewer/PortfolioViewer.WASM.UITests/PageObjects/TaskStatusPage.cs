@@ -4,117 +4,117 @@ namespace PortfolioViewer.WASM.UITests.PageObjects;
 
 public class TaskStatusPage(IPage page) : BasePageObject(page)
 {
-    private const string PageHeadingSelector = "h1:has-text('Task Status')";
+	private const string PageHeadingSelector = "h1:has-text('Task Status')";
 	private const string ErrorAlertSelector = ".alert-danger";
-    private const string TaskStatusLinkSelector = "a.dropdown-item:has-text('Task Status')";
-    private const string QuickRefreshButtonSelector = "button:has-text('Quick Refresh')";
-    private const string TableSelector = ".table";
-    private const string TaskRowsSelector = ".table.table-striped.table-hover.mb-0 tbody tr";
-    private const string NoTaskDataMessageSelector = "p:has-text('No task data available. Tasks may not be initialized yet.')";
+	private const string TaskStatusLinkSelector = "a.dropdown-item:has-text('Task Status')";
+	private const string QuickRefreshButtonSelector = "button:has-text('Quick Refresh')";
+	private const string TableSelector = ".table";
+	private const string TaskRowsSelector = ".table.table-striped.table-hover.mb-0 tbody tr";
+	private const string NoTaskDataMessageSelector = "p:has-text('No task data available. Tasks may not be initialized yet.')";
 
-    public async Task NavigateViaMenuAsync()
-    {
-        await ExecuteWithErrorCheckAsync(async () =>
-        {
-            await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('System')");
-            await _page.WaitForSelectorAsync(TaskStatusLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
-            await _page.ClickAsync(TaskStatusLinkSelector);
-            await _page.WaitForURLAsync("**/task-status", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
-        });
-        await WaitForPageLoadAsync(ct: CancellationToken.None);
-    }
+	public async Task NavigateViaMenuAsync(CancellationToken ct = default)
+	{
+		await ExecuteWithErrorCheckAsync(async () =>
+		{
+			await _page.ClickAsync("a.nav-link.dropdown-toggle:has-text('System')");
+			await _page.WaitForSelectorAsync(TaskStatusLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
+			await _page.ClickAsync(TaskStatusLinkSelector);
+			await _page.WaitForURLAsync("**/task-status", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
+		}, ct);
+		await WaitForPageLoadAsync(ct: ct);
+	}
 
-    public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
-    {
-        await ExecuteWithErrorCheckAsync(async () =>
-        {
-            var targetUrl = relativePath ?? "/task-status";
-            if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
-            {
-                var baseUri = new Uri(_page.Url);
-                targetUrl = new Uri(baseUri, targetUrl).ToString();
-            }
-            await _page.GotoAsync(targetUrl);
-        }, ct);
-        await WaitForPageLoadAsync(ct: ct);
-    }
+	public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)
+	{
+		await ExecuteWithErrorCheckAsync(async () =>
+		{
+			var targetUrl = relativePath ?? "/task-status";
+			if (!Uri.IsWellFormedUriString(targetUrl, UriKind.Absolute))
+			{
+				var baseUri = new Uri(_page.Url);
+				targetUrl = new Uri(baseUri, targetUrl).ToString();
+			}
+			await _page.GotoAsync(targetUrl);
+		}, ct);
+		await WaitForPageLoadAsync(ct: ct);
+	}
 
-    public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
-    {
-        await base.WaitForPageLoadAsync([PageHeadingSelector, ErrorAlertSelector, TableSelector, NoTaskDataMessageSelector, ".alert-danger"], timeout, ct);
-    }
+	public async Task WaitForPageLoadAsync(int timeout = 30000, CancellationToken ct = default)
+	{
+		await base.WaitForPageLoadAsync([PageHeadingSelector, ErrorAlertSelector, TableSelector, NoTaskDataMessageSelector, ".alert-danger"], timeout, ct);
+	}
 
-    public async Task<bool> HasTaskStatusTitleAsync()
-    {
-        try
-        {
-            var title = await _page.QuerySelectorAsync(PageHeadingSelector);
-            return title != null && await title.IsVisibleAsync();
-        }
-        catch { return false; }
-    }
+	public async Task<bool> HasTaskStatusTitleAsync()
+	{
+		try
+		{
+			var title = await _page.QuerySelectorAsync(PageHeadingSelector);
+			return title != null && await title.IsVisibleAsync();
+		}
+		catch { return false; }
+	}
 
-    public async Task<bool> HasQuickRefreshButtonAsync()
-    {
-        try
-        {
-            var btn = await _page.QuerySelectorAsync(QuickRefreshButtonSelector);
-            return btn != null && await btn.IsVisibleAsync();
-        }
-        catch { return false; }
-    }
+	public async Task<bool> HasQuickRefreshButtonAsync()
+	{
+		try
+		{
+			var btn = await _page.QuerySelectorAsync(QuickRefreshButtonSelector);
+			return btn != null && await btn.IsVisibleAsync();
+		}
+		catch { return false; }
+	}
 
-    public async Task QuickRefreshAsync()
-    {
-        await ExecuteWithErrorCheckAsync(async () =>
-        {
-            var btn = await _page.QuerySelectorAsync(QuickRefreshButtonSelector);
-            if (btn != null)
-            {
-                await btn.ClickAsync();
-                await _page.WaitForSelectorAsync(TableSelector, new PageWaitForSelectorOptions { Timeout = 10000 });
-            }
-        });
-    }
+	public async Task QuickRefreshAsync()
+	{
+		await ExecuteWithErrorCheckAsync(async () =>
+		{
+			var btn = await _page.QuerySelectorAsync(QuickRefreshButtonSelector);
+			if (btn != null)
+			{
+				await btn.ClickAsync();
+				await _page.WaitForSelectorAsync(TableSelector, new PageWaitForSelectorOptions { Timeout = 10000 });
+			}
+		});
+	}
 
-    public async Task<bool> HasTasksListAsync()
-    {
-        try
-        {
-            var table = await _page.QuerySelectorAsync(TableSelector);
-            return table != null && await table.IsVisibleAsync();
-        }
-        catch { return false; }
-    }
+	public async Task<bool> HasTasksListAsync()
+	{
+		try
+		{
+			var table = await _page.QuerySelectorAsync(TableSelector);
+			return table != null && await table.IsVisibleAsync();
+		}
+		catch { return false; }
+	}
 
-    public async Task<bool> IsErrorDisplayedAsync()
-    {
-        try
-        {
-            var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
-            return element != null && await element.IsVisibleAsync();
-        }
-        catch { return false; }
-    }
+	public async Task<bool> IsErrorDisplayedAsync()
+	{
+		try
+		{
+			var element = await _page.QuerySelectorAsync(ErrorAlertSelector);
+			return element != null && await element.IsVisibleAsync();
+		}
+		catch { return false; }
+	}
 
-    public async Task<bool> HasTaskRowsAsync(int minimumRows = 1)
-    {
-        try
-        {
-            var rows = await _page.QuerySelectorAllAsync(TaskRowsSelector);
-            return rows.Count >= minimumRows;
-        }
-        catch { return false; }
-    }
+	public async Task<bool> HasTaskRowsAsync(int minimumRows = 1)
+	{
+		try
+		{
+			var rows = await _page.QuerySelectorAllAsync(TaskRowsSelector);
+			return rows.Count >= minimumRows;
+		}
+		catch { return false; }
+	}
 
-    public async Task<bool> HasNoTaskDataMessageAsync()
-    {
-        try
-        {
-            var message = await _page.QuerySelectorAsync(NoTaskDataMessageSelector);
-            return message != null && await message.IsVisibleAsync();
-        }
-        catch { return false; }
-    }
+	public async Task<bool> HasNoTaskDataMessageAsync()
+	{
+		try
+		{
+			var message = await _page.QuerySelectorAsync(NoTaskDataMessageSelector);
+			return message != null && await message.IsVisibleAsync();
+		}
+		catch { return false; }
+	}
 }
 

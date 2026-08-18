@@ -112,14 +112,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	{
 		await SetupAsync();
 
-		try
-		{
-			await navigate();
-		}
-		catch
-		{
-			// Navigation or wait may fail in test env; verify page rendered
-		}
+		await navigate();
 
 		// Check for Blazor errors before clicking export
 		var errorEl = await Page!.QuerySelectorAsync("#blazor-error-ui");

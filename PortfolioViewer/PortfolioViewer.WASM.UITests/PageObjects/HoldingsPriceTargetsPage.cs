@@ -10,7 +10,7 @@ public class HoldingsPriceTargetsPage(IPage page) : BasePageObject(page)
 	private const string ErrorAlertSelector = ".alert-danger";
 	private const string HoldingsPriceTargetsLinkSelector = "a.dropdown-item[href='holdings-price-targets']";
 
-	public async Task NavigateViaMenuAsync()
+	public async Task NavigateViaMenuAsync(CancellationToken ct = default)
 	{
 		await ExecuteWithErrorCheckAsync(async () =>
 		{
@@ -18,8 +18,8 @@ public class HoldingsPriceTargetsPage(IPage page) : BasePageObject(page)
 			await _page.WaitForSelectorAsync(HoldingsPriceTargetsLinkSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
 			await _page.ClickAsync(HoldingsPriceTargetsLinkSelector);
 			await _page.WaitForURLAsync("**/holdings-price-targets", new PageWaitForURLOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
-		});
-		await WaitForPageLoadAsync(ct: CancellationToken.None);
+		}, ct);
+		await WaitForPageLoadAsync(ct: ct);
 	}
 
 	public async Task NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)

@@ -62,6 +62,20 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			});
 		}
 
+		public async Task ClickSyncAndWaitForCompletionAsync(int timeoutMs = 120000, CancellationToken ct = default)
+		{
+			var syncButton = await _page.QuerySelectorAsync(SyncButtonSelector);
+			if (syncButton == null) return;
+
+			await syncButton.ClickAsync();
+
+			// Wait for sync button to become enabled again (sync completed).
+			// Wrapped in WaitAsync(ct) so a stuck sync aborts via the test's
+			// cancellation token instead of always blocking for the full Playwright timeout.
+			await _page.WaitForSelectorAsync(SyncButtonSelector + ":not([disabled])", new PageWaitForSelectorOptions { Timeout = timeoutMs })
+				.WaitAsync(ct);
+		}
+
 		public async Task<string> GetSyncButtonTextAsync()
 		{
 			var button = await _page.QuerySelectorAsync(SyncButtonSelector);
@@ -175,12 +189,6 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		{
 			await OpenOptionsMenuAsync();
 			await _page.ClickAsync(DeleteAllDataSelector);
-		}
-
-		public async Task<string> TakeScreenshotAsync(string path)
-		{
-			await _page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
-			return path;
 		}
 	}
 }
