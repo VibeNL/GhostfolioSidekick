@@ -9,12 +9,14 @@ namespace PortfolioViewer.WASM.UITests;
 /// </summary>
 public sealed class BrowserFixture : IAsyncLifetime
 {
+	private IPlaywright? _playwright;
+
 	public IBrowser? Browser { get; private set; }
 
 	public async ValueTask InitializeAsync()
 	{
-		var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-		Browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+		_playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+		Browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 	}
 
 	public async ValueTask DisposeAsync()
@@ -23,6 +25,8 @@ public sealed class BrowserFixture : IAsyncLifetime
 		{
 			await Browser.CloseAsync();
 		}
+
+		_playwright?.Dispose();
 	}
 
 	/// <summary>

@@ -21,6 +21,6 @@ public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture b
 		var hasDashboardContent = await HomePage.IsSyncButtonVisibleAsync(); // Dashboard is loaded if sync button is visible
 		
 		Assert.True(hasLastSyncTime || hasDashboardContent,
-			"Sync completed (button enabled). Last sync time displayed: {hasLastSyncTime}. Dashboard loaded: {hasDashboardContent}");
+			$"Sync completed (button enabled). Last sync time displayed: {hasLastSyncTime}. Dashboard loaded: {hasDashboardContent}");
 	}
 }

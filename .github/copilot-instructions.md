@@ -140,7 +140,7 @@ dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 - **Test Output**: Screenshots (`playwright-screenshots/`) + videos (`playwright-videos/`) captured per test
   - Each test gets its own video directory: `playwright-videos/<TestName>/`
   - Videos recorded via `BrowserNewContextOptions.RecordVideoDir`
-  - Error state capture: `CaptureErrorStateAsync()` saves screenshot + full HTML on failure
+  - Error state capture: `CaptureFailureArtifacts()` saves screenshot + full HTML + console logs on failure
   - Browser console logs captured and printed: `[Browser Console] <type>: <text>`
   - Debug screenshots available in bin directory for failing tests
 
