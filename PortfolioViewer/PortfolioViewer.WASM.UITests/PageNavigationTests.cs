@@ -11,7 +11,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var holdingsPage = new HoldingsPage(Page!);
-		await holdingsPage.NavigateViaMenuAsync();
+		await holdingsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 		await holdingsPage.SwitchToTableModeAsync();
 
 		// Page should render without crashing
@@ -29,7 +29,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var holdingsPage = new HoldingsPage(Page!);
-		await holdingsPage.NavigateViaMenuAsync();
+		await holdingsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 		await holdingsPage.SwitchToTableModeAsync();
 
 		var hasRows = await holdingsPage.HasHoldingsDataRowsAsync();
@@ -48,7 +48,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var accountsPage = new AccountsPage(Page!);
-		await accountsPage.NavigateViaMenuAsync();
+		await accountsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		// Page should render without crashing
 		var isEmpty = await accountsPage.IsEmptyStateDisplayedAsync();
@@ -63,7 +63,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var taxReportPage = new TaxReportPage(Page!);
-		await taxReportPage.NavigateViaMenuAsync();
+		await taxReportPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		var isEmpty = await taxReportPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await taxReportPage.HasReportRowsAsync();
@@ -77,7 +77,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var topMoversPage = new TopMoversPage(Page!);
-		await topMoversPage.NavigateViaMenuAsync();
+		await topMoversPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasRisers = await topMoversPage.HasRiserEntriesAsync();
 		var hasLosers = await topMoversPage.HasLoserEntriesAsync();
@@ -96,7 +96,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 
 		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
 
-		await timeSeriesPage.NavigateViaMenuAsync();
+		await timeSeriesPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 		await timeSeriesPage.SwitchToTableModeAsync();
 		await timeSeriesPage.WaitForPageLoadAsync(ct: TestContext.Current.CancellationToken);
 
@@ -111,7 +111,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var dividendsPage = new UpcomingDividendsPage(Page!);
-		await dividendsPage.NavigateViaMenuAsync();
+		await dividendsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		var isEmpty = await dividendsPage.IsEmptyStateDisplayedAsync();
 		var hasRows = await dividendsPage.HasDividendRowsAsync();
@@ -125,7 +125,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var dataIssuesPage = new DataIssuesPage(Page!);
-		await dataIssuesPage.NavigateViaMenuAsync();
+		await dataIssuesPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		// Page should render without crashing - just verify the page is not blank
 		var appDiv = await Page!.QuerySelectorAsync("#app");
@@ -139,7 +139,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var taskStatusPage = new TaskStatusPage(Page!);
-		await taskStatusPage.NavigateViaMenuAsync();
+		await taskStatusPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasTaskStatusTitle = await taskStatusPage.HasTaskStatusTitleAsync();
 		Assert.True(hasTaskStatusTitle, "TaskStatus page should display its title");
@@ -151,7 +151,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var dividendsPage = new UpcomingDividendsPage(Page!);
-		await dividendsPage.NavigateViaMenuAsync();
+		await dividendsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasTitle = await dividendsPage.HasDividendsTitleAsync();
 		Assert.True(hasTitle, "Dividends page should display its title");
@@ -163,7 +163,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await SetupAsync();
 
 		var tablesPage = new TablesPage(Page!);
-		await tablesPage.NavigateViaMenuAsync();
+		await tablesPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasTableViewerTitle = await tablesPage.HasTableViewerTitleAsync();
 		Assert.True(hasTableViewerTitle, "Tables page should display its title");

@@ -10,7 +10,7 @@ public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		await SetupAsync();
 
 		var transactionsPage = new TransactionsPage(Page!);
-		await transactionsPage.NavigateViaMenuAsync();
+		await transactionsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 		await transactionsPage.SetDateFilterToAllAsync();
 
 		var hasError = await transactionsPage.IsErrorDisplayedAsync();

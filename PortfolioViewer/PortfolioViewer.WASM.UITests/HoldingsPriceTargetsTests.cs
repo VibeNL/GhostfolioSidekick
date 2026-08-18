@@ -46,7 +46,7 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 	{
 		await SetupAsync();
 
-		await HoldingsPriceTargetsPage.NavigateViaMenuAsync();
+		await HoldingsPriceTargetsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		var hasRows = await HoldingsPriceTargetsPage.HasDataRowsAsync(1);
 		var isEmpty = await HoldingsPriceTargetsPage.IsEmptyStateDisplayedAsync();

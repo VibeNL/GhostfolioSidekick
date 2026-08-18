@@ -73,12 +73,12 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 			$"Price Targets page should render correctly (empty: {hasEmptyState}, appEmpty: {appEmpty})");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldNavigateViaMenu()
 	{
 		await SetupAsync();
 
-		await PriceTargetsPage.NavigateViaMenuAsync();
+		await PriceTargetsPage.NavigateViaMenuAsync(ct: TestContext.Current.CancellationToken);
 
 		// Page should render without crashing - just verify the app container has content
 		var appDiv = await Page!.QuerySelectorAsync("#app");
