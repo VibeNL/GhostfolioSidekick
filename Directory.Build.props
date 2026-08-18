@@ -11,4 +11,9 @@
 		<FileVersion>$(VersionPrefix).0</FileVersion>
 		<InformationalVersion>$(VersionPrefix)$(VersionSuffix == '' ? '' : '-$(VersionSuffix)')</InformationalVersion>
 	</PropertyGroup>
+
+	<!-- Microsoft Testing Platform code coverage for all test projects -->
+	<ItemGroup Condition="'$(IsTestProject)' == 'true'">
+		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" />
+	</ItemGroup>
 </Project>

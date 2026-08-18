@@ -114,7 +114,7 @@ Use when user asks any of:
 
 11. Run with coverage (if available):
    ```
-   dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
+   dotnet test --coverage --coverage-output-format cobertura
    ```
 
 ### Phase 5: Security Verification

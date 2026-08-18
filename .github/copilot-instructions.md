@@ -37,8 +37,8 @@ dotnet build
 **Run all tests**:
 dotnet test
 **Tests with coverage** (CI):
-dotnet tool install --global dotnet-coverage
-dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
+dotnet test --coverage --coverage-output-format cobertura
+(reports written to `TestResults/*.cobertura.xml`)
 **Install Playwright browsers** (before UI tests):
 # Install for all test projects
 find . -type f -name 'playwright.ps1' | while read script; do
@@ -153,9 +153,9 @@ Runs on: push to `master`, PRs to `master`, manual dispatch.
 1. **Checkout**: Full history (`fetch-depth: 0`)
 2. **Setup**: JDK 21, .NET 10, Mono, WASM workload
 3. **Install Playwright**: `npx playwright install` + per-project via `playwright.ps1`
-4. **Install Tools**: `dotnet-sonarscanner`, `dotnet-coverage` (global)
+4. **Install Tools**: `dotnet-sonarscanner` (global)
 5. **Build**: `dotnet build` (no errors)
-6. **Test**: `dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"`
+6. **Test**: `dotnet test --coverage --coverage-output-format cobertura` (reports in `TestResults/`)
 7. **SonarCloud**: Upload coverage + static analysis (needs `SONAR_TOKEN`)
 8. **Artifacts**: Coverage, Playwright screenshots/videos
 9. **Security Scans** (publish): Deprecated/vuln packages, OSV scanner
