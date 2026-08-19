@@ -195,12 +195,10 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Coinbase (Broker) | Export of transaction history | |
 | De Giro | Export of account history (Language dependent, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
 | Generic importer | See below | |
-| Gold Republic | Account Statement export (PDF) | |
-| MacroTrends | Historical data CSV export | |
 | Nexo (Broker) | Export of transaction history | |
 | NIBC (Bank) | Export CSV (Semicolon delimited) | |
 | Scalable Capital (Prime only) | The CSV files export via the transaction view | |
-| Trade Republic | CSV transaction export (recommended) or monthly statements and individual invoices (PDF, legacy) | [Documentation](./Documentation/Parsers/TradeRepublic.md) |
+| Trade Republic | CSV transaction export (recommended) | [Documentation](./Documentation/Parsers/TradeRepublic.md) |
 | Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
 | Trine | Export of transaction history (CSV) | |
 

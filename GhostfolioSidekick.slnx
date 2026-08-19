@@ -16,8 +16,6 @@
     <File Path="supervisord.conf" />
   </Folder>
   <Folder Name="/Tools/">
-    <Project Path="Tools/AnonymisePDF.UnitTests/AnonymisePDF.UnitTests.csproj" />
-    <Project Path="Tools/AnonymisePDF/AnonymisePDF.csproj" />
     <Project Path="Tools/ScraperUtilities/ScraperUtilities.csproj" />
   </Folder>
   <Folder Name="/Website/">

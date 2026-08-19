@@ -47,10 +47,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Install Mono
-        run: |
-          sudo apt update
-          sudo apt install -y mono-complete
       - name: Install .NET 10 WASM workload
         run: |
           dotnet workload install wasm-tools
