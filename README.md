@@ -195,8 +195,6 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Coinbase (Broker) | Export of transaction history | |
 | De Giro | Export of account history (Language dependent, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
 | Generic importer | See below | |
-| Gold Republic | Account Statement export (PDF) | |
-| MacroTrends | Historical data CSV export | |
 | Nexo (Broker) | Export of transaction history | |
 | NIBC (Bank) | Export CSV (Semicolon delimited) | |
 | Scalable Capital (Prime only) | The CSV files export via the transaction view | |
