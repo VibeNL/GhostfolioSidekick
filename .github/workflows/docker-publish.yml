@@ -58,7 +58,9 @@ jobs:
       - name: Install Playwright Browsers
         run: pwsh -Command "npx playwright install"
       - name: Install SonarCloud scanners
-        run: dotnet tool install --global dotnet-sonarscanner
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+          dotnet tool install --global dotnet-coverage
       - name: Add .NET global tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
       - name: Cache SonarCloud packages
