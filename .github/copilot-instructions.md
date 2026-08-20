@@ -101,7 +101,7 @@ dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 ├── PerformanceCalculations/             # Portfolio performance calculations
 ├── Cryptocurrency/                      # Crypto-specific logic
 ├── Utilities/                           # Common utilities
-└── Tools/                               # Utility tools (AnonymisePDF, ScraperUtilities)
+└── Tools/                               # Utility tools (ScraperUtilities)
 
 ### Key Architectural Patterns
 

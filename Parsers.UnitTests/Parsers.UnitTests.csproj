@@ -292,9 +292,6 @@
 		<None Update="TestFiles\Generic\Specials\single_gift_fiat.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\GoldRepublic\year_overview.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 		<None Update="TestFiles\Nexo\ReceiveSend\single_withdrawal.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -420,78 +417,6 @@
 		</None>
 		<None Update="TestFiles\TradeRepublic\CSV\single_stockperk.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_buy_bond.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_buy_stock.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\InformationOnly\single_round_up_information.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_savingsplan_stock.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\CashTransactions\single_dividend.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\Statements\account_statement.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\Statements\account_statement_alt.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_bond.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_savingsplan_etf.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_stock.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_stock_alt.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\ES\CashTransactions\single_dividend_stock.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\ES\CashTransactions\single_interest_bond.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\ES\CashTransactions\single_repayment_bond.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\NL\CashTransactions\single_dividend.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\CashTransactions\single_interest_bond.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\EN\CashTransactions\single_repay_bond.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\DE\BuyOrders\single_buy_stock_fraction.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\DE\BuyOrders\single_buy_stock_full.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\DE\BuyOrders\single_buy_savingsplan_etf.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\DE\BuyOrders\single_limit_buy_stock.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\DE\SellOrders\single_sell_stock.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\DE\CashTransactions\single_dividend_stock.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\multi-month-statement-nl.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trading212\BuyOrders\single_buy_euro_finra_fee.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
