@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using xRetry.v3;
 
 namespace GhostfolioSidekick.UnitTests
 {
@@ -71,8 +70,13 @@ namespace GhostfolioSidekick.UnitTests
 			Times.Once);
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItems()
+		{
+			await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItems_Runnable);
+		}
+
+		private async Task DoWork_ShouldExecuteWorkItems_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
@@ -99,8 +103,13 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once);
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule()
+		{
+			await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_Runnable);
+		}
+
+		private async Task DoWork_ShouldExecuteWorkItemsOnSchedule_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
@@ -127,8 +136,13 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once); // Should execute once initially
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork()
+		{
+			await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork_Runnable);
+		}
+
+		private async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
@@ -156,8 +170,13 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once);
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_Exception_ShouldContinueToWork()
+		{
+			await TestRetry.RunAsync(DoWork_Exception_ShouldContinueToWork_Runnable);
+		}
+
+		private async Task DoWork_Exception_ShouldContinueToWork_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();

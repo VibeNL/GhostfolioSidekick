@@ -11,7 +11,6 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using xRetry.v3;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
 	public class AccountDetailTests : BunitContext
@@ -52,17 +51,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			Services.AddSingleton<IPrivacyModeService, PrivacyModeService>();
 		}
 
-		[RetryFact]
+		[Fact]
 		public void AccountDetail_InitialState_ShowsLoadingState()
 		{
-			// Arrange
-			SetupBasicMocks();
+			TestRetry.Run(() =>
+			{
+				// Arrange
+				SetupBasicMocks();
 
-			// Act
-			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+				// Act
+				var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
-			// Assert
-			component.Markup.Should().Contain("Loading Account Details");
+				// Assert
+				component.Markup.Should().Contain("Loading Account Details");
+			});
 		}
 
 		[Fact]
