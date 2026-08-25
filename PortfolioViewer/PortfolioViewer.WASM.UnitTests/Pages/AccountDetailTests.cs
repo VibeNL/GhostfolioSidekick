@@ -11,6 +11,8 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using GhostfolioSidekick.Tools.TestUtilities;
+
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
 	public class AccountDetailTests : BunitContext

@@ -1,13 +1,18 @@
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions()
+	{
+		await TestRetry.RunAsync(ComprehensiveSmokeTest_LoginSyncAndViewTransactions_Runnable);
+	}
+
+	private async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions_Runnable()
 	{
 		await SetupAsync();
 

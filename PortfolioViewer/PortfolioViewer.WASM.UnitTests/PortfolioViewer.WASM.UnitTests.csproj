@@ -28,6 +28,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
+		<ProjectReference Include="..\..\Tools\TestUtilities\TestUtilities.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Using Include="Xunit" />

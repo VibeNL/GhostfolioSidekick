@@ -36,5 +36,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
+		<ProjectReference Include="..\Tools\TestUtilities\TestUtilities.csproj" />
 	</ItemGroup>
 </Project>

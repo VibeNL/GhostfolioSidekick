@@ -1,4 +1,4 @@
-namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
+namespace GhostfolioSidekick.Tools.TestUtilities
 {
 	/// <summary>
 	/// Retry helper for flaky tests (replaces the xRetry.v3 <c>RetryFact</c> attribute).
@@ -11,18 +11,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 
 		public static void Run(Action test, int maxAttempts = DefaultMaxAttempts)
 		{
-			for (var attempt = 1; attempt <= maxAttempts; attempt++)
+			RunAsync(() =>
 			{
-				try
-				{
-					test();
-					return;
-				}
-				catch (Exception ex) when (attempt < maxAttempts && ex is not OperationCanceledException)
-				{
-					Console.Error.WriteLine($"[TestRetry] Attempt {attempt} failed ({ex.GetType().Name}: {ex.Message}), retrying...");
-				}
-			}
+				test();
+				return Task.CompletedTask;
+			}, maxAttempts).GetAwaiter().GetResult();
 		}
 
 		public static async Task RunAsync(Func<Task> test, int maxAttempts = DefaultMaxAttempts)
