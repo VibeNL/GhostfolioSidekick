@@ -189,22 +189,10 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 			var downloadWaitTask = Page!.WaitForDownloadAsync(new PageWaitForDownloadOptions { Timeout = 5000 });
 			await exportButton.ClickAsync();
 
-			try
-			{
-				download = await downloadWaitTask;
-			}
-			catch (TimeoutException)
-			{
-				// Some environments/pages may trigger the download via a mechanism Playwright
-				// doesn't surface as a 'download' event (e.g. in-memory blob without navigation).
-				// The absence of a Blazor error and a still-rendered app are validated below.
-			}
+			download = await downloadWaitTask;
+			Assert.EndsWith(".csv", download!.SuggestedFilename, StringComparison.OrdinalIgnoreCase);
 		});
 
-		if (download != null)
-		{
-			Assert.EndsWith(".csv", download.SuggestedFilename, StringComparison.OrdinalIgnoreCase);
-		}
 
 		// If we get here, no Blazor error occurred (ExecuteWithErrorCheckAsync would have thrown)
 
