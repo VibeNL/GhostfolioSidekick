@@ -10,7 +10,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task TransactionsPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(TransactionsPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(TransactionsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task TransactionsPage_HasExportButton_Runnable()
@@ -22,7 +22,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task HoldingsPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(HoldingsPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(HoldingsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task HoldingsPage_HasExportButton_Runnable()
@@ -35,7 +35,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task AccountsPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(AccountsPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(AccountsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task AccountsPage_HasExportButton_Runnable()
@@ -47,7 +47,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task DividendsPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(DividendsPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(DividendsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task DividendsPage_HasExportButton_Runnable()
@@ -59,7 +59,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task PortfolioTimeSeriesPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(PortfolioTimeSeriesPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(PortfolioTimeSeriesPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task PortfolioTimeSeriesPage_HasExportButton_Runnable()
@@ -71,7 +71,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task TopMoversPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(TopMoversPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(TopMoversPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task TopMoversPage_HasExportButton_Runnable()
@@ -83,7 +83,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task TaxReportPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(TaxReportPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(TaxReportPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task TaxReportPage_HasExportButton_Runnable()
@@ -95,7 +95,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task ExportButton_VisibleWhenDataPresent()
 	{
-		await TestRetry.RunAsync(ExportButton_VisibleWhenDataPresent_Runnable);
+		Assert.True(await TestRetry.RunAsync(ExportButton_VisibleWhenDataPresent_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task ExportButton_VisibleWhenDataPresent_Runnable()
@@ -107,7 +107,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task ExportButton_Clickable()
 	{
-		await TestRetry.RunAsync(ExportButton_Clickable_Runnable);
+		Assert.True(await TestRetry.RunAsync(ExportButton_Clickable_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task ExportButton_Clickable_Runnable()
@@ -119,7 +119,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 	[Fact]
 	public async Task DataIssuesPage_HasExportButton()
 	{
-		await TestRetry.RunAsync(DataIssuesPage_HasExportButton_Runnable);
+		Assert.True(await TestRetry.RunAsync(DataIssuesPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task DataIssuesPage_HasExportButton_Runnable()

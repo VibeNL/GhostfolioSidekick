@@ -9,7 +9,7 @@ public class TransactionsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	[Fact]
 	public async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions()
 	{
-		await TestRetry.RunAsync(ComprehensiveSmokeTest_LoginSyncAndViewTransactions_Runnable);
+		Assert.True(await TestRetry.RunAsync(ComprehensiveSmokeTest_LoginSyncAndViewTransactions_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task ComprehensiveSmokeTest_LoginSyncAndViewTransactions_Runnable()

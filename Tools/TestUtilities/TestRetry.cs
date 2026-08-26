@@ -4,6 +4,7 @@ namespace GhostfolioSidekick.Tools.TestUtilities
 	/// Retry helper for flaky tests (replaces the xRetry.v3 <c>RetryFact</c> attribute).
 	/// Runs the test body up to <paramref name="maxAttempts"/> times until it passes;
 	/// the exception from the final failed attempt is rethrown.
+	/// Returns <c>true</c> when the test body passed so callers can assert on the result.
 	/// </summary>
 	public static class TestRetry
 	{
@@ -18,20 +19,22 @@ namespace GhostfolioSidekick.Tools.TestUtilities
 			}, maxAttempts).GetAwaiter().GetResult();
 		}
 
-		public static async Task RunAsync(Func<Task> test, int maxAttempts = DefaultMaxAttempts)
+		public static async Task<bool> RunAsync(Func<Task> test, int maxAttempts = DefaultMaxAttempts)
 		{
 			for (var attempt = 1; attempt <= maxAttempts; attempt++)
 			{
 				try
 				{
 					await test();
-					return;
+					return true;
 				}
 				catch (Exception ex) when (attempt < maxAttempts && ex is not OperationCanceledException)
 				{
-					Console.Error.WriteLine($"[TestRetry] Attempt {attempt} failed ({ex.GetType().Name}: {ex.Message}), retrying...");
+					await Console.Error.WriteLineAsync($"[TestRetry] Attempt {attempt} failed ({ex.GetType().Name}: {ex.Message}), retrying...");
 				}
 			}
+
+			return false;
 		}
 	}
 }

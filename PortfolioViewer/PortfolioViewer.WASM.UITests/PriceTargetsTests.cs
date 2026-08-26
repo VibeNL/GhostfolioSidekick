@@ -10,7 +10,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	[Fact]
 	public async Task NavigateToPriceTargets_ShouldLoadWithoutBlazorError()
 	{
-		await TestRetry.RunAsync(NavigateToPriceTargets_ShouldLoadWithoutBlazorError_Runnable);
+		Assert.True(await TestRetry.RunAsync(NavigateToPriceTargets_ShouldLoadWithoutBlazorError_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task NavigateToPriceTargets_ShouldLoadWithoutBlazorError_Runnable()
@@ -56,7 +56,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	[Fact]
 	public async Task PriceTargetsPage_ShouldDisplayDataRows()
 	{
-		await TestRetry.RunAsync(PriceTargetsPage_ShouldDisplayDataRows_Runnable);
+		Assert.True(await TestRetry.RunAsync(PriceTargetsPage_ShouldDisplayDataRows_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task PriceTargetsPage_ShouldDisplayDataRows_Runnable()
@@ -74,7 +74,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	[Fact]
 	public async Task PriceTargetsPage_ShouldNavigateViaMenu()
 	{
-		await TestRetry.RunAsync(PriceTargetsPage_ShouldNavigateViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(PriceTargetsPage_ShouldNavigateViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task PriceTargetsPage_ShouldNavigateViaMenu_Runnable()
@@ -93,7 +93,7 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 	[Fact]
 	public async Task PriceTargetsPage_ShouldShowSeededSymbols()
 	{
-		await TestRetry.RunAsync(PriceTargetsPage_ShouldShowSeededSymbols_Runnable);
+		Assert.True(await TestRetry.RunAsync(PriceTargetsPage_ShouldShowSeededSymbols_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task PriceTargetsPage_ShouldShowSeededSymbols_Runnable()

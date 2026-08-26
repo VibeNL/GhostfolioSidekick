@@ -10,7 +10,7 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 	[Fact]
 	public async Task NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError()
 	{
-		await TestRetry.RunAsync(NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError_Runnable);
+		Assert.True(await TestRetry.RunAsync(NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError_Runnable()
@@ -38,7 +38,7 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldDisplayDataRows()
 	{
-		await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldDisplayDataRows_Runnable);
+		Assert.True(await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldDisplayDataRows_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task HoldingsPriceTargetsPage_ShouldDisplayDataRows_Runnable()
@@ -56,7 +56,7 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldNavigateViaMenu()
 	{
-		await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldNavigateViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldNavigateViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task HoldingsPriceTargetsPage_ShouldNavigateViaMenu_Runnable()
@@ -74,7 +74,7 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldShowSeededSymbols()
 	{
-		await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldShowSeededSymbols_Runnable);
+		Assert.True(await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldShowSeededSymbols_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task HoldingsPriceTargetsPage_ShouldShowSeededSymbols_Runnable()

@@ -10,7 +10,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task HoldingsPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(HoldingsPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(HoldingsPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task HoldingsPage_ShouldLoadViaMenu_Runnable()
@@ -33,7 +33,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task HoldingsPage_ShouldShowSeededSymbols()
 	{
-		await TestRetry.RunAsync(HoldingsPage_ShouldShowSeededSymbols_Runnable);
+		Assert.True(await TestRetry.RunAsync(HoldingsPage_ShouldShowSeededSymbols_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task HoldingsPage_ShouldShowSeededSymbols_Runnable()
@@ -57,7 +57,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task AccountsPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(AccountsPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(AccountsPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task AccountsPage_ShouldLoadViaMenu_Runnable()
@@ -77,7 +77,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task TaxReportPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(TaxReportPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(TaxReportPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task TaxReportPage_ShouldLoadViaMenu_Runnable()
@@ -96,7 +96,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task TopMoversPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(TopMoversPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(TopMoversPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task TopMoversPage_ShouldLoadViaMenu_Runnable()
@@ -119,7 +119,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(PortfolioTimeSeriesPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(PortfolioTimeSeriesPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu_Runnable()
@@ -140,7 +140,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task UpcomingDividendsPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(UpcomingDividendsPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(UpcomingDividendsPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task UpcomingDividendsPage_ShouldLoadViaMenu_Runnable()
@@ -159,7 +159,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task DataIssuesPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(DataIssuesPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(DataIssuesPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task DataIssuesPage_ShouldLoadViaMenu_Runnable()
@@ -178,7 +178,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task TaskStatusPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(TaskStatusPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(TaskStatusPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task TaskStatusPage_ShouldLoadViaMenu_Runnable()
@@ -195,7 +195,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task DividendsPage_ShouldHandleInvalidDecimalDataGracefully()
 	{
-		await TestRetry.RunAsync(DividendsPage_ShouldHandleInvalidDecimalDataGracefully_Runnable);
+		Assert.True(await TestRetry.RunAsync(DividendsPage_ShouldHandleInvalidDecimalDataGracefully_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task DividendsPage_ShouldHandleInvalidDecimalDataGracefully_Runnable()
@@ -212,7 +212,7 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 	[Fact]
 	public async Task TablesPage_ShouldLoadViaMenu()
 	{
-		await TestRetry.RunAsync(TablesPage_ShouldLoadViaMenu_Runnable);
+		Assert.True(await TestRetry.RunAsync(TablesPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task TablesPage_ShouldLoadViaMenu_Runnable()

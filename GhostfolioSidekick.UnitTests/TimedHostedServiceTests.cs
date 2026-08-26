@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.UnitTests
 		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItems()
 		{
-			await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItems_Runnable);
+			Assert.True(await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItems_Runnable), "Test failed after all retry attempts.");
 		}
 
 		private async Task DoWork_ShouldExecuteWorkItems_Runnable()
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.UnitTests
 		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule()
 		{
-			await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_Runnable);
+			Assert.True(await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_Runnable), "Test failed after all retry attempts.");
 		}
 
 		private async Task DoWork_ShouldExecuteWorkItemsOnSchedule_Runnable()
@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.UnitTests
 		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork()
 		{
-			await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork_Runnable);
+			Assert.True(await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork_Runnable), "Test failed after all retry attempts.");
 		}
 
 		private async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork_Runnable()
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.UnitTests
 		[Fact]
 		public async Task DoWork_Exception_ShouldContinueToWork()
 		{
-			await TestRetry.RunAsync(DoWork_Exception_ShouldContinueToWork_Runnable);
+			Assert.True(await TestRetry.RunAsync(DoWork_Exception_ShouldContinueToWork_Runnable), "Test failed after all retry attempts.");
 		}
 
 		private async Task DoWork_Exception_ShouldContinueToWork_Runnable()

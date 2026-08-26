@@ -9,7 +9,7 @@ public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture b
 	[Fact]
 	public async Task Sync_ShouldStartAndComplete()
 	{
-		await TestRetry.RunAsync(Sync_ShouldStartAndComplete_Runnable);
+		Assert.True(await TestRetry.RunAsync(Sync_ShouldStartAndComplete_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task Sync_ShouldStartAndComplete_Runnable()

@@ -9,7 +9,7 @@ public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture brows
 	[Fact]
 	public async Task Api_HealthEndpoint_GivesResponse()
 	{
-		await TestRetry.RunAsync(Api_HealthEndpoint_GivesResponse_Runnable);
+		Assert.True(await TestRetry.RunAsync(Api_HealthEndpoint_GivesResponse_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task Api_HealthEndpoint_GivesResponse_Runnable()
@@ -25,7 +25,7 @@ public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture brows
 	[Fact]
 	public async Task Login_ShouldSucceedWithValidToken()
 	{
-		await TestRetry.RunAsync(Login_ShouldSucceedWithValidToken_Runnable);
+		Assert.True(await TestRetry.RunAsync(Login_ShouldSucceedWithValidToken_Runnable), "Test failed after all retry attempts.");
 	}
 
 	private async Task Login_ShouldSucceedWithValidToken_Runnable()

@@ -21,7 +21,7 @@ Core files/patterns:
 - `PageObjects/BasePageObject.cs` for shared `WaitForPageLoadAsync` (spinner hidden → any stable state, waits are wrapped in `.WaitAsync(ct)` for cancellation responsiveness), `ExecuteWithErrorCheckAsync` (auto Blazor error check), `CheckForBlazorErrorAsync`.
 - `PageRenderAssertions.cs` (test project root) — shared helper for the common "page rendered" tri-state assertion (`AssertRendered(pageName, hasRows, isEmpty, hasError)`) and `AssertSeededSymbolsWhenRowsPresentAsync(...)` for tightening checks against `TestDataSeeder` data only when rows are actually present. **Use these instead of copy-pasting `Assert.True(hasRows || isEmpty || hasError, ...)` blocks.**
 - `PageObjects/*` for page objects — all use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)`.
-- Flaky-tolerant tests: plain `[Fact]` + body `await TestRetry.RunAsync(MyTest_Runnable);` (helper in `Tools/TestUtilities/TestRetry.cs`, `using GhostfolioSidekick.Tools.TestUtilities;`) — retries up to 3 attempts with 1s delay, fails on last. **No xRetry dependency.**
+- Flaky-tolerant tests: plain `[Fact]` + body `Assert.True(await TestRetry.RunAsync(MyTest_Runnable), "...");` (helper in `Tools/TestUtilities/TestRetry.cs`, `using GhostfolioSidekick.Tools.TestUtilities;`) — retries up to 3 attempts, rethrows the exception of the final failed attempt; the `Assert.True` keeps the test method assertion-bearing (Sonar S2699). **No xRetry dependency.**
 
 ## Trigger
 
