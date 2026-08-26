@@ -178,7 +178,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 
 	/// <summary>
 	/// Clicks the export button while waiting for the resulting browser download, then asserts
-	/// the download (when raised) has a .csv extension and that the app remains rendered afterwards.
+	/// the download has a .csv extension and that the app remains rendered afterwards.
 	/// </summary>
 	private async Task ClickExportAndVerifyAsync(BasePageObject pageObject, IElementHandle exportButton, string pageName)
 	{
@@ -192,7 +192,6 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 			download = await downloadWaitTask;
 			Assert.EndsWith(".csv", download!.SuggestedFilename, StringComparison.OrdinalIgnoreCase);
 		});
-
 
 		// If we get here, no Blazor error occurred (ExecuteWithErrorCheckAsync would have thrown)
 

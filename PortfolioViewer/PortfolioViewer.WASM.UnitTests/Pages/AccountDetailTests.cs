@@ -8,10 +8,10 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Pages;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
+using GhostfolioSidekick.Tools.TestUtilities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {

@@ -2,9 +2,11 @@ namespace GhostfolioSidekick.Tools.TestUtilities
 {
 	/// <summary>
 	/// Retry helper for flaky tests (replaces the xRetry.v3 <c>RetryFact</c> attribute).
-	/// Runs the test body up to <paramref name="maxAttempts"/> times until it passes;
-	/// the exception from the final failed attempt is rethrown.
-	/// Returns <c>true</c> when the test body passed so callers can assert on the result.
+	/// Runs the test body up to <paramref name="maxAttempts"/> times until it passes.
+	/// On success, returns <c>true</c> so callers can assert on the result (keeps the test
+	/// method assertion-bearing, e.g. for Sonar S2699). If every attempt fails, the exception
+	/// from the final attempt is rethrown; <c>false</c> is only returned when
+	/// <paramref name="maxAttempts"/> is less than 1.
 	/// </summary>
 	public static class TestRetry
 	{
@@ -34,6 +36,7 @@ namespace GhostfolioSidekick.Tools.TestUtilities
 				}
 			}
 
+			// Only reachable when maxAttempts < 1; otherwise the final attempt's exception rethrows.
 			return false;
 		}
 	}
