@@ -16,7 +16,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageReference Include="Microsoft.Playwright" Version="1.62.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
-    <PackageReference Include="xRetry.v3" Version="1.0.0-rc3" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -30,6 +29,7 @@
     <ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
     <ProjectReference Include="..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
     <ProjectReference Include="..\..\Configuration\Configuration.csproj" />
+    <ProjectReference Include="..\..\Tools\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\" />

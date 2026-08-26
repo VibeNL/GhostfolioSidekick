@@ -1,13 +1,18 @@
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task Api_HealthEndpoint_GivesResponse()
+	{
+		Assert.True(await TestRetry.RunAsync(Api_HealthEndpoint_GivesResponse_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task Api_HealthEndpoint_GivesResponse_Runnable()
 	{
 		var apiClient = Fixture.CreateDefaultClient();
 		var healthUrl = "api/auth/health";
@@ -17,8 +22,13 @@ public class AuthTests(CustomWebApplicationFactory fixture, BrowserFixture brows
 		Assert.True(response.IsSuccessStatusCode, $"API health endpoint failed: {response.StatusCode} {content}");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task Login_ShouldSucceedWithValidToken()
+	{
+		Assert.True(await TestRetry.RunAsync(Login_ShouldSucceedWithValidToken_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task Login_ShouldSucceedWithValidToken_Runnable()
 	{
 		await SetupAsync();
 

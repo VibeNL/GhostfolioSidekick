@@ -1,14 +1,19 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task NavigateToPriceTargets_ShouldLoadWithoutBlazorError()
+	{
+		Assert.True(await TestRetry.RunAsync(NavigateToPriceTargets_ShouldLoadWithoutBlazorError_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task NavigateToPriceTargets_ShouldLoadWithoutBlazorError_Runnable()
 	{
 		try
 		{
@@ -48,8 +53,13 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		Assert.False(hasBlazorError, "Price Targets page should not have Blazor errors");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldDisplayDataRows()
+	{
+		Assert.True(await TestRetry.RunAsync(PriceTargetsPage_ShouldDisplayDataRows_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task PriceTargetsPage_ShouldDisplayDataRows_Runnable()
 	{
 		await SetupAsync();
 
@@ -61,8 +71,13 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		Assert.False(appEmpty, "Price Targets page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldNavigateViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(PriceTargetsPage_ShouldNavigateViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task PriceTargetsPage_ShouldNavigateViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -75,8 +90,13 @@ public class PriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixtu
 		Assert.False(appEmpty, "Price Targets page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PriceTargetsPage_ShouldShowSeededSymbols()
+	{
+		Assert.True(await TestRetry.RunAsync(PriceTargetsPage_ShouldShowSeededSymbols_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task PriceTargetsPage_ShouldShowSeededSymbols_Runnable()
 	{
 		await SetupAsync();
 

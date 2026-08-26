@@ -1,13 +1,18 @@
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task Sync_ShouldStartAndComplete()
+	{
+		Assert.True(await TestRetry.RunAsync(Sync_ShouldStartAndComplete_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task Sync_ShouldStartAndComplete_Runnable()
 	{
 		await SetupAsync();
 

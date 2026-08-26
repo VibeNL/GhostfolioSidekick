@@ -1,14 +1,19 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError()
+	{
+		Assert.True(await TestRetry.RunAsync(NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task NavigateToHoldingsPriceTargets_ShouldLoadWithoutBlazorError_Runnable()
 	{
 		await SetupAsync();
 
@@ -30,8 +35,13 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 		Assert.False(hasBlazorError, $"Holdings Price Targets page should not have Blazor errors: {(hasBlazorError ? await errorEl!.TextContentAsync() : string.Empty)}");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldDisplayDataRows()
+	{
+		Assert.True(await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldDisplayDataRows_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task HoldingsPriceTargetsPage_ShouldDisplayDataRows_Runnable()
 	{
 		await SetupAsync();
 
@@ -43,8 +53,13 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 		PageRenderAssertions.AssertRendered("Holdings Price Targets", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldNavigateViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldNavigateViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task HoldingsPriceTargetsPage_ShouldNavigateViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -56,8 +71,13 @@ public class HoldingsPriceTargetsTests(CustomWebApplicationFactory fixture, Brow
 		PageRenderAssertions.AssertRendered("Holdings Price Targets", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPriceTargetsPage_ShouldShowSeededSymbols()
+	{
+		Assert.True(await TestRetry.RunAsync(HoldingsPriceTargetsPage_ShouldShowSeededSymbols_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task HoldingsPriceTargetsPage_ShouldShowSeededSymbols_Runnable()
 	{
 		await SetupAsync();
 

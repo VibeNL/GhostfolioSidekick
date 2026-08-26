@@ -1,78 +1,128 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task TransactionsPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(TransactionsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task TransactionsPage_HasExportButton_Runnable()
 	{
 		var transactionsPage = new TransactionsPage(Page!);
 		await VerifyExportButtonWorksAsync(transactionsPage, () => transactionsPage.NavigateDirectAsync(), "Transactions");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(HoldingsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task HoldingsPage_HasExportButton_Runnable()
 	{
 		CaptureStepScreenshots = true;
 		var holdingsPage = new HoldingsPage(Page!);
 		await VerifyExportButtonWorksAsync(holdingsPage, () => holdingsPage.NavigateDirectAsync(), "Holdings");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task AccountsPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(AccountsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task AccountsPage_HasExportButton_Runnable()
 	{
 		var accountsPage = new AccountsPage(Page!);
 		await VerifyExportButtonWorksAsync(accountsPage, () => accountsPage.NavigateDirectAsync(), "Accounts");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DividendsPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(DividendsPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task DividendsPage_HasExportButton_Runnable()
 	{
 		var dividendsPage = new DividendsPage(Page!);
 		await VerifyExportButtonWorksAsync(dividendsPage, () => dividendsPage.NavigateDirectAsync(), "Dividends");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PortfolioTimeSeriesPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(PortfolioTimeSeriesPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task PortfolioTimeSeriesPage_HasExportButton_Runnable()
 	{
 		var timeSeriesPage = new PortfolioTimeSeriesPage(Page!);
 		await VerifyExportButtonWorksAsync(timeSeriesPage, () => timeSeriesPage.NavigateDirectAsync(), "PortfolioTimeSeries");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TopMoversPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(TopMoversPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task TopMoversPage_HasExportButton_Runnable()
 	{
 		var topMoversPage = new TopMoversPage(Page!);
 		await VerifyExportButtonWorksAsync(topMoversPage, () => topMoversPage.NavigateDirectAsync(), "TopMovers");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TaxReportPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(TaxReportPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task TaxReportPage_HasExportButton_Runnable()
 	{
 		var taxReportPage = new TaxReportPage(Page!);
 		await VerifyExportButtonWorksAsync(taxReportPage, () => taxReportPage.NavigateDirectAsync(), "TaxReport");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task ExportButton_VisibleWhenDataPresent()
+	{
+		Assert.True(await TestRetry.RunAsync(ExportButton_VisibleWhenDataPresent_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task ExportButton_VisibleWhenDataPresent_Runnable()
 	{
 		var transactionsPage = new TransactionsPage(Page!);
 		await VerifyExportButtonWorksAsync(transactionsPage, () => transactionsPage.NavigateDirectAsync(), "Transactions", requireVisible: true);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task ExportButton_Clickable()
+	{
+		Assert.True(await TestRetry.RunAsync(ExportButton_Clickable_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task ExportButton_Clickable_Runnable()
 	{
 		var holdingsPage = new HoldingsPage(Page!);
 		await VerifyExportButtonWorksAsync(holdingsPage, () => holdingsPage.NavigateDirectAsync(), "Holdings", requireVisible: true);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DataIssuesPage_HasExportButton()
+	{
+		Assert.True(await TestRetry.RunAsync(DataIssuesPage_HasExportButton_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task DataIssuesPage_HasExportButton_Runnable()
 	{
 		await SetupAsync();
 
@@ -128,7 +178,7 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 
 	/// <summary>
 	/// Clicks the export button while waiting for the resulting browser download, then asserts
-	/// the download (when raised) has a .csv extension and that the app remains rendered afterwards.
+	/// the download has a .csv extension and that the app remains rendered afterwards.
 	/// </summary>
 	private async Task ClickExportAndVerifyAsync(BasePageObject pageObject, IElementHandle exportButton, string pageName)
 	{
@@ -139,22 +189,9 @@ public class CsvExportTests(CustomWebApplicationFactory fixture, BrowserFixture 
 			var downloadWaitTask = Page!.WaitForDownloadAsync(new PageWaitForDownloadOptions { Timeout = 5000 });
 			await exportButton.ClickAsync();
 
-			try
-			{
-				download = await downloadWaitTask;
-			}
-			catch (TimeoutException)
-			{
-				// Some environments/pages may trigger the download via a mechanism Playwright
-				// doesn't surface as a 'download' event (e.g. in-memory blob without navigation).
-				// The absence of a Blazor error and a still-rendered app are validated below.
-			}
+			download = await downloadWaitTask;
+			Assert.EndsWith(".csv", download!.SuggestedFilename, StringComparison.OrdinalIgnoreCase);
 		});
-
-		if (download != null)
-		{
-			Assert.EndsWith(".csv", download.SuggestedFilename, StringComparison.OrdinalIgnoreCase);
-		}
 
 		// If we get here, no Blazor error occurred (ExecuteWithErrorCheckAsync would have thrown)
 

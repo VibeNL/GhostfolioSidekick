@@ -17,6 +17,8 @@
   </Folder>
   <Folder Name="/Tools/">
     <Project Path="Tools/ScraperUtilities/ScraperUtilities.csproj" />
+    <Project Path="Tools/TestUtilities/TestUtilities.csproj" />
+    <Project Path="Tools/TestUtilities.UnitTests/TestUtilities.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Website/">
     <Project Path="PortfolioViewer/PortfolioViewer.ApiService.UnitTests/PortfolioViewer.ApiService.UnitTests.csproj" Id="3175082c-7f95-4861-9138-c7760c48ffcc" />

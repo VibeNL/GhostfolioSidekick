@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace GhostfolioSidekick.UnitTests
 {
@@ -71,8 +71,13 @@ namespace GhostfolioSidekick.UnitTests
 			Times.Once);
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItems()
+		{
+			Assert.True(await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItems_Runnable), "Test failed after all retry attempts.");
+		}
+
+		private async Task DoWork_ShouldExecuteWorkItems_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
@@ -99,8 +104,13 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once);
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule()
+		{
+			Assert.True(await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_Runnable), "Test failed after all retry attempts.");
+		}
+
+		private async Task DoWork_ShouldExecuteWorkItemsOnSchedule_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
@@ -127,8 +137,13 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once); // Should execute once initially
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork()
+		{
+			Assert.True(await TestRetry.RunAsync(DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork_Runnable), "Test failed after all retry attempts.");
+		}
+
+		private async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
@@ -156,8 +171,13 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once);
 		}
 
-		[RetryFact]
+		[Fact]
 		public async Task DoWork_Exception_ShouldContinueToWork()
+		{
+			Assert.True(await TestRetry.RunAsync(DoWork_Exception_ShouldContinueToWork_Runnable), "Test failed after all retry attempts.");
+		}
+
+		private async Task DoWork_Exception_ShouldContinueToWork_Runnable()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();

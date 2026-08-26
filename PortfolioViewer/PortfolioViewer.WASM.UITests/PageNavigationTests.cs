@@ -1,14 +1,19 @@
 using Microsoft.Playwright;
 using PortfolioViewer.WASM.UITests.PageObjects;
-using xRetry.v3;
+using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
 
 [Collection("WebApplicationFactory")]
 public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
 {
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(HoldingsPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task HoldingsPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -25,8 +30,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync("Holdings", hasRows, ["AAPL"], holdingsPage.HasHoldingSymbolAsync);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task HoldingsPage_ShouldShowSeededSymbols()
+	{
+		Assert.True(await TestRetry.RunAsync(HoldingsPage_ShouldShowSeededSymbols_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task HoldingsPage_ShouldShowSeededSymbols_Runnable()
 	{
 		await SetupAsync();
 
@@ -44,8 +54,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		await PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync("Holdings", hasRows, ["AAPL", "GOOGL", "BTC", "VTI", "US10Y"], holdingsPage.HasHoldingSymbolAsync);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task AccountsPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(AccountsPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task AccountsPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -59,8 +74,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		PageRenderAssertions.AssertRendered("Accounts", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TaxReportPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(TaxReportPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task TaxReportPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -73,8 +93,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		PageRenderAssertions.AssertRendered("TaxReport", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TopMoversPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(TopMoversPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task TopMoversPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -91,8 +116,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 			$"TopMovers page should render correctly (error: {hasError}, risers: {hasRisers}, losers: {hasLosers}, noRisersMsg: {hasNoRisersMessage}, noLosersMsg: {hasNoLosersMessage}). Check screenshots/HTML in playwright-screenshots/ for actual DOM state.");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(PortfolioTimeSeriesPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task PortfolioTimeSeriesPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -107,8 +137,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 			$"PortfolioTimeSeries page should render correctly (rows: {hasRows})");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task UpcomingDividendsPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(UpcomingDividendsPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task UpcomingDividendsPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -121,8 +156,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		PageRenderAssertions.AssertRendered("Upcoming Dividends", hasRows, isEmpty, hasError);
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DataIssuesPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(DataIssuesPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task DataIssuesPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -135,8 +175,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		Assert.False(appEmpty, "DataIssues page should not crash and clear the Blazor app container");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TaskStatusPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(TaskStatusPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task TaskStatusPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
@@ -147,8 +192,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		Assert.True(hasTaskStatusTitle, "TaskStatus page should display its title");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task DividendsPage_ShouldHandleInvalidDecimalDataGracefully()
+	{
+		Assert.True(await TestRetry.RunAsync(DividendsPage_ShouldHandleInvalidDecimalDataGracefully_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task DividendsPage_ShouldHandleInvalidDecimalDataGracefully_Runnable()
 	{
 		await SetupAsync();
 
@@ -159,8 +209,13 @@ public class PageNavigationTests(CustomWebApplicationFactory fixture, BrowserFix
 		Assert.True(hasTitle, "Dividends page should display its title");
 	}
 
-	[RetryFact]
+	[Fact]
 	public async Task TablesPage_ShouldLoadViaMenu()
+	{
+		Assert.True(await TestRetry.RunAsync(TablesPage_ShouldLoadViaMenu_Runnable), "Test failed after all retry attempts.");
+	}
+
+	private async Task TablesPage_ShouldLoadViaMenu_Runnable()
 	{
 		await SetupAsync();
 
