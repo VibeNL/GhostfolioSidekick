@@ -300,7 +300,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			// Check if the node has a style attribute with display: none or visibility: hidden
 			if (node.Attributes["style"] != null)
 			{
-				string style = node.Attributes["style"].Value.ToLower();
+				string style = node.Attributes["style"]?.Value?.ToLower() ?? string.Empty;
 				if (style.Contains("display: none") || style.Contains("visibility: hidden"))
 					return true;
 			}
@@ -352,7 +352,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			var descriptionNode = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='description']");
 			if (descriptionNode != null && descriptionNode.Attributes[contentString] != null)
 			{
-				description = descriptionNode.Attributes[contentString].Value.Trim();
+				description = descriptionNode.Attributes[contentString]?.Value?.Trim() ?? string.Empty;
 			}
 
 			// Try to get keywords from meta tags
@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			var keywordsNode = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='keywords']");
 			if (keywordsNode != null && keywordsNode.Attributes[contentString] != null)
 			{
-				keywords = [.. keywordsNode.Attributes[contentString].Value
+				keywords = [.. (keywordsNode.Attributes[contentString]?.Value ?? string.Empty)
 					.Split(',')
 					.Select(k => k.Trim())
 					.Where(k => !string.IsNullOrWhiteSpace(k))];
