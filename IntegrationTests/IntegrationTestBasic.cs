@@ -510,7 +510,7 @@ namespace GhostfolioSidekick.IntegrationTests
 					UseShellExecute = false,
 					CreateNoWindow = true
 				});
-				process!.WaitForExit();
+				await process!.WaitForExitAsync();
 
 				if (process.ExitCode == 0)
 				{
@@ -523,7 +523,7 @@ namespace GhostfolioSidekick.IntegrationTests
 						UseShellExecute = false,
 						CreateNoWindow = true
 					});
-					process2!.WaitForExit();
+					await process2!.WaitForExitAsync();
 				}
 			}
 			catch
