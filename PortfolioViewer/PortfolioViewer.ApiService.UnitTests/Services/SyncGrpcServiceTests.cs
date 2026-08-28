@@ -1,14 +1,15 @@
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using Grpc.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Moq;
-using GhostfolioSidekick.Database;
-using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
-using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit.v3;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+[assembly: Parallelization(Mode = Xunit.Sdk.ParallelMode.None)]
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 {
