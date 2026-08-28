@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			var testLogger = new TestLogger("Service SyncActivitiesWithGhostfolioTask has executed.");
 			var (testHost, apiWrapper) = await InitializeSidekickForTestAsync(url, authToken!.AccessToken, "./Files/ghostfolio.db", testLogger, allowAdminCalls: true);
 
-			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(10));
+			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(10), TestContext.Current.CancellationToken);
 
 			await VerifyInstance(apiWrapper);
 		}
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			var (testHost, apiWrapper) = await InitializeSidekickForTestAsync(url, nonAdminAuth.AccessToken, dbPath, testLogger, allowAdminCalls: false);
 
 			// Wait for sync to complete.
-			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(5));
+			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
 			_ = testLogger.IsTriggered.Should().BeTrue(because: "non-admin sync must complete without admin endpoint errors");
 
@@ -119,7 +119,9 @@ namespace GhostfolioSidekick.IntegrationTests
 					var pingResp = await httpClient.GetAsync(url, TestContext.Current.CancellationToken);
 					if (pingResp.IsSuccessStatusCode) break;
 				}
-				catch { }
+				catch {
+					// Ignore exceptions and retry
+				}
 				await Task.Delay(2000, TestContext.Current.CancellationToken);
 			}
 
@@ -140,7 +142,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			var (testHost, apiWrapper) = await InitializeSidekickForTestAsync(url, nonAdminAuth.AccessToken, dbPath, testLogger, allowAdminCalls: false);
 
 			// Wait for sync to complete.
-			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(5));
+			await WaitForSyncAsync(testLogger, TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
 			_ = testLogger.IsTriggered.Should().BeTrue(because: "non-admin sync must complete");
 
@@ -211,7 +213,7 @@ namespace GhostfolioSidekick.IntegrationTests
 		await TestcontainersSettings.ExposeHostPortsAsync(postgres.GetMappedPublicPort(PostgresPort), TestContext.Current.CancellationToken);
 		await TestcontainersSettings.ExposeHostPortsAsync(redis.GetMappedPublicPort(ReditPort), TestContext.Current.CancellationToken);
 
-		var ghostfolio = BuildGhostfolioContainer(network, postgres, redis);
+		var ghostfolio = BuildGhostfolioContainer(network, redis);
 		await ghostfolio.StartAsync(TestContext.Current.CancellationToken);
 		await TestcontainersSettings.ExposeHostPortsAsync(ghostfolio.GetMappedPublicPort(GhostfolioPort), TestContext.Current.CancellationToken);
 
@@ -223,7 +225,7 @@ namespace GhostfolioSidekick.IntegrationTests
 	/// <summary>
 	/// Build (but don't start) a Ghostfolio container.
 	/// </summary>
-	private static IContainer BuildGhostfolioContainer(INetwork network, PostgreSqlContainer postgres, RedisContainer redis)
+	private static IContainer BuildGhostfolioContainer(INetwork network, RedisContainer redis)
 	{
 		return new ContainerBuilder("ghostfolio/ghostfolio:latest")
 			.WithPortBinding(GhostfolioPort, true)
@@ -329,12 +331,12 @@ namespace GhostfolioSidekick.IntegrationTests
 	/// <summary>
 	/// Wait for sync to complete, with timeout and log dump on failure.
 	/// </summary>
-	private static async Task WaitForSyncAsync(TestLogger testLogger, TimeSpan timeout)
+	private static async Task WaitForSyncAsync(TestLogger testLogger, TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 		while (!testLogger.IsTriggered && stopwatch.Elapsed < timeout)
 		{
-			await Task.Delay(1000, TestContext.Current.CancellationToken);
+			await Task.Delay(1000, cancellationToken);
 		}
 
 		if (!testLogger.IsTriggered)
@@ -472,7 +474,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await TestcontainersSettings.ExposeHostPortsAsync(postgresContainer.GetMappedPublicPort(PostgresPort)).ConfigureAwait(false);
 			await TestcontainersSettings.ExposeHostPortsAsync(redisContainer.GetMappedPublicPort(ReditPort)).ConfigureAwait(false);
 
-			ghostfolioContainer = BuildGhostfolioContainer(network, postgresContainer, redisContainer);
+			ghostfolioContainer = BuildGhostfolioContainer(network, redisContainer);
 
 			try
 			{
@@ -508,7 +510,7 @@ namespace GhostfolioSidekick.IntegrationTests
 					UseShellExecute = false,
 					CreateNoWindow = true
 				});
-				process!.WaitForExit();
+				await process!.WaitForExitAsync();
 
 				if (process.ExitCode == 0)
 				{
@@ -521,7 +523,7 @@ namespace GhostfolioSidekick.IntegrationTests
 						UseShellExecute = false,
 						CreateNoWindow = true
 					});
-					process2!.WaitForExit();
+					await process2!.WaitForExitAsync();
 				}
 			}
 			catch

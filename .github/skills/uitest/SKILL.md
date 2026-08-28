@@ -40,10 +40,10 @@ Use this skill when user asks any of:
      - `pwsh PortfolioViewer\PortfolioViewer.WASM.UITests\bin\Debug\net10.0\playwright.ps1 install`
 
 2. Run focused UI tests first:
-   - `dotnet test PortfolioViewer\PortfolioViewer.WASM.UITests\PortfolioViewer.WASM.UITests.csproj --filter "<pattern>"`
+   - `dotnet test --project PortfolioViewer\PortfolioViewer.WASM.UITests\PortfolioViewer.WASM.UITests.csproj --filter "<pattern>"`
 
 3. Run full UI suite if needed:
-   - `dotnet test PortfolioViewer\PortfolioViewer.WASM.UITests\PortfolioViewer.WASM.UITests.csproj`
+   - `dotnet test --project PortfolioViewer\PortfolioViewer.WASM.UITests\PortfolioViewer.WASM.UITests.csproj`
 
 4. Triage failures with artifacts:
    - Screenshots: `playwright-screenshots/`

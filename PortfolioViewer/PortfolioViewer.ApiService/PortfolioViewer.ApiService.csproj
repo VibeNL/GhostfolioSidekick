@@ -18,9 +18,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
-		<PackageReference Include="Scalar.AspNetCore" Version="2.16.20" />
+		<PackageReference Include="Scalar.AspNetCore" Version="2.17.1" />
 		<PackageReference Include="Grpc.AspNetCore" Version="2.83.0" />
 		<PackageReference Include="Grpc.AspNetCore.Web" Version="2.83.0" />
 	</ItemGroup>
