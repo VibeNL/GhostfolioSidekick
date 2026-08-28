@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.5.2" />
+		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.5.3" />
 		<PackageReference Include="Aspire.Hosting.Blazor" Version="13.4.6-preview.1.26319.6" />
 	</ItemGroup>
 
