@@ -183,8 +183,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			await service.GetEntityData(req, writer, new FakeServerCallContext());
 
 			// one response should have been written
-			Assert.Single(writer.Written);
-			var resp = writer.Written.First();
+			var item = Assert.Single(writer.Written);
+			var resp = item;
 			Assert.Equal(1, resp.CurrentPage);
 			Assert.True(resp.HasMore);
 			Assert.Equal(2, resp.Records.Count);
@@ -193,8 +193,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			var writer2 = new TestServerStreamWriter<GetEntityDataResponse>();
 			var req2 = new GetEntityDataRequest { Entity = "items", Page = 2, PageSize = 2 };
 			await service.GetEntityData(req2, writer2, new FakeServerCallContext());
-			Assert.Single(writer2.Written);
-			Assert.False(writer2.Written.First().HasMore);
+			var item_2 = Assert.Single(writer2.Written);
+			Assert.False(item_2.HasMore);
 			Assert.Single(writer2.Written.First().Records);
 		}
 
@@ -219,8 +219,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			var req = new GetEntityDataSinceRequest { Entity = "events", Page = 1, PageSize = 10, SinceDate = "2021-01-01" };
 			await service.GetEntityDataSince(req, writer, new FakeServerCallContext());
 
-			Assert.Single(writer.Written);
-			var resp = writer.Written.First();
+			var item = Assert.Single(writer.Written);
+			var resp = item;
 			// should include two records (2021-06-01 and 2022-07-01)
 			Assert.Equal(2, resp.Records.Count);
 			var names = resp.Records.Select(r => r.Fields["name"]).ToList();
@@ -304,8 +304,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			var req = new GetEntityDataSinceRequest { Entity = "nodate", Page = 1, PageSize = 10, SinceDate = "2000-01-01" };
 			await service.GetEntityDataSince(req, writer, new FakeServerCallContext());
 
-			Assert.Single(writer.Written);
-			Assert.Equal(2, writer.Written.First().Records.Count);
+			var item = Assert.Single(writer.Written);
+			Assert.Equal(2, item.Records.Count);
 		}
 
 		[Fact]
@@ -362,8 +362,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			var req = new GetEntityDataRequest { Entity = "few", Page = 1, PageSize = 10 };
 			await service.GetEntityData(req, writer, new FakeServerCallContext());
 
-			Assert.Single(writer.Written);
-			Assert.False(writer.Written.First().HasMore);
+			var item = Assert.Single(writer.Written);
+			Assert.False(item.HasMore);
 		}
 
 		[Fact]
