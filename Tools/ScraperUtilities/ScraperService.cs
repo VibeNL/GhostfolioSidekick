@@ -67,19 +67,13 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				logger.LogInformation("Broker: {Broker}", broker);
 				logger.LogInformation("Output directory: {OutputDirectory}", outputDirectory);
 
-				Dictionary<int, IEnumerable<ActivityWithSymbol>> transactions = [];
+				Dictionary<int, IEnumerable<ActivityWithSymbol>> transactions;
 				switch (broker)
 				{
 					case SupportedBrokers.ScalableCapital:
 						{
 							var scraper = new ScalableCapital.Scraper(page, logger);
 							transactions = await scraper.ScrapeTransactions();
-						}
-						break;
-					case SupportedBrokers.TradeRepublic:
-						{
-							var scraper = new TradeRepublic.Scraper(page, logger, outputDirectory);
-							transactions.Add(0, await scraper.ScrapeTransactions());
 						}
 						break;
 					default:
