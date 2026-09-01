@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Fastenshtein" Version="1.0.12" />
+	  <PackageReference Include="Fastenshtein" />
 	</ItemGroup>
 
 </Project>
