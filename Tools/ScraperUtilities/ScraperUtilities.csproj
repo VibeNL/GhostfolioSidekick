@@ -20,9 +20,9 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.11" />
-		<PackageReference Include="Microsoft.Playwright" Version="1.62.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+		<PackageReference Include="Microsoft.Playwright" />
 	</ItemGroup>
 
 	<ItemGroup>

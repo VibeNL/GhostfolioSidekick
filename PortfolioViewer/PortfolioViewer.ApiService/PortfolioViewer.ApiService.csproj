@@ -18,11 +18,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
-		<PackageReference Include="Scalar.AspNetCore" Version="2.17.1" />
-		<PackageReference Include="Grpc.AspNetCore" Version="2.83.0" />
-		<PackageReference Include="Grpc.AspNetCore.Web" Version="2.83.0" />
+		<PackageReference Include="HtmlAgilityPack" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Scalar.AspNetCore" />
+		<PackageReference Include="Grpc.AspNetCore" />
+		<PackageReference Include="Grpc.AspNetCore.Web" />
 	</ItemGroup>
 
 	<ItemGroup>
