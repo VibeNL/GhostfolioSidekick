@@ -192,7 +192,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			Activity? activity = type switch
 			{
 				"DEPOSIT" => new CashDepositActivity { Amount = amount, Date = date, TransactionId = id },
-				"CASH_TRANSFER_OUT" or "WITHDRAWAL" => new CashWithdrawalActivity { Amount = amount, Date = date, TransactionId = id },
+				"WITHDRAWAL" => new CashWithdrawalActivity { Amount = amount, Date = date, TransactionId = id },
 				"DISTRIBUTION" when !string.IsNullOrWhiteSpace(relatedIsin) => new DividendActivity { Amount = amount, Quantity = 0m, Fees = [], Taxes = [], Date = date, TransactionId = id },
 				"INTEREST" or "INTEREST_PAYMENT" => new InterestActivity { Amount = amount, Date = date, TransactionId = id },
 				_ => null
@@ -260,7 +260,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				return true;
 			}
 
-			return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out date);
+			// Wall-clock parity with the Playwright path: no timezone conversion for local timestamps; Z-suffixed UTC values convert to UTC.
+			return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out date);
 		}
 
 		private static List<Money> CollectAmounts(string currency, params JsonNode?[] nodes)

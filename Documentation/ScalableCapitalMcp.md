@@ -41,7 +41,8 @@ The local callback listener binds `localhost` only and is closed as soon as the 
 | `list_portfolio_transactions` → security, side `BUY`, status `FILLED`/`SETTLED` | `BuyActivity` | Quantity = `securityTrade.numberOfShares.filled`; UnitPrice = `averagePrice` in the transaction currency. |
 | same, side `SELL` | `SellActivity` | Same fields as buy. |
 | cash, `DEPOSIT` | `CashDepositActivity` | Amount taken as-is (positive). |
-| cash, `CASH_TRANSFER_OUT` / `WITHDRAWAL` | `CashWithdrawalActivity` | Amount is negative in the API and used as-is. |
+| cash, `WITHDRAWAL` | `CashWithdrawalActivity` | Amount is negative in the API and used as-is. |
+| cash, `CASH_TRANSFER_OUT` (internal transfer) | skipped + warning log | Parity with Playwright: internal transfers are ignored. |
 | cash, `DISTRIBUTION` with `relatedIsin` | `DividendActivity` | Quantity 0; ISIN/Symbol from `relatedIsin`. |
 | cash, `INTEREST` / `INTEREST_PAYMENT` | `InterestActivity` | — |
 | anything else (unknown type, other status) | skipped + warning log | Keeps CSV output compatible with the Playwright path. |
