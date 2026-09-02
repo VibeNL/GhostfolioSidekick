@@ -20,8 +20,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			{
 				Console.WriteLine("Select your scraper");
 				Console.WriteLine("1. Scalable Capital (browser)");
-				Console.WriteLine("2. Trade Republic (browser)");
-				Console.WriteLine("3. Scalable Capital (MCP server)");
+				Console.WriteLine("2. Scalable Capital (MCP server)");
 				Console.WriteLine("0. Exit");
 				var input = Console.ReadLine();
 				if (input == null)
@@ -37,9 +36,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						broker = SupportedBrokers.ScalableCapital;
 						break;
 					case "2":
-						broker = SupportedBrokers.TradeRepublic;
-						break;
-					case "3":
 						broker = SupportedBrokers.ScalableCapital;
 						useMcp = true;
 						break;
