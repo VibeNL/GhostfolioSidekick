@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 
@@ -42,7 +43,17 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				throw new McpException($"Tool '{toolName}' returned no text content.");
 			}
 
-			return JsonNode.Parse(text) as JsonObject ?? throw new McpException($"Tool '{toolName}' returned non-object JSON payload.");
+			JsonObject? parsed;
+			try
+			{
+				parsed = JsonNode.Parse(text) as JsonObject;
+			}
+			catch (JsonException ex)
+			{
+				throw new McpException($"Tool '{toolName}' returned malformed JSON payload.", ex);
+			}
+
+			return parsed ?? throw new McpException($"Tool '{toolName}' returned non-object JSON payload.");
 		}
 
 		private async Task<JsonObject?> SendRequestAsync(string method, JsonObject parameters, CancellationToken cancellationToken)
@@ -82,7 +93,16 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 					throw new McpException($"MCP request '{method}' failed (HTTP {(int)response.StatusCode}): {body}");
 				}
 
-				var payload = JsonNode.Parse(body);
+				JsonNode? payload;
+				try
+				{
+					payload = JsonNode.Parse(body);
+				}
+				catch (JsonException ex)
+				{
+					throw new McpException($"MCP request '{method}' returned malformed JSON response.", ex);
+				}
+
 				if (payload?["error"] is JsonObject error)
 				{
 					throw new McpException($"MCP request '{method}' returned JSON-RPC error: {error.ToJsonString()}");

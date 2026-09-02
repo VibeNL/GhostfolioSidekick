@@ -34,6 +34,11 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			{
 				return null;
 			}
+			catch (IOException)
+			{
+				// Unreadable token file: treat as no stored login and fall back to interactive login.
+				return null;
+			}
 		}
 
 		public void Save(StoredTokens tokens)

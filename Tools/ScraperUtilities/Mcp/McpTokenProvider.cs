@@ -141,7 +141,17 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				throw new McpException($"HTTP {(int)response.StatusCode}: {responseBody}");
 			}
 
-			var clientId = JsonNode.Parse(responseBody)?["client_id"]?.ToString();
+			JsonNode? node;
+			try
+			{
+				node = JsonNode.Parse(responseBody);
+			}
+			catch (JsonException ex)
+			{
+				throw new McpException($"Client registration returned malformed JSON: {responseBody}", ex);
+			}
+
+			var clientId = node?["client_id"]?.ToString();
 			return string.IsNullOrWhiteSpace(clientId)
 				? throw new McpException("Client registration returned no client id.")
 				: clientId;
@@ -235,7 +245,16 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 		private TokenResponse ParseTokenResponse(string body, out string? refreshToken)
 		{
-			var node = JsonNode.Parse(body);
+			JsonNode? node;
+			try
+			{
+				node = JsonNode.Parse(body);
+			}
+			catch (JsonException ex)
+			{
+				throw new McpException($"MCP token endpoint returned malformed JSON: {body}", ex);
+			}
+
 			var accessToken = node?["access_token"]?.ToString();
 			var expiresIn = int.TryParse(node?["expires_in"]?.ToString(), out var parsedExpiresIn) ? parsedExpiresIn : 1200;
 			refreshToken = node?["refresh_token"]?.ToString();
