@@ -187,13 +187,14 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 			var date = GetFilledDate(detail);
 			var description = cash["description"]?.ToString() ?? listEntry["description"]?.ToString();
-			var relatedIsin = cash["relatedIsin"]?.ToString();
+			var relatedIsin = cash["relatedIsin"]?.ToString() ?? listEntry["cash"]?["relatedIsin"]?.ToString();
 
 			Activity? activity = type switch
 			{
 				"DEPOSIT" => new CashDepositActivity { Amount = amount, Date = date, TransactionId = id },
 				"WITHDRAWAL" => new CashWithdrawalActivity { Amount = amount, Date = date, TransactionId = id },
-				"DISTRIBUTION" when !string.IsNullOrWhiteSpace(relatedIsin) => new DividendActivity { Amount = amount, Quantity = 0m, Fees = [], Taxes = [], Date = date, TransactionId = id },
+				"DISTRIBUTION" => new DividendActivity { Amount = amount, Quantity = 0m, Fees = [], Taxes = [], Date = date, TransactionId = id },
+				"CASH_TRANSFER_OUT" => null,
 				"INTEREST" or "INTEREST_PAYMENT" => new InterestActivity { Amount = amount, Date = date, TransactionId = id },
 				_ => null
 			};
