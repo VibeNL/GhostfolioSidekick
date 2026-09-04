@@ -9,12 +9,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="CoinGecko.Net" Version="6.4.0" />
-	  <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
-	  <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
-	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
-	  <PackageReference Include="Polly" Version="8.7.0" />
-	  <PackageReference Include="YahooFinanceApiNext" Version="2.3.11" />
+	  <PackageReference Include="CoinGecko.Net" />
+	  <PackageReference Include="HtmlAgilityPack" />
+	  <PackageReference Include="Microsoft.Extensions.Logging" />
+	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+	  <PackageReference Include="Polly" />
+	  <PackageReference Include="YahooFinanceApiNext" />
 	</ItemGroup>
 
 	<ItemGroup>
