@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			{
 				return new CashWithdrawalActivity
 				{
-					Amount = new Model.Money(Currency.EUR, amount),
+					Amount = new Model.Money(Currency.EUR, -amount),
 					Date = date,
 					TransactionId = (await transaction.GetAttributeAsync("data-testid")) ?? string.Empty,
 				};
