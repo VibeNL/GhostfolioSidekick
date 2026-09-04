@@ -19,8 +19,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				Console.WriteLine("Select your scraper");
-				Console.WriteLine("1. Scalable Capital");
-				Console.WriteLine("2. Trade Republic");
+				Console.WriteLine("1. Scalable Capital (browser)");
+				Console.WriteLine("2. Scalable Capital (MCP server)");
 				Console.WriteLine("0. Exit");
 				var input = Console.ReadLine();
 				if (input == null)
@@ -29,13 +29,15 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				}
 
 				SupportedBrokers? broker;
+				bool useMcp = false;
 				switch (input)
 				{
 					case "1":
 						broker = SupportedBrokers.ScalableCapital;
 						break;
 					case "2":
-						broker = SupportedBrokers.TradeRepublic;
+						broker = SupportedBrokers.ScalableCapital;
+						useMcp = true;
 						break;
 					case "0":
 						Environment.Exit(0);
@@ -45,7 +47,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						continue;
 				}
 
-				await RunAsync(broker.Value, outputDirectory);
+				await RunAsync(broker.Value, outputDirectory, useMcp);
 			}
 		}
 
@@ -54,40 +56,56 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			return Task.CompletedTask;
 		}
 
-		public async Task RunAsync(SupportedBrokers broker, string outputDirectory)
+		public async Task RunAsync(SupportedBrokers broker, string outputDirectory, bool useMcp = false)
 		{
-			var browser = await playwright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
-			var defaultContext = browser.Contexts[0];
+			logger.LogInformation("Starting the scraping process...");
+			logger.LogInformation("Broker: {Broker}", broker);
+			logger.LogInformation("Output directory: {OutputDirectory}", outputDirectory);
 
-			try
+			Dictionary<int, IEnumerable<ActivityWithSymbol>> transactions;
+			if (useMcp && broker == SupportedBrokers.ScalableCapital)
 			{
-				var page = defaultContext.Pages[0];
+				transactions = await RunMcpScrapeAsync();
+			}
+			else
+			{
+				var browser = await playwright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
+				var defaultContext = browser.Contexts[0];
 
-				logger.LogInformation("Starting the scraping process...");
-				logger.LogInformation("Broker: {Broker}", broker);
-				logger.LogInformation("Output directory: {OutputDirectory}", outputDirectory);
-
-				Dictionary<int, IEnumerable<ActivityWithSymbol>> transactions;
-				switch (broker)
+				try
 				{
-					case SupportedBrokers.ScalableCapital:
-						{
-							var scraper = new ScalableCapital.Scraper(page, logger);
-							transactions = await scraper.ScrapeTransactions();
-						}
-						break;
-					default:
-						throw new ArgumentException("Invalid broker entered.");
-				}
+					var page = defaultContext.Pages[0];
 
-				CsvHelperService.SaveToCSV(outputDirectory, broker.ToString(), transactions);
-				logger.LogInformation("Scraping process completed.");
+					switch (broker)
+					{
+						case SupportedBrokers.ScalableCapital:
+							{
+								var scraper = new ScalableCapital.Scraper(page, logger);
+								transactions = await scraper.ScrapeTransactions();
+							}
+							break;
+						default:
+							throw new ArgumentException("Invalid broker entered.");
+					}
+				}
+				finally
+				{
+					await defaultContext.CloseAsync();
+					await browser.CloseAsync();
+				}
 			}
-			finally
-			{
-				await defaultContext.CloseAsync();
-				await browser.CloseAsync();
-			}
+
+			CsvHelperService.SaveToCSV(outputDirectory, broker.ToString(), transactions);
+			logger.LogInformation("Scraping process completed.");
+		}
+
+		private async Task<Dictionary<int, IEnumerable<ActivityWithSymbol>>> RunMcpScrapeAsync()
+		{
+			using var httpClient = new HttpClient();
+			using var tokenProvider = new Mcp.McpTokenProvider(httpClient, logger);
+			using var mcpClient = new Mcp.McpClient(httpClient, tokenProvider, logger);
+			var scraper = new Mcp.McpScraper(mcpClient, logger);
+			return await scraper.ScrapeTransactionsAsync(CancellationToken.None);
 		}
 	}
 }

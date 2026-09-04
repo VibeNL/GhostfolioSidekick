@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		protected override Task CloseTransactionDetail()
 		{
-			return Task.CompletedTask;	
+			return Task.CompletedTask;
 		}
 
 		protected override async Task<Activity?> ProcessDetails(ILocator transaction)
@@ -51,8 +51,20 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				};
 			}
 
+			if (await transaction.GetByTestId("icon-withdrawal").IsVisibleAsync())
+			{
+				return new CashWithdrawalActivity
+				{
+					Amount = new Model.Money(Currency.EUR, -amount),
+					Date = date,
+					TransactionId = (await transaction.GetAttributeAsync("data-testid")) ?? string.Empty,
+				};
+			}
+
+			// Unrecognized transaction type, log a warning and skip
 			Logger.LogWarning("Unrecognized transaction type on interest account, skipping.");
 			return null;
+
 		}
 	}
 }
