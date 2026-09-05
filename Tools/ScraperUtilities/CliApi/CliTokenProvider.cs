@@ -314,8 +314,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 				File.WriteAllText(path, key.ToJson());
 				return key;
 			}
-			catch (IOException)
+			catch (Exception ex) when (ex is IOException or InvalidOperationException or JsonException)
 			{
+				// Corrupt or unreadable key file: start fresh. The DPoP key is self-describing in every proof, so rotation is safe.
 				return DpopKey.Create();
 			}
 		}
@@ -326,9 +327,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			{
 				Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				throw new CliApiException($"Could not open the default browser. Open this URL manually to complete the login: {url}", ex);
+				Console.WriteLine("Could not open the default browser automatically. Open this URL manually to complete the login:");
+				Console.WriteLine(url);
 			}
 		}
 

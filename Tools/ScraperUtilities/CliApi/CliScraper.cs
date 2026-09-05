@@ -310,10 +310,6 @@ query OvernightTransactions(
 		{
 			var session = await _tokenProvider.GetSessionAsync(cancellationToken);
 			var portfolioIds = await ResolveBrokerPortfolioIdsAsync(session.PersonId, cancellationToken);
-			if (portfolioIds.Count == 0)
-			{
-				throw new CliApiException("No accessible Scalable Capital portfolios were returned by the CLI API.");
-			}
 
 			var result = new Dictionary<int, IEnumerable<ActivityWithSymbol>>();
 			var index = 0;
@@ -330,6 +326,11 @@ query OvernightTransactions(
 				index++;
 				_logger.LogInformation("Scraping Scalable Capital overnight transactions for savings account {Name} ({SavingsAccountId})", name, savingsAccountId);
 				result[index] = await ScrapeOvernightAccountAsync(session.PersonId, savingsAccountId, cancellationToken);
+			}
+
+			if (result.Count == 0)
+			{
+				throw new CliApiException("No accessible Scalable Capital portfolios or overnight accounts were returned by the CLI API.");
 			}
 
 			return result;
