@@ -21,6 +21,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				Console.WriteLine("Select your scraper");
 				Console.WriteLine("1. Scalable Capital (browser)");
 				Console.WriteLine("2. Scalable Capital (MCP server)");
+				Console.WriteLine("3. Scalable Capital (CLI API)");
 				Console.WriteLine("0. Exit");
 				var input = Console.ReadLine();
 				if (input == null)
@@ -30,6 +31,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 
 				SupportedBrokers? broker;
 				bool useMcp = false;
+				bool useCliApi = false;
 				switch (input)
 				{
 					case "1":
@@ -39,6 +41,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						broker = SupportedBrokers.ScalableCapital;
 						useMcp = true;
 						break;
+					case "3":
+						broker = SupportedBrokers.ScalableCapital;
+						useCliApi = true;
+						break;
 					case "0":
 						Environment.Exit(0);
 						return;
@@ -47,7 +53,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						continue;
 				}
 
-				await RunAsync(broker.Value, outputDirectory, useMcp);
+				await RunAsync(broker.Value, outputDirectory, useMcp, useCliApi);
 			}
 		}
 
@@ -56,14 +62,18 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			return Task.CompletedTask;
 		}
 
-		public async Task RunAsync(SupportedBrokers broker, string outputDirectory, bool useMcp = false)
+		public async Task RunAsync(SupportedBrokers broker, string outputDirectory, bool useMcp = false, bool useCliApi = false)
 		{
 			logger.LogInformation("Starting the scraping process...");
 			logger.LogInformation("Broker: {Broker}", broker);
 			logger.LogInformation("Output directory: {OutputDirectory}", outputDirectory);
 
 			Dictionary<int, IEnumerable<ActivityWithSymbol>> transactions;
-			if (useMcp && broker == SupportedBrokers.ScalableCapital)
+			if (useCliApi && broker == SupportedBrokers.ScalableCapital)
+			{
+				transactions = await RunCliApiScrapeAsync();
+			}
+			else if (useMcp && broker == SupportedBrokers.ScalableCapital)
 			{
 				transactions = await RunMcpScrapeAsync();
 			}
@@ -105,6 +115,15 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			using var tokenProvider = new Mcp.McpTokenProvider(httpClient, logger);
 			using var mcpClient = new Mcp.McpClient(httpClient, tokenProvider, logger);
 			var scraper = new Mcp.McpScraper(mcpClient, logger);
+			return await scraper.ScrapeTransactionsAsync(CancellationToken.None);
+		}
+
+		private async Task<Dictionary<int, IEnumerable<ActivityWithSymbol>>> RunCliApiScrapeAsync()
+		{
+			using var httpClient = new HttpClient();
+			using var tokenProvider = new CliApi.CliTokenProvider(httpClient, logger);
+			using var client = new CliApi.CliGraphqlClient(httpClient, tokenProvider.Key, tokenProvider);
+			var scraper = new CliApi.CliScraper(client, tokenProvider, logger);
 			return await scraper.ScrapeTransactionsAsync(CancellationToken.None);
 		}
 	}
