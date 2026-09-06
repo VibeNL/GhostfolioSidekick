@@ -162,11 +162,13 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 						continue;
 					}
 
-					throw new CliApiException(state switch
+					var rawBody = ex.ResponseBody?.Trim();
+					var detail = state ?? (string.IsNullOrWhiteSpace(rawBody) ? "unknown error" : Shorten(rawBody));
+					throw new CliApiException(detail switch
 					{
 						"access_denied" => "Device login denied by user.",
 						"expired_token" => "Device login code expired.",
-						_ => $"Device code polling failed: {state}"
+						_ => $"Device code polling failed: {detail}"
 					});
 				}
 			}
@@ -272,6 +274,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			}
 		}
 
+		private static string Shorten(string value) => value.Length <= 200 ? value : $"{value[..200]}...";
+
 		private static Dictionary<string, JsonElement> DecodeJwtClaims(string jwt)
 		{
 			var parts = jwt.Split('.');
@@ -323,9 +327,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 				File.WriteAllText(path, key.ToJson());
 				return key;
 			}
-			catch (Exception ex) when (ex is IOException or InvalidOperationException or JsonException or KeyNotFoundException)
+			catch (Exception)
 			{
-				// Corrupt or unreadable key file: start fresh. The DPoP key is self-describing in every proof, so rotation is safe.
+				// Any corrupt or unreadable key file: start fresh. The DPoP key is self-describing in every proof, so rotation is safe.
 				return DpopKey.Create();
 			}
 		}
