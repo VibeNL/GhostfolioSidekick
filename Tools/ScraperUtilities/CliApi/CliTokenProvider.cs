@@ -27,6 +27,15 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 
 		public DpopKey Key => _dpopKey;
 
+		/// <summary>Forces the next GetSessionAsync call to re-authenticate from stored tokens (or device login).</summary>
+		public void InvalidateSession()
+		{
+			lock (_lock)
+			{
+				_session = null;
+			}
+		}
+
 		public CliTokenProvider(HttpClient httpClient, ILogger logger)
 			: this(httpClient, logger, new CliTokenStore(), LoadOrCreateDpopKey())
 		{
@@ -314,7 +323,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 				File.WriteAllText(path, key.ToJson());
 				return key;
 			}
-			catch (Exception ex) when (ex is IOException or InvalidOperationException or JsonException)
+			catch (Exception ex) when (ex is IOException or InvalidOperationException or JsonException or KeyNotFoundException)
 			{
 				// Corrupt or unreadable key file: start fresh. The DPoP key is self-describing in every proof, so rotation is safe.
 				return DpopKey.Create();

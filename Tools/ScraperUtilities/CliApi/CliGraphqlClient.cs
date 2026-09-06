@@ -26,6 +26,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 		public async Task<JsonNode> QueryAsync(string query, object? variables, string operationName, CancellationToken cancellationToken)
 		{
 			string? nonce = null;
+			var session = await _tokenProvider.GetSessionAsync(cancellationToken);
 			for (var attempt = 0; attempt < 2; attempt++)
 			{
 				var body = new JsonObject
@@ -37,7 +38,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 
 				using var content = new StringContent(body.ToJsonString(), System.Text.Encoding.UTF8, "application/json");
 				using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint) { Content = content };
-				var session = await _tokenProvider.GetSessionAsync(cancellationToken);
 				request.Headers.Add("Authorization", $"DPoP {session.AccessToken}");
 				request.Headers.Add("DPoP", _dpopKey.BuildProof("POST", Endpoint, nonce, session.AccessToken));
 
@@ -56,6 +56,14 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 					if (attempt == 0 && ShouldRetryWithDpopNonce((int)response.StatusCode, retryNonce, responseBody))
 					{
 						nonce = retryNonce;
+						continue;
+					}
+
+					if (attempt == 0 && response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+					{
+						// Access token expired mid-scrape: force refresh and retry once (parity with scalable-cli execute_with_refresh_retry).
+						_tokenProvider.InvalidateSession();
+						session = await _tokenProvider.GetSessionAsync(cancellationToken);
 						continue;
 					}
 

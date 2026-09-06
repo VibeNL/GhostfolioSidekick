@@ -51,13 +51,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 					root.TryGetProperty("personId", out var pid) ? pid.GetString() ?? string.Empty : string.Empty,
 					root.TryGetProperty("sessionId", out var sid) ? sid.GetString() : null);
 			}
-			catch (JsonException)
+			catch (Exception ex) when (ex is JsonException or KeyNotFoundException or IOException)
 			{
-				return null;
-			}
-			catch (IOException)
-			{
-				// Unreadable token file: treat as no stored login and fall back to interactive login.
+				// Corrupt or unreadable token file: treat as no stored login and fall back to interactive login.
 				return null;
 			}
 		}
