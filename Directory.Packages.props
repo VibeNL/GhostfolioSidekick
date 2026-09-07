@@ -64,7 +64,7 @@
 		<PackageVersion Include="Plotly.Blazor" Version="7.2.0" />
 		<PackageVersion Include="Polly" Version="8.7.0" />
 		<PackageVersion Include="RestSharp" Version="114.0.0" />
-		<PackageVersion Include="Scalar.AspNetCore" Version="2.17.1" />
+		<PackageVersion Include="Scalar.AspNetCore" Version="2.17.3" />
 		<PackageVersion Include="SSH.NET" Version="2026.0.0" />
 		<PackageVersion Include="Testcontainers" Version="4.14.0" />
 		<PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
