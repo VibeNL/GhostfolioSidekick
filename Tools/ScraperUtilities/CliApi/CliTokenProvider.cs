@@ -24,6 +24,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 		private readonly DpopKey _dpopKey;
 		private readonly object _lock = new();
 		private CliAuthSession? _session;
+		private bool _forceReauth;
 
 		public DpopKey Key => _dpopKey;
 
@@ -33,6 +34,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			lock (_lock)
 			{
 				_session = null;
+				_forceReauth = true;
 			}
 		}
 
@@ -51,9 +53,11 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 
 		public async Task<CliAuthSession> GetSessionAsync(CancellationToken cancellationToken)
 		{
+			bool forceReauth;
 			lock (_lock)
 			{
-				if (_session != null && _session.ExpiresAtUtc > DateTime.UtcNow.AddSeconds(60))
+				forceReauth = _forceReauth;
+				if (!forceReauth && _session != null && _session.ExpiresAtUtc > DateTime.UtcNow.AddSeconds(60))
 				{
 					return _session;
 				}
@@ -62,6 +66,17 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			var stored = _store.Load();
 			if (stored is not null)
 			{
+				if (!forceReauth && stored.ExpiresAtUtc > DateTime.UtcNow.AddSeconds(60))
+				{
+					// Parity with scalable-cli refresh_session_if_needed_at: a fresh access token is reused without a network call.
+					lock (_lock)
+					{
+						_session = stored;
+					}
+
+					return stored;
+				}
+
 				try
 				{
 					await RefreshAsync(stored, cancellationToken);
@@ -197,6 +212,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			lock (_lock)
 			{
 				_session = new CliAuthSession(accessToken, refreshToken, expiresAtUtc, personId, sessionId);
+				_forceReauth = false;
 			}
 
 			try
@@ -330,7 +346,17 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			catch (Exception)
 			{
 				// Any corrupt or unreadable key file: start fresh. The DPoP key is self-describing in every proof, so rotation is safe.
-				return DpopKey.Create();
+				var key = DpopKey.Create();
+				try
+				{
+					File.WriteAllText(path, key.ToJson());
+				}
+				catch (Exception)
+				{
+					// Best effort: the in-memory key still works for this run even if the file stays corrupt.
+				}
+
+				return key;
 			}
 		}
 
@@ -366,6 +392,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 		public CliApiException(string message)
 			: base(message)
 		{
+		}
+
+		public CliApiException(string message, string responseBody)
+			: base(message)
+		{
+			ResponseBody = responseBody;
 		}
 
 		public CliApiException(string message, int statusCode, string responseBody)

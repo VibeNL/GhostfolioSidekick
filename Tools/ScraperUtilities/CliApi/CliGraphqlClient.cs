@@ -25,8 +25,23 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 
 		public async Task<JsonNode> QueryAsync(string query, object? variables, string operationName, CancellationToken cancellationToken)
 		{
-			string? nonce = null;
 			var session = await _tokenProvider.GetSessionAsync(cancellationToken);
+			try
+			{
+				return await ExecuteWithSessionAsync(session, query, variables, operationName, cancellationToken);
+			}
+			catch (CliApiException ex) when (IsUnauthorizedError(ex))
+			{
+				// Parity with scalable-cli execute_with_refresh_retry: the nonce budget is exhausted and the access token itself was rejected; force-refresh and re-run once.
+				_tokenProvider.InvalidateSession();
+				session = await _tokenProvider.GetSessionAsync(cancellationToken);
+				return await ExecuteWithSessionAsync(session, query, variables, operationName, cancellationToken);
+			}
+		}
+
+		private async Task<JsonNode> ExecuteWithSessionAsync(CliAuthSession session, string query, object? variables, string operationName, CancellationToken cancellationToken)
+		{
+			string? nonce = null;
 			for (var attempt = 0; attempt < 2; attempt++)
 			{
 				var body = new JsonObject
@@ -59,15 +74,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 						continue;
 					}
 
-					if (attempt == 0 && response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-					{
-						// Access token expired mid-scrape: force refresh and retry once (parity with scalable-cli execute_with_refresh_retry).
-						_tokenProvider.InvalidateSession();
-						session = await _tokenProvider.GetSessionAsync(cancellationToken);
-						continue;
-					}
-
-					throw new CliApiException($"GraphQL HTTP error {(int)response.StatusCode} during {operationName}: {responseBody}");
+					throw new CliApiException($"GraphQL HTTP error {(int)response.StatusCode} during {operationName}: {responseBody}", (int)response.StatusCode, responseBody);
 				}
 				finally
 				{
@@ -94,7 +101,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			if (errors != null && errors.Count > 0)
 			{
 				var message = string.Join("; ", errors.Select(e => e?["message"]?.ToString() ?? "unknown error"));
-				throw new CliApiException($"GraphQL error during {operationName}: {message}");
+				throw new CliApiException($"GraphQL error during {operationName}: {message}", responseBody);
 			}
 
 			return node?["data"] ?? throw new CliApiException($"GraphQL response for {operationName} has no data.");
@@ -113,6 +120,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			var lower = body.ToLowerInvariant();
 			return statusCode == 401 || lower.Contains("use_dpop_nonce") || lower.Contains("invalid_dpop_proof");
 		}
+
+		private static bool IsUnauthorizedError(CliApiException ex) =>
+			ex.StatusCode == 401 ||
+			(ex.ResponseBody is not null && (ex.ResponseBody.Contains("UNAUTHENTICATED") || ex.ResponseBody.Contains("Missing or invalid credentials")));
 
 		public void Dispose() => _dpopKey.Dispose();
 	}
