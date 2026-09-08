@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 		private const string Audience = "https://de.scalable.capital/api-gateway";
 		private const string Scope = "offline_access openid email";
 
-		private static readonly Uri Issuer = new("https://secure.scalable.capital");
+		private const string Issuer = "https://secure.scalable.capital";
 
 		private readonly HttpClient _httpClient;
 		private readonly ILogger _logger;
