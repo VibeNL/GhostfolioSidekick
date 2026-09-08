@@ -162,7 +162,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 					await ApplyTokenResponseAsync(body, string.Empty, cancellationToken);
 					return;
 				}
-				catch (CliApiException ex) when (ex.StatusCode == 400 && !string.IsNullOrWhiteSpace(ex.ResponseBody))
+				// Parity with scalable-cli: device-flow states are matched on the OAuth error code, not the HTTP status.
+				catch (CliApiException ex) when (!string.IsNullOrWhiteSpace(ex.ResponseBody))
 				{
 					var state = ParseOAuthError(ex.ResponseBody!);
 					if (state == "authorization_pending")
@@ -183,7 +184,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 					{
 						"access_denied" => "Device login denied by user.",
 						"expired_token" => "Device login code expired.",
-						_ => $"Device code polling failed: {detail}"
+						_ => $"Device code polling failed (HTTP {(int)ex.StatusCode!}): {detail}"
 					});
 				}
 			}
@@ -200,8 +201,21 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 				throw new CliApiException("CLI API token endpoint returned no refresh token.");
 			}
 
-			var expiresAtUtc = DateTime.UtcNow.AddSeconds(root.TryGetProperty("expires_in", out var exp) && exp.ValueKind == JsonValueKind.Number ? exp.GetInt32() : 1200);
 			var claims = DecodeJwtClaims(accessToken);
+			DateTime expiresAtUtc;
+			if (root.TryGetProperty("expires_in", out var expiresIn) && expiresIn.ValueKind == JsonValueKind.Number)
+			{
+				expiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn.GetInt32());
+			}
+			else if (claims.TryGetValue("exp", out var expClaim) && expClaim.ValueKind == JsonValueKind.Number)
+			{
+				// Parity with scalable-cli: fall back to the JWT exp claim when the token response omits expires_in.
+				expiresAtUtc = DateTimeOffset.FromUnixTimeSeconds(expClaim.GetInt64()).UtcDateTime;
+			}
+			else
+			{
+				expiresAtUtc = DateTime.UtcNow.AddSeconds(1200);
+			}
 			var personId = FirstClaim(claims, "person_id", "https://de.scalable.capital/person_id", "https://de.scalable.capital/personId") ?? fallbackPersonId;
 			if (string.IsNullOrWhiteSpace(personId))
 			{
