@@ -28,6 +28,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 
 		public DpopKey Key => _dpopKey;
 
+		/// <summary>Invoked once after a successful device-code login, before the session is considered usable.</summary>
+		public Func<CliAuthSession, CancellationToken, Task>? OnDeviceLogin { get; set; }
+
 		/// <summary>Forces the next GetSessionAsync call to re-authenticate from stored tokens (or device login).</summary>
 		public void InvalidateSession()
 		{
@@ -160,6 +163,30 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 				{
 					var body = await PostFormAsync($"{Issuer}/oauth/token", form, null, cancellationToken);
 					await ApplyTokenResponseAsync(body, string.Empty, cancellationToken);
+					if (OnDeviceLogin is not null)
+					{
+						try
+						{
+							await OnDeviceLogin(_session!, cancellationToken);
+						}
+						catch (OperationCanceledException)
+						{
+							throw;
+						}
+						catch (Exception ex)
+						{
+							// Parity with scalable-cli: a failed trusted-device 2FA challenge aborts the login and discards the session.
+							_store.Clear();
+							lock (_lock)
+							{
+								_session = null;
+								_forceReauth = true;
+							}
+
+							throw new CliApiException($"Trusted device 2FA on login failed: {ex.Message}", ex);
+						}
+					}
+
 					return;
 				}
 				// Parity with scalable-cli: device-flow states are matched on the OAuth error code, not the HTTP status.

@@ -22,6 +22,7 @@ Sync upstream `ScalableCapital/scalable-cli` (Rust) into our C# port. Our port e
 |---|---|---|
 | `auth.rs`, `token.rs`, `session.rs` | `CliTokenProvider.cs`, `CliTokenStore.cs` | Device-code OAuth flow, token refresh rotation, claim extraction, persisted session (`cli-tokens.json`) |
 | `dpop*.rs` (mod + software impl) | `DpopKey.cs` | ES256 key gen/load, DPoP proof JWT construction, JWK embedding |
+| `auth.rs` (`handle_post_login_mfa`) + 2FA ops in `graphql.rs` | `TrustedDevice2Fa.cs` | Post-login trusted-device 2FA: Is2faOnLoginEnabled gate (enabled/hasApprovedSession), Start2faOnLogin (deviceName/deviceType "CLI"), Validate2faOnLogin poll every 2s, 120s deadline. Invoked via `CliTokenProvider.OnDeviceLogin` after device-code login only |
 | `graphql.rs`, broker/overnight query execution | `CliGraphqlClient.cs` | GraphQL POST transport, DPoP nonce retry, 401 force-refresh-retry-once (`execute_with_refresh_retry` equivalent) |
 | `broker_queries.rs`, `overnight_queries.rs` | `CliScraper.cs` (verbatim query strings) | The 5 GraphQL queries: ResolveBrokerIds, BrokerTransactions, BrokerTransactionDetails, DiscoverOvernightAccounts, OvernightTransactions; cursor paging pageSize 100 |
 | broker/overnight row mapping + shared/channel types | `CliScraper.cs` (mapping code) | Transaction → model mapping. **Must stay identical to `Mcp/McpScraper.cs`** for fee/tax/cash handling — port any upstream mapping change into both scrapers |
@@ -42,7 +43,7 @@ Sync upstream `ScalableCapital/scalable-cli` (Rust) into our C# port. Our port e
 
 1. **GraphQL queries** — must stay verbatim with upstream (field names, args, pagination shape). Any query text change is a hard requirement to port.
 2. **Endpoints & constants** — issuer `https://secure.scalable.capital` (`/oauth/device/code`, `/oauth/token`), GraphQL `https://de.scalable.capital/api/cli/graphql`, audience `https://de.scalable.capital/api-gateway`, client_id, scope. Upstream constant changes break login silently — check first.
-3. **Auth flow** — device-code polling states (`authorization_pending`, `slow_down`, `access_denied`, `expired_token`), refresh-token rotation (new refresh token must be persisted), claim extraction (`person_id`, `session_id`).
+3. **Auth flow** — device-code polling states (`authorization_pending`, `slow_down`, `access_denied`, `expired_token`), refresh-token rotation (new refresh token must be persisted), claim extraction (`person_id`, `session_id`), post-login trusted-device 2FA state machine (enabled/hasApprovedSession gate, SUCCESS/PENDING/DENY/TIMEOUT_RETRY statuses — error strings are user-visible, keep identical).
 4. **Retry semantics** — Rust wraps every GraphQL call in `execute_with_refresh_retry`: 401 → force session invalidation → re-login/refresh → retry once. Our equivalent is the attempt loop in `CliGraphqlClient.QueryAsync` (DPoP-nonce challenge first, then plain 401). Keep both layers.
 5. **Row mapping** — new transaction types, fee/tax/cash fields, overnight interest handling (`status` SETTLED/FILLED, cashTransactionType INTEREST/INTEREST_PAYMENT).
 
@@ -64,6 +65,8 @@ Sync upstream `ScalableCapital/scalable-cli` (Rust) into our C# port. Our port e
 - **DPoP proof header embeds the full JWK** (`kty`, `crv`, `x`, `y`) — matches upstream software-key behavior, required because we have no server-side key registration.
 - **Key/token files under `%LOCALAPPDATA%\GhostfolioSidekick\`**: `cli-auth-signing-key.json` (minimal JWK kty/crv/d), `cli-tokens.json`. Broad-catch self-heal on load is deliberate.
 - **No Windows binary concern** — we are the implementation; upstream platform-specific code (e.g. browser-open, OS keyring) maps to our console + file-based equivalents.
+- **JWT signature verification NOT ported** (`verify_access_token_strict`: OIDC discovery + JWKS RS256). User decision: TLS to `secure.scalable.capital` is deemed sufficient; the JWKS pipeline adds 2 network calls and a new failure mode per auth event for an unattended container. Revisit if token-endpoint trust assumptions change.
+- **Server-side token revocation on MFA failure NOT ported.** Rust revokes tokens via the API when trusted-device 2FA fails; we clear the local store + force re-auth instead (`CliTokenProvider` hook catch). Effect is equivalent (next run = fresh device login) without an extra endpoint.
 
 ## Parity Reference
 

@@ -123,6 +123,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			using var httpClient = new HttpClient();
 			using var tokenProvider = new CliApi.CliTokenProvider(httpClient, logger);
 			using var client = new CliApi.CliGraphqlClient(httpClient, tokenProvider.Key, tokenProvider);
+			tokenProvider.OnDeviceLogin = (session, ct) => CliApi.TrustedDevice2Fa.EnsureApprovedSessionAsync(client, session.PersonId, logger, ct);
 			var scraper = new CliApi.CliScraper(client, tokenProvider, logger);
 			return await scraper.ScrapeTransactionsAsync(CancellationToken.None);
 		}
