@@ -293,7 +293,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 						continue;
 					}
 
-					throw new CliApiException($"CLI API HTTP error {(int)response.StatusCode}: {responseBody}", (int)response.StatusCode, responseBody);
+					throw new CliApiException($"CLI API HTTP error {(int)response.StatusCode} from {url}: {TruncateForDiagnostics(responseBody)}", (int)response.StatusCode, responseBody);
 				}
 				finally
 				{
@@ -317,6 +317,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CliApi
 			var lower = body.ToLowerInvariant();
 			return statusCode == 401 || lower.Contains("use_dpop_nonce") || lower.Contains("invalid_dpop_proof");
 		}
+
+		private static string TruncateForDiagnostics(string body) => body.Length <= 200 ? body : $"{body[..200]}…";
 
 		private static string? ParseOAuthError(string body)
 		{
