@@ -11,7 +11,7 @@
 		<PackageVersion Include="AutoFixture" Version="4.18.1" />
 		<PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
 		<PackageVersion Include="Bit.Besql" Version="10.5.0" />
-		<PackageVersion Include="bunit" Version="2.9.0" />
+		<PackageVersion Include="bunit" Version="2.10.3" />
 		<PackageVersion Include="CoinGecko.Net" Version="6.4.0" />
 		<PackageVersion Include="CompareNETObjects" Version="4.84.0" />
 		<PackageVersion Include="coverlet.collector" Version="10.0.1" />
