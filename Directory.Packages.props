@@ -4,7 +4,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageVersion Include="AngleSharp" Version="1.8.0" />
+		<PackageVersion Include="AngleSharp" Version="1.8.1" />
 		<PackageVersion Include="Aspire.Hosting.AppHost" Version="13.5.3" />
 		<PackageVersion Include="Aspire.Hosting.Blazor" Version="13.5.3-preview.1.26425.3" />
 		<PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.3" />
