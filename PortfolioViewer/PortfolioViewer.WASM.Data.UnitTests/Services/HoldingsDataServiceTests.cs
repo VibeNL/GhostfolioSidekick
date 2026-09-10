@@ -633,10 +633,13 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			holdingAaplMsft.SymbolProfiles.Add(CreateSymbolProfile("MSFT"));
 			holdingAaplMsft.CalculatedSnapshots = [CreateTestCalculatedSnapshot(holdingAaplMsft, startDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110))];
 
-			// Second holding also matches AAPL (different datasource keeps the SymbolProfile key unique)
+			// Second holding also matches AAPL (different datasource keeps the SymbolProfile key unique);
+			// it has a snapshot on the same date as holdingAaplMsft to cover cross-holding merging per date
 			var holdingAapl2 = CreateTestHolding("AAPL", "Apple Inc");
 			holdingAapl2.SymbolProfiles[0].DataSource = Datasource.COINGECKO;
-			holdingAapl2.CalculatedSnapshots = [CreateTestCalculatedSnapshot(holdingAapl2, startDate.AddDays(1), 5, new Money(Currency.USD, 90), new Money(Currency.USD, 95))];
+			holdingAapl2.CalculatedSnapshots = [
+				CreateTestCalculatedSnapshot(holdingAapl2, startDate, 5, new Money(Currency.USD, 90), new Money(Currency.USD, 95)),
+				CreateTestCalculatedSnapshot(holdingAapl2, startDate.AddDays(1), 5, new Money(Currency.USD, 85), new Money(Currency.USD, 90))];
 
 			using (var seedContext = testDatabase.CreateContext())
 			{
@@ -665,6 +668,10 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			}
 
 			bulkResult["GOOG"].Should().BeEmpty(); // requested but no holding has this profile
+
+			// Same-date snapshots from both AAPL holdings merge into one point with Price = Min across holdings
+			bulkResult["AAPL"].Should().HaveCount(2);
+			bulkResult["AAPL"][0].Price.Should().Be(95); // min of 110 (holdingAaplMsft) and 95 (holdingAapl2) on startDate
 		}
 
 		private sealed class SqliteTestDatabase : IDisposable
