@@ -69,23 +69,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			DateOnly endDate,
 			CancellationToken cancellationToken = default)
 		{
-			var symbolList = symbols.ToList();
+			var symbolList = symbols.Distinct().ToList();
 			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-			// Single query fetching snapshots for all requested symbols at once
+			// Single query fetching date-filtered snapshots for all requested symbols at once.
+			// A holding with multiple matching profiles contributes its snapshots to each of those symbols,
+			// mirroring GetHoldingPriceHistoryAsync semantics; grouping happens client-side so the
+			// projection stays translatable on SQLite/WASM.
 			var rawSnapShots = await databaseContext.Holdings
 				.Where(x => x.SymbolProfiles.Any(sp => symbolList.Contains(sp.Symbol)))
 				.Select(x => new
 				{
-					Symbol = x.SymbolProfiles
+					Symbols = x.SymbolProfiles
 						.Where(sp => symbolList.Contains(sp.Symbol))
-						.OrderBy(sp => Datasource.GetPriority(sp.DataSource))
-						.Select(sp => sp.Symbol)
-						.FirstOrDefault(),
+						.Select(sp => sp.Symbol),
 					Snapshots = x.CalculatedSnapshots
 						.Where(s => s.Date >= startDate && s.Date <= endDate)
 				})
-				.Where(x => x.Symbol != null)
 				.AsNoTracking()
 				.ToListAsync(cancellationToken);
 
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			foreach (var holding in rawSnapShots)
 			{
-				if (holding.Symbol == null) continue;
+				if (!holding.Snapshots.Any()) continue;
 
 				var byDate = holding.Snapshots
 					.GroupBy(s => s.Date)
@@ -107,9 +107,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 							AveragePrice = totalQuantity == 0 ? 0 : g.Sum(y => y.AverageCostPrice * y.Quantity) / totalQuantity,
 						};
 					})
+					.OrderBy(p => p.Date)
 					.ToList();
 
-				result[holding.Symbol] = byDate;
+				foreach (var symbol in holding.Symbols.Distinct())
+				{
+					if (!result.TryGetValue(symbol, out var points))
+					{
+						points = [];
+						result[symbol] = points;
+					}
+
+					// Merge snapshots from all holdings that have this symbol profile (cloned so keys don't share instances)
+					points.AddRange(byDate.Select(p => new HoldingPriceHistoryPoint
+					{
+						Date = p.Date,
+						Price = p.Price,
+						AveragePrice = p.AveragePrice,
+					}));
+				}
 			}
 
 			// Ensure every requested symbol has an entry (empty list if no data)
