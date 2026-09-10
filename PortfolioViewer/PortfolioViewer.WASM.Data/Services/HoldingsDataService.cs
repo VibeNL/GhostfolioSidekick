@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,77 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				}
 
 			return snapShots;
+		}
+
+		public async Task<Dictionary<string, List<HoldingPriceHistoryPoint>>> GetHoldingPriceHistoryBulkAsync(
+			IEnumerable<string> symbols,
+			DateOnly startDate,
+			DateOnly endDate,
+			CancellationToken cancellationToken = default)
+		{
+			var symbolList = symbols.Distinct().ToList();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+			// Single query fetching date-filtered snapshots for all requested symbols at once.
+			// Snapshots are collected per symbol and aggregated with exactly the same GroupBy/Min/weighted-average
+			// as GetHoldingPriceHistoryAsync; grouping happens client-side so the projection stays translatable on SQLite/WASM.
+			var rawSnapShots = await databaseContext.Holdings
+				.Where(x => x.SymbolProfiles.Any(sp => symbolList.Contains(sp.Symbol)))
+				.Select(x => new
+				{
+					Symbols = x.SymbolProfiles
+						.Where(sp => symbolList.Contains(sp.Symbol))
+						.Select(sp => sp.Symbol),
+					Snapshots = x.CalculatedSnapshots
+						.Where(s => s.Date >= startDate && s.Date <= endDate)
+				})
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			var snapshotsBySymbol = new Dictionary<string, List<CalculatedSnapshot>>();
+			foreach (var holding in rawSnapShots)
+			{
+				if (!holding.Snapshots.Any()) continue;
+
+				foreach (var symbol in holding.Symbols.Distinct())
+				{
+					if (!snapshotsBySymbol.TryGetValue(symbol, out var snapshots))
+					{
+						snapshots = [];
+						snapshotsBySymbol[symbol] = snapshots;
+					}
+
+					snapshots.AddRange(holding.Snapshots);
+				}
+			}
+
+			var result = new Dictionary<string, List<HoldingPriceHistoryPoint>>();
+			foreach (var symbol in symbolList)
+			{
+				if (!snapshotsBySymbol.TryGetValue(symbol, out var snapshots))
+				{
+					result[symbol] = []; // requested but no holding has this profile
+					continue;
+				}
+
+				// Same aggregation as GetHoldingPriceHistoryAsync: one point per date across all matching holdings
+				result[symbol] = snapshots
+					.GroupBy(s => s.Date)
+					.Select(g =>
+					{
+						var totalQuantity = g.Sum(x => x.Quantity);
+						return new HoldingPriceHistoryPoint
+						{
+							Date = g.Key,
+							Price = g.Min(x => x.CurrentUnitPrice),
+							AveragePrice = totalQuantity == 0 ? 0 : g.Sum(y => y.AverageCostPrice * y.Quantity) / totalQuantity,
+						};
+					})
+					.OrderBy(p => p.Date)
+					.ToList();
+			}
+
+			return result;
 		}
 
 		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
