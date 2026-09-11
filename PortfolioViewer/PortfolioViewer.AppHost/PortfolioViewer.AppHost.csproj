@@ -30,6 +30,7 @@
 	<ItemGroup>
 		<PackageReference Include="Aspire.Hosting.AppHost" />
 		<PackageReference Include="Aspire.Hosting.Blazor" />
+		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
 	</ItemGroup>
 
 </Project>
