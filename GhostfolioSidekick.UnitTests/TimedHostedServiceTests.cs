@@ -17,6 +17,34 @@ namespace GhostfolioSidekick.UnitTests
 			return context;
 		}
 
+			// Polls until every mock has received at least its expected number of DoWork invocations.
+			// The work loop performs database writes and garbage collections per item, so a fixed wall-clock delay is not reliable on loaded machines.
+			// If the condition is not met within the timeout, this returns and the Verify calls below fail with a clear message.
+			private static async Task WaitForDoWorkInvocationsAsync(Mock<IScheduledWork>[] mocks, int[] expectedCalls, CancellationToken cancellationToken)
+			{
+				var deadline = DateTime.UtcNow.AddSeconds(10);
+
+				while (DateTime.UtcNow < deadline && !cancellationToken.IsCancellationRequested)
+				{
+					var allDone = true;
+					for (var i = 0; i < mocks.Length; i++)
+					{
+						if (mocks[i].Invocations.Count(x => x.Method.Name == nameof(IScheduledWork.DoWork)) < expectedCalls[i])
+						{
+							allDone = false;
+							break;
+						}
+					}
+
+					if (allDone)
+					{
+						return;
+					}
+
+					await Task.Delay(25, cancellationToken);
+				}
+			}
+
 		[Fact]
 		public async Task DoesNotStartAutomatically()
 		{
@@ -97,7 +125,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100, TestContext.Current.CancellationToken);
+			await WaitForDoWorkInvocationsAsync(new[] { scheduledWorkMock1, scheduledWorkMock2 }, new[] { 1, 1 }, TestContext.Current.CancellationToken);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -130,7 +158,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(500, TestContext.Current.CancellationToken); // Reduced delay to make test faster
+			await WaitForDoWorkInvocationsAsync(new[] { scheduledWorkMock1, scheduledWorkMock2 }, new[] { 2, 1 }, TestContext.Current.CancellationToken);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.AtLeast(2)); // Should execute multiple times
@@ -163,7 +191,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100, TestContext.Current.CancellationToken);
+			await WaitForDoWorkInvocationsAsync(new[] { scheduledWorkMock1, scheduledWorkMock2 }, new[] { 1, 1 }, TestContext.Current.CancellationToken);
 			await service.StopAsync(CancellationToken.None);
 
 			// Assert
@@ -198,7 +226,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100, TestContext.Current.CancellationToken);
+			await WaitForDoWorkInvocationsAsync(new[] { scheduledWorkMock1, scheduledWorkMock2 }, new[] { 1, 1 }, TestContext.Current.CancellationToken);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>(), It.IsAny<CancellationToken>()), Times.Once);
