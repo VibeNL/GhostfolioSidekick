@@ -70,7 +70,7 @@
 		<PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
 		<PackageVersion Include="Testcontainers.Redis" Version="4.15.0" />
 		<PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
-		<PackageVersion Include="xunit.v3" Version="4.0.0" />
+		<PackageVersion Include="xunit.v3" Version="4.0.1" />
 		<PackageVersion Include="YahooFinanceApiNext" Version="2.3.11" />
 	</ItemGroup>
 </Project>
