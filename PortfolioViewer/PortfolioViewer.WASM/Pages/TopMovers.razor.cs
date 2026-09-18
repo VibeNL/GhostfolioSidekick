@@ -32,25 +32,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected string ErrorMessage { get; set; } = string.Empty;
 
 		private FilterState? _previousFilterState;
-
-		protected override async Task OnInitializedAsync()
-		{
-			if (FilterState != null)
-			{
-				FilterState.PropertyChanged += OnFilterStateChanged;
-			}
-		}
+		private FilterState? _subscribedFilterState;
 
 		protected override async Task OnParametersSetAsync()
 		{
 			if (_previousFilterState == null || !FilterState.IsEqual(_previousFilterState))
 			{
-				if (_previousFilterState != null)
+				if (!ReferenceEquals(_subscribedFilterState, FilterState))
 				{
-					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+					if (_subscribedFilterState != null)
+					{
+						_subscribedFilterState.PropertyChanged -= OnFilterStateChanged;
+					}
+
+					FilterState.PropertyChanged += OnFilterStateChanged;
+					_subscribedFilterState = FilterState;
 				}
 
-				FilterState.PropertyChanged += OnFilterStateChanged;
 				_previousFilterState = new(FilterState);
 				await LoadMoversAsync();
 			}
@@ -166,9 +164,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		public void Dispose()
 		{
-			if (FilterState != null)
+			if (_subscribedFilterState != null)
 			{
-				FilterState.PropertyChanged -= OnFilterStateChanged;
+				_subscribedFilterState.PropertyChanged -= OnFilterStateChanged;
+				_subscribedFilterState = null;
 			}
 		}
 	}
