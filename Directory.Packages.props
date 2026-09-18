@@ -5,9 +5,9 @@
 
 	<ItemGroup>
 		<PackageVersion Include="AngleSharp" Version="1.8.1" />
-		<PackageVersion Include="Aspire.Hosting.AppHost" Version="13.5.3" />
+		<PackageVersion Include="Aspire.Hosting.AppHost" Version="13.5.4" />
 		<PackageVersion Include="Aspire.Hosting.Blazor" Version="13.5.3-preview.1.26425.3" />
-		<PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.3" />
+		<PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.4" />
 		<PackageVersion Include="AutoFixture" Version="4.18.1" />
 		<PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
 		<PackageVersion Include="Bit.Besql" Version="10.6.0" />
@@ -64,7 +64,7 @@
 		<PackageVersion Include="Plotly.Blazor" Version="7.2.0" />
 		<PackageVersion Include="Polly" Version="8.8.0" />
 		<PackageVersion Include="RestSharp" Version="114.0.0" />
-		<PackageVersion Include="Scalar.AspNetCore" Version="2.17.3" />
+		<PackageVersion Include="Scalar.AspNetCore" Version="2.17.4" />
 		<PackageVersion Include="SSH.NET" Version="2026.0.0" />
 		<PackageVersion Include="Testcontainers" Version="4.15.0" />
 		<PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
