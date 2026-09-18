@@ -503,6 +503,238 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Verify(x => x.Holdings, Times.AtLeastOnce);
 		}
 
+		[Fact]
+		public async Task GetHoldingPriceHistoryBulkAsync_WithMultipleSymbols_ShouldReturnHistoryPerSymbol()
+		{
+			// Arrange
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
+
+			var holdingAapl = CreateTestHolding("AAPL", "Apple Inc");
+			holdingAapl.CalculatedSnapshots = [CreateTestCalculatedSnapshot(startDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110))];
+
+			var holdingMsft = CreateTestHolding("MSFT", "Microsoft Corp");
+			holdingMsft.CalculatedSnapshots = [CreateTestCalculatedSnapshot(startDate.AddDays(1), 5, new Money(Currency.USD, 200), new Money(Currency.USD, 220))];
+
+			var holdingGoo = CreateTestHolding("GOOG", "Alphabet Inc");
+			holdingGoo.CalculatedSnapshots = [CreateTestCalculatedSnapshot(startDate.AddDays(2), 1, new Money(Currency.USD, 300), new Money(Currency.USD, 310))];
+
+			var holdings = new List<Holding> { holdingAapl, holdingMsft, holdingGoo };
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
+
+			// Act
+			var result = await _holdingsDataService.GetHoldingPriceHistoryBulkAsync(
+				new[] { "AAPL", "MSFT" }, startDate, endDate, CancellationToken.None);
+
+			// Assert
+			result.Should().HaveCount(2);
+			result["AAPL"].Should().HaveCount(1);
+			result["AAPL"][0].Date.Should().Be(startDate);
+			result["AAPL"][0].Price.Should().Be(110);
+			result["MSFT"].Should().HaveCount(1);
+			result["MSFT"][0].Date.Should().Be(startDate.AddDays(1));
+			result["MSFT"][0].Price.Should().Be(220);
+		}
+
+		[Fact]
+		public async Task GetHoldingPriceHistoryBulkAsync_WithEmptySymbols_ShouldReturnEmptyDictionary()
+		{
+			// Arrange
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
+
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(new List<Holding>());
+
+			// Act
+			var result = await _holdingsDataService.GetHoldingPriceHistoryBulkAsync(
+				Array.Empty<string>(), startDate, endDate, CancellationToken.None);
+
+			// Assert
+			result.Should().NotBeNull();
+			result.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task GetHoldingPriceHistoryBulkAsync_WithDateRangeFilter_ShouldExcludeSnapshotsOutsideRange()
+		{
+			// Arrange
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
+
+			var holding = CreateTestHolding("AAPL", "Apple Inc");
+			holding.CalculatedSnapshots = [
+				CreateTestCalculatedSnapshot(new DateOnly(2022, 12, 15), 10, new Money(Currency.USD, 90), new Money(Currency.USD, 95)),
+				CreateTestCalculatedSnapshot(startDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110)),
+				CreateTestCalculatedSnapshot(new DateOnly(2023, 2, 15), 10, new Money(Currency.USD, 120), new Money(Currency.USD, 130))
+			];
+
+			var holdings = new List<Holding> { holding };
+			_mockDatabaseContext.Setup(x => x.Holdings).ReturnsDbSet(holdings);
+
+			// Act
+			var result = await _holdingsDataService.GetHoldingPriceHistoryBulkAsync(
+				new[] { "AAPL" }, startDate, endDate, CancellationToken.None);
+
+			// Assert
+			result.Should().HaveCount(1);
+			result["AAPL"].Should().HaveCount(1);
+			result["AAPL"][0].Date.Should().Be(startDate);
+			result["AAPL"][0].Price.Should().Be(110);
+		}
+
+		[Fact]
+		public async Task GetHoldingPriceHistoryBulkAsync_OnRealSqlite_ShouldTranslateAndReturnPerSymbolHistory()
+		{
+			// Arrange: real SQLite context so EF query translation is exercised (WASM runtime uses the same provider)
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
+
+			using var testDatabase = new SqliteTestDatabase();
+			var holdingAapl = CreateTestHolding("AAPL", "Apple Inc");
+			holdingAapl.CalculatedSnapshots = [CreateTestCalculatedSnapshot(holdingAapl, startDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110))];
+
+			var holdingMsft = CreateTestHolding("MSFT", "Microsoft Corp");
+			holdingMsft.CalculatedSnapshots = [CreateTestCalculatedSnapshot(holdingMsft, startDate.AddDays(1), 5, new Money(Currency.USD, 200), new Money(Currency.USD, 220))];
+
+			using (var seedContext = testDatabase.CreateContext())
+			{
+				seedContext.Holdings.AddRange(holdingAapl, holdingMsft);
+				await seedContext.SaveChangesAsync(CancellationToken.None);
+			}
+
+			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+			dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(() => testDatabase.CreateContext());
+			var service = new HoldingsDataService(dbFactory.Object, _mockServerConfigurationService.Object);
+
+			// Act
+			var result = await service.GetHoldingPriceHistoryBulkAsync(
+				new[] { "AAPL", "MSFT" }, startDate, endDate, CancellationToken.None);
+
+			// Assert
+			result.Should().HaveCount(2);
+			result["AAPL"].Should().HaveCount(1);
+			result["AAPL"][0].Date.Should().Be(startDate);
+			result["AAPL"][0].Price.Should().Be(110);
+			result["MSFT"].Should().HaveCount(1);
+			result["MSFT"][0].Date.Should().Be(startDate.AddDays(1));
+			result["MSFT"][0].Price.Should().Be(220);
+		}
+
+		[Fact]
+		public async Task GetHoldingPriceHistoryBulkAsync_OnRealSqlite_ShouldMatchPerSymbolResults()
+		{
+			// Arrange: parity with GetHoldingPriceHistoryAsync — a holding with multiple profiles contributes to each symbol
+			var startDate = new DateOnly(2023, 1, 1);
+			var endDate = new DateOnly(2023, 1, 31);
+
+			using var testDatabase = new SqliteTestDatabase();
+			var holdingAaplMsft = CreateTestHolding("AAPL", "Apple Inc");
+			holdingAaplMsft.SymbolProfiles.Add(CreateSymbolProfile("MSFT"));
+			holdingAaplMsft.CalculatedSnapshots = [CreateTestCalculatedSnapshot(holdingAaplMsft, startDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110))];
+
+			// Second holding also matches AAPL (different datasource keeps the SymbolProfile key unique);
+			// it has a snapshot on the same date as holdingAaplMsft to cover cross-holding merging per date
+			var holdingAapl2 = CreateTestHolding("AAPL", "Apple Inc");
+			holdingAapl2.SymbolProfiles[0].DataSource = Datasource.COINGECKO;
+			holdingAapl2.CalculatedSnapshots = [
+				CreateTestCalculatedSnapshot(holdingAapl2, startDate, 5, new Money(Currency.USD, 90), new Money(Currency.USD, 95)),
+				CreateTestCalculatedSnapshot(holdingAapl2, startDate.AddDays(1), 5, new Money(Currency.USD, 85), new Money(Currency.USD, 90))];
+
+			using (var seedContext = testDatabase.CreateContext())
+			{
+				seedContext.Holdings.AddRange(holdingAaplMsft, holdingAapl2);
+				await seedContext.SaveChangesAsync(CancellationToken.None);
+			}
+
+			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+			dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(() => testDatabase.CreateContext());
+			var service = new HoldingsDataService(dbFactory.Object, _mockServerConfigurationService.Object);
+
+			// Act
+			var symbols = new[] { "AAPL", "MSFT", "GOOG" };
+			var bulkResult = await service.GetHoldingPriceHistoryBulkAsync(symbols, startDate, endDate, CancellationToken.None);
+
+			// Assert: identical to calling the per-symbol method for each symbol
+			foreach (var symbol in symbols)
+			{
+				var expected = await service.GetHoldingPriceHistoryAsync(symbol, startDate, endDate, CancellationToken.None);
+				bulkResult.Should().ContainKey(symbol);
+
+				var actualPoints = bulkResult[symbol].Select(p => new { p.Date, p.Price, p.AveragePrice }).ToList();
+				var expectedPoints = expected.Select(p => new { p.Date, p.Price, p.AveragePrice }).ToList();
+				actualPoints.Should().Equal(expectedPoints);
+			}
+
+			bulkResult["GOOG"].Should().BeEmpty(); // requested but no holding has this profile
+
+			// Same-date snapshots from both AAPL holdings merge into one point with Price = Min across holdings
+			bulkResult["AAPL"].Should().HaveCount(2);
+			bulkResult["AAPL"][0].Price.Should().Be(95); // min of 110 (holdingAaplMsft) and 95 (holdingAapl2) on startDate
+		}
+
+		private sealed class SqliteTestDatabase : IDisposable
+		{
+			public DbContextOptions<DatabaseContext> Options { get; }
+
+			private readonly string _filePath;
+
+			public SqliteTestDatabase()
+			{
+				_filePath = $"test_holdings_bulk_{Guid.NewGuid():N}.db";
+				Options = new DbContextOptionsBuilder<DatabaseContext>()
+					.UseSqlite($"Data Source={_filePath}")
+					.Options;
+
+				using var context = CreateContext();
+				context.Database.EnsureCreated();
+			}
+
+			public DatabaseContext CreateContext() => new(Options);
+
+			public void Dispose()
+			{
+				try { File.Delete(_filePath); } catch (IOException) { /* best effort */ }
+			}
+		}
+
+		private static SymbolProfile CreateSymbolProfile(string symbol)
+		{
+			return new SymbolProfile(
+				symbol: symbol,
+				name: null,
+				identifiers: [],
+				currency: Currency.USD,
+				dataSource: "YAHOO",
+				assetClass: AssetClass.Equity,
+				assetSubClass: null,
+				countries: [],
+				sectors: []);
+		}
+
+		private static CalculatedSnapshot CreateTestCalculatedSnapshot(
+			Holding holding,
+			DateOnly date,
+			decimal quantity,
+			Money averageCostPrice,
+			Money currentUnitPrice)
+		{
+			return new CalculatedSnapshot(
+				id: Guid.NewGuid(),
+				accountId: 1,
+				date: date,
+				quantity: quantity,
+				currency: Currency.USD,
+				averageCostPrice: averageCostPrice.Amount,
+				currentUnitPrice: currentUnitPrice.Amount,
+				totalInvested: 0,
+				totalValue: 0)
+			{
+				Holding = holding,
+			};
+		}
+
 
 
 		[Fact]
