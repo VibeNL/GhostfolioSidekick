@@ -32,6 +32,7 @@
 		<PackageReference Include="Aspire.Hosting.Blazor" />
 		<PackageReference Include="Grpc.Tools" />
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
 	</ItemGroup>
 
 </Project>
