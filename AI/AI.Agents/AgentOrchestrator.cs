@@ -14,6 +14,12 @@ namespace GhostfolioSidekick.AI.Agents
 		private readonly ICustomChatClient chatClient;
 		private AgentSession? session;
 
+		// Number of messages in the stored (cleaned) history that were already processed by FixupMemory.
+		private int _fixedUpCount;
+
+		// Tool-call messages waiting to be merged into the next non-tool message's "tool_call" property.
+		private readonly List<ChatMessage> _pendingToolCalls = [];
+
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
 			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
@@ -56,42 +62,61 @@ namespace GhostfolioSidekick.AI.Agents
 				return;
 			}
 
-			List<ChatMessage> cleanedChatHistory = [];
-			if (session.TryGetInMemoryChatHistory(out var chatHistory))
+			if (!session.TryGetInMemoryChatHistory(out var chatHistory))
 			{
-				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
-				List<ChatMessage> toolsCalls = [];
-				foreach (var message in chatHistory.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
-				{
-					if (message.Role == ChatRole.Tool)
-					{
-						toolsCalls.Add(message);
-					}
-					else
-					{
-						if (message.Role == ChatRole.User)
-						{
-							message.AuthorName = "User";
-						}
-
-						message.AdditionalProperties ??= [];
-
-						if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
-						{
-							message.AdditionalProperties.TryAdd("tool_call", "");
-						}
-
-						if (toolsCalls.Count != 0)
-						{
-							message.AdditionalProperties["tool_call"] = string.Join(", ", toolsCalls.Select(tc => tc.Text ?? string.Empty));
-							toolsCalls.Clear();
-						}
-
-						cleanedChatHistory.Add(message);
-					}
-				}
+				return;
 			}
 
+			// Stored history shrank (replaced externally): reprocess from scratch.
+			if (chatHistory.Count < _fixedUpCount)
+			{
+				_fixedUpCount = 0;
+				_pendingToolCalls.Clear();
+			}
+
+			if (chatHistory.Count == _fixedUpCount)
+			{
+				return;
+			}
+
+			var cleanedChatHistory = chatHistory.Take(_fixedUpCount).ToList();
+
+			foreach (var message in chatHistory.Skip(_fixedUpCount))
+			{
+				if (string.IsNullOrWhiteSpace(message.Text))
+				{
+					continue;
+				}
+
+				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
+				if (message.Role == ChatRole.Tool)
+				{
+					_pendingToolCalls.Add(message);
+					continue;
+				}
+
+				if (message.Role == ChatRole.User)
+				{
+					message.AuthorName = "User";
+				}
+
+				message.AdditionalProperties ??= [];
+
+				if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
+				{
+					message.AdditionalProperties.TryAdd("tool_call", "");
+				}
+
+				if (_pendingToolCalls.Count != 0)
+				{
+					message.AdditionalProperties["tool_call"] = string.Join(", ", _pendingToolCalls.Select(tc => tc.Text ?? string.Empty));
+					_pendingToolCalls.Clear();
+				}
+
+				cleanedChatHistory.Add(message);
+			}
+
+			_fixedUpCount = cleanedChatHistory.Count;
 			session.SetInMemoryChatHistory(cleanedChatHistory);
 		}
 
@@ -121,6 +146,8 @@ namespace GhostfolioSidekick.AI.Agents
 		public void ClearMemory()
 		{
 			session = null;
+			_fixedUpCount = 0;
+			_pendingToolCalls.Clear();
 		}
 	}
 }

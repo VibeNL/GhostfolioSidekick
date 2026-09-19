@@ -15,7 +15,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private InteropInstance interopInstance = new();
 
 		private IJSObjectReference? module;
-		private static readonly JsonSerializerOptions options = new() { WriteIndented = true };
+
+		// Compact JSON: function definitions go into the model prompt, indentation only wastes tokens.
+		private static readonly JsonSerializerOptions options = new();
+
+		// Set when the JS streaming call fails; surfaced to the consumer via a synthetic stream-complete marker.
+		private volatile Exception? _streamError;
 
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
@@ -156,17 +161,29 @@ Format function calls like this:
 		private void StartStreamingAsync(List<ChatMessage> convertedMessages, CancellationToken cancellationToken)
 		{
 			var model = modelIds[ChatMode];
+			_streamError = null;
 			_ = Task.Run(async () =>
 			{
-				await (await GetModule()).InvokeVoidAsync(
-					"completeStreamWebLLM",
-					InteropInstance.ConvertMessage(convertedMessages),
-					model,
-					ChatMode == ChatMode.ChatWithThinking,
-					null
-				);
+				try
+				{
+					await (await GetModule()).InvokeVoidAsync(
+						"completeStreamWebLLM",
+						InteropInstance.ConvertMessage(convertedMessages),
+						model,
+						ChatMode == ChatMode.ChatWithThinking,
+						null
+					);
+				}
+				catch (Exception ex) when (ex is not OperationCanceledException)
+				{
+					logger.LogError(ex, "WebLLM streaming failed");
+					_streamError = ex;
+					interopInstance.WebLLMCompletions.Writer.TryWrite(CreateStreamEndMarker());
+				}
 			}, cancellationToken);
 		}
+
+		private static WebLLMCompletion CreateStreamEndMarker() => new("error", "completion", string.Empty, string.Empty, [], new Usage(0, 0, 0));
 
 		private async IAsyncEnumerable<ChatResponseUpdate> ProcessStreamingResponseAsync(
 			IEnumerable<ChatMessage> originalMessages,
@@ -177,11 +194,14 @@ Format function calls like this:
 
 			while (true)
 			{
-				var response = TryDequeueResponse();
-				if (response == null)
+				// Channel read replaces the old 1ms busy-poll: no CPU burn while waiting for chunks.
+				var response = await interopInstance.WebLLMCompletions.Reader.ReadAsync(cancellationToken);
+
+				if (_streamError != null && response.IsStreamComplete)
 				{
-					await Task.Delay(1, cancellationToken);
-					continue;
+					var error = _streamError;
+					_streamError = null;
+					throw new InvalidOperationException("WebLLM streaming failed.", error);
 				}
 
 				if (response.IsStreamComplete)
@@ -204,13 +224,6 @@ Format function calls like this:
 					}
 				}
 			}
-		}
-
-		private WebLLMCompletion? TryDequeueResponse()
-		{
-			return interopInstance!.WebLLMCompletions.TryDequeue(out WebLLMCompletion? response)
-				? response
-				: null;
 		}
 
 		private async IAsyncEnumerable<ChatResponseUpdate> HandleStreamComplete(
@@ -249,8 +262,17 @@ Format function calls like this:
 				new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{combinedResults}\n\nPlease answer the original question using this data."),
 			};
 
-			// Second LLM call — no tools, so the model produces a natural language response
-			await foreach (var update in GetStreamingResponseAsync(synthesisMessages, options: null, cancellationToken))
+			// Second LLM call — no tools, so the model produces a natural language response.
+			// Keep scalar sampling options and Instructions (system prompt) from the original request.
+			var synthesisOptions = new ChatOptions
+			{
+				Instructions = options?.Instructions,
+				Temperature = options?.Temperature,
+				TopP = options?.TopP,
+				MaxOutputTokens = options?.MaxOutputTokens,
+			};
+
+			await foreach (var update in GetStreamingResponseAsync(synthesisMessages, synthesisOptions, cancellationToken))
 			{
 				yield return update;
 			}
@@ -467,7 +489,8 @@ Format function calls like this:
 				throw new NotSupportedException("Interop instance is not initialized.");
 			}
 
-			module = await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm.interop.js");
+			// Import once per client: re-importing the JS module on every request wasted startup time.
+			module ??= await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm.interop.js");
 			if (module == null)
 			{
 				throw new NotSupportedException("Module is not initialized.");
