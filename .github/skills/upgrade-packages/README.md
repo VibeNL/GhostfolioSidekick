@@ -19,7 +19,8 @@ Upgrade NuGet packages across the GhostfolioSidekick solution with safe, verifie
 4. **Build** — `dotnet build` (must be 0 errors, 0 warnings)
 5. **Test** — `dotnet test` (must pass)
 6. **Security** — `dotnet list package --vulnerable` (must be clean)
-7. **Commit** — descriptive message with package names
+7. **Branch + Commit** — create a new branch, then commit with a descriptive message including package names
+8. **Push** — `git push -u origin <branch>`
 
 ## Risk Tiers
 
