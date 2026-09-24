@@ -12,7 +12,7 @@
 		<PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
 		<PackageVersion Include="Bit.Besql" Version="10.6.2" />
 		<PackageVersion Include="bunit" Version="2.11.3" />
-		<PackageVersion Include="CoinGecko.Net" Version="6.4.0" />
+		<PackageVersion Include="CoinGecko.Net" Version="6.5.0" />
 		<PackageVersion Include="CompareNETObjects" Version="4.84.0" />
 		<PackageVersion Include="coverlet.collector" Version="10.0.1" />
 		<PackageVersion Include="CsvHelper" Version="33.1.0" />
