@@ -65,6 +65,7 @@ export class WebLLMInterop {
 			}
 		} catch (error) {
 			console.error("Error during streaming completion:", error);
+			throw error;
 		}
 	}
 }

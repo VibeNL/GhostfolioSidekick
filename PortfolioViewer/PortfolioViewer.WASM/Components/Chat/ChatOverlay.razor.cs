@@ -25,6 +25,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private readonly List<ChatMessage> memory = [];
 		private readonly AgentOrchestrator orchestrator;
 		private readonly AgentLogger agentLogger;
+		private readonly SqlitePersistence sqlitePersistence;
 
 		internal string CurrentAgentName => agentLogger.CurrentAgentName;
 
@@ -32,10 +33,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-		public ChatOverlay(IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
+		public ChatOverlay(IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger, SqlitePersistence sqlitePersistence)
 		{
 			orchestrator = agentOrchestrator;
 			this.agentLogger = agentLogger;
+			this.sqlitePersistence = sqlitePersistence;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
 
@@ -43,11 +45,36 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			agentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
 		}
 
-		private void ClearChat()
+		protected override async Task OnInitializedAsync()
+		{
+			// Restore the conversation from the database so it survives page refreshes.
+			try
+			{
+				memory.AddRange(await orchestrator.HistoryAsync());
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed to restore chat history: {ex.Message}");
+			}
+
+			StateHasChanged();
+		}
+
+		private async Task ClearChat()
 		{
 			memory.Clear();
-			orchestrator.ClearMemory();
+			await orchestrator.ClearMemoryAsync();
 			CurrentMessage = string.Empty;
+
+			// Persist the deletion so a page refresh does not resurrect the cleared conversation.
+			try
+			{
+				await sqlitePersistence.SaveChangesAsync();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed to sync chat history after clear: {ex.Message}");
+			}
 		}
 
 		private async Task ToggleChat()
@@ -165,12 +192,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				}
 
 				memory.Clear();
-				memory.AddRange(orchestrator.History());
+				memory.AddRange(await orchestrator.HistoryAsync());
 
 				IsBotTyping = false;
 				streamingAuthor = string.Empty;
 
 				StateHasChanged();
+
+				// Persist the new turn to IndexedDB so it survives a page refresh.
+				try
+				{
+					await sqlitePersistence.SaveChangesAsync();
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Failed to sync chat history: {ex.Message}");
+				}
 
 				// Scroll to the bottom of the chat
 				await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");

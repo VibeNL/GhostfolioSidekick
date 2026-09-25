@@ -10,7 +10,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Agents.AI" />
-		<PackageReference Include="Microsoft.Agents.AI.Workflows" />
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Http.Resilience" />
 	</ItemGroup>
@@ -18,6 +17,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\AI.Common\AI.Common.csproj" />
 		<ProjectReference Include="..\AI.Functions\AI.Functions.csproj" />
+		<ProjectReference Include="..\..\Database\Database.csproj" />
 	</ItemGroup>
 
 </Project>
