@@ -1,5 +1,7 @@
 using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.Database;
 using Microsoft.Agents.AI;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
@@ -9,16 +11,13 @@ namespace GhostfolioSidekick.AI.Agents
 	[ExcludeFromCodeCoverage]
 	public class AgentOrchestrator
 	{
+		private const string ConversationId = "main";
+
 		private readonly ChatClientAgent mainAgent;
 		private readonly AgentLogger logger;
 		private readonly ICustomChatClient chatClient;
+		private readonly SqliteChatHistoryProvider? historyProvider;
 		private AgentSession? session;
-
-		// Number of messages in the stored (cleaned) history that were already processed by FixupMemory.
-		private int _fixedUpCount;
-
-		// Tool-call messages waiting to be merged into the next non-tool message's "tool_call" property.
-		private readonly List<ChatMessage> _pendingToolCalls = [];
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
@@ -33,91 +32,33 @@ namespace GhostfolioSidekick.AI.Agents
 				allTools.AddRange(provider.GetTools());
 			}
 
-			mainAgent = GhostfolioSidekick.Create(chatClient, allTools);
+			IDbContextFactory<DatabaseContext>? dbContextFactory = (IDbContextFactory<DatabaseContext>?)serviceProvider.GetService(typeof(IDbContextFactory<DatabaseContext>));
+			historyProvider = dbContextFactory is null ? null : new SqliteChatHistoryProvider(dbContextFactory, ConversationId);
 
+			mainAgent = GhostfolioSidekick.Create(chatClient, allTools, historyProvider);
 			this.logger = logger;
 		}
 
-		public IReadOnlyCollection<ChatMessage> History()
+		public async Task<IReadOnlyCollection<ChatMessage>> HistoryAsync()
 		{
-			if (session == null)
+			if (historyProvider is null)
 			{
 				return [];
 			}
 
-			FixupMemory();
-
-			if (session.TryGetInMemoryChatHistory(out var chatHistory))
-			{
-				return chatHistory.Where(x => x.Text != null).ToList();
-			}
-
-			return [];
-		}
-
-		private void FixupMemory()
-		{
-			if (session == null)
-			{
-				return;
-			}
-
-			if (!session.TryGetInMemoryChatHistory(out var chatHistory))
-			{
-				return;
-			}
-
-			// Stored history shrank (replaced externally): reprocess from scratch.
-			if (chatHistory.Count < _fixedUpCount)
-			{
-				_fixedUpCount = 0;
-				_pendingToolCalls.Clear();
-			}
-
-			if (chatHistory.Count == _fixedUpCount)
-			{
-				return;
-			}
-
-			var cleanedChatHistory = chatHistory.Take(_fixedUpCount).ToList();
-
-			foreach (var message in chatHistory.Skip(_fixedUpCount))
-			{
-				if (string.IsNullOrWhiteSpace(message.Text))
+			var messages = await historyProvider.LoadMessagesAsync();
+			return messages
+				.Where(x => x.Text != null)
+				.Select(x =>
 				{
-					continue;
-				}
+					if (x.Role == ChatRole.User)
+					{
+						x.AuthorName = "User";
+					}
 
-				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
-				if (message.Role == ChatRole.Tool)
-				{
-					_pendingToolCalls.Add(message);
-					continue;
-				}
-
-				if (message.Role == ChatRole.User)
-				{
-					message.AuthorName = "User";
-				}
-
-				message.AdditionalProperties ??= [];
-
-				if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
-				{
-					message.AdditionalProperties.TryAdd("tool_call", "");
-				}
-
-				if (_pendingToolCalls.Count != 0)
-				{
-					message.AdditionalProperties["tool_call"] = string.Join(", ", _pendingToolCalls.Select(tc => tc.Text ?? string.Empty));
-					_pendingToolCalls.Clear();
-				}
-
-				cleanedChatHistory.Add(message);
-			}
-
-			_fixedUpCount = cleanedChatHistory.Count;
-			session.SetInMemoryChatHistory(cleanedChatHistory);
+					return x;
+				})
+				.ToList();
 		}
 
 		public async IAsyncEnumerable<AgentResponseUpdate> AskQuestion(string input)
@@ -143,11 +84,14 @@ namespace GhostfolioSidekick.AI.Agents
 			return chatClient.InitializeAsync(progress);
 		}
 
-		public void ClearMemory()
+		public async Task ClearMemoryAsync()
 		{
 			session = null;
-			_fixedUpCount = 0;
-			_pendingToolCalls.Clear();
+
+			if (historyProvider != null)
+			{
+				await historyProvider.ClearAsync();
+			}
 		}
 	}
 }

@@ -19,16 +19,19 @@ namespace GhostfolioSidekick.AI.Agents
 			return sb.ToString();
 		}
 
-		public static ChatClientAgent Create(ICustomChatClient chatClient, IList<AITool>? tools = null)
+		public static ChatClientAgent Create(ICustomChatClient chatClient, IList<AITool>? tools = null, ChatHistoryProvider? chatHistoryProvider = null)
 		{
 			var cloned = chatClient.Clone();
 			cloned.ChatMode = ChatMode.ChatWithThinking;
 
-			return cloned.AsAIAgent(
-				instructions: BuildPrompt(),
-				name: "GhostfolioSidekick",
-				description: "A smart financial assistant that helps users understand and manage their investment portfolio.",
-				tools: tools);
+			return cloned.AsAIAgent(new ChatClientAgentOptions
+			{
+				Name = "GhostfolioSidekick",
+				Description = "A smart financial assistant that helps users understand and manage their investment portfolio.",
+				ChatOptions = new ChatOptions { Instructions = BuildPrompt(), Tools = tools },
+				// Falls back to the in-memory provider when null.
+				ChatHistoryProvider = chatHistoryProvider,
+			});
 		}
 	}
 }
