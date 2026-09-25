@@ -40,14 +40,14 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Defined mappings: #1")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Defined mappings: #1")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 			loggerMock.Verify(
 		x => x.Log(
 			LogLevel.Information,
 			It.IsAny<EventId>(),
-			It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Mapping Symbol: source1 -> target1")),
+			It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Mapping Symbol: source1 -> target1")),
 			It.IsAny<Exception>(),
 			It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Defined mappings: #0")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Defined mappings: #0")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}

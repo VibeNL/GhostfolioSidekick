@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Warning,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("not found")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("not found")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Database copied successfully")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Database copied successfully")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -110,7 +110,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Created backup folder")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Created backup folder")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Compressed backup created")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Compressed backup created")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("already exists for today")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("already exists for today")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -185,7 +185,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Cleaned up")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Cleaned up")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Error,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to create compressed backup")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Failed to create compressed backup")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);

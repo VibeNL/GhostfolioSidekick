@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				x => x.Log(
 					LogLevel.Warning,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrReuseHolding: No symbol profile found for") &&
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("CreateOrReuseHolding: No symbol profile found for") &&
 										v.ToString()!.Contains("UNKNOWN")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -524,7 +524,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Removing") &&
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Removing") &&
 										v.ToString()!.Contains("unused holdings")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),

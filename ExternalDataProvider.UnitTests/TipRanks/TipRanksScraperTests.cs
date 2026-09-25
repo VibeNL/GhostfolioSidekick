@@ -67,7 +67,7 @@ public class TipRanksScraperTests
 			x => x.Log(
 				LogLevel.Warning,
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@v, @t) => @v.ToString()!.Contains("Invalid TipRanks URL format")),
+				It.Is<It.IsAnyType>((@v, @t) => @v!.ToString()!.Contains("Invalid TipRanks URL format")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
@@ -89,7 +89,7 @@ public class TipRanksScraperTests
 			x => x.Log(
 				LogLevel.Warning,
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@v, @t) => @v.ToString()!.Contains("Failed to fetch data from TipRanks API")),
+				It.Is<It.IsAnyType>((@v, @t) => @v!.ToString()!.Contains("Failed to fetch data from TipRanks API")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
@@ -111,7 +111,7 @@ public class TipRanksScraperTests
 			x => x.Log(
 				LogLevel.Warning,
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@v, @t) => @v.ToString()!.Contains("Empty response from TipRanks API")),
+				It.Is<It.IsAnyType>((@v, @t) => @v!.ToString()!.Contains("Empty response from TipRanks API")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
@@ -133,7 +133,7 @@ public class TipRanksScraperTests
 			x => x.Log(
 				LogLevel.Warning,
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@v, @t) => @v.ToString()!.Contains("No stock data found")),
+				It.Is<It.IsAnyType>((@v, @t) => @v!.ToString()!.Contains("No stock data found")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
@@ -155,7 +155,7 @@ public class TipRanksScraperTests
 			x => x.Log(
 				LogLevel.Warning,
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@v, @t) => @v.ToString()!.Contains("No analyst ratings found")),
+				It.Is<It.IsAnyType>((@v, @t) => @v!.ToString()!.Contains("No analyst ratings found")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);

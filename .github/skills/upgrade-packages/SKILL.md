@@ -132,14 +132,25 @@ Use when user asks any of:
     ```
     - Upgrade or replace deprecated packages
 
-### Phase 6: Commit
+### Phase 6: Branch, Commit & Push
 
-14. Commit changes with a descriptive message:
+14. Create a new branch before committing (never commit upgrades directly to the default branch):
+    ```
+    git checkout -b package-upgrade
+    ```
+    If already on an upgrade branch, continue there.
+
+15. Commit changes with a descriptive message:
     ```
     chore(deps): upgrade NuGet packages
     ```
     - Include specific package names and version ranges in body
     - Note any breaking changes addressed
+
+16. Push the branch to origin:
+    ```
+    git push -u origin package-upgrade
+    ```
 
 ## Risk Tiers
 
@@ -173,5 +184,5 @@ Before marking upgrade complete:
 
 - This skill upgrades NuGet packages only (not OS packages, Node.js, or Playwright)
 - Does not modify application logic beyond what's required for compatibility
-- Does not approve PRs or create branches — output changes ready for review
+- Creates an upgrade branch and pushes it; does not open or approve PRs — the pushed branch is the review-ready output
 - If a major version upgrade would require extensive refactoring, flag it and recommend deferring
