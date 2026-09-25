@@ -603,7 +603,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			_mockLogger.Verify(x => x.Log(
 				It.Is<LogLevel>(l => l == LogLevel.Warning),
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((o, t) => o.ToString() != null && o.ToString()!.Contains("not authorized") == true),
+				It.Is<It.IsAnyType>((o, t) => o!.ToString() != null && o.ToString()!.Contains("not authorized") == true),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}

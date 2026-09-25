@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("No activities found for GOOGL from TEST_SOURCE")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("No activities found for GOOGL from TEST_SOURCE")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("No activities found for AAPL from TEST_SOURCE")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("No activities found for AAPL from TEST_SOURCE")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -247,7 +247,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Market data for AAPL from TEST_SOURCE gathered")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Market data for AAPL from TEST_SOURCE gathered")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -621,7 +621,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("is not currently owned and data is up to date")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("is not currently owned and data is up to date")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);

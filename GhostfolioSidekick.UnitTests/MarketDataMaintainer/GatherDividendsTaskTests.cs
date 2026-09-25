@@ -204,7 +204,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Upserted 2 dividends for symbol AAPL")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("Upserted 2 dividends for symbol AAPL")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);

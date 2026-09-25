@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.UnitTests
 			loggerMock.Verify(logger => logger.Log(
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service is starting.")),
+				It.Is<It.IsAnyType>((@o, @t) => @o!.ToString()!.StartsWith("Service is starting.")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Never);
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.UnitTests
 			loggerMock.Verify(logger => logger.Log(
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service is starting.")),
+				It.Is<It.IsAnyType>((@o, @t) => @o!.ToString()!.StartsWith("Service is starting.")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
@@ -234,7 +234,7 @@ namespace GhostfolioSidekick.UnitTests
 			loggerMock.Verify(logger => logger.Log(
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.Contains("Test exception42")),
+				It.Is<It.IsAnyType>((@o, @t) => @o!.ToString()!.Contains("Test exception42")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
@@ -309,7 +309,7 @@ namespace GhostfolioSidekick.UnitTests
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("no longer registered")),
+					It.Is<It.IsAnyType>((v, t) => v!.ToString()!.Contains("no longer registered")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Never);
@@ -337,7 +337,7 @@ namespace GhostfolioSidekick.UnitTests
 			loggerMock.Verify(logger => logger.Log(
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Debug),
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service is stopping.")),
+				It.Is<It.IsAnyType>((@o, @t) => @o!.ToString()!.StartsWith("Service is stopping.")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
