@@ -216,6 +216,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			{
 				memory.Clear();
 				memory.Add(new ChatMessage(ChatRole.System, $"Error: {ex.Message}"));
+
+				// Unstick the UI: a failed stream must not leave the typing indicator up and input disabled.
+				IsBotTyping = false;
+				streamingAuthor = string.Empty;
+				StateHasChanged();
 			}
 		}
 

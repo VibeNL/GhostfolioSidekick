@@ -117,9 +117,8 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 
 			await _provider.ClearAsync(TestContext.Current.CancellationToken);
 
-			var remaining = await db.ChatMessages.ToListAsync(TestContext.Current.CancellationToken);
-			Assert.Single(remaining);
-			Assert.Equal("other", remaining[0].ConversationId);
+			var record = Assert.Single(await db.ChatMessages.ToListAsync(TestContext.Current.CancellationToken));
+			Assert.Equal("other", record.ConversationId);
 		}
 	}
 }
