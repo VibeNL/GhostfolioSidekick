@@ -57,8 +57,15 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			mock.Setup(x => x.Clone()).Returns(mock.Object);
 			mock.Setup(x => x.GetResponseAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new ChatResponse([new ChatMessage(ChatRole.Assistant, responseText)]));
+			mock.Setup(x => x.GetStreamingResponseAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+				.Returns(() => SingleUpdate(new ChatResponseUpdate(ChatRole.Assistant, responseText)));
 
 			return mock.Object;
+		}
+
+		private static async IAsyncEnumerable<ChatResponseUpdate> SingleUpdate(ChatResponseUpdate update)
+		{
+			yield return update;
 		}
 
 		private static string Serialize(ChatMessage message) => JsonSerializer.Serialize(message, AIJsonUtilities.DefaultOptions);
@@ -76,6 +83,47 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			Assert.Equal("hello", messages[0].Text);
 			Assert.Equal(ChatRole.Assistant, messages[1].Role);
 			Assert.Equal("hi there", messages[1].Text);
+		}
+
+		[Fact]
+		public async Task AgentRun_MultipleTurns_PersistsEachTurnExactlyOnce()
+		{
+			var agent = CreateMockChatClient("hi there").AsAIAgent(new ChatClientAgentOptions { Name = "test", ChatHistoryProvider = _provider });
+
+			var session = await agent.CreateSessionAsync(TestContext.Current.CancellationToken);
+			await agent.RunAsync("hello", session, cancellationToken: TestContext.Current.CancellationToken);
+			await agent.RunAsync("how are you?", session, cancellationToken: TestContext.Current.CancellationToken);
+
+			var messages = await _provider.LoadMessagesAsync(TestContext.Current.CancellationToken);
+			Assert.Equal(4, messages.Count);
+			Assert.Equal(ChatRole.User, messages[0].Role);
+			Assert.Equal("hello", messages[0].Text);
+			Assert.Equal(ChatRole.Assistant, messages[1].Role);
+			Assert.Equal("hi there", messages[1].Text);
+			Assert.Equal(ChatRole.User, messages[2].Role);
+			Assert.Equal("how are you?", messages[2].Text);
+			Assert.Equal(ChatRole.Assistant, messages[3].Role);
+		}
+
+		[Fact]
+		public async Task AgentRunStreaming_MultipleTurns_PersistsAuthorNamesForDisplay()
+		{
+			var agent = CreateMockChatClient("hi there").AsAIAgent(new ChatClientAgentOptions { Name = "test", ChatHistoryProvider = _provider });
+
+			var session = await agent.CreateSessionAsync(TestContext.Current.CancellationToken);
+			await foreach (var _ in agent.RunStreamingAsync("hello", session, cancellationToken: TestContext.Current.CancellationToken))
+			{
+			}
+
+			await foreach (var _ in agent.RunStreamingAsync("how are you?", session, cancellationToken: TestContext.Current.CancellationToken))
+			{
+			}
+
+			var messages = await _provider.LoadMessagesAsync(TestContext.Current.CancellationToken);
+			Assert.Equal(4, messages.Count);
+			// Assistant bubbles must carry an author name so the UI does not render a leading colon.
+			Assert.False(string.IsNullOrWhiteSpace(messages[1].AuthorName));
+			Assert.False(string.IsNullOrWhiteSpace(messages[3].AuthorName));
 		}
 
 		[Fact]
