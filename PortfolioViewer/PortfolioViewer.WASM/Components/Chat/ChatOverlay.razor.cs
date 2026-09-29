@@ -214,8 +214,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 			catch (Exception ex)
 			{
-				memory.Clear();
-				memory.Add(new ChatMessage(ChatRole.System, $"Error: {ex.Message}"));
+				// Keep the conversation visible (prior turns, the failed question and any partial answer);
+				// a failed turn is not persisted, so there is nothing to clear.
+				memory.Add(new ChatMessage(ChatRole.System, $"Error: {ex.Message}") { AuthorName = "System" });
 
 				// Unstick the UI: a failed stream must not leave the typing indicator up and input disabled.
 				IsBotTyping = false;
