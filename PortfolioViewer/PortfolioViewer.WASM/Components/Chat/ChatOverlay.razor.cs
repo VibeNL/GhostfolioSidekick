@@ -16,6 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private string CurrentMessage = "";
 		private bool IsBotTyping;
 		private bool IsInitialized; // Flag to track initialization
+		private string? initializationError; // Set when model initialization fails; shown in the loading panel with a retry option
 		private bool wakeLockActive; // Track wake lock status
 
 		private readonly Progress<InitializeProgress> progress = new();
@@ -136,12 +137,38 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		{
 			try
 			{
+				initializationError = null;
 				await orchestrator.InitializeAsync(progress);
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e.Message);
-				throw;
+				Console.WriteLine(e);
+				// Surface the failure in the loading panel instead of leaving "Loading assistant..." up forever.
+				initializationError = e.Message;
+				IsInitialized = false; // Allow a retry when the chat is reopened or Retry is pressed
+				StateHasChanged();
+			}
+		}
+
+		private bool initializationInProgress;
+
+		private async Task RetryInitialization()
+		{
+			if (initializationInProgress)
+			{
+				return; // Guard against double-click starting two concurrent engine initializations
+			}
+
+			initializationInProgress = true;
+			try
+			{
+				IsInitialized = true; // Prevent duplicate initialization while this retry runs
+				lastProgress = new InitializeProgress(0);
+				await InitializeLlmAsync();
+			}
+			finally
+			{
+				initializationInProgress = false;
 			}
 		}
 

@@ -246,7 +246,8 @@ Format function calls like this:
 				{
 					var error = _streamError;
 					_streamError = null;
-					throw new InvalidOperationException("WebLLM streaming failed.", error);
+					// Include the underlying message so the UI bubble shows the real cause (e.g. GPU OOM, engine not initialized) instead of a generic string.
+					throw new InvalidOperationException($"WebLLM streaming failed: {error.Message}", error);
 				}
 
 				if (response.IsStreamComplete)

@@ -535,6 +535,35 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			result.Last().Text!.Should().Contain("You are an AI assistant that can answer questions or call functions");
 		}
 
+		// ── Streaming failure propagation ────────────────────────────────────────
+
+		[Fact]
+		public async Task GetStreamingResponseAsync_WhenJsInvokeFails_ThrowsWithUnderlyingMessage()
+		{
+			const string jsError = "Engine is not initialized.";
+			_mockModule
+				.Setup(m => m.InvokeAsync<Microsoft.JSInterop.Infrastructure.IJSVoidResult>(It.IsAny<string>(), It.IsAny<object[]>()))
+				.ThrowsAsync(new JSException($"Error: {jsError}"));
+
+			var messages = new List<ChatMessage> { new(ChatRole.User, "Hi") };
+
+			InvalidOperationException? exception = null;
+			try
+			{
+				await foreach (var _ in _client.GetStreamingResponseAsync(messages, cancellationToken: TestContext.Current.CancellationToken))
+				{
+				}
+			}
+			catch (InvalidOperationException ex)
+			{
+				exception = ex;
+			}
+
+			// The underlying JS error must be surfaced so the UI can show the real cause instead of a generic message.
+			exception.Should().NotBeNull();
+			exception!.Message.Should().Contain(jsError);
+		}
+
 		public void Dispose()
 		{
 			GC.SuppressFinalize(this);
