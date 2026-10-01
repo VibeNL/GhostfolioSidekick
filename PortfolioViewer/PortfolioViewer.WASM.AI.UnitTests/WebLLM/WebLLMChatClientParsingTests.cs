@@ -493,6 +493,48 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			result[1].Text.Should().Contain("{\"total\": 1000}");
 		}
 
+		[Fact]
+		public void PrepareMessages_SynthesisTurn_FunctionPromptPlacedBeforeToolResults()
+		{
+			var tool = AIFunctionFactory.Create(
+				() => Task.FromResult("summary data"),
+				"get_portfolio_summary");
+
+			var messages = new List<ChatMessage>
+			{
+				new(ChatRole.User, "How is my portfolio doing?"),
+				new ChatMessage(ChatRole.Assistant, [new FunctionCallContent("call_1", "get_portfolio_summary", new Dictionary<string, object?>())]),
+				new ChatMessage(ChatRole.Tool, [new FunctionResultContent("call_1", "{\"total\": 1000}")]),
+			};
+
+			var options = new ChatOptions { Tools = [tool] };
+
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", BindingFlags.NonPublic | BindingFlags.Static)!;
+			var result = (List<ChatMessage>)method.Invoke(null, [messages, (object?)options])!;
+
+			// The synthesis request must be the last instruction: small models otherwise echo raw data or re-invoke tools.
+			result.Last().Text!.Should().Contain("Now answer the user's original question");
+			var functionPromptIndex = result.FindIndex(m => m.Text!.Contains("You are an AI assistant that can answer questions or call functions"));
+			functionPromptIndex.Should().BeGreaterThanOrEqualTo(0);
+			functionPromptIndex.Should().BeLessThan(result.Count - 1);
+		}
+
+		[Fact]
+		public void PrepareMessages_FirstTurn_FunctionPromptStaysLast()
+		{
+			var tool = AIFunctionFactory.Create(
+				() => Task.FromResult("summary data"),
+				"get_portfolio_summary");
+
+			var messages = new List<ChatMessage> { new(ChatRole.User, "How is my portfolio doing?") };
+			var options = new ChatOptions { Tools = [tool] };
+
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", BindingFlags.NonPublic | BindingFlags.Static)!;
+			var result = (List<ChatMessage>)method.Invoke(null, [messages, (object?)options])!;
+
+			result.Last().Text!.Should().Contain("You are an AI assistant that can answer questions or call functions");
+		}
+
 		public void Dispose()
 		{
 			GC.SuppressFinalize(this);

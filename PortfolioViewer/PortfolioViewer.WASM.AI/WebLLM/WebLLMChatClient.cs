@@ -115,10 +115,12 @@ Format function calls like this:
 		private static List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
 		{
 			var list = new List<ChatMessage>();
+			int? firstToolResultIndex = null;
 			foreach (var message in messages)
 			{
 				if (message.Role == ChatRole.Tool)
 				{
+					firstToolResultIndex ??= list.Count;
 					list.Add(CreateToolResultMessage(message));
 				}
 				else if (!string.IsNullOrWhiteSpace(message.Text))
@@ -129,15 +131,27 @@ Format function calls like this:
 
 			var convertedMessages = list.Select((x, i) => i == list.Count - 1 ? Fix(x) : x).ToList();
 
+			bool systemInserted = false;
 			if (!string.IsNullOrWhiteSpace(options?.Instructions) &&
 				!convertedMessages.Any(m => m.Role == ChatRole.System))
 			{
 				convertedMessages.Insert(0, new ChatMessage(ChatRole.System, options!.Instructions));
+				systemInserted = true;
 			}
 
 			if (ShouldAddFunctionPrompt(options))
 			{
-				convertedMessages.Add(CreateFunctionPromptMessage(options!));
+				var functionPrompt = CreateFunctionPromptMessage(options!);
+				if (firstToolResultIndex is int toolIndex)
+				{
+					// Synthesis turn: keep the tool definitions in context, but place them before the tool results so
+					// the synthesis request is the last instruction. Small models otherwise echo raw data or re-invoke tools.
+					convertedMessages.Insert(toolIndex + (systemInserted ? 1 : 0), functionPrompt);
+				}
+				else
+				{
+					convertedMessages.Add(functionPrompt);
+				}
 			}
 
 			return convertedMessages;
@@ -152,7 +166,7 @@ Format function calls like this:
 				results = message.Text ?? string.Empty;
 			}
 
-			return new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{results}\n\nPlease answer the original question using this data.");
+			return new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{results}\n\nNow answer the user's original question using this data. Write a concise natural-language summary in complete sentences that directly answers the question. Do not repeat the raw tool output verbatim.");
 		}
 
 		private static bool ShouldAddFunctionPrompt(ChatOptions? options)
