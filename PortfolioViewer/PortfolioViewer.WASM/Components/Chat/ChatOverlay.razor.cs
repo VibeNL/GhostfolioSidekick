@@ -193,63 +193,83 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI
 
+			memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = "User" });
+
 			try
 			{
-				memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = "User" });
-
-				// Send the messages to the chat client and process the response
-				await foreach (var response in orchestrator.AskQuestion(input))
-				{
-					// Append the bot's streaming response
-					streamingAuthor = response.AuthorName ?? string.Empty;
-
-					var lastMemory = memory.LastOrDefault();
-					if (lastMemory?.AuthorName != streamingAuthor)
-					{
-						lastMemory = new ChatMessage(ChatRole.Assistant, response.Text ?? string.Empty) { AuthorName = streamingAuthor };
-						memory.Add(lastMemory);
-					}
-
-					var existingText = lastMemory.Text ?? string.Empty;
-					lastMemory.Contents = [new TextContent(existingText + (response.Text ?? string.Empty))];
-					StateHasChanged();
-
-					// Scroll to the bottom of the chat
-					await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-				}
-
-				memory.Clear();
-				memory.AddRange(await orchestrator.HistoryAsync());
-
-				IsBotTyping = false;
-				streamingAuthor = string.Empty;
-
-				StateHasChanged();
-
-				// Persist the new turn to IndexedDB so it survives a page refresh.
+				await StreamAnswerAsync(input);
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				// GPU buffer state can get corrupted mid-stream (mlc-ai/web-llm#497, common on mobile).
+				// Reinitialize the engine for fresh buffers and retry once before surfacing the error.
+				Console.WriteLine($"Stream failed ({ex.Message}); reinitializing engine and retrying");
 				try
 				{
-					await sqlitePersistence.SaveChangesAsync();
+					await InitializeLlmAsync();
+					await StreamAnswerAsync(input);
 				}
-				catch (Exception ex)
+				catch (Exception retryEx) when (retryEx is not OperationCanceledException)
 				{
-					Console.WriteLine($"Failed to sync chat history: {ex.Message}");
+					memory.Add(new ChatMessage(ChatRole.System, $"Error: {retryEx.Message}") { AuthorName = "System" });
+
+					// Unstick the UI: a failed stream must not leave the typing indicator up and input disabled.
+					IsBotTyping = false;
+					streamingAuthor = string.Empty;
+					StateHasChanged();
+					return;
 				}
+			}
+
+			await FinalizeTurnAsync();
+		}
+
+		private async Task StreamAnswerAsync(string input)
+		{
+			// Send the messages to the chat client and process the response
+			await foreach (var response in orchestrator.AskQuestion(input))
+			{
+				// Append the bot's streaming response
+				streamingAuthor = response.AuthorName ?? string.Empty;
+
+				var lastMemory = memory.LastOrDefault();
+				if (lastMemory?.AuthorName != streamingAuthor)
+				{
+					lastMemory = new ChatMessage(ChatRole.Assistant, response.Text ?? string.Empty) { AuthorName = streamingAuthor };
+					memory.Add(lastMemory);
+				}
+
+				var existingText = lastMemory.Text ?? string.Empty;
+				lastMemory.Contents = [new TextContent(existingText + (response.Text ?? string.Empty))];
+				StateHasChanged();
 
 				// Scroll to the bottom of the chat
 				await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 			}
+		}
+
+		private async Task FinalizeTurnAsync()
+		{
+			memory.Clear();
+			memory.AddRange(await orchestrator.HistoryAsync());
+
+			IsBotTyping = false;
+			streamingAuthor = string.Empty;
+
+			StateHasChanged();
+
+			// Persist the new turn to IndexedDB so it survives a page refresh.
+			try
+			{
+				await sqlitePersistence.SaveChangesAsync();
+			}
 			catch (Exception ex)
 			{
-				// Keep the conversation visible (prior turns, the failed question and any partial answer);
-				// a failed turn is not persisted, so there is nothing to clear.
-				memory.Add(new ChatMessage(ChatRole.System, $"Error: {ex.Message}") { AuthorName = "System" });
-
-				// Unstick the UI: a failed stream must not leave the typing indicator up and input disabled.
-				IsBotTyping = false;
-				streamingAuthor = string.Empty;
-				StateHasChanged();
+				Console.WriteLine($"Failed to sync chat history: {ex.Message}");
 			}
+
+			// Scroll to the bottom of the chat
+			await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 		}
 
 		private void OnCurrentAgentNameChanged()
