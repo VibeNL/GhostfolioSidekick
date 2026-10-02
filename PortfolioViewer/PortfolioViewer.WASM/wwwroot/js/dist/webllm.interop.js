@@ -18,6 +18,8 @@ import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 // WebLLM Module
 export class WebLLMInterop {
     constructor() {
+        // Serializes streams so a new request never starts while the previous one's internal GPU buffer cleanup is still running (mlc-ai/web-llm#497).
+        this.streamChain = Promise.resolve();
         // Callback for initialization progress
         this.initProgressCallback = (initProgress) => {
             var _a;
@@ -29,11 +31,26 @@ export class WebLLMInterop {
     initialize(selectedModels, dotnet) {
         return __awaiter(this, void 0, void 0, function* () {
             this.dotnetInstance = dotnet; // Store the .NET instance
+            if (this.engine) {
+                // Release GPU buffers of a previous (possibly corrupted) engine so re-initialization starts clean.
+                try {
+                    yield this.engine.unload();
+                }
+                catch (error) {
+                    console.warn("Failed to unload previous WebLLM engine:", error);
+                }
+                this.engine = undefined;
+            }
             this.engine = yield webllm.CreateMLCEngine(selectedModels, { initProgressCallback: this.initProgressCallback });
         });
     }
-    // Stream completion
+    // Stream completion (serialized via streamChain — see field comment)
     completeStream(messages, modelId) {
+        const run = this.streamChain.then(() => this.runCompletion(messages, modelId));
+        this.streamChain = run.catch(() => undefined);
+        return run;
+    }
+    runCompletion(messages, modelId) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
             var _d;
@@ -73,6 +90,7 @@ export class WebLLMInterop {
             }
             catch (error) {
                 console.error("Error during streaming completion:", error);
+                throw error;
             }
         });
     }

@@ -20,6 +20,8 @@ export interface InitProgressReport {
 export class WebLLMInterop {
 	private engine: webllm.MLCEngine | undefined;
 	private dotnetInstance: DotNetInstance | undefined;
+	// Serializes streams so a new request never starts while the previous one's internal GPU buffer cleanup is still running (mlc-ai/web-llm#497).
+	private streamChain: Promise<void> = Promise.resolve();
 
 	constructor() { }
 
@@ -32,14 +34,29 @@ export class WebLLMInterop {
 	// Initialize the engine
 	public async initialize(selectedModels: string[], dotnet: DotNetInstance): Promise<void> {
 		this.dotnetInstance = dotnet; // Store the .NET instance
+		if (this.engine) {
+			// Release GPU buffers of a previous (possibly corrupted) engine so re-initialization starts clean.
+			try {
+				await this.engine.unload();
+			} catch (error) {
+				console.warn("Failed to unload previous WebLLM engine:", error);
+			}
+			this.engine = undefined;
+		}
 		this.engine = await webllm.CreateMLCEngine(
 			selectedModels,
 			{ initProgressCallback: this.initProgressCallback }, // engineConfig
 		);
 	}
 
-	// Stream completion
-	public async completeStream(messages: Message[], modelId: string): Promise<void> {
+	// Stream completion (serialized via streamChain — see field comment)
+	public completeStream(messages: Message[], modelId: string): Promise<void> {
+		const run = this.streamChain.then(() => this.runCompletion(messages, modelId));
+		this.streamChain = run.catch(() => undefined);
+		return run;
+	}
+
+	private async runCompletion(messages: Message[], modelId: string): Promise<void> {
 		if (!this.engine) {
 			throw new Error("Engine is not initialized.");
 		}
@@ -65,6 +82,7 @@ export class WebLLMInterop {
 			}
 		} catch (error) {
 			console.error("Error during streaming completion:", error);
+			throw error;
 		}
 	}
 }
