@@ -125,8 +125,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			var rawAccounts = await GetAllAccounts();
 			var rawAccount = rawAccounts.SingleOrDefault(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException("Account not found");
-			var content = await DoRestGetActivities();
-			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
+			var existingActivities = await GetExistingActivitiesAsync();
 
 			existingActivities = [.. existingActivities.Where(x => x.AccountId == rawAccount.Id)];
 
@@ -144,8 +143,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 			logger.LogInformation("SyncAllActivities started (timeout: {MaxRunTime})", cancellationToken.CanBeCanceled ? "enabled" : "disabled");
 
-			var content = await DoRestGetActivities();
-			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
+			var existingActivities = await GetExistingActivitiesAsync();
 
 			// fixup
 			foreach (var existingActivity in existingActivities)
@@ -498,6 +496,31 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			await DoRestDeleteActivity(activity.Id);
 			logger.LogInformation("Deleted transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
+		}
+
+		private async Task<List<Activity>> GetExistingActivitiesAsync()
+		{
+			var content = await restCall.DoRestGet(ActivitiesEndpoint);
+			return MapActivities(content!);
+		}
+
+		/// <summary>
+		/// Deserializes the activities response. Ghostfolio 3.78+ no longer returns the deprecated "symbolProfile" field,
+		/// and instead embeds the asset profile as "assetProfile".
+		/// </summary>
+		private static List<Activity> MapActivities(string content)
+		{
+			var activityList = JsonConvert.DeserializeObject<ActivityList>(content)!;
+
+			foreach (var activity in activityList.Activities)
+			{
+				if (activity.SymbolProfile == null && activity.AssetProfile != null)
+				{
+					activity.SymbolProfile = activity.AssetProfile!;
+				}
+			}
+
+			return [.. activityList.Activities];
 		}
 
 		private async Task<string?> DoRestGetActivities()

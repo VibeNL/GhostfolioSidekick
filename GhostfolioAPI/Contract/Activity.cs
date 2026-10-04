@@ -6,6 +6,12 @@
 
 		public string? AccountId { get; set; }
 
+		/// <summary>
+		/// Ghostfolio 3.78+ no longer returns the deprecated "symbolProfile" field on activities,
+		/// and instead embeds the asset profile as "assetProfile".
+		/// </summary>
+		public SymbolProfile? AssetProfile { get; set; }
+
 		public required SymbolProfile SymbolProfile { get; set; }
 
 		public string? Comment { get; set; }
