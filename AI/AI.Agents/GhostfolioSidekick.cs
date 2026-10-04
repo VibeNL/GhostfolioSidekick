@@ -22,7 +22,9 @@ namespace GhostfolioSidekick.AI.Agents
 		public static ChatClientAgent Create(ICustomChatClient chatClient, IList<AITool>? tools = null, ChatHistoryProvider? chatHistoryProvider = null)
 		{
 			var cloned = chatClient.Clone();
-			cloned.ChatMode = ChatMode.ChatWithThinking;
+			// Default to non-thinking so responses stay short on every device: long thinking streams trip WebGPU
+			// buffer-map races (mlc-ai/web-llm#497) on constrained GPUs — phones and low-powered laptops alike.
+			cloned.ChatMode = ChatMode.Chat;
 
 			return cloned.AsAIAgent(new ChatClientAgentOptions
 			{
