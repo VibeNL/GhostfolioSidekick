@@ -25,6 +25,16 @@ export class WebLLMInterop {
 
 	constructor() { }
 
+	// Mobile WebGPU (Adreno/Mali/Apple) hits buffer-map races on long thinking streams (mlc-ai/web-llm#497).
+	// Desktop is unaffected, so only mobile gets short (non-thinking) responses until upstream fixes it.
+	private static isMobileDevice(): boolean {
+		if (typeof navigator === "undefined") {
+			return false;
+		}
+		const ua = navigator.userAgent || "";
+		return /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+	}
+
 	// Callback for initialization progress
 	private initProgressCallback = (initProgress: InitProgressReport): void => {
 		console.log(initProgress);
@@ -50,13 +60,13 @@ export class WebLLMInterop {
 	}
 
 	// Stream completion (serialized via streamChain — see field comment)
-	public completeStream(messages: Message[], modelId: string): Promise<void> {
-		const run = this.streamChain.then(() => this.runCompletion(messages, modelId));
+	public completeStream(messages: Message[], modelId: string, enableThinking: boolean): Promise<void> {
+		const run = this.streamChain.then(() => this.runCompletion(messages, modelId, enableThinking));
 		this.streamChain = run.catch(() => undefined);
 		return run;
 	}
 
-	private async runCompletion(messages: Message[], modelId: string): Promise<void> {
+	private async runCompletion(messages: Message[], modelId: string, enableThinking: boolean): Promise<void> {
 		if (!this.engine) {
 			throw new Error("Engine is not initialized.");
 		}
@@ -72,7 +82,9 @@ export class WebLLMInterop {
 				stream: true, // Enable streaming
 				stream_options: { include_usage: true },
 				extra_body: {
-					enable_thinking: true, // always include thinking in the response
+					// Respect the requested mode, but never think on mobile: long thinking streams trip WebGPU
+					// buffer-map races there (mlc-ai/web-llm#497) while desktop handles them fine.
+					enable_thinking: enableThinking && !WebLLMInterop.isMobileDevice(),
 				},
 			});
 
@@ -97,7 +109,8 @@ export async function initializeWebLLM(selectedModels: string[], dotnet: DotNetI
 
 export async function completeStreamWebLLM(
 	messages: Message[],
-	modelId: string
+	modelId: string,
+	enableThinking?: boolean
 ): Promise<void> {
-	await webLLMInteropInstance.completeStream(messages, modelId);
+	await webLLMInteropInstance.completeStream(messages, modelId, enableThinking ?? false);
 }

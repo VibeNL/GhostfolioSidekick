@@ -27,6 +27,15 @@ export class WebLLMInterop {
             (_a = this.dotnetInstance) === null || _a === void 0 ? void 0 : _a.invokeMethodAsync("ReportProgress", initProgress);
         };
     }
+    // Mobile WebGPU (Adreno/Mali/Apple) hits buffer-map races on long thinking streams (mlc-ai/web-llm#497).
+    // Desktop is unaffected, so only mobile gets short (non-thinking) responses until upstream fixes it.
+    static isMobileDevice() {
+        if (typeof navigator === "undefined") {
+            return false;
+        }
+        const ua = navigator.userAgent || "";
+        return /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    }
     // Initialize the engine
     initialize(selectedModels, dotnet) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -45,12 +54,12 @@ export class WebLLMInterop {
         });
     }
     // Stream completion (serialized via streamChain — see field comment)
-    completeStream(messages, modelId) {
-        const run = this.streamChain.then(() => this.runCompletion(messages, modelId));
+    completeStream(messages, modelId, enableThinking) {
+        const run = this.streamChain.then(() => this.runCompletion(messages, modelId, enableThinking));
         this.streamChain = run.catch(() => undefined);
         return run;
     }
-    runCompletion(messages, modelId) {
+    runCompletion(messages, modelId, enableThinking) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
             var _d;
@@ -68,7 +77,9 @@ export class WebLLMInterop {
                     stream: true, // Enable streaming
                     stream_options: { include_usage: true },
                     extra_body: {
-                        enable_thinking: true, // always include thinking in the response
+                        // Respect the requested mode, but never think on mobile: long thinking streams trip WebGPU
+                        // buffer-map races there (mlc-ai/web-llm#497) while desktop handles them fine.
+                        enable_thinking: enableThinking && !WebLLMInterop.isMobileDevice(),
                     },
                 });
                 try {
@@ -103,9 +114,9 @@ export function initializeWebLLM(selectedModels, dotnet) {
         yield webLLMInteropInstance.initialize(selectedModels, dotnet);
     });
 }
-export function completeStreamWebLLM(messages, modelId) {
+export function completeStreamWebLLM(messages, modelId, enableThinking) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield webLLMInteropInstance.completeStream(messages, modelId);
+        yield webLLMInteropInstance.completeStream(messages, modelId, enableThinking !== null && enableThinking !== void 0 ? enableThinking : false);
     });
 }
 //# sourceMappingURL=webllm.interop.js.map
