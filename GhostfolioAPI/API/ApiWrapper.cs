@@ -523,11 +523,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return [.. activityList.Activities];
 		}
 
-		private async Task<string?> DoRestGetActivities()
-		{
-			return await restCall.DoRestGet(ActivitiesEndpoint);
-		}
-
 		private async Task DoRestPostActivity(string body)
 		{
 			_ = await restCall.DoRestPost(ActivitiesEndpoint, body);
