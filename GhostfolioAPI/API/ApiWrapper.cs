@@ -516,7 +516,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				if (activity.SymbolProfile == null && activity.AssetProfile != null)
 				{
-					activity.SymbolProfile = activity.AssetProfile!;
+					activity.SymbolProfile = activity.AssetProfile;
 				}
 			}
 
