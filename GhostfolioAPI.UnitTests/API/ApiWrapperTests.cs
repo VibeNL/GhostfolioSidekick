@@ -342,6 +342,54 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			result.Should().BeEmpty();
 		}
 
+		[Fact]
+		public async Task GetActivitiesByAccount_WhenGhostfolioReturnsAssetProfileInsteadOfSymbolProfile_ShouldMapToSymbolProfile()
+		{
+			// Arrange
+			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = [] };
+			var rawAccounts = new List<Account> { new() { Name = account.Name, Id = "account1", Currency = "EUR" } };
+
+			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = rawAccounts }));
+
+			// Ghostfolio 3.78+ no longer returns the deprecated "symbolProfile" field and embeds the profile as "assetProfile" instead
+			var activitiesJson = """
+				{
+					"activities": [
+						{
+							"id": "1",
+							"accountId": "account1",
+							"date": "2026-01-01T00:00:00Z",
+							"fee": 0,
+							"quantity": 10,
+							"type": "BUY",
+							"unitPrice": 100,
+							"assetProfile": {
+								"symbol": "TEST",
+								"name": "Test Symbol",
+								"currency": "EUR",
+								"dataSource": "DUMMY",
+								"assetClass": "EQUITY",
+								"countries": [],
+								"sectors": []
+							}
+						}
+					]
+				}
+				""";
+			SetupRestCall("api/v1/activities", activitiesJson);
+
+			var symbol = CreateTestSymbolProfile("TEST");
+			SetupRestCall("api/v1/asset-profiles", JsonConvert.SerializeObject(new AssetProfileList { AssetProfiles = [symbol] }));
+
+			// Act
+			var result = await _apiWrapper.GetActivitiesByAccount(account);
+
+			// Assert
+			result.Should().HaveCount(1);
+			var buy = result[0].Should().BeOfType<Model.Activities.Types.BuyActivity>().Subject;
+			buy.PartialSymbolIdentifiers.Should().Contain(x => x.IdentifierType == Model.Activities.IdentifierType.Ticker && x.Identifier == "TEST");
+		}
+
 		#endregion
 
 		#region SyncAllActivities Tests
