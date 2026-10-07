@@ -81,8 +81,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 			sb.AppendLine("Portfolio Summary:");
 			sb.AppendLine($"  Positions           : {holdings.Count}");
 			sb.AppendLine($"  Total value         : {totalValue:N2} {currency}");
-			sb.AppendLine($"  Total gain/loss     : {totalGainLoss:+N2;-N2} {currency}");
-			sb.AppendLine($"  Avg gain/loss       : {avgGainPct:+N2;-N2}%");
+			sb.AppendLine($"  Total gain/loss     : {Signed(totalGainLoss, 2)} {currency}");
+			sb.AppendLine($"  Avg gain/loss       : {Signed(avgGainPct, 2)}%");
 
 			// Top 5 winners and losers — compact one-liner each
 			var sorted = holdings.OrderByDescending(h => h.GainLossPercentage).ToList();
@@ -90,13 +90,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 			sb.AppendLine("  Top 5 winners:");
 			foreach (var h in sorted.Take(5))
 			{
-				sb.AppendLine($"    {h.Name,-22} {h.GainLossPercentage:+N1;-N1}%  {h.CurrentValue.Amount:N0} {currency}");
+				sb.AppendLine($"    {h.Name,-22} {Signed(h.GainLossPercentage, 1)}%  {h.CurrentValue.Amount:N0} {currency}");
 			}
 
 			sb.AppendLine("  Top 5 losers:");
 			foreach (var h in sorted.TakeLast(5).Reverse())
 			{
-				sb.AppendLine($"    {h.Name,-22} {h.GainLossPercentage:+N1;-N1}%  {h.CurrentValue.Amount:N0} {currency}");
+				sb.AppendLine($"    {h.Name,-22} {Signed(h.GainLossPercentage, 1)}%  {h.CurrentValue.Amount:N0} {currency}");
 			}
 
 			return sb.ToString();
@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 			sb.AppendLine($"Performance {start:yyyy-MM-dd} → {end:yyyy-MM-dd}:");
 			sb.AppendLine($"  Start : {first.Value:N2}  invested: {first.Invested:N2}");
 			sb.AppendLine($"  End   : {last.Value:N2}  invested: {last.Invested:N2}");
-			sb.AppendLine($"  Change: {change:+N2;-N2} ({changePct:+N2;-N2}%)");
+			sb.AppendLine($"  Change: {Signed(change, 2)} ({Signed(changePct, 2)}%)");
 
 			// Quarterly snapshots (last trading day of each quarter) — compact
 			var quarters = history
@@ -194,6 +194,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Portfolio
 
 			return sb.ToString();
 		}
+
+		/// <summary>
+		/// Formats a value with an explicit sign using invariant culture. The standard "N" specifier cannot be embedded in a custom format section — e.g. "+N2;-N2" treats 'N' and '2' as literals, so the number is dropped entirely ("+N2").
+		/// </summary>
+		private static string Signed(decimal value, int decimals) =>
+			value.ToString($"+0.{new string('0', decimals)};-0.{new string('0', decimals)}", CultureInfo.InvariantCulture);
 
 		private static DateOnly ParseDateOrDefault(string? input, DateOnly fallback)
 		{

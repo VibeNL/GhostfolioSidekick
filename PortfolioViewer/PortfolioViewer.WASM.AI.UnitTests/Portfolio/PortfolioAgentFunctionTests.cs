@@ -220,7 +220,31 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 			result.Should().Contain("Top 5 losers");
 		}
 
-		// ── GetUpcomingDividends ───────────────────────────────────────────────────
+		[Fact]
+		public async Task GetPortfolioSummary_WithHoldings_FormatsSignedGainLossNumbers()
+		{
+			var holdings = new List<HoldingDisplayModel>
+			{
+				MakeHolding("Apple Inc", "AAPL", 5000m, 15m),
+				MakeHolding("Microsoft", "MSFT", 3000m, -7m),
+			};
+
+			_holdingsServiceMock
+				.Setup(s => s.GetHoldingsAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(holdings);
+
+			var result = await _sut.GetPortfolioSummary();
+
+			// Regression: the custom format "+N2;-N2" is invalid in .NET ('N' and '2' are literal characters), so the number was dropped entirely ("+N2").
+			result.Should().NotContain("N1");
+			result.Should().NotContain("N2");
+			result.Should().Contain("+540.00 USD"); // 750 - 210 total gain/loss
+			result.Should().Contain("+4.00%");      // average of +15 and -7
+			result.Should().Contain("+15.0%");      // top winner line
+			result.Should().Contain("-7.0%");       // top loser line
+		}
+
+	// ── GetUpcomingDividends ───────────────────────────────────────────────────
 
 		[Fact]
 		public async Task GetUpcomingDividends_WhenNone_ReturnsNoDataMessage()
@@ -319,6 +343,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Portfolio
 			result.Should().Contain("End");
 			result.Should().Contain("Change");
 			result.Should().Contain("Quarterly snapshots");
+		}
+
+		[Fact]
+		public async Task GetPortfolioPerformance_WithHistory_FormatsSignedChangeNumbers()
+		{
+			var history = new List<PortfolioValueHistoryPoint>
+			{
+				new() { Date = new DateOnly(2024, 1, 1), Value = 10000m, Invested = 9000m },
+				new() { Date = new DateOnly(2024, 12, 31), Value = 12000m, Invested = 10000m },
+			};
+
+			_holdingsServiceMock
+				.Setup(s => s.GetPortfolioValueHistoryAsync(
+					It.IsAny<DateOnly>(),
+					It.IsAny<DateOnly>(),
+					It.IsAny<int?>(),
+					It.IsAny<CancellationToken>()))
+				.ReturnsAsync(history);
+
+			var result = await _sut.GetPortfolioPerformance("2024-01-01", "2024-12-31");
+
+			result.Should().NotContain("N1");
+			result.Should().NotContain("N2");
+			result.Should().Contain("Change: +2000.00 (+20.00%)");
 		}
 
 		[Fact]
