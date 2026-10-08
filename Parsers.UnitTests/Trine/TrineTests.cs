@@ -145,5 +145,43 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 						25m)
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCommittedInvestment_Ignored()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trine/single_committed_investment.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_CommittedInvestmentThenSettled_OnlySettledConverted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trine/committed_investment_then_settled.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2024, 09, 15, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "Vu Phong 30", Currency.EUR)],
+						1m,
+						new Money(Currency.EUR, 50M),
+						new Money(Currency.EUR, 50M),
+						"Investment_Vu Phong 30_2024-09-15_123.62"),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2024, 09, 15, 0, 0, 0, DateTimeKind.Utc),
+						123.62m)
+				]);
+		}
 	}
 }
