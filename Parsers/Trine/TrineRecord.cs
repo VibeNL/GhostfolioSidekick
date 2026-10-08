@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 	public class TrineRecord
 	{
 		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
-		public DateTime Date { get; set; }
+		public DateTime? Date { get; set; }
 
 		public string? Loan { get; set; }
 
