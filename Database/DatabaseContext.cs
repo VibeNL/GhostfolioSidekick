@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Database.Cache;
 using GhostfolioSidekick.Model;
 // Do not import Model.Performance to avoid ambiguity
+using GhostfolioSidekick.Model.AI;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -38,6 +39,8 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<MarketData> MarketDatas { get; set; }
 
 		public virtual DbSet<PriceTarget> PriceTargets { get; set; }
+
+		public virtual DbSet<ChatMessageRecord> ChatMessages { get; set; }
 
 		// Performance sets
 		public virtual DbSet<CalculatedSnapshot> CalculatedSnapshots { get; set; }

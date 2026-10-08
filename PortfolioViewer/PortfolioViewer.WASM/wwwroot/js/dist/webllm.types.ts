@@ -5,6 +5,9 @@
                 create(options: ChatCompletionRequest): AsyncGenerator<ChatCompletionChunk>;
             };
         };
+
+        // Release the loaded model and its GPU buffers; await before creating a replacement engine.
+        unload(): Promise<void>;
     }
 
     export function CreateMLCEngine(
