@@ -23,10 +23,8 @@ namespace GhostfolioSidekick.AI.Common
 				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
 			, TimeSpan.FromMinutes(1));
 
-			// Collapse multiple spaces into one and trim
-			text = WhitespaceRegEx().Replace(text, " ").Trim();
-
-			return text;
+			// Preserve line structure so Markdown (headings, lists) renders correctly; only trim outer whitespace
+			return text.Trim();
 		}
 
 		public static string ToThinkText(this ChatMessage message)
@@ -48,9 +46,6 @@ namespace GhostfolioSidekick.AI.Common
 			}
 
 			return match.Groups[1].Value;
-		}
-
-		[System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
-		private static partial System.Text.RegularExpressions.Regex WhitespaceRegEx();
+			}
 	}
 }
