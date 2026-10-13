@@ -65,6 +65,8 @@ export class WebLLMInterop {
 			}
 		} catch (error) {
 			console.error("Error during streaming completion:", error);
+			// Report to .NET so the stream consumer can observe the failure instead of waiting forever.
+			this.dotnetInstance?.invokeMethodAsync("ReportStreamError", String(error));
 		}
 	}
 }
