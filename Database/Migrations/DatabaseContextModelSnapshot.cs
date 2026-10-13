@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -73,6 +73,32 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasIndex("PartialSymbolIdentifierId");
 
                     b.ToTable("PartialSymbolIdentifierActivity");
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.AI.ChatMessageRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConversationId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>

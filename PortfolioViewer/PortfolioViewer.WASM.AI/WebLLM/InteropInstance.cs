@@ -1,7 +1,7 @@
 using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
-using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
@@ -9,7 +9,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 	{
 		private IProgress<InitializeProgress>? _progress;
 
-		public ConcurrentQueue<WebLLMCompletion> WebLLMCompletions { get; init; } = new();
+		// Channel (not ConcurrentQueue) so consumers can await ReadAsync instead of busy-polling.
+		public Channel<WebLLMCompletion> WebLLMCompletions { get; init; } = Channel.CreateUnbounded<WebLLMCompletion>();
 
 		public void SetProgressReporter(IProgress<InitializeProgress> progress)
 		{
@@ -36,8 +37,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		{
 			ArgumentNullException.ThrowIfNull(response);
 
-			// Add the response to the queue
-			WebLLMCompletions.Enqueue(response);
+			// Add the response to the channel
+			WebLLMCompletions.Writer.TryWrite(response);
 		}
 
 		internal static IEnumerable<Message> ConvertMessage(IEnumerable<ChatMessage> chatMessages)

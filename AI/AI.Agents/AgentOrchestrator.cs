@@ -1,5 +1,7 @@
 using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.Database;
 using Microsoft.Agents.AI;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
@@ -9,9 +11,12 @@ namespace GhostfolioSidekick.AI.Agents
 	[ExcludeFromCodeCoverage]
 	public class AgentOrchestrator
 	{
+		private const string ConversationId = "main";
+
 		private readonly ChatClientAgent mainAgent;
 		private readonly AgentLogger logger;
 		private readonly ICustomChatClient chatClient;
+		private readonly SqliteChatHistoryProvider? historyProvider;
 		private AgentSession? session;
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
@@ -27,72 +32,33 @@ namespace GhostfolioSidekick.AI.Agents
 				allTools.AddRange(provider.GetTools());
 			}
 
-			mainAgent = GhostfolioSidekick.Create(chatClient, allTools);
+			IDbContextFactory<DatabaseContext>? dbContextFactory = (IDbContextFactory<DatabaseContext>?)serviceProvider.GetService(typeof(IDbContextFactory<DatabaseContext>));
+			historyProvider = dbContextFactory is null ? null : new SqliteChatHistoryProvider(dbContextFactory, ConversationId);
 
+			mainAgent = GhostfolioSidekick.Create(chatClient, allTools, historyProvider);
 			this.logger = logger;
 		}
 
-		public IReadOnlyCollection<ChatMessage> History()
+		public async Task<IReadOnlyCollection<ChatMessage>> HistoryAsync()
 		{
-			if (session == null)
+			if (historyProvider is null)
 			{
 				return [];
 			}
 
-			FixupMemory();
-
-			if (session.TryGetInMemoryChatHistory(out var chatHistory))
-			{
-				return chatHistory.Where(x => x.Text != null).ToList();
-			}
-
-			return [];
-		}
-
-		private void FixupMemory()
-		{
-			if (session == null)
-			{
-				return;
-			}
-
-			List<ChatMessage> cleanedChatHistory = [];
-			if (session.TryGetInMemoryChatHistory(out var chatHistory))
-			{
-				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
-				List<ChatMessage> toolsCalls = [];
-				foreach (var message in chatHistory.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
+			var messages = await historyProvider.LoadMessagesAsync();
+			return messages
+				.Where(x => x.Text != null)
+				.Select(x =>
 				{
-					if (message.Role == ChatRole.Tool)
+					if (x.Role == ChatRole.User)
 					{
-						toolsCalls.Add(message);
+						x.AuthorName = "User";
 					}
-					else
-					{
-						if (message.Role == ChatRole.User)
-						{
-							message.AuthorName = "User";
-						}
 
-						message.AdditionalProperties ??= [];
-
-						if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
-						{
-							message.AdditionalProperties.TryAdd("tool_call", "");
-						}
-
-						if (toolsCalls.Count != 0)
-						{
-							message.AdditionalProperties["tool_call"] = string.Join(", ", toolsCalls.Select(tc => tc.Text ?? string.Empty));
-							toolsCalls.Clear();
-						}
-
-						cleanedChatHistory.Add(message);
-					}
-				}
-			}
-
-			session.SetInMemoryChatHistory(cleanedChatHistory);
+					return x;
+				})
+				.ToList();
 		}
 
 		public async IAsyncEnumerable<AgentResponseUpdate> AskQuestion(string input)
@@ -118,9 +84,14 @@ namespace GhostfolioSidekick.AI.Agents
 			return chatClient.InitializeAsync(progress);
 		}
 
-		public void ClearMemory()
+		public async Task ClearMemoryAsync()
 		{
 			session = null;
+
+			if (historyProvider != null)
+			{
+				await historyProvider.ClearAsync();
+			}
 		}
 	}
 }

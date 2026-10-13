@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.Logging;
@@ -25,12 +26,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		}
 
 		[Fact]
-		public void WebLLMCompletions_Queue_ShouldBeConcurrentQueue()
+		public void WebLLMCompletions_ShouldBeChannel()
 		{
-			// This verifies that the InteropInstance uses a thread-safe queue
+			// This verifies that the InteropInstance uses a thread-safe channel (awaitable reads, no busy-poll)
 			var interop = new InteropInstance();
 			interop.SetProgressReporter(new Mock<IProgress<InitializeProgress>>().Object);
-			Assert.IsType<System.Collections.Concurrent.ConcurrentQueue<WebLLMCompletion>>(interop.WebLLMCompletions);
+			Assert.IsType<Channel<WebLLMCompletion>>(interop.WebLLMCompletions, exactMatch: false);
 		}
 
 		[Fact]

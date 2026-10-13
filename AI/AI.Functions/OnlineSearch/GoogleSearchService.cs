@@ -8,6 +8,12 @@ namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 	/// </summary>
 	public class GoogleSearchService : IGoogleSearchService
 	{
+		// Cap on how many result pages we fetch full content for (memory + latency bound).
+		private const int MaxContentFetches = 5;
+
+		// Per-page char cap: downstream consumers truncate further, so no point holding megabytes of HTML in WASM memory.
+		private const int MaxContentLength = 4000;
+
 		private readonly GoogleSearchContext _context;
 
 		/// <summary>
@@ -75,17 +81,19 @@ namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 					};
 				}
 
-				var webResults = new List<WebResult>();
-				foreach (var item in result.Items)
-				{
-					string? content = await GetWebsiteContentAsync(item.Link);
+				var items = result.Items.Take(MaxContentFetches).ToList();
+				// Fetch pages in parallel: independent HTTP calls.
+				var contents = await Task.WhenAll(items.Select(item => GetWebsiteContentAsync(item.Link)));
 
+				var webResults = new List<WebResult>();
+				for (var i = 0; i < items.Count; i++)
+				{
 					webResults.Add(new WebResult
 					{
-						Title = item.Title,
-						Link = item.Link,
-						Snippet = item.Snippet,
-						Content = content
+						Title = items[i].Title,
+						Link = items[i].Link,
+						Snippet = items[i].Snippet,
+						Content = contents[i]
 					});
 				}
 
@@ -133,7 +141,8 @@ namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 				var response = await _context.HttpClient.GetAsync(_context.BackendProxyUrl + encodedUrl);
 				if (response.IsSuccessStatusCode)
 				{
-					return await response.Content.ReadAsStringAsync();
+					var content = await response.Content.ReadAsStringAsync();
+					return content.Length > MaxContentLength ? content[..MaxContentLength] : content;
 				}
 			}
 			catch (Exception)
