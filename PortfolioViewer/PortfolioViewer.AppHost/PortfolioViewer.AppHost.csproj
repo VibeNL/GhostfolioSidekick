@@ -34,6 +34,7 @@
 		<PackageReference Include="Grpc.Net.Client" />
 		<PackageReference Include="Grpc.Tools" />
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Logging" />
 		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
 	</ItemGroup>
 
