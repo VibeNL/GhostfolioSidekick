@@ -28,10 +28,10 @@
     <PackageVersion Include="Markdig" Version="1.4.0" />
     <PackageVersion Include="Microsoft.Agents.AI" Version="1.24.0" />
     <PackageVersion Include="Microsoft.Agents.AI.Workflows" Version="1.24.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Bcl.TimeProvider" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
@@ -41,12 +41,12 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.10.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.10.0" />
     <PackageVersion Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="10.0.12" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
