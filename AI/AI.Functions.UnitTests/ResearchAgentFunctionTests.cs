@@ -162,5 +162,15 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 			// Assert
 			Assert.Equal(new string('a', 10), result);
 		}
+
+		[Fact]
+		public void TruncatePrompt_WithZeroMaxTokens_ReturnsEmpty()
+		{
+			// Act
+			var result = ResearchAgentFunction.TruncatePrompt("some prompt", 0);
+
+			// Assert
+			Assert.Equal(string.Empty, result);
+		}
 	}
 }

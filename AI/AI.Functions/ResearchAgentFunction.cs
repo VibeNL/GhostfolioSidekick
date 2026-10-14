@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.AI.Functions
 
 			var truncated = prompt[..maxTokens];
 			// Don't split a UTF-16 surrogate pair at the cut point.
-			if (char.IsHighSurrogate(truncated[^1]))
+			if (truncated.Length > 0 && char.IsHighSurrogate(truncated[^1]))
 			{
 				truncated = truncated[..^1];
 			}
