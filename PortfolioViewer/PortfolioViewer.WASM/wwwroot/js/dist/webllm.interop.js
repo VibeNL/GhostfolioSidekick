@@ -36,7 +36,7 @@ export class WebLLMInterop {
     completeStream(messages, modelId) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
-            var _d;
+            var _d, _e;
             if (!this.engine) {
                 throw new Error("Engine is not initialized.");
             }
@@ -55,9 +55,9 @@ export class WebLLMInterop {
                     },
                 });
                 try {
-                    for (var _e = true, chunks_1 = __asyncValues(chunks), chunks_1_1; chunks_1_1 = yield chunks_1.next(), _a = chunks_1_1.done, !_a; _e = true) {
+                    for (var _f = true, chunks_1 = __asyncValues(chunks), chunks_1_1; chunks_1_1 = yield chunks_1.next(), _a = chunks_1_1.done, !_a; _f = true) {
                         _c = chunks_1_1.value;
-                        _e = false;
+                        _f = false;
                         const chunk = _c;
                         // Assuming chunk is of type Chunk (define below if needed)
                         yield (_d = this.dotnetInstance) === null || _d === void 0 ? void 0 : _d.invokeMethodAsync("ReceiveChunkCompletion", chunk);
@@ -66,13 +66,15 @@ export class WebLLMInterop {
                 catch (e_1_1) { e_1 = { error: e_1_1 }; }
                 finally {
                     try {
-                        if (!_e && !_a && (_b = chunks_1.return)) yield _b.call(chunks_1);
+                        if (!_f && !_a && (_b = chunks_1.return)) yield _b.call(chunks_1);
                     }
                     finally { if (e_1) throw e_1.error; }
                 }
             }
             catch (error) {
                 console.error("Error during streaming completion:", error);
+                // Report to .NET so the stream consumer can observe the failure instead of waiting forever.
+                (_e = this.dotnetInstance) === null || _e === void 0 ? void 0 : _e.invokeMethodAsync("ReportStreamError", String(error));
             }
         });
     }

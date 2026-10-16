@@ -66,8 +66,6 @@ Format function calls like this:
 			ChatOptions? options = null,
 			[EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			ValidateInteropInstance();
-
 			var convertedMessages = PrepareMessages(messages, options);
 			if (IsEmptyMessageList(convertedMessages))
 			{
@@ -75,19 +73,13 @@ Format function calls like this:
 				yield break;
 			}
 
+			// Clear any stale error from a previous stream before starting this one.
+			interopInstance.ClearStreamError();
 			StartStreamingAsync(convertedMessages, cancellationToken);
 
 			await foreach (var update in ProcessStreamingResponseAsync(messages, options, cancellationToken))
 			{
 				yield return update;
-			}
-		}
-
-		private void ValidateInteropInstance()
-		{
-			if (interopInstance == null)
-			{
-				throw new NotSupportedException();
 			}
 		}
 
@@ -98,7 +90,8 @@ Format function calls like this:
 
 		private static List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
 		{
-			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
+			// WebLLM cannot represent tool turns (ConvertMessage throws for them); their results are already folded into the final answer by HandleStreamComplete.
+			var list = messages.Where(x => x.Role != ChatRole.Tool && !string.IsNullOrWhiteSpace(x.Text)).ToList();
 			var convertedMessages = list
 				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
 				.Select(RemoveThink)
@@ -158,13 +151,21 @@ Format function calls like this:
 			var model = modelIds[ChatMode];
 			_ = Task.Run(async () =>
 			{
-				await (await GetModule()).InvokeVoidAsync(
-					"completeStreamWebLLM",
-					InteropInstance.ConvertMessage(convertedMessages),
-					model,
-					ChatMode == ChatMode.ChatWithThinking,
-					null
-				);
+				try
+				{
+					await (await GetModule()).InvokeVoidAsync(
+						"completeStreamWebLLM",
+						InteropInstance.ConvertMessage(convertedMessages),
+						model,
+						ChatMode == ChatMode.ChatWithThinking,
+						null
+					);
+				}
+				catch (Exception ex)
+				{
+					// Surface the failure to the stream consumer instead of losing it (which would hang the polling loop forever).
+					interopInstance.SetStreamError(ex);
+				}
 			}, cancellationToken);
 		}
 
@@ -177,6 +178,11 @@ Format function calls like this:
 
 			while (true)
 			{
+				if (interopInstance.StreamError is { } streamError)
+				{
+					throw new InvalidOperationException("WebLLM streaming failed.", streamError);
+				}
+
 				var response = TryDequeueResponse();
 				if (response == null)
 				{
@@ -200,7 +206,7 @@ Format function calls like this:
 					totalTextBuilder.Append(content);
 					if (!HasTools(options))
 					{
-						yield return CreateResponseUpdate(options, content);
+						yield return CreateResponseUpdate(content);
 					}
 				}
 			}
@@ -227,8 +233,11 @@ Format function calls like this:
 			var totalText = totalTextBuilder.ToString();
 			if (!TryParseToolCalls(totalText, out var toolCalls))
 			{
-				// Model responded with prose instead of a tool call — emit as-is
-				yield return new ChatResponseUpdate(ChatRole.Assistant, ChatMessageContentHelper.ToDisplayText(totalText).Trim());
+				// Model responded with prose instead of a tool call — emit as-is. If it was an unparseable tool-call attempt, don't leak raw JSON to the user.
+				var display = totalText.Contains("tool_calls", StringComparison.Ordinal)
+					? "I'm sorry, I couldn't process my tool response. Please try again."
+					: ChatMessageContentHelper.ToDisplayText(totalText).Trim();
+				yield return new ChatResponseUpdate(ChatRole.Assistant, display);
 				yield break;
 			}
 
@@ -249,8 +258,9 @@ Format function calls like this:
 				new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{combinedResults}\n\nPlease answer the original question using this data."),
 			};
 
-			// Second LLM call — no tools, so the model produces a natural language response
-			await foreach (var update in GetStreamingResponseAsync(synthesisMessages, options: null, cancellationToken))
+			// Second LLM call — no tools, so the model produces a natural language response. Keep the agent instructions so the final answer keeps the same persona/behavior.
+			var synthesisOptions = options!.Instructions is null ? null : new ChatOptions { Instructions = options.Instructions };
+			await foreach (var update in GetStreamingResponseAsync(synthesisMessages, synthesisOptions, cancellationToken))
 			{
 				yield return update;
 			}
@@ -265,11 +275,10 @@ Format function calls like this:
 			return null;
 		}
 
-		private ChatResponseUpdate CreateResponseUpdate(ChatOptions? options, string content)
+		private ChatResponseUpdate CreateResponseUpdate(string content)
 		{
-			var role = HasTools(options) ? ChatRole.Tool : ChatRole.Assistant;
-			logger.LogDebug("{Role}: {Message}", role, content);
-			return new ChatResponseUpdate(role, content);
+			logger.LogDebug("Assistant: {Message}", content);
+			return new ChatResponseUpdate(ChatRole.Assistant, content);
 		}
 
 		private static bool HasTools(ChatOptions? options)
@@ -462,17 +471,12 @@ Format function calls like this:
 
 		private async Task<IJSObjectReference> GetModule()
 		{
-			if (interopInstance == null)
+			if (module is not null)
 			{
-				throw new NotSupportedException("Interop instance is not initialized.");
+				return module;
 			}
 
 			module = await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm.interop.js");
-			if (module == null)
-			{
-				throw new NotSupportedException("Module is not initialized.");
-			}
-
 			return module;
 		}
 
@@ -501,7 +505,7 @@ Format function calls like this:
 			{
 				var aiArgs = arguments != null ? new AIFunctionArguments(arguments) : null;
 				var result = await tool.InvokeAsync(aiArgs);
-				var output = result?.ToString() ?? "[Function returned null]";
+				var output = FormatToolResult(result);
 				logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
 				return output;
 			}
@@ -511,6 +515,13 @@ Format function calls like this:
 				return $"Error executing tool '{name}': {ex.Message}";
 			}
 		}
+
+		private static string FormatToolResult(object? result) => result switch
+		{
+			null => "[Function returned null]",
+			string text => text,
+			_ => JsonSerializer.Serialize(result),
+		};
 
 		public void Dispose()
 		{
