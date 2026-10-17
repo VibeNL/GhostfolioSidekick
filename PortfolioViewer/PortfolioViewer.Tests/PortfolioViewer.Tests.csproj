@@ -18,6 +18,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <!-- Pin transitive MessagePack to patched version (GHSA-qhrr-8q5h-9q3h) -->
+    <PackageReference Include="MessagePack" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
