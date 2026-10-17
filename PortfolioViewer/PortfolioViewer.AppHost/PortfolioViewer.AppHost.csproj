@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Sdk Name="Aspire.AppHost.Sdk" Version="13.5.3" />
+	<Sdk Name="Aspire.AppHost.Sdk" Version="13.6.1" />
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -33,6 +33,8 @@
 		<PackageReference Include="Grpc.AspNetCore" />
 		<PackageReference Include="Grpc.Net.Client" />
 		<PackageReference Include="Grpc.Tools" />
+		<!-- Pin transitive MessagePack to patched version (GHSA-qhrr-8q5h-9q3h) -->
+		<PackageReference Include="MessagePack" />
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Logging" />
 		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
