@@ -38,6 +38,7 @@
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Logging" />
 		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" />
 	</ItemGroup>
 
 </Project>
