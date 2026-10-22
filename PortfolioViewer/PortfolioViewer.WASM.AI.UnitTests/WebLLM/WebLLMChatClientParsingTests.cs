@@ -163,7 +163,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		// ── Tool call JSON parsing ─────────────────────────────────────────────────
 
 		[Fact]
-		public async Task GetStreamingResponseAsync_WithToolCallJson_InvokesToolAndSynthesizes()
+		public async Task GetStreamingResponseAsync_WithToolCallJson_EmitsFunctionCallContent()
 		{
 			const string toolCallJson = """
 				{ "tool_calls": [
@@ -181,11 +181,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			EnqueueTextChunk(toolCallJson);
 			EnqueueStreamComplete();
 
-			EnqueueTextChunk("Synthesis answer");
-			EnqueueStreamComplete();
-
+			var invocationCount = 0;
 			var toolMock = AIFunctionFactory.Create(
-				(string param) => Task.FromResult($"Tool result for {param}"),
+				(string param) => { invocationCount++; return Task.FromResult($"Tool result for {param}"); },
 				"my_tool");
 
 			var messages = new List<ChatMessage>
@@ -204,7 +202,51 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				updates.Add(u);
 			}
 
-			updates.Should().NotBeEmpty();
+			// The client emits the parsed call as FunctionCallContent; execution is delegated to the framework's function invocation middleware.
+			var fcc = updates.SelectMany(u => u.Contents).OfType<FunctionCallContent>().Single();
+			fcc.Name.Should().Be("my_tool");
+			fcc.CallId.Should().Be("call_001");
+			fcc.Arguments!["param"].Should().Be("value");
+			invocationCount.Should().Be(0);
+		}
+
+		[Fact]
+		public async Task GetResponseAsync_WithToolCallJson_PreservesFunctionCallContent()
+		{
+			const string toolCallJson = """
+				{ "tool_calls": [
+					{
+						"id": "call_001",
+						"type": "function",
+						"function": {
+							"name": "my_tool",
+							"arguments": "{\"param\": \"value\"}"
+						}
+					}
+				] }
+				""";
+
+			EnqueueTextChunk(toolCallJson);
+			EnqueueStreamComplete();
+
+			var toolMock = AIFunctionFactory.Create(
+				(string param) => Task.FromResult($"Tool result for {param}"),
+				"my_tool");
+
+			var messages = new List<ChatMessage>
+			{
+				new(ChatRole.User, "Call the tool"),
+			};
+
+			var options = new ChatOptions
+			{
+				Tools = [toolMock],
+			};
+
+			var response = await _client.GetResponseAsync(messages, options, TestContext.Current.CancellationToken);
+
+			response.Messages.Single().Contents.OfType<FunctionCallContent>().Should().ContainSingle()
+				.Which.Name.Should().Be("my_tool");
 		}
 
 		[Fact]
@@ -290,9 +332,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			EnqueueTextChunk(fencedJson);
 			EnqueueStreamComplete();
 
-			EnqueueTextChunk("Done");
-			EnqueueStreamComplete();
-
 			var toolMock = AIFunctionFactory.Create(
 				(long x) => Task.FromResult($"Got {x}"),
 				"my_tool");
@@ -306,7 +345,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				updates.Add(u);
 			}
 
-			updates.Should().NotBeEmpty();
+			var fcc = updates.SelectMany(u => u.Contents).OfType<FunctionCallContent>().Single();
+			fcc.Name.Should().Be("my_tool");
+			fcc.Arguments!["x"].Should().Be(42L);
 		}
 
 		[Fact]
@@ -328,9 +369,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			EnqueueTextChunk(toolCallJson);
 			EnqueueStreamComplete();
 
-			EnqueueTextChunk("Synthesized");
-			EnqueueStreamComplete();
-
 			var toolMock = AIFunctionFactory.Create(
 				(string param) => Task.FromResult($"result: {param}"),
 				"my_tool");
@@ -344,11 +382,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				updates.Add(u);
 			}
 
-			updates.Should().NotBeEmpty();
+			var fcc = updates.SelectMany(u => u.Contents).OfType<FunctionCallContent>().Single();
+			fcc.Name.Should().Be("my_tool");
+			fcc.Arguments!["param"].Should().Be("hello");
 		}
 
 		[Fact]
-		public async Task GetStreamingResponseAsync_WithUnknownToolName_ContinuesAndSynthesizes()
+		public async Task GetStreamingResponseAsync_WithUnknownToolName_EmitsFunctionCallContent()
 		{
 			const string toolCallJson = """
 				{ "tool_calls": [
@@ -366,9 +406,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			EnqueueTextChunk(toolCallJson);
 			EnqueueStreamComplete();
 
-			EnqueueTextChunk("Sorry, tool not found response.");
-			EnqueueStreamComplete();
-
 			var toolMock = AIFunctionFactory.Create(
 				(string p) => Task.FromResult("result"),
 				"existing_tool");
@@ -382,7 +419,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				updates.Add(u);
 			}
 
-			updates.Should().NotBeEmpty();
+			// Unknown tools are still surfaced as FunctionCallContent; the framework middleware decides how to handle them.
+			var fcc = updates.SelectMany(u => u.Contents).OfType<FunctionCallContent>().Single();
+			fcc.Name.Should().Be("nonexistent_tool");
 		}
 
 		[Fact]
@@ -430,6 +469,99 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			}
 
 			updates.Should().NotBeEmpty();
+		}
+
+		// ── Tool result message conversion (framework function invocation loopback) ─
+
+		[Fact]
+		public void PrepareMessages_WithToolResultMessage_RendersAsUserMessage()
+		{
+			var messages = new List<ChatMessage>
+			{
+				new(ChatRole.User, "What's my portfolio worth?"),
+				new ChatMessage(ChatRole.Assistant, [new FunctionCallContent("call_1", "get_portfolio_summary", new Dictionary<string, object?>())]),
+				new ChatMessage(ChatRole.Tool, [new FunctionResultContent("call_1", "{\"total\": 1000}")]),
+			};
+
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", BindingFlags.NonPublic | BindingFlags.Static)!;
+			var result = (List<ChatMessage>)method.Invoke(null, [messages, (object?)null])!;
+
+			result.Should().NotContain(m => m.Role == ChatRole.Tool);
+			result.Should().HaveCount(2);
+			result[1].Role.Should().Be(ChatRole.User);
+			result[1].Text!.Should().Contain("Here are the results from the data tools");
+			result[1].Text.Should().Contain("{\"total\": 1000}");
+		}
+
+		[Fact]
+		public void PrepareMessages_SynthesisTurn_FunctionPromptPlacedBeforeToolResults()
+		{
+			var tool = AIFunctionFactory.Create(
+				() => Task.FromResult("summary data"),
+				"get_portfolio_summary");
+
+			var messages = new List<ChatMessage>
+			{
+				new(ChatRole.User, "How is my portfolio doing?"),
+				new ChatMessage(ChatRole.Assistant, [new FunctionCallContent("call_1", "get_portfolio_summary", new Dictionary<string, object?>())]),
+				new ChatMessage(ChatRole.Tool, [new FunctionResultContent("call_1", "{\"total\": 1000}")]),
+			};
+
+			var options = new ChatOptions { Tools = [tool] };
+
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", BindingFlags.NonPublic | BindingFlags.Static)!;
+			var result = (List<ChatMessage>)method.Invoke(null, [messages, (object?)options])!;
+
+			// The synthesis request must be the last instruction: small models otherwise echo raw data or re-invoke tools.
+			result.Last().Text!.Should().Contain("Now answer the user's original question");
+			var functionPromptIndex = result.FindIndex(m => m.Text!.Contains("You are an AI assistant that can answer questions or call functions"));
+			functionPromptIndex.Should().BeGreaterThanOrEqualTo(0);
+			functionPromptIndex.Should().BeLessThan(result.Count - 1);
+		}
+
+		[Fact]
+		public void PrepareMessages_FirstTurn_FunctionPromptStaysLast()
+		{
+			var tool = AIFunctionFactory.Create(
+				() => Task.FromResult("summary data"),
+				"get_portfolio_summary");
+
+			var messages = new List<ChatMessage> { new(ChatRole.User, "How is my portfolio doing?") };
+			var options = new ChatOptions { Tools = [tool] };
+
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", BindingFlags.NonPublic | BindingFlags.Static)!;
+			var result = (List<ChatMessage>)method.Invoke(null, [messages, (object?)options])!;
+
+			result.Last().Text!.Should().Contain("You are an AI assistant that can answer questions or call functions");
+		}
+
+		// ── Streaming failure propagation ────────────────────────────────────────
+
+		[Fact]
+		public async Task GetStreamingResponseAsync_WhenJsInvokeFails_ThrowsWithUnderlyingMessage()
+		{
+			const string jsError = "Engine is not initialized.";
+			_mockModule
+				.Setup(m => m.InvokeAsync<Microsoft.JSInterop.Infrastructure.IJSVoidResult>(It.IsAny<string>(), It.IsAny<object[]>()))
+				.ThrowsAsync(new JSException($"Error: {jsError}"));
+
+			var messages = new List<ChatMessage> { new(ChatRole.User, "Hi") };
+
+			InvalidOperationException? exception = null;
+			try
+			{
+				await foreach (var _ in _client.GetStreamingResponseAsync(messages, cancellationToken: TestContext.Current.CancellationToken))
+				{
+				}
+			}
+			catch (InvalidOperationException ex)
+			{
+				exception = ex;
+			}
+
+			// The underlying JS error must be surfaced so the UI can show the real cause instead of a generic message.
+			exception.Should().NotBeNull();
+			exception!.Message.Should().Contain(jsError);
 		}
 
 		public void Dispose()

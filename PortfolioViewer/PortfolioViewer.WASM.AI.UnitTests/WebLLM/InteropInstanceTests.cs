@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		{
 			// Assert
 			Assert.NotNull(_interopInstance.WebLLMCompletions);
-			Assert.Empty(_interopInstance.WebLLMCompletions);
+			Assert.Equal(0, _interopInstance.WebLLMCompletions.Reader.Count);
 		}
 
 		[Fact]
@@ -87,8 +87,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			_interopInstance.ReceiveChunkCompletion(completion);
 
 			// Assert
-			Assert.Single(_interopInstance.WebLLMCompletions);
-			Assert.True(_interopInstance.WebLLMCompletions.TryDequeue(out var dequeuedCompletion));
+			Assert.Equal(1, _interopInstance.WebLLMCompletions.Reader.Count);
+			Assert.True(_interopInstance.WebLLMCompletions.Reader.TryRead(out var dequeuedCompletion));
 			Assert.Same(completion, dequeuedCompletion);
 		}
 
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			_interopInstance.ReceiveChunkCompletion(completion2);
 
 			// Assert
-			Assert.Equal(2, _interopInstance.WebLLMCompletions.Count);
+			Assert.Equal(2, _interopInstance.WebLLMCompletions.Reader.Count);
 		}
 	}
 

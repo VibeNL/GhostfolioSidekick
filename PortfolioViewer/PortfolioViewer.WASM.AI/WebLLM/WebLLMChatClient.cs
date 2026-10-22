@@ -15,7 +15,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private InteropInstance interopInstance = new();
 
 		private IJSObjectReference? module;
-		private static readonly JsonSerializerOptions options = new() { WriteIndented = true };
+
+		// Compact JSON: function definitions go into the model prompt, indentation only wastes tokens.
+		private static readonly JsonSerializerOptions options = new();
+
+		// Set when the JS streaming call fails; surfaced to the consumer via a synthetic stream-complete marker.
+		private volatile Exception? _streamError;
 
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
@@ -52,9 +57,20 @@ Format function calls like this:
 		{
 			// Call GetStreamingResponseAsync
 			var msg = new StringBuilder();
+			List<FunctionCallContent>? functionCalls = null;
 			await foreach (var response in GetStreamingResponseAsync(messages, options, cancellationToken))
 			{
 				msg.Append(response.Text);
+				foreach (var content in response.Contents.OfType<FunctionCallContent>())
+				{
+					functionCalls ??= [];
+					functionCalls.Add(content);
+				}
+			}
+
+			if (functionCalls is { Count: > 0 })
+			{
+				return new ChatResponse(new ChatMessage(ChatRole.Assistant, [.. functionCalls]));
 			}
 
 			// If no response was received, return an empty response
@@ -77,7 +93,7 @@ Format function calls like this:
 
 			StartStreamingAsync(convertedMessages, cancellationToken);
 
-			await foreach (var update in ProcessStreamingResponseAsync(messages, options, cancellationToken))
+			await foreach (var update in ProcessStreamingResponseAsync(options, cancellationToken))
 			{
 				yield return update;
 			}
@@ -98,24 +114,59 @@ Format function calls like this:
 
 		private static List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
 		{
-			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
-			var convertedMessages = list
-				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
-				.Select(RemoveThink)
-				.ToList();
+			var list = new List<ChatMessage>();
+			int? firstToolResultIndex = null;
+			foreach (var message in messages)
+			{
+				if (message.Role == ChatRole.Tool)
+				{
+					firstToolResultIndex ??= list.Count;
+					list.Add(CreateToolResultMessage(message));
+				}
+				else if (!string.IsNullOrWhiteSpace(message.Text))
+				{
+					list.Add(RemoveThink(message));
+				}
+			}
 
+			var convertedMessages = list.Select((x, i) => i == list.Count - 1 ? Fix(x) : x).ToList();
+
+			bool systemInserted = false;
 			if (!string.IsNullOrWhiteSpace(options?.Instructions) &&
 				!convertedMessages.Any(m => m.Role == ChatRole.System))
 			{
 				convertedMessages.Insert(0, new ChatMessage(ChatRole.System, options!.Instructions));
+				systemInserted = true;
 			}
 
 			if (ShouldAddFunctionPrompt(options))
 			{
-				convertedMessages.Add(CreateFunctionPromptMessage(options!));
+				var functionPrompt = CreateFunctionPromptMessage(options!);
+				if (firstToolResultIndex is int toolIndex)
+				{
+					// Synthesis turn: keep the tool definitions in context, but place them before the tool results so
+					// the synthesis request is the last instruction. Small models otherwise echo raw data or re-invoke tools.
+					convertedMessages.Insert(toolIndex + (systemInserted ? 1 : 0), functionPrompt);
+				}
+				else
+				{
+					convertedMessages.Add(functionPrompt);
+				}
 			}
 
 			return convertedMessages;
+		}
+
+		private static ChatMessage CreateToolResultMessage(ChatMessage message)
+		{
+			var results = string.Join("\n\n", message.Contents.OfType<FunctionResultContent>()
+				.Select(frc => frc.Result?.ToString() ?? string.Empty));
+			if (string.IsNullOrWhiteSpace(results))
+			{
+				results = message.Text ?? string.Empty;
+			}
+
+			return new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{results}\n\nNow answer the user's original question using this data. Write a concise natural-language summary in complete sentences that directly answers the question. Do not repeat the raw tool output verbatim.");
 		}
 
 		private static bool ShouldAddFunctionPrompt(ChatOptions? options)
@@ -156,20 +207,31 @@ Format function calls like this:
 		private void StartStreamingAsync(List<ChatMessage> convertedMessages, CancellationToken cancellationToken)
 		{
 			var model = modelIds[ChatMode];
+			_streamError = null;
 			_ = Task.Run(async () =>
 			{
-				await (await GetModule()).InvokeVoidAsync(
-					"completeStreamWebLLM",
-					InteropInstance.ConvertMessage(convertedMessages),
-					model,
-					ChatMode == ChatMode.ChatWithThinking,
-					null
-				);
+				try
+				{
+					await (await GetModule()).InvokeVoidAsync(
+						"completeStreamWebLLM",
+						InteropInstance.ConvertMessage(convertedMessages),
+						model,
+						ChatMode == ChatMode.ChatWithThinking,
+						null
+					);
+				}
+				catch (Exception ex) when (ex is not OperationCanceledException)
+				{
+					logger.LogError(ex, "WebLLM streaming failed");
+					_streamError = ex;
+					interopInstance.WebLLMCompletions.Writer.TryWrite(CreateStreamEndMarker());
+				}
 			}, cancellationToken);
 		}
 
+		private static WebLLMCompletion CreateStreamEndMarker() => new("error", "completion", string.Empty, string.Empty, [], new Usage(0, 0, 0));
+
 		private async IAsyncEnumerable<ChatResponseUpdate> ProcessStreamingResponseAsync(
-			IEnumerable<ChatMessage> originalMessages,
 			ChatOptions? options,
 			[EnumeratorCancellation] CancellationToken cancellationToken)
 		{
@@ -177,16 +239,20 @@ Format function calls like this:
 
 			while (true)
 			{
-				var response = TryDequeueResponse();
-				if (response == null)
+				// Channel read replaces the old 1ms busy-poll: no CPU burn while waiting for chunks.
+				var response = await interopInstance.WebLLMCompletions.Reader.ReadAsync(cancellationToken);
+
+				if (_streamError != null && response.IsStreamComplete)
 				{
-					await Task.Delay(1, cancellationToken);
-					continue;
+					var error = _streamError;
+					_streamError = null;
+					// Include the underlying message so the UI bubble shows the real cause (e.g. GPU OOM, engine not initialized) instead of a generic string.
+					throw new InvalidOperationException($"WebLLM streaming failed: {error.Message}", error);
 				}
 
 				if (response.IsStreamComplete)
 				{
-					await foreach (var finalUpdate in HandleStreamComplete(originalMessages, options, totalTextBuilder, cancellationToken))
+					foreach (var finalUpdate in HandleStreamComplete(options, totalTextBuilder))
 					{
 						yield return finalUpdate;
 					}
@@ -206,18 +272,9 @@ Format function calls like this:
 			}
 		}
 
-		private WebLLMCompletion? TryDequeueResponse()
-		{
-			return interopInstance!.WebLLMCompletions.TryDequeue(out WebLLMCompletion? response)
-				? response
-				: null;
-		}
-
-		private async IAsyncEnumerable<ChatResponseUpdate> HandleStreamComplete(
-			IEnumerable<ChatMessage> originalMessages,
+		private IEnumerable<ChatResponseUpdate> HandleStreamComplete(
 			ChatOptions? options,
-			StringBuilder totalTextBuilder,
-			[EnumeratorCancellation] CancellationToken cancellationToken)
+			StringBuilder totalTextBuilder)
 		{
 			if (!HasTools(options) || totalTextBuilder.Length == 0)
 			{
@@ -225,34 +282,15 @@ Format function calls like this:
 			}
 
 			var totalText = totalTextBuilder.ToString();
-			if (!TryParseToolCalls(totalText, out var toolCalls))
+			if (TryParseToolCalls(totalText, out var toolCalls))
+			{
+				// Emit the parsed calls as FunctionCallContent so that the framework's function invocation middleware executes them and continues the conversation.
+				yield return new ChatResponseUpdate(ChatRole.Assistant, [.. toolCalls]);
+			}
+			else
 			{
 				// Model responded with prose instead of a tool call — emit as-is
 				yield return new ChatResponseUpdate(ChatRole.Assistant, ChatMessageContentHelper.ToDisplayText(totalText).Trim());
-				yield break;
-			}
-
-			// Execute every tool and collect results
-			var toolResults = new List<string>();
-			foreach (var toolCall in toolCalls)
-			{
-				var output = await CallToolAsync(options!, toolCall.Name, toolCall.Arguments);
-				toolResults.Add(output);
-			}
-
-			// Build synthesis conversation:
-			// - original history (user question + prior assistant turns)
-			// - a single User message that contains all tool results, asking the model to synthesize
-			var combinedResults = string.Join("\n\n", toolResults);
-			var synthesisMessages = new List<ChatMessage>(originalMessages)
-			{
-				new ChatMessage(ChatRole.User, $"Here are the results from the data tools:\n\n{combinedResults}\n\nPlease answer the original question using this data."),
-			};
-
-			// Second LLM call — no tools, so the model produces a natural language response
-			await foreach (var update in GetStreamingResponseAsync(synthesisMessages, options: null, cancellationToken))
-			{
-				yield return update;
 			}
 		}
 
@@ -467,7 +505,8 @@ Format function calls like this:
 				throw new NotSupportedException("Interop instance is not initialized.");
 			}
 
-			module = await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm.interop.js");
+			// Import once per client: re-importing the JS module on every request wasted startup time.
+			module ??= await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm.interop.js");
 			if (module == null)
 			{
 				throw new NotSupportedException("Module is not initialized.");
@@ -484,32 +523,6 @@ Format function calls like this:
 				module = module,
 				ChatMode = ChatMode,
 			};
-		}
-
-		private async Task<string> CallToolAsync(ChatOptions options, string name, IDictionary<string, object?>? arguments)
-		{
-			var tool = options.Tools?.OfType<AIFunction>()
-				.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-
-			if (tool == null)
-			{
-				logger.LogWarning("Tool with name '{ToolName}' not found.", name);
-				return $"Tool '{name}' not found.";
-			}
-
-			try
-			{
-				var aiArgs = arguments != null ? new AIFunctionArguments(arguments) : null;
-				var result = await tool.InvokeAsync(aiArgs);
-				var output = result?.ToString() ?? "[Function returned null]";
-				logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
-				return output;
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Error executing tool '{ToolName}' with arguments: {Arguments}", name, JsonSerializer.Serialize(arguments));
-				return $"Error executing tool '{name}': {ex.Message}";
-			}
 		}
 
 		public void Dispose()
