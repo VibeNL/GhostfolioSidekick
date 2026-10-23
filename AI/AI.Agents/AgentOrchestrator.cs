@@ -13,12 +13,10 @@ namespace GhostfolioSidekick.AI.Agents
 		private readonly ChatClientAgent mainAgent;
 		private readonly AgentLogger logger;
 		private readonly ICustomChatClient chatClient;
-		private readonly ILogger<AgentOrchestrator> log;
 		private AgentSession? session;
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger, ILogger<AgentOrchestrator> log)
 		{
-			this.log = log;
 			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
 
 			var toolProviders = serviceProvider.GetServices<IAgentToolProvider>().ToList();
