@@ -1,5 +1,6 @@
 using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
@@ -36,11 +37,14 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			_mockWebChatClient.Setup(x => x.Clone()).Returns(clonedClient.Object);
 		}
 
+		private AgentOrchestrator CreateOrchestrator() =>
+			new(_serviceProvider, _agentLogger, Mock.Of<ILogger<AgentOrchestrator>>());
+
 		[Fact]
 		public void Constructor_ShouldNotThrow()
 		{
 			// Arrange & Act
-			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
+			var orchestrator = CreateOrchestrator();
 
 			// Assert
 			Assert.NotNull(orchestrator);
@@ -50,7 +54,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		public async Task AskQuestion_ReturnsAsyncEnumerable_CanGetEnumeratorAndDispose()
 		{
 			// Arrange
-			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
+			var orchestrator = CreateOrchestrator();
 
 			// Act
 			var asyncEnumerable = orchestrator.AskQuestion("Test question");
@@ -66,7 +70,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		public void History_ShouldReturnEmptyCollection_WhenNoConversation()
 		{
 			// Arrange
-			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
+			var orchestrator = CreateOrchestrator();
 
 			// Act
 			var history = orchestrator.History();
@@ -88,7 +92,25 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 
 			public object? GetService(Type serviceType)
 			{
-				return _services.TryGetValue(serviceType, out var service) ? service : null;
+				if (_services.TryGetValue(serviceType, out var service))
+				{
+					return service;
+				}
+
+				// Mimic real DI containers: IEnumerable<T> resolves to all registered T services (possibly none).
+				if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+				{
+					var elementType = serviceType.GetGenericArguments()[0];
+					var list = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType))!;
+					foreach (var (_, serviceInstance) in _services.Where(x => x.Key == elementType))
+					{
+						list.Add(serviceInstance);
+					}
+
+					return list;
+				}
+
+				return null;
 			}
 
 			public T GetRequiredService<T>() where T : class

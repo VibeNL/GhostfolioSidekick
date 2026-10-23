@@ -15,31 +15,52 @@ namespace GhostfolioSidekick.AI.Functions
 		[Description("Perform multi-step research on a topic by making multiple queries and synthesizing the results")]
 		public async Task<string> MultiStepResearch(
 			[Description("The topic to research")] string topic,
-			[Description("Specific aspects of the topic to research. Should be in natural language")] string[] aspects)
+			[Description("Specific aspects of the topic to research. Should be in natural language")] string[] aspects,
+			CancellationToken cancellationToken = default)
 		{
 			agentLogger.StartFunction(nameof(MultiStepResearch));
+
+			if (string.IsNullOrWhiteSpace(topic))
+			{
+				return "No research topic was provided. Please call multi_step_research with a non-empty topic.";
+			}
+
+			if (aspects is null || aspects.Length == 0)
+			{
+				return "No research aspects were provided. Please call multi_step_research with at least one aspect to research.";
+			}
+
 			var aspectSummaries = new List<string>();
 			foreach (var aspect in aspects)
 			{
 				var query = $"{topic} - {aspect}";
 				agentLogger.StartFunction($"{nameof(MultiStepResearch)} Searching for: {query}");
 				var searchResult = await searchService.SearchAsync(query);
+				var topResults = searchResult.Take(3).ToList();
+
 				var perResultSummaries = new List<string>();
-				int i = 0;
-				foreach (var result in searchResult.Take(3))
+				if (topResults.Count == 0)
 				{
-					agentLogger.StartFunction($"{nameof(MultiStepResearch)} Summarizing search result {aspect} {++i}");
-					var sanitizedContent = SanitizeText(result.Content ?? string.Empty);
-					var synthesisPrompt = TruncatePrompt($"Synthesize the following research result into a concise summary. {sanitizedContent}", modelInfo.MaxTokens);
-					var chatResult = await chatService.GetResponseAsync(synthesisPrompt);
-					perResultSummaries.Add(chatResult.Text);
+					perResultSummaries.Add($"No web search results were found for '{query}'.");
+				}
+				else
+				{
+					int i = 0;
+					foreach (var result in topResults)
+					{
+						agentLogger.StartFunction($"{nameof(MultiStepResearch)} Summarizing search result {aspect} {++i}");
+						var sanitizedContent = SanitizeText(result.Content ?? string.Empty);
+						var synthesisPrompt = TruncatePrompt($"Synthesize the following research result into a concise summary. {sanitizedContent}", modelInfo.MaxTokens);
+						var chatResult = await chatService.GetResponseAsync(synthesisPrompt, cancellationToken: cancellationToken);
+						perResultSummaries.Add(chatResult.Text);
+					}
 				}
 
 				// Synthesize aspect summary from per-result summaries
 				agentLogger.StartFunction($"{nameof(MultiStepResearch)} Synthesizing aspect summary for: {aspect}");
 
 				var aspectSynthesisPrompt = TruncatePrompt($"Synthesize the following summaries for aspect '{aspect}' into a concise aspect summary.\n{string.Join(Environment.NewLine, perResultSummaries)}", modelInfo.MaxTokens);
-				var aspectChatResult = await chatService.GetResponseAsync(aspectSynthesisPrompt);
+				var aspectChatResult = await chatService.GetResponseAsync(aspectSynthesisPrompt, cancellationToken: cancellationToken);
 				aspectSummaries.Add(aspectChatResult.Text);
 			}
 
@@ -47,7 +68,7 @@ namespace GhostfolioSidekick.AI.Functions
 			agentLogger.StartFunction($"{nameof(MultiStepResearch)} Synthesizing final summary");
 
 			var finalPrompt = TruncatePrompt($"Synthesize the following aspect summaries into a concise overall summary.\n{string.Join(Environment.NewLine, aspectSummaries)}", modelInfo.MaxTokens);
-			var finalChatResult = await chatService.GetResponseAsync(finalPrompt);
+			var finalChatResult = await chatService.GetResponseAsync(finalPrompt, cancellationToken: cancellationToken);
 			return finalChatResult.Text;
 		}
 
@@ -71,7 +92,16 @@ namespace GhostfolioSidekick.AI.Functions
 		internal static string TruncatePrompt(string prompt, int maxTokens)
 		{
 			if (string.IsNullOrEmpty(prompt)) return string.Empty;
-			return prompt.Length > maxTokens ? prompt[..maxTokens] : prompt;
+			if (prompt.Length <= maxTokens) return prompt;
+
+			var truncated = prompt[..maxTokens];
+			// Don't split a UTF-16 surrogate pair at the cut point.
+			if (truncated.Length > 0 && char.IsHighSurrogate(truncated[^1]))
+			{
+				truncated = truncated[..^1];
+			}
+
+			return truncated;
 		}
 	}
 }
