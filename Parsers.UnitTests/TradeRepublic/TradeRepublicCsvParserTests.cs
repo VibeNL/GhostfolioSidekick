@@ -461,6 +461,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
             ex.Message.Should().Contain("UNKNOWN_TYPE_XYZ");
         }
 
+        [Fact]
+        public void ParseRow_UnsupportedType_SkipEnabled_ReturnsNoActivities()
+        {
+            var parserWithSkip = CreateParser(skipUnknownTransactionTypes: true);
+
+            var result = InvokeParseRow(parserWithSkip, CreateUnknownTypeRecord()).ToList();
+
+            result.Should().BeEmpty();
+        }
+
         private static TradeRepublicCsvRecord CreateUnknownTypeRecord()
         {
             return new TradeRepublicCsvRecord
@@ -474,9 +484,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
             };
         }
 
-        private static TradeRepublicCsvParser CreateParser()
+        private static TradeRepublicCsvParser CreateParser(bool skipUnknownTransactionTypes = false)
         {
-            return new TradeRepublicCsvParser(DummyCurrencyMapper.Instance);
+            var settingsMock = new Mock<IApplicationSettings>();
+            _ = settingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
+            {
+                Settings = new Settings
+                {
+                    DataProviderPreference = "YAHOO;COINGECKO",
+                    PrimaryCurrency = "EUR",
+                    SkipUnknownTransactionTypes = skipUnknownTransactionTypes,
+                },
+            });
+
+            return new TradeRepublicCsvParser(DummyCurrencyMapper.Instance, settingsMock.Object, NullLogger<TradeRepublicCsvParser>.Instance);
         }
 
         private static IEnumerable<PartialActivity> InvokeParseRow(TradeRepublicCsvParser parserToUse, TradeRepublicCsvRecord record)
