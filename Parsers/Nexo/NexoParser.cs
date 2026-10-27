@@ -1,11 +1,12 @@
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Nexo
 {
-	public class NexoParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<NexoRecord>
+	public class NexoParser(ICurrencyMapper currencyMapper, IApplicationSettings settings) : RecordBaseImporter<NexoRecord>(settings)
 	{
 		readonly Dictionary<string, string> Translation = new()
 		{

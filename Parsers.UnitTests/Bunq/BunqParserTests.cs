@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 
 		public BunqParserTests()
 		{
-			parser = new BunqParser();
+			parser = new BunqParser(TestApplicationSettings.Create());
 
 			var fixture = CustomFixture.New();
 			account = fixture

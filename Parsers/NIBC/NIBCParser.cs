@@ -1,11 +1,12 @@
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.NIBC
 {
-	public class NIBCParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<NIBCRecord>
+	public class NIBCParser(ICurrencyMapper currencyMapper, IApplicationSettings settings) : RecordBaseImporter<NIBCRecord>(settings)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(NIBCRecord record, int rowNumber)
 		{

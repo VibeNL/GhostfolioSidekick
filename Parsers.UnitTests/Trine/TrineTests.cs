@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 
 		public TrineTests()
 		{
-			parser = new TrineParser();
+			parser = new TrineParser(TestApplicationSettings.Create());
 
 			var fixture = CustomFixture.New();
 			account = fixture

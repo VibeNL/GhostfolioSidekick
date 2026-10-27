@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
         public TradeRepublicCsvParserTests()
         {
-            parser = new TradeRepublicCsvParser(DummyCurrencyMapper.Instance);
+            parser = new TradeRepublicCsvParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
 
             var fixture = CustomFixture.New();
             account = fixture

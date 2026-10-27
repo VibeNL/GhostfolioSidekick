@@ -1,11 +1,12 @@
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bitvavo
 {
-	public class BitvavoParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<BitvavoRecord>
+	public class BitvavoParser(ICurrencyMapper currencyMapper, IApplicationSettings settings) : RecordBaseImporter<BitvavoRecord>(settings)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(BitvavoRecord record, int rowNumber)
 		{

@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 
 		public DeGiroParserENTests()
 		{
-			parser = new DeGiroParser(DummyCurrencyMapper.Instance);
+			parser = new DeGiroParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
 
 			var fixture = CustomFixture.New();
 			account = fixture

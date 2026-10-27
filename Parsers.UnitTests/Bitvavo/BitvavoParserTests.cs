@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 
 		public BitvavoParserTests()
 		{
-			parser = new BitvavoParser(DummyCurrencyMapper.Instance);
+			parser = new BitvavoParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
 
 			var fixture = CustomFixture.New();
 			account = fixture

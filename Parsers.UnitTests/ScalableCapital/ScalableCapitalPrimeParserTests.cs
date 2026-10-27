@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 
 		public ScalableCapitalPrimeParserTests()
 		{
-			parser = new ScalableCapitalPrimeParser(DummyCurrencyMapper.Instance);
+			parser = new ScalableCapitalPrimeParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
 
 			var fixture = CustomFixture.New();
 			account = fixture

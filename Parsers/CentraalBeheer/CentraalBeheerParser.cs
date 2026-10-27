@@ -1,4 +1,5 @@
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -6,7 +7,7 @@ using System.Text;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public class CentraalBeheerParser : RecordBaseImporter<CentraalBeheerRecord>
+	public class CentraalBeheerParser(IApplicationSettings settings) : RecordBaseImporter<CentraalBeheerRecord>(settings)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(CentraalBeheerRecord record, int rowNumber)
 		{

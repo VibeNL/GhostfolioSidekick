@@ -1,11 +1,12 @@
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<TradeRepublicCsvRecord>
+	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper, IApplicationSettings settings) : RecordBaseImporter<TradeRepublicCsvRecord>(settings)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(TradeRepublicCsvRecord record, int rowNumber)
 		{

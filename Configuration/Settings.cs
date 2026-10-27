@@ -14,5 +14,8 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("performance.primarycurrency")]
 		public required string PrimaryCurrency { get; set; } = "EUR";
+
+		[JsonPropertyName("warn.on.unsupported.row")]
+		public bool WarnOnUnsupportedRow { get; set; } = false;
 	}
 }

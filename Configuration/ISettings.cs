@@ -5,5 +5,6 @@ namespace GhostfolioSidekick.Configuration
 		bool DeleteUnusedSymbols { get; set; }
 		string DataProviderPreference { get; set; }
 		string PrimaryCurrency { get; set; }
+		bool WarnOnUnsupportedRow { get; set; }
 	}
 }

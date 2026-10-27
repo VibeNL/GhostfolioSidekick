@@ -1,16 +1,13 @@
 ﻿using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bunq
 {
-	public class BunqParser : RecordBaseImporter<BunqRecord>
+	public class BunqParser(IApplicationSettings settings) : RecordBaseImporter<BunqRecord>(settings)
 	{
-		public BunqParser()
-		{
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(BunqRecord record, int rowNumber)
 		{
 			var transactionId = $"{record.Date.ToInvariantString()}_{rowNumber}";

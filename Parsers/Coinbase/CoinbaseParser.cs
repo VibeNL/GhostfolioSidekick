@@ -1,4 +1,5 @@
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -6,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public partial class CoinbaseParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<CoinbaseRecord>
+	public partial class CoinbaseParser(ICurrencyMapper currencyMapper, IApplicationSettings settings) : RecordBaseImporter<CoinbaseRecord>(settings)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
 		{

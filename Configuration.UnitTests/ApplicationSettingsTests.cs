@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 
 		public ApplicationSettingsTests()
 		{
-			const string configFileContent = "{\"settings\" : {\"dataprovider.preference.order\": \"COINGECKO,YAHOO\", \"performance.primarycurrency\": \"EUR\"} }";
+			const string configFileContent = "{\"settings\" : {\"dataprovider.preference.order\": \"COINGECKO,YAHOO\", \"performance.primarycurrency\": \"EUR\", \"warn.on.unsupported.row\": true} }";
 			configFile = Path.GetTempFileName();
 			File.WriteAllText(configFile, configFileContent);
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", configFile);
@@ -26,6 +26,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			// Assert
 			settings.ConfigurationInstance.Should().NotBeNull();
 			settings.ConfigurationInstance.Settings.DataProviderPreference.Should().Be("COINGECKO,YAHOO");
+			settings.ConfigurationInstance.Settings.WarnOnUnsupportedRow.Should().BeTrue();
 		}
 
 		[Fact]

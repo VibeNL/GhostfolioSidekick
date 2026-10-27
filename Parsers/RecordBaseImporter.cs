@@ -1,5 +1,6 @@
 using CsvHelper;
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model.Activities;
 using System.Text;
 
@@ -8,9 +9,11 @@ namespace GhostfolioSidekick.Parsers
 	public abstract class RecordBaseImporter<T> : IActivityFileImporter where T : class
 	{
 		private readonly Dictionary<string, bool> KnownHeaderCache = [];
+		private readonly IApplicationSettings applicationSettings;
 
-		protected RecordBaseImporter()
+		protected RecordBaseImporter(IApplicationSettings settings)
 		{
+			applicationSettings = settings;
 		}
 
 		public virtual Task<bool> CanParse(string filename)
@@ -65,8 +68,18 @@ namespace GhostfolioSidekick.Parsers
 
 			for (int i = 0; i < records.Count; i++)
 			{
-				var partialActivity = ParseRow(records[i], i + 1);
-				activityManager.AddPartialActivity(accountName, partialActivity);
+				IEnumerable<PartialActivity> partialActivities;
+				try
+				{
+					partialActivities = ParseRow(records[i], i + 1);
+				}
+				catch (NotSupportedException ex) when (WarnOnUnsupportedRow)
+				{
+					Console.WriteLine($"Warning: Skipping unsupported row {i + 1}: {ex.Message}");
+					continue;
+				}
+
+				activityManager.AddPartialActivity(accountName, partialActivities);
 			}
 
 			return Task.CompletedTask;
@@ -75,6 +88,8 @@ namespace GhostfolioSidekick.Parsers
 		protected abstract IEnumerable<PartialActivity> ParseRow(T record, int rowNumber);
 
 		protected abstract CsvConfiguration GetConfig();
+
+		private bool WarnOnUnsupportedRow => applicationSettings.ConfigurationInstance.Settings.WarnOnUnsupportedRow;
 
 		protected virtual Encoding Encoding => Encoding.UTF8;
 

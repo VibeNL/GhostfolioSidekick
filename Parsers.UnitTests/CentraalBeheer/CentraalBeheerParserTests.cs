@@ -1,5 +1,6 @@
 using AutoFixture;
 using AwesomeAssertions;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
@@ -17,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 
 		public CentraalBeheerParserTests()
 		{
-			parser = new CustomCentraalBeheerParser();
+			parser = new CustomCentraalBeheerParser(TestApplicationSettings.Create());
 
 			var fixture = CustomFixture.New();
 			account = fixture
@@ -153,7 +154,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 				]);
 		}
 
-		private class CustomCentraalBeheerParser : CentraalBeheerParser
+		private class CustomCentraalBeheerParser(IApplicationSettings settings) : CentraalBeheerParser(settings)
 		{
 			protected override Encoding Encoding => Encoding.UTF8; // Testfiles are in UTF-8
 		}

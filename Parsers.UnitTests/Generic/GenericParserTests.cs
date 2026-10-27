@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 		public GenericParserTests()
 		{
-			parser = new GenericParser(DummyCurrencyMapper.Instance);
+			parser = new GenericParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
 
 			var fixture = CustomFixture.New();
 			account = fixture

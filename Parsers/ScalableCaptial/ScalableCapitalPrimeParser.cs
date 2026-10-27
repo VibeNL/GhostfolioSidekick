@@ -1,11 +1,12 @@
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
-	public class ScalableCapitalPrimeParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<ScalableCapitalPrimeRecord>
+	public class ScalableCapitalPrimeParser(ICurrencyMapper currencyMapper, IApplicationSettings settings) : RecordBaseImporter<ScalableCapitalPrimeRecord>(settings)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(ScalableCapitalPrimeRecord record, int rowNumber)
 		{
