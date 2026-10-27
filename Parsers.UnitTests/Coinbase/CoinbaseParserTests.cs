@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Coinbase;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 
 		public CoinbaseParserTests()
 		{
-			parser = new CoinbaseParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+			parser = new CoinbaseParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<CoinbaseParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture

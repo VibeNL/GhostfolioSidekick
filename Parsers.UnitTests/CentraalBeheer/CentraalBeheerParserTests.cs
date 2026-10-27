@@ -5,6 +5,8 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.CentraalBeheer;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Text;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
@@ -18,7 +20,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 
 		public CentraalBeheerParserTests()
 		{
-			parser = new CustomCentraalBeheerParser(TestApplicationSettings.Create());
+			parser = new CustomCentraalBeheerParser(TestApplicationSettings.Create(), NullLogger<CustomCentraalBeheerParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture
@@ -154,7 +156,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 				]);
 		}
 
-		private class CustomCentraalBeheerParser(IApplicationSettings settings) : CentraalBeheerParser(settings)
+		private class CustomCentraalBeheerParser(IApplicationSettings settings, ILogger logger) : CentraalBeheerParser(settings, logger)
 		{
 			protected override Encoding Encoding => Encoding.UTF8; // Testfiles are in UTF-8
 		}

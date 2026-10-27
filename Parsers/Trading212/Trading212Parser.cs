@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212
 {
-	public class Trading212Parser(ICurrencyMapper currencyMapper, ILogger<Trading212Parser> logger, IApplicationSettings settings) : RecordBaseImporter<Trading212Record>(settings)
+	public class Trading212Parser(ICurrencyMapper currencyMapper, ILogger<Trading212Parser> logger, IApplicationSettings settings) : RecordBaseImporter<Trading212Record>(settings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
 		{

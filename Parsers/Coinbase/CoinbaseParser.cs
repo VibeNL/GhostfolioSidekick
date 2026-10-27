@@ -2,12 +2,13 @@ using CsvHelper.Configuration;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public partial class CoinbaseParser(ICurrencyMapper currencyMapper, IApplicationSettings settings) : RecordBaseImporter<CoinbaseRecord>(settings)
+	public partial class CoinbaseParser(ICurrencyMapper currencyMapper, IApplicationSettings settings, ILogger<CoinbaseParser> logger) : RecordBaseImporter<CoinbaseRecord>(settings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
 		{

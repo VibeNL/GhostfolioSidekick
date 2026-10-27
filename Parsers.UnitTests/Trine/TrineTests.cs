@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Trine;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 
 		public TrineTests()
 		{
-			parser = new TrineParser(TestApplicationSettings.Create());
+			parser = new TrineParser(TestApplicationSettings.Create(), NullLogger<TrineParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture

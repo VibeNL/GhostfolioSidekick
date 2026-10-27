@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Nexo;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 
 		public NexoParserTests()
 		{
-			parser = new NexoParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+			parser = new NexoParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<NexoParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture

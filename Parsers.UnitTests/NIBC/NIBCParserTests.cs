@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.NIBC;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 
 		public NIBCParserTests()
 		{
-			parser = new NIBCParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+			parser = new NIBCParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<NIBCParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture

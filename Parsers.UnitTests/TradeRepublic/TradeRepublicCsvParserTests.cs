@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.TradeRepublic;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
         public TradeRepublicCsvParserTests()
         {
-            parser = new TradeRepublicCsvParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+            parser = new TradeRepublicCsvParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<TradeRepublicCsvParser>.Instance);
 
             var fixture = CustomFixture.New();
             account = fixture

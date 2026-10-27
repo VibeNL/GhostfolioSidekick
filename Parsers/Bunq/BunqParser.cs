@@ -2,11 +2,12 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bunq
 {
-	public class BunqParser(IApplicationSettings settings) : RecordBaseImporter<BunqRecord>(settings)
+	public class BunqParser(IApplicationSettings settings, ILogger<BunqParser> logger) : RecordBaseImporter<BunqRecord>(settings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(BunqRecord record, int rowNumber)
 		{

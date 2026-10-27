@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 
 		public ScalableCapitalPrimeParserTests()
 		{
-			parser = new ScalableCapitalPrimeParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+			parser = new ScalableCapitalPrimeParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<ScalableCapitalPrimeParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture

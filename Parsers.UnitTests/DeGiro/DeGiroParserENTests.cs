@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.DeGiro;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 
 		public DeGiroParserENTests()
 		{
-			parser = new DeGiroParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+			parser = new DeGiroParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<DeGiroParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture

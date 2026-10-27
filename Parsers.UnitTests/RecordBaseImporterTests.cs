@@ -3,6 +3,8 @@ using CsvHelper.Configuration;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Globalization;
 
@@ -15,7 +17,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			public string? Header1 { get; set; } = string.Empty;
 		}
 
-		private class TestRecordBaseImporter(IApplicationSettings settings) : RecordBaseImporter<TestRecord>(settings)
+		private class TestRecordBaseImporter(IApplicationSettings settings, ILogger logger) : RecordBaseImporter<TestRecord>(settings, logger)
 		{
 			protected override IEnumerable<PartialActivity> ParseRow(TestRecord record, int rowNumber)
 			{
@@ -29,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			}
 		}
 
-		private class UnparseableRowImporter(IApplicationSettings settings) : RecordBaseImporter<TestRecord>(settings)
+		private class UnparseableRowImporter(IApplicationSettings settings, ILogger logger) : RecordBaseImporter<TestRecord>(settings, logger)
 		{
 			protected override IEnumerable<PartialActivity> ParseRow(TestRecord record, int rowNumber)
 			{
@@ -46,7 +48,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		[Fact]
 		public async Task CanParse_ReturnsFalse_WhenFileExtensionIsNotCsv()
 		{
-			var importer = new TestRecordBaseImporter(TestApplicationSettings.Create());
+			var importer = new TestRecordBaseImporter(TestApplicationSettings.Create(), NullLogger<TestRecordBaseImporter>.Instance);
 			var result = await importer.CanParse("test.txt");
 			result.Should().BeFalse();
 		}
@@ -54,7 +56,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		[Fact]
 		public async Task CanParse_ReturnsFalse_WhenCsvHeaderIsInvalid()
 		{
-			var importer = new TestRecordBaseImporter(TestApplicationSettings.Create());
+			var importer = new TestRecordBaseImporter(TestApplicationSettings.Create(), NullLogger<TestRecordBaseImporter>.Instance);
 			var result = await importer.CanParse("invalid.csv");
 			result.Should().BeFalse();
 		}
@@ -62,7 +64,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		[Fact]
 		public async Task ParseActivities_ParsesRecordsCorrectly()
 		{
-			var importer = new TestRecordBaseImporter(TestApplicationSettings.Create());
+			var importer = new TestRecordBaseImporter(TestApplicationSettings.Create(), NullLogger<TestRecordBaseImporter>.Instance);
 			var mockActivityManager = new Mock<IActivityManager>();
 
 			var tempFilePath = Path.GetTempFileName();
@@ -82,7 +84,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		[Fact]
 		public async Task ParseActivities_SkipsUnsupportedRows_WhenWarningModeEnabled()
 		{
-			var importer = new UnparseableRowImporter(TestApplicationSettings.Create(warnOnUnsupportedRow: true));
+			var mockLogger = new Mock<ILogger>();
+			var importer = new UnparseableRowImporter(TestApplicationSettings.Create(warnOnUnsupportedRow: true), mockLogger.Object);
 			var mockActivityManager = new Mock<IActivityManager>();
 
 			var tempFilePath = Path.GetTempFileName();
@@ -92,6 +95,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			{
 				await importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1");
 				mockActivityManager.Verify(m => m.AddPartialActivity(It.IsAny<string>(), It.IsAny<IEnumerable<PartialActivity>>()), Times.Never);
+				mockLogger.Verify(l => l.Log(
+					It.Is<LogLevel>(x => x == LogLevel.Warning),
+					It.IsAny<EventId>(),
+					(It.Is<object>(o => o is FormattableString f && f.ToString().Contains("Unsupported test row"))),
+					It.IsAny<Exception?>(),
+					It.IsAny<Func<object?, Exception?, string>>()));
 			}
 			finally
 			{
@@ -102,7 +111,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		[Fact]
 		public async Task ParseActivities_Throws_WhenWarningModeDisabled()
 		{
-			var importer = new UnparseableRowImporter(TestApplicationSettings.Create());
+			var importer = new UnparseableRowImporter(TestApplicationSettings.Create(), NullLogger<UnparseableRowImporter>.Instance);
 			var mockActivityManager = new Mock<IActivityManager>();
 
 			var tempFilePath = Path.GetTempFileName();

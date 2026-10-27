@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Generic;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 		public GenericParserTests()
 		{
-			parser = new GenericParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+			parser = new GenericParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<GenericParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture

@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Bitvavo;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 {
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 
 		public BitvavoParserTests()
 		{
-			parser = new BitvavoParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create());
+			parser = new BitvavoParser(DummyCurrencyMapper.Instance, TestApplicationSettings.Create(), NullLogger<BitvavoParser>.Instance);
 
 			var fixture = CustomFixture.New();
 			account = fixture
