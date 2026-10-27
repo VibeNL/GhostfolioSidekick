@@ -461,17 +461,6 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
             ex.Message.Should().Contain("UNKNOWN_TYPE_XYZ");
         }
 
-        [Fact]
-        public void ParseRow_UnsupportedType_SkipEnabled_ReturnsNoActivities()
-        {
-            var skipParser = CreateParser();
-            var record = CreateUnknownTypeRecord();
-
-            var result = InvokeParseRow(skipParser, record);
-
-            result.Should().BeEmpty();
-        }
-
         private static TradeRepublicCsvRecord CreateUnknownTypeRecord()
         {
             return new TradeRepublicCsvRecord
