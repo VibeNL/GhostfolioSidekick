@@ -1,9 +1,12 @@
 using AutoFixture;
 using AwesomeAssertions;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.TradeRepublic;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -15,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
         public TradeRepublicCsvParserTests()
         {
-            parser = new TradeRepublicCsvParser(DummyCurrencyMapper.Instance);
+            parser = CreateParser();
 
             var fixture = CustomFixture.New();
             account = fixture
@@ -106,6 +109,32 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     0.02m,
                     new Money(Currency.EUR, 0.02m),
                     "895b5983-4d52-4614-b521-a20eb7b7082c")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleDistribution_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_distribution.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateDividend(
+                    Currency.EUR,
+                    new DateTime(2021, 11, 30, 3, 39, 32, 849, DateTimeKind.Utc).AddMicroseconds(586),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B1XNHC34", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Global Clean Energy USD (Dist)", Currency.EUR),
+                    ],
+                    0.300000m,
+                    new Money(Currency.EUR, 0.300000m),
+                    "7bfb3aae-d026-4959-b8a9-50d36f3a7a38"),
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2021, 11, 30, 3, 39, 32, 849, DateTimeKind.Utc).AddMicroseconds(586),
+                    0.06m,
+                    new Money(Currency.EUR, 0.06m),
+                    "7bfb3aae-d026-4959-b8a9-50d36f3a7a38")
             ]);
         }
 
@@ -425,31 +454,55 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
         [Fact]
         public void ParseRow_UnsupportedType_ThrowsNotSupportedException()
         {
-            var ex = Assert.Throws<NotSupportedException>(() =>
-            {
-                var record = new TradeRepublicCsvRecord
-                {
-                    DateTime = DateTime.UtcNow,
-                    Date = DateOnly.FromDateTime(DateTime.Today),
-                    Category = "CASH",
-                    Type = "UNKNOWN_TYPE_XYZ",
-                    Currency = "EUR",
-                    TransactionId = "test-id",
-                };
-                // Use reflection to call ParseRow
-                var method = typeof(TradeRepublicCsvParser).GetMethod("ParseRow",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                try
-                {
-                    method!.Invoke(parser, [record, 1]);
-                }
-                catch (System.Reflection.TargetInvocationException tie)
-                {
-                    throw tie.InnerException!;
-                }
-            });
+            var record = CreateUnknownTypeRecord();
+
+            var ex = Assert.Throws<NotSupportedException>(() => InvokeParseRow(parser, record));
 
             ex.Message.Should().Contain("UNKNOWN_TYPE_XYZ");
+        }
+
+        [Fact]
+        public void ParseRow_UnsupportedType_SkipEnabled_ReturnsNoActivities()
+        {
+            var skipParser = CreateParser();
+            var record = CreateUnknownTypeRecord();
+
+            var result = InvokeParseRow(skipParser, record);
+
+            result.Should().BeEmpty();
+        }
+
+        private static TradeRepublicCsvRecord CreateUnknownTypeRecord()
+        {
+            return new TradeRepublicCsvRecord
+            {
+                DateTime = DateTime.UtcNow,
+                Date = DateOnly.FromDateTime(DateTime.Today),
+                Category = "CASH",
+                Type = "UNKNOWN_TYPE_XYZ",
+                Currency = "EUR",
+                TransactionId = "test-id",
+            };
+        }
+
+        private static TradeRepublicCsvParser CreateParser()
+        {
+            return new TradeRepublicCsvParser(DummyCurrencyMapper.Instance);
+        }
+
+        private static IEnumerable<PartialActivity> InvokeParseRow(TradeRepublicCsvParser parserToUse, TradeRepublicCsvRecord record)
+        {
+            // Use reflection to call ParseRow
+            var method = typeof(TradeRepublicCsvParser).GetMethod("ParseRow",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            try
+            {
+                return (IEnumerable<PartialActivity>)method!.Invoke(parserToUse, [record, 1])!;
+            }
+            catch (System.Reflection.TargetInvocationException tie)
+            {
+                throw tie.InnerException!;
+            }
         }
     }
 }

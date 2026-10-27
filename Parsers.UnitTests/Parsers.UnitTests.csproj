@@ -532,6 +532,9 @@
 		<None Update="TestFiles\TradeRepublic\CSV\single_dividend.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_distribution.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\TradeRepublic\CSV\single_interest.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

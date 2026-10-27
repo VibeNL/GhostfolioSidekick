@@ -60,6 +60,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						break;
 
 					case "DIVIDEND":
+					case "DISTRIBUTION": // Payout of a distributing item (e.g. ETF), semantically the same as DIVIDEND including the tax column
 						var dividendSymbolIds = CreateSymbolIdentifiers(record, currency);
 						lst.Add(PartialActivity.CreateDividend(
 							currency,
