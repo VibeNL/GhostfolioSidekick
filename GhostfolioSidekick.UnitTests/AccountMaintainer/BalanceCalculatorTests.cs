@@ -121,6 +121,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			   new RepayBondActivity { Date = date.AddDays(7), Amount = new Money(baseCurrency, 4) },
 			   new GiftFiatActivity { Date = date.AddDays(8), Amount = new Money(baseCurrency, 6) },
 			   new CorrectionActivity { Date = date.AddDays(9), Amount = new Money(baseCurrency, 1) },
+			   new TaxActivity { Date = date.AddDays(10), Amount = new Money(baseCurrency, 2) },
 		   ];
 
 			_ = mockExchangeRateService
@@ -131,7 +132,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			_ = result.Should().NotBeNull();
 			_ = result.Select(b => b.Money.Currency).Should().AllBeEquivalentTo(baseCurrency);
-			_ = result.Count.Should().Be(10);
+			_ = result.Count.Should().Be(11);
 			// At least one balance should be negative due to fees/taxes subtraction
 			_ = result.Any(b => b.Money.Amount < 0).Should().BeTrue();
 		}

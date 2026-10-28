@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-06-10T09:15:30.123456Z","2024-06-10","DEFAULT","CASH","TRANSFER_INBOUND","","","","","","500.000000","","","EUR","","","","Incoming transfer from John Doe (NL00TEST0000000001)","a1b2c3d4-e5f6-7890-abcd-ef0123456789","","","",""

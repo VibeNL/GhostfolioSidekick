@@ -130,6 +130,7 @@ namespace GhostfolioSidekick.Activities
 					Fees = [.. fees],
 				},
 				PartialActivityType.Interest => new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.Tax => new TaxActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.Fee => new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.Correction => new CorrectionActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
 				PartialActivityType.CashDeposit => new CashDepositActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),

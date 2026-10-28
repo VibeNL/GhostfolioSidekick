@@ -24,6 +24,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				case "BONUS":
 				case "STOCKPERK":
 				case "TRANSFER_INSTANT_INBOUND":
+				case "TRANSFER_INBOUND": // Regular (non-instant) incoming transfer, same as the instant variant
 					lst.Add(PartialActivity.CreateCashDeposit(
 						currency,
 						date,
@@ -34,6 +35,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				case "CUSTOMER_OUTBOUND_REQUEST":
 				case "TRANSFER_INSTANT_OUTBOUND":
+				case "TRANSFER_OUTBOUND": // Regular (non-instant) outgoing transfer, same as the instant variant
 					lst.Add(PartialActivity.CreateCashWithdrawal(
 						currency,
 						date,
@@ -160,6 +162,27 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					// Ignored: this is a cash pre-payment reservation that gets settled by the actual TRADING/BUY entry, which handles the cash reduction.
 					break;
 
+				case "PRE_DETERMINED_TAX_BASE":
+				case "EARNINGS": // Vorabpauschale (advance tax on accumulating funds); booked as EARNINGS from 2025 onwards
+					if (record.Tax.HasValue && record.Tax.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateTax(
+							currency,
+							date,
+							CreateSymbolIdentifiers(record, currency),
+							Math.Abs(record.Tax.Value),
+							new Money(currency, Math.Abs(record.Tax.Value)),
+							transactionId));
+					}
+					break;
+
+				case "TAX_OPTIMIZATION": // Tax refund/correction; sign of amount determines direction
+				case "INTEREST_PAYMENT_CANCELLED": // Reversal of an interest payment (correction from Trade Republic)
+				case "MANUAL_CASH_TRANSFER":
+				case "MANUAL_CASH_TRANSFER_CANCELLED":
+					lst.Add(CreateCashMovementBySign(currency, date, record.Amount.GetValueOrDefault(), transactionId));
+					break;
+
 				default:
 					if (applicationSettings.ConfigurationInstance.Settings.SkipUnknownTransactionTypes)
 					{
@@ -180,6 +203,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, record.Symbol!, currency),
 				PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, record.Name!, currency),
 			];
+		}
+
+		private static PartialActivity CreateCashMovementBySign(Currency currency, DateTime date, decimal amount, string transactionId)
+		{
+			var absoluteAmount = Math.Abs(amount);
+			return amount >= 0
+				? PartialActivity.CreateCashDeposit(currency, date, absoluteAmount, new Money(currency, absoluteAmount), transactionId)
+				: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, new Money(currency, absoluteAmount), transactionId);
 		}
 
 		protected override CsvConfiguration GetConfig()

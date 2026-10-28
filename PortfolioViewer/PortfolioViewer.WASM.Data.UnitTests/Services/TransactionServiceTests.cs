@@ -988,6 +988,11 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			return new ValuableActivity(account, null, [], date, new Money(Currency.USD, amount), transactionId, null, description);
 		}
 
+		private static TaxActivity CreateTaxActivity(Account account, DateTime date, decimal amount, string transactionId = "TAX-001", string description = "Tax")
+		{
+			return new TaxActivity(account, null, [], date, new Money(Currency.USD, amount), transactionId, null, description);
+		}
+
 		private static Activity CreateTestActivityInstance(Type type, Account account, Holding holding)
 		{
 			return type switch
@@ -1009,6 +1014,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				_ when type == typeof(StakingRewardActivity) => CreateStakingRewardActivity(account, holding, DateTime.Now.AddDays(-15), 9),
 				_ when type == typeof(ValuableActivity) => CreateValuableActivity(account, DateTime.Now.AddDays(-16), 400),
 				_ when type == typeof(CorrectionActivity) => CreateCorrectionActivity(account, DateTime.Now.AddDays(-17), 50),
+				_ when type == typeof(TaxActivity) => CreateTaxActivity(account, DateTime.Now.AddDays(-18), 50),
 				_ => throw new NotImplementedException($"No test instance creation defined for activity type {type.Name}.")
 			};
 		}

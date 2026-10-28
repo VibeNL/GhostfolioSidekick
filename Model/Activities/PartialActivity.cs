@@ -148,11 +148,23 @@ namespace GhostfolioSidekick.Model.Activities
 			Money totalTransactionAmount,
 			string transactionId)
 		{
+			return CreateTax(currency, date, [], amount, totalTransactionAmount, transactionId);
+		}
+
+		public static PartialActivity CreateTax(
+			Currency currency,
+			DateTime date,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
+			decimal amount,
+			Money totalTransactionAmount,
+			string transactionId)
+		{
 			GuardNonNegative(amount, nameof(amount));
 			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Tax, date, currency, totalTransactionAmount, transactionId)
 			{
+				SymbolIdentifiers = symbolIdentifiers,
 				Amount = amount,
 				Description = "Tax",
 			};

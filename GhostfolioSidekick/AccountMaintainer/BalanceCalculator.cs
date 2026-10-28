@@ -56,6 +56,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 					case FeeActivity feeActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(feeActivity.Date, feeActivity.Amount.Times(-1)));
 						break;
+					case TaxActivity taxActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(taxActivity.Date, taxActivity.Amount.Times(-1)));
+						break;
 					case InterestActivity interestActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(interestActivity.Date, interestActivity.Amount));
 						break;

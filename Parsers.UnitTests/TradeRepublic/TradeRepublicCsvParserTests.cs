@@ -452,6 +452,142 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
         }
 
         [Fact]
+        public async Task ConvertActivitiesForAccount_SingleTransferInbound_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_transfer_inbound.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2024, 06, 10, 9, 15, 30, 123, DateTimeKind.Utc).AddMicroseconds(456),
+                    500.000000m,
+                    new Money(Currency.EUR, 500.000000m),
+                    "a1b2c3d4-e5f6-7890-abcd-ef0123456789")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleTransferOutbound_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_transfer_outbound.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2024, 06, 12, 14, 22, 11, 654, DateTimeKind.Utc).AddMicroseconds(321),
+                    750.000000m,
+                    new Money(Currency.EUR, 750.000000m),
+                    "b2c3d4e5-f6a7-8901-bcde-f01234567890")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SinglePreDeterminedTaxBase_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_pre_determined_tax_base.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2024, 01, 15, 15, 18, 56, 293, DateTimeKind.Utc).AddMicroseconds(456),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B4L5Y983", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Core MSCI World USD (Acc)", Currency.EUR),
+                    ],
+                    2.96m,
+                    new Money(Currency.EUR, 2.96m),
+                    "c3d4e5f6-a7b8-9012-cdef-012345678901")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleEarningsVorabpauschale_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_earnings_vorabpauschale.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2025, 01, 28, 16, 26, 36, 134, DateTimeKind.Utc).AddMicroseconds(432),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00BFNM3B99", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "MSCI EMU ESG EUR (Acc)", Currency.EUR),
+                    ],
+                    1.93m,
+                    new Money(Currency.EUR, 1.93m),
+                    "d4e5f6a7-b8c9-0123-def0-123456789012")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleTaxOptimization_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_tax_optimization.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 20, 10, 5, 45, 789, DateTimeKind.Utc).AddMicroseconds(12),
+                    12.500000m,
+                    new Money(Currency.EUR, 12.500000m),
+                    "e5f6a7b8-c9d0-1234-efab-567890123456")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleInterestPaymentCancelled_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_interest_payment_cancelled.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 15, 9, 0, 0, DateTimeKind.Utc),
+                    50.000000m,
+                    new Money(Currency.EUR, 50.000000m),
+                    "f6a7b8c9-d0e1-2345-fabc-678901234567")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleManualCashTransfer_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_manual_cash_transfer.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2026, 07, 8, 15, 29, 1, 228, DateTimeKind.Utc).AddMicroseconds(150),
+                    45.000000m,
+                    new Money(Currency.EUR, 45.000000m),
+                    "a7b8c9d0-e1f2-3456-abcd-789012345678")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleManualCashTransferCancelled_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_manual_cash_transfer_cancelled.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2026, 07, 13, 6, 22, 44, 742, DateTimeKind.Utc).AddMicroseconds(490),
+                    45.000000m,
+                    new Money(Currency.EUR, 45.000000m),
+                    "b8c9d0e1-f2a3-4567-bcde-890123456789")
+            ]);
+        }
+
+        [Fact]
         public void ParseRow_UnsupportedType_ThrowsNotSupportedException()
         {
             var record = CreateUnknownTypeRecord();

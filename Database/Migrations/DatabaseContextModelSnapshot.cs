@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -999,6 +999,13 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasDiscriminator().HasValue("RepayBond");
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.TaxActivity", b =>
+                {
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
+
+                    b.HasDiscriminator().HasValue("Tax");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.ValuableActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
@@ -1102,6 +1109,11 @@ namespace GhostfolioSidekick.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("GhostfolioSidekick.Model.Activities.Types.TaxActivity", null)
                         .WithMany()
                         .HasForeignKey("ActivityId")
                         .OnDelete(DeleteBehavior.Cascade);

@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-01-28T16:26:36.134432Z","2025-01-28","DEFAULT","CASH","EARNINGS","FUND","MSCI EMU ESG EUR (Acc)","IE00BFNM3B99","","","0.000000","","-1.93","EUR","","","","Vorabpauschale for ISIN IE00BFNM3B99","d4e5f6a7-b8c9-0123-def0-123456789012","","","",""
