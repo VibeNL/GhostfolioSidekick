@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2026-08-01T12:00:00.000000Z","2026-08-01","DEFAULT","CASH","MANUAL_CASH_TRANSFER","","","","","","0.000000","","","EUR","","","","Zero amount transfer (degenerate)","f2a3b4c5-d6e7-8901-bcde-f01234567890","","","",""

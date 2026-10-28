@@ -588,6 +588,22 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
         }
 
         [Fact]
+        public async Task ConvertActivitiesForAccount_SingleEarningsZeroTax_Ignored()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_earnings_zero_tax.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleManualCashTransferZeroAmount_Ignored()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_manual_cash_transfer_zero.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEmpty();
+        }
+
+        [Fact]
         public void ParseRow_UnsupportedType_ThrowsNotSupportedException()
         {
             var record = CreateUnknownTypeRecord();

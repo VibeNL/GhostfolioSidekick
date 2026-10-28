@@ -180,7 +180,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				case "INTEREST_PAYMENT_CANCELLED": // Reversal of an interest payment (correction from Trade Republic)
 				case "MANUAL_CASH_TRANSFER":
 				case "MANUAL_CASH_TRANSFER_CANCELLED":
-					lst.Add(CreateCashMovementBySign(currency, date, record.Amount.GetValueOrDefault(), transactionId));
+					if (record.Amount.HasValue && record.Amount.Value != 0)
+					{
+						lst.Add(CreateCashMovementBySign(currency, date, record.Amount.Value, transactionId));
+					}
 					break;
 
 				default:

@@ -598,5 +598,11 @@
 		<None Update="TestFiles\TradeRepublic\CSV\single_manual_cash_transfer_cancelled.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_earnings_zero_tax.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\CSV\single_manual_cash_transfer_zero.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 </Project>
