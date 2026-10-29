@@ -24,5 +24,22 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			Assert.Equal("GhostfolioSidekick", agent.Name);
 			Assert.Contains("financial assistant", agent.Description);
 		}
+
+		[Fact]
+		public void Create_WithCapabilities_IncludesToolGroupsInPrompt()
+		{
+			// Arrange
+			var mockWebChatClient = new Mock<ICustomChatClient>();
+			var clonedClient = new Mock<ICustomChatClient>();
+			clonedClient.SetupProperty(c => c.ChatMode);
+			mockWebChatClient.Setup(c => c.Clone()).Returns(clonedClient.Object);
+
+			// Act
+			var agent = GhostfolioSidekick.Create(mockWebChatClient.Object, null, "- Research: Provides multi-step research");
+
+			// Assert
+			Assert.Contains("Available tool groups", agent.Instructions);
+			Assert.Contains("- Research:", agent.Instructions);
+		}
 	}
 }
