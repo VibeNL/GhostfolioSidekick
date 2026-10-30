@@ -45,44 +45,44 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					break;
 
 				case "INTEREST_PAYMENT":
-						lst.Add(PartialActivity.CreateInterest(
+					lst.Add(PartialActivity.CreateInterest(
+						currency,
+						date,
+						record.Amount.GetValueOrDefault(),
+						record.Description ?? "Interest payment",
+						new Money(currency, record.Amount.GetValueOrDefault()),
+						transactionId));
+					if (record.Tax.HasValue && record.Tax.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateTax(
 							currency,
 							date,
-							record.Amount.GetValueOrDefault(),
-							record.Description ?? "Interest payment",
-							new Money(currency, record.Amount.GetValueOrDefault()),
+							Math.Abs(record.Tax.Value),
+							new Money(currency, Math.Abs(record.Tax.Value)),
 							transactionId));
-						if (record.Tax.HasValue && record.Tax.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateTax(
-								currency,
-								date,
-								Math.Abs(record.Tax.Value),
-								new Money(currency, Math.Abs(record.Tax.Value)),
-								transactionId));
-						}
-						break;
+					}
+					break;
 
-					case "DIVIDEND":
-					case "DISTRIBUTION": // Payout of a distributing item (e.g. ETF), semantically the same as DIVIDEND including the tax column
-						var dividendSymbolIds = CreateSymbolIdentifiers(record, currency);
-						lst.Add(PartialActivity.CreateDividend(
+				case "DIVIDEND":
+				case "DISTRIBUTION": // Payout of a distributing item (e.g. ETF), semantically the same as DIVIDEND including the tax column
+					var dividendSymbolIds = CreateSymbolIdentifiers(record, currency);
+					lst.Add(PartialActivity.CreateDividend(
+						currency,
+						date,
+						dividendSymbolIds,
+						record.Amount.GetValueOrDefault(),
+						new Money(currency, record.Amount.GetValueOrDefault()),
+						transactionId));
+					if (record.Tax.HasValue && record.Tax.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateTax(
 							currency,
 							date,
-							dividendSymbolIds,
-							record.Amount.GetValueOrDefault(),
-							new Money(currency, record.Amount.GetValueOrDefault()),
+							Math.Abs(record.Tax.Value),
+							new Money(currency, Math.Abs(record.Tax.Value)),
 							transactionId));
-						if (record.Tax.HasValue && record.Tax.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateTax(
-								currency,
-								date,
-								Math.Abs(record.Tax.Value),
-								new Money(currency, Math.Abs(record.Tax.Value)),
-								transactionId));
-						}
-						break;
+					}
+					break;
 
 				case "BUY":
 					var buySymbolIds = CreateSymbolIdentifiers(record, currency);
@@ -92,39 +92,39 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						buySymbolIds,
 						record.Shares.GetValueOrDefault(),
 						new Money(currency, record.Price.GetValueOrDefault()),
+							new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
+								transactionId));
+							if (record.Fee.HasValue && record.Fee.Value != 0)
+							{
+								lst.Add(PartialActivity.CreateFee(
+									currency,
+									date,
+									Math.Abs(record.Fee.Value),
+									new Money(currency, Math.Abs(record.Fee.Value)),
+									transactionId));
+							}
+							break;
+
+						case "SELL":
+					var sellSymbolIds = CreateSymbolIdentifiers(record, currency);
+					lst.Add(PartialActivity.CreateSell(
+						currency,
+						date,
+						sellSymbolIds,
+						Math.Abs(record.Shares.GetValueOrDefault()),
+						new Money(currency, record.Price.GetValueOrDefault()),
 						new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
 						transactionId));
 					if (record.Fee.HasValue && record.Fee.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateFee(
-								currency,
-								date,
-								Math.Abs(record.Fee.Value),
-								new Money(currency, Math.Abs(record.Fee.Value)),
-								transactionId));
-						}
-						break;
-
-					case "SELL":
-						var sellSymbolIds = CreateSymbolIdentifiers(record, currency);
-						lst.Add(PartialActivity.CreateSell(
+					{
+						lst.Add(PartialActivity.CreateFee(
 							currency,
 							date,
-							sellSymbolIds,
-							Math.Abs(record.Shares.GetValueOrDefault()),
-							new Money(currency, record.Price.GetValueOrDefault()),
-							new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
+							Math.Abs(record.Fee.Value),
+							new Money(currency, Math.Abs(record.Fee.Value)),
 							transactionId));
-						if (record.Fee.HasValue && record.Fee.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateFee(
-								currency,
-								date,
-								Math.Abs(record.Fee.Value),
-								new Money(currency, Math.Abs(record.Fee.Value)),
-								transactionId));
-						}
-						break;
+					}
+					break;
 
 				case "CARD_TRANSACTION":
 				case "CARD_TRANSACTION_INTERNATIONAL":
