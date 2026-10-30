@@ -1,6 +1,8 @@
 using CsvHelper;
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace GhostfolioSidekick.Parsers
@@ -9,8 +11,13 @@ namespace GhostfolioSidekick.Parsers
 	{
 		private readonly Dictionary<string, bool> KnownHeaderCache = [];
 
-		protected RecordBaseImporter()
+		private readonly IApplicationSettings? applicationSettings;
+		private readonly ILogger? logger;
+
+		protected RecordBaseImporter(IApplicationSettings? applicationSettings = null, ILogger? logger = null)
 		{
+			this.applicationSettings = applicationSettings;
+			this.logger = logger;
 		}
 
 		public virtual Task<bool> CanParse(string filename)
@@ -65,7 +72,18 @@ namespace GhostfolioSidekick.Parsers
 
 			for (int i = 0; i < records.Count; i++)
 			{
-				var partialActivity = ParseRow(records[i], i + 1);
+				var rowNumber = i + 1;
+				List<PartialActivity> partialActivity;
+				try
+				{
+					partialActivity = [.. ParseRow(records[i], rowNumber)];
+				}
+				catch (UnknownTransactionTypeException ex) when (applicationSettings?.ConfigurationInstance.Settings.SkipUnknownTransactionTypes == true)
+				{
+					logger?.LogWarning(ex, "Skipping unsupported {Parser} transaction type '{Type}' on row {RowNumber} in {File}.", ex.ParserName, ex.TransactionType, rowNumber, filename);
+					continue;
+				}
+
 				activityManager.AddPartialActivity(accountName, partialActivity);
 			}
 

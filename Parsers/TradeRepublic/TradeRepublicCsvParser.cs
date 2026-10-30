@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper, IApplicationSettings applicationSettings, ILogger<TradeRepublicCsvParser> logger) : RecordBaseImporter<TradeRepublicCsvRecord>
+	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper, IApplicationSettings? applicationSettings = null, ILogger<TradeRepublicCsvParser>? logger = null) : RecordBaseImporter<TradeRepublicCsvRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(TradeRepublicCsvRecord record, int rowNumber)
 		{
@@ -187,13 +187,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					break;
 
 				default:
-					if (applicationSettings.ConfigurationInstance.Settings.SkipUnknownTransactionTypes)
-					{
-						logger.LogWarning("Skipping unsupported Trade Republic CSV transaction type '{Type}' on row {RowNumber}.", record.Type, rowNumber);
-						return [];
-					}
-
-					throw new NotSupportedException($"Trade Republic CSV transaction type '{record.Type}' is not supported.");
+					throw new UnknownTransactionTypeException("Trade Republic CSV", record.Type);
 			}
 
 			return lst;

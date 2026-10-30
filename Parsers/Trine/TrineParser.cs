@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using GhostfolioSidekick.Configuration;
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -5,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trine
 {
-	public class TrineParser() : RecordBaseImporter<TrineRecord>
+	public class TrineParser(IApplicationSettings? applicationSettings = null, ILogger<TrineParser>? logger = null) : RecordBaseImporter<TrineRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(TrineRecord record, int rowNumber)
 		{
@@ -75,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 					break;
 
 				default:
-					throw new NotSupportedException();
+					throw new UnknownTransactionTypeException("Trine", record.Type?.ToString());
 			}
 		}
 

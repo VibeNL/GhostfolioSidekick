@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -6,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212
 {
-	public class Trading212Parser(ICurrencyMapper currencyMapper, ILogger<Trading212Parser> logger) : RecordBaseImporter<Trading212Record>
+	public class Trading212Parser(ICurrencyMapper currencyMapper, ILogger<Trading212Parser> logger, IApplicationSettings? applicationSettings = null) : RecordBaseImporter<Trading212Record>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
 		{
@@ -125,7 +126,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					break;
 				default:
 					logger.LogError("Unsupported Trading212 action '{Action}' at row {RowNumber} (RecordId: {RecordId}, Time: {Time}).", record.Action, rowNumber, record.Id, record.Time);
-					throw new NotSupportedException($"Unsupported Trading212 action: '{record.Action}' at row {rowNumber} (RecordId: {record.Id}, Time: {record.Time:O})");
+					throw new UnknownTransactionTypeException("Trading212", record.Action);
 			}
 
 			lst.AddRange(GetFees(record));

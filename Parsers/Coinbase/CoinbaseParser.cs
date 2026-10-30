@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using GhostfolioSidekick.Configuration;
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -6,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public partial class CoinbaseParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<CoinbaseRecord>
+	public partial class CoinbaseParser(ICurrencyMapper currencyMapper, IApplicationSettings? applicationSettings = null, ILogger<CoinbaseParser>? logger = null) : RecordBaseImporter<CoinbaseRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
 		{
@@ -114,7 +116,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateGift(date, symbolIds, record.Quantity, id);
 					break;
 				default:
-					throw new NotSupportedException(record.Type);
+					throw new UnknownTransactionTypeException("Coinbase", record.Type);
 			}
 		}
 

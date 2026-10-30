@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
@@ -27,6 +28,79 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			protected override CsvConfiguration GetConfig()
 			{
 				return new CsvConfiguration(CultureInfo.InvariantCulture);
+			}
+		}
+
+		private class UnknownTypeRecordBaseImporter(IApplicationSettings? applicationSettings) : RecordBaseImporter<TestRecord>(applicationSettings)
+		{
+			protected override IEnumerable<PartialActivity> ParseRow(TestRecord record, int rowNumber)
+			{
+				if (record.Header1 == "unknown")
+				{
+					throw new UnknownTransactionTypeException("Test", record.Header1);
+				}
+
+				return [new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "txn1")];
+			}
+
+			protected override CsvConfiguration GetConfig()
+			{
+				return new CsvConfiguration(CultureInfo.InvariantCulture);
+			}
+		}
+
+		private static Mock<IApplicationSettings> CreateSettings(bool skipUnknownTransactionTypes)
+		{
+			var settingsMock = new Mock<IApplicationSettings>();
+			settingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
+			{
+				Settings = new Settings
+				{
+					DataProviderPreference = "YAHOO;COINGECKO",
+					PrimaryCurrency = "EUR",
+					SkipUnknownTransactionTypes = skipUnknownTransactionTypes,
+				},
+			});
+			return settingsMock;
+		}
+
+		[Fact]
+		public async Task ParseActivities_UnknownType_SkipEnabled_SkipsRowAndKeepsOthers()
+		{
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(true).Object);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown\nknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				await importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1");
+
+				mockActivityManager.Verify(m => m.AddPartialActivity(It.IsAny<string>(), It.IsAny<IEnumerable<PartialActivity>>()), Times.Exactly(2));
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
+			}
+		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(null)]
+		public async Task ParseActivities_UnknownType_SkipDisabled_Throws(bool? skipUnknownTransactionTypes)
+		{
+			var importer = new UnknownTypeRecordBaseImporter(skipUnknownTransactionTypes.HasValue ? CreateSettings(skipUnknownTransactionTypes.Value).Object : null);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1"));
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
 			}
 		}
 

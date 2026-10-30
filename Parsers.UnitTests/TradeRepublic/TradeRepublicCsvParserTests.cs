@@ -604,23 +604,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
         }
 
         [Fact]
-        public void ParseRow_UnsupportedType_ThrowsNotSupportedException()
+        public void ParseRow_UnsupportedType_ThrowsUnknownTransactionTypeException()
         {
             var record = CreateUnknownTypeRecord();
 
-            var ex = Assert.Throws<NotSupportedException>(() => InvokeParseRow(parser, record));
+            var ex = Assert.Throws<UnknownTransactionTypeException>(() => InvokeParseRow(parser, record));
 
-            ex.Message.Should().Contain("UNKNOWN_TYPE_XYZ");
+            ex.TransactionType.Should().Be("UNKNOWN_TYPE_XYZ");
         }
 
         [Fact]
-        public void ParseRow_UnsupportedType_SkipEnabled_ReturnsNoActivities()
+        public void ParseRow_UnsupportedType_SkipEnabled_StillThrows_SkippingIsHandledByBaseImporter()
         {
             var parserWithSkip = CreateParser(skipUnknownTransactionTypes: true);
 
-            var result = InvokeParseRow(parserWithSkip, CreateUnknownTypeRecord()).ToList();
-
-            result.Should().BeEmpty();
+            Assert.Throws<UnknownTransactionTypeException>(() => InvokeParseRow(parserWithSkip, CreateUnknownTypeRecord()));
         }
 
         private static TradeRepublicCsvRecord CreateUnknownTypeRecord()

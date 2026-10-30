@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using GhostfolioSidekick.Configuration;
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -5,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bitvavo
 {
-	public class BitvavoParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<BitvavoRecord>
+	public class BitvavoParser(ICurrencyMapper currencyMapper, IApplicationSettings? applicationSettings = null, ILogger<BitvavoParser>? logger = null) : RecordBaseImporter<BitvavoRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(BitvavoRecord record, int rowNumber)
 		{
@@ -113,7 +115,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 				default:
-					throw new NotSupportedException();
+					throw new UnknownTransactionTypeException("Bitvavo", record.Type);
 			}
 		}
 

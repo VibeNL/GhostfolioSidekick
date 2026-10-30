@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using GhostfolioSidekick.Configuration;
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -5,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Nexo
 {
-	public class NexoParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<NexoRecord>
+	public class NexoParser(ICurrencyMapper currencyMapper, IApplicationSettings? applicationSettings = null, ILogger<NexoParser>? logger = null) : RecordBaseImporter<NexoRecord>(applicationSettings, logger)
 	{
 		readonly Dictionary<string, string> Translation = new()
 		{
@@ -32,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				"Exchange To Withdraw" or "Deposit To Exchange" or "Locking Term Deposit" or
 				"Unlocking Term Deposit" or "Dual Investment Unlock" or "Dual Investment Lock" =>
 					[],
-				_ => throw new NotSupportedException(record.Type)
+				_ => throw new UnknownTransactionTypeException("Nexo", record.Type)
 			};
 
 			foreach (var activity in activities)
