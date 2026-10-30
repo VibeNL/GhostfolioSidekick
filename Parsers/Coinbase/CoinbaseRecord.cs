@@ -1,41 +1,39 @@
-using CsvHelper.Configuration.Attributes;
+using CsvHelper;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	[Delimiter(",")]
-	public class CoinbaseRecord
+	[CsvRecord]
+	public partial class CoinbaseRecord
 	{
-		[Name("ID")]
-		[Optional]
+		[CsvColumn("ID", Optional = true)]
 		public string? TransactionId { get; set; }
 
-		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
-		[Format("yyyy-MM-ddTHH:mm:ssZ", "yyyy-MM-dd HH:mm:ss UTC", "yyyy-MM-dd HH:mm UTC")]
+		[CsvConverter(typeof(UtcDateTimeConverter))]
 		public DateTime Timestamp { get; set; }
 
-		[Name("Transaction Type")]
+		[CsvColumn("Transaction Type")]
 		public required string Type { get; set; }
 
 		public required string Asset { get; set; }
 
-		[Name("Quantity Transacted")]
-		[NumberStyles(NumberStyles.Number | NumberStyles.AllowExponent)]
+		[CsvColumn("Quantity Transacted")]
+		[CsvConverter(typeof(ExponentDecimalConverter))]
 		public decimal Quantity { get; set; }
 
-		[Name("Spot Price Currency", "Price Currency")]
+		[CsvColumn("Spot Price Currency", "Price Currency")]
 		public required string Currency { get; set; }
 
-		[Name("Spot Price at Transaction", "Price at Transaction")]
-		[TypeConverter(typeof(DecimalCurrencyStrippingConverter))]
+		[CsvColumn("Spot Price at Transaction", "Price at Transaction")]
+		[CsvConverter(typeof(DecimalCurrencyStrippingConverter))]
 		public decimal? Price { get; set; }
 
-		[Name("Total (inclusive of fees and/or spread)")]
-		[TypeConverter(typeof(DecimalCurrencyStrippingConverter))]
+		[CsvColumn("Total (inclusive of fees and/or spread)")]
+		[CsvConverter(typeof(DecimalCurrencyStrippingConverter))]
 		public decimal? TotalTransactionAmount { get; set; }
 
-		[Name("Fees and/or Spread")]
-		[TypeConverter(typeof(DecimalCurrencyStrippingConverter))]
+		[CsvColumn("Fees and/or Spread")]
+		[CsvConverter(typeof(DecimalCurrencyStrippingConverter))]
 		public decimal? Fee { get; set; }
 
 		public required string Notes { get; set; }

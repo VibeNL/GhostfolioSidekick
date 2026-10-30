@@ -1,16 +1,17 @@
 using AwesomeAssertions;
-using CsvHelper.Configuration;
 using GhostfolioSidekick.Configuration;
+using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
-using System.Globalization;
+using System.Text;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {
-	public class RecordBaseImporterTests
+	public partial class RecordBaseImporterTests
 	{
-		private class TestRecord
+		[CsvRecord]
+		internal partial class TestRecord
 		{
 			public string? Header1 { get; set; }
 		}
@@ -25,9 +26,31 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 				};
 			}
 
-			protected override CsvConfiguration GetConfig()
+			protected override CsvReaderOptions GetConfig()
 			{
-				return new CsvConfiguration(CultureInfo.InvariantCulture);
+				return CsvReaderOptions.Default;
+			}
+		}
+
+		private sealed class HeaderOnlyTestImporter : TestRecordBaseImporter
+		{
+			public TrackingStreamReader? Reader { get; private set; }
+
+			protected override StreamReader GetStreamReader(string file)
+			{
+				Reader = new TrackingStreamReader("Header1\nvalue1\nvalue2");
+				return Reader;
+			}
+		}
+
+		private sealed class TrackingStreamReader(string text) : StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(text)))
+		{
+			public int LinesRead { get; private set; }
+
+			public override string? ReadLine()
+			{
+				LinesRead++;
+				return base.ReadLine();
 			}
 		}
 
@@ -43,9 +66,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 				return [new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "txn1")];
 			}
 
-			protected override CsvConfiguration GetConfig()
+			protected override CsvReaderOptions GetConfig()
 			{
-				return new CsvConfiguration(CultureInfo.InvariantCulture);
+				return new CsvReaderOptions();
 			}
 		}
 
@@ -121,6 +144,17 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 
 		[Fact]
+		public async Task CanParse_ReadsOnlyTheHeader()
+		{
+			var importer = new HeaderOnlyTestImporter();
+
+			var result = await importer.CanParse("test.csv");
+
+			result.Should().BeTrue();
+			importer.Reader!.LinesRead.Should().Be(1);
+		}
+
+		[Fact]
 		public async Task ParseActivities_ParsesRecordsCorrectly()
 		{
 			var importer = new TestRecordBaseImporter();
@@ -144,5 +178,3 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 	}
 }
-
-

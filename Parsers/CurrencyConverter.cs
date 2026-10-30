@@ -1,26 +1,28 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.TypeConversion;
+using CsvHelper;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers
 {
-	public class CurrencyConverter(string culture) : DefaultTypeConverter
+	public abstract class CurrencyConverter(string culture) : ICsvConverter<decimal>
 	{
 		private readonly CultureInfo cultureInfo = new(culture);
 
-		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+		public decimal Read(CsvReader reader, int index)
 		{
-			if (text == null) { return null; }
+			var text = reader.GetString(index);
+			if (string.IsNullOrEmpty(text)) { return default; }
 			return decimal.Parse(text, NumberStyles.Currency, cultureInfo);
 		}
 
 		[ExcludeFromCodeCoverage]
-		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		public void Write(CsvWriter writer, decimal value)
 		{
-			return string.Empty;
+			writer.WriteField(value.ToString("C", cultureInfo));
 		}
 	}
 
+	public sealed class EnUsCurrencyConverter() : CurrencyConverter("en-US")
+	{
+	}
 }

@@ -1,37 +1,36 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Nexo
 {
-	[Delimiter(",")]
-	public class NexoRecord
+	[CsvRecord]
+	public partial class NexoRecord
 	{
 		public required string Transaction { get; set; }
 
 		public required string Type { get; set; }
 
-		[Name("Input Currency")]
+		[CsvColumn("Input Currency")]
 		public required string InputCurrency { get; set; }
 
-		[Name("Input Amount")]
+		[CsvColumn("Input Amount")]
 		public decimal InputAmount { get; set; }
 
-		[Name("Output Currency")]
+		[CsvColumn("Output Currency")]
 		public required string OutputCurrency { get; set; }
 
-		[Name("Output Amount")]
+		[CsvColumn("Output Amount")]
 		public decimal OutputAmount { get; set; }
 
-		[Name("USD Equivalent")]
-		[TypeConverter(typeof(CurrencyConverter), "en-US")]
+		[CsvColumn("USD Equivalent")]
+		[CsvConverter(typeof(EnUsCurrencyConverter))]
 		public decimal USDEquivalent { get; set; }
 
-		[Name("Details")]
+		[CsvColumn("Details")]
 		public required string Details { get; set; }
 
-		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
-		[Name("Date / Time (UTC)")]
-		[Format("yyyy-MM-dd HH:mm:ss")]
+		[CsvColumn("Date / Time (UTC)")]
+		[CsvConverter(typeof(UtcDateTimeConverter))]
 		public DateTime DateTime { get; set; }
 	}
 }

@@ -124,6 +124,9 @@
 		<None Update="TestFiles\Coinbase\BuyOrders\single_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Coinbase\BuyOrders\single_buy_exponent.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Coinbase\BuyOrders\single_convert.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

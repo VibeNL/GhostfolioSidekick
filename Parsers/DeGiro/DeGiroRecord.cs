@@ -1,59 +1,59 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
-	[Delimiter(",")]
-	public class DeGiroRecord
+	[CsvRecord]
+	public partial class DeGiroRecord
 	{
-		[Format("dd-MM-yyyy")]
-		[Name("Date",  // EN
+		[CsvFormat("dd-MM-yyyy")]
+		[CsvColumn("Date",  // EN
 				"Datum", // NL
 				"Data")] // PT
 		public DateOnly Date { get; set; }
 
-		[Name("Time",  // EN
+		[CsvColumn("Time",  // EN
 				"Tijd",  // NL
 				"Hora")] // PT
 		public TimeOnly Time { get; set; }
 
-		[Format("dd-MM-yyyy")]
-		[Name("Value date",   // EN	
+		[CsvFormat("dd-MM-yyyy")]
+		[CsvColumn("Value date",   // EN	
 				"Valutadatum",  // NL
 				"Data Valor")]  // PT
 		public DateOnly CurrencyDate { get; set; }
 
-		[Name("Product",    // EN & NL
+		[CsvColumn("Product",    // EN & NL
 				"Produto")] // PT
 		public string? Product { get; set; }
 
-		[Name("ISIN")]
+		[CsvColumn("ISIN")]
 		public string? ISIN { get; set; }
 
-		[Name("Description",    // EN
+		[CsvColumn("Description",    // EN
 				"Omschrijving", // NL
 				"Descrição")]   // PT
 		public required string Description { get; set; }
 
-		[Name("FX",   // EN & NL
+		[CsvColumn("FX",   // EN & NL
 				"T.")]  // PT
 		public string? FX { get; set; }
 
-		[Name("Change",   // EN
+		[CsvColumn("Change",   // EN
 				"Mutatie",  // NL
 				"Mudança")] // PT
 		public required string Mutation { get; set; }
 
-		[Index(8)]
+		[CsvColumn(Index = 8)]
 		public required string Total { get; set; }
 
-		[Name("Balance",    // EN
+		[CsvColumn("Balance",    // EN
 				"Saldo")]   // NL & PT
 		public required string BalanceCurrency { get; set; }
 
-		[Index(10)]
+		[CsvColumn(Index = 10)]
 		public required string Balance { get; set; }
 
-		[Name("Order Id",     // EN & NL
+		[CsvColumn("Order Id",     // EN & NL
 				"ID da Ordem")] // PT
 		public string? TransactionId { get; set; }
 	}

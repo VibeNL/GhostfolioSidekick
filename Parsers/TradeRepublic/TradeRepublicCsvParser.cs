@@ -1,5 +1,5 @@
-using CsvHelper.Configuration;
 using GhostfolioSidekick.Configuration;
+using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
@@ -210,13 +210,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, new Money(currency, absoluteAmount), transactionId);
 		}
 
-		protected override CsvConfiguration GetConfig()
+				protected override CsvReaderOptions GetConfig()
 		{
-			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			return new CsvReaderOptions
 			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ",",
+				HasHeader = true,
+				PoolStrings = true,
+				Separator = ',',
 			};
 		}
 	}

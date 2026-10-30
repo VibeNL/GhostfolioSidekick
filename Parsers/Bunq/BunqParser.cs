@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+﻿using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -25,13 +25,13 @@ namespace GhostfolioSidekick.Parsers.Bunq
 				[PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount), new Money(currency, Math.Abs(record.Amount)), transactionId)];
 		}
 
-		protected override CsvConfiguration GetConfig()
+		protected override CsvReaderOptions GetConfig()
 		{
-			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			return new CsvReaderOptions
 			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ";",
+				HasHeader = true,
+				PoolStrings = true,
+				Separator = ';',
 			};
 		}
 	}
