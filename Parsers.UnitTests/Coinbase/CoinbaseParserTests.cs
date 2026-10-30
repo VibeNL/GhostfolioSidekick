@@ -108,6 +108,34 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyExponentQuantity_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_buy_exponent.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto(IdentifierType.Ticker, "ETH", Currency.EUR)],
+						0.00213232M,
+						new Money(Currency.EUR,1810.23M),
+						new Money(Currency.EUR,4.85M),
+						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
+					PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
+						0.99M,
+						new Money(Currency.EUR, 0),
+						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleBuy_Alt_Converted()
 		{
 			// Arrange
