@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 				return value;
 			}
 
-			throw new FormatException($"Cannot convert '{text}' to decimal.");
+			throw new FormatException($"Cannot convert '{text}' to decimal (column {index}).");
 		}
 
 		[ExcludeFromCodeCoverage]

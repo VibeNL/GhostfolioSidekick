@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Parsers
 		[ExcludeFromCodeCoverage]
 		public void Write(CsvWriter writer, decimal value)
 		{
-			writer.WriteField(string.Empty);
+			writer.WriteField(value.ToString("C", cultureInfo));
 		}
 	}
 

@@ -1,4 +1,4 @@
-﻿using CsvHelper;
+using CsvHelper;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.Generic

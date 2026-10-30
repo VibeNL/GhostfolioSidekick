@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 
 			var result = new DayFirstUtcDateTimeConverter().Read(reader, 0);
 
-			result.Should().Be(new DateTime(2023, 8, 7, 0, 0, 0, DateTimeKind.Utc));
+			result.ToUniversalTime().Should().Be(new DateTime(2023, 8, 7, 0, 0, 0, DateTimeKind.Utc));
 		}
 
 		[Fact]
