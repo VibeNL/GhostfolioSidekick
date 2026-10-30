@@ -203,6 +203,22 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
             Assert.Equal("Tax", activity.Description);
         }
 
+        [Fact]
+        public void CreateTax_WithSymbolIdentifiers_ShouldSucceed()
+        {
+            var identifiers = new List<PartialSymbolIdentifier?>
+            {
+                PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B4L5Y983", Currency.USD),
+            };
+
+            var activity = PartialActivity.CreateTax(Currency.USD, TestDate, identifiers, 20, new Money(Currency.USD, 20), "tx");
+
+            Assert.Equal(20, activity.Amount);
+            Assert.Equal(PartialActivityType.Tax, activity.ActivityType);
+            Assert.Equal("Tax", activity.Description);
+            Assert.Single(activity.SymbolIdentifiers);
+        }
+
         // ── CreateFee ─────────────────────────────────────────────────────────
 
         [Theory]

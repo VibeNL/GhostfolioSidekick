@@ -78,6 +78,26 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		}
 
 		[Fact]
+		public async Task Calculate_TaxActivity_ReducesBalance()
+		{
+			Currency baseCurrency = Currency.USD;
+			List<Activity> activities =
+			[
+				new CashDepositActivity { Date = DateTime.UtcNow.AddDays(-1), Amount = new Money(baseCurrency, 100) },
+				new TaxActivity { Date = DateTime.UtcNow, Amount = new Money(baseCurrency, 2) },
+			];
+
+			_ = mockExchangeRateService
+				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
+				.ReturnsAsync((Money money, Currency currency, DateOnly d) => money);
+
+			List<Balance> result = await balanceCalculator.Calculate(baseCurrency, activities);
+
+			_ = result.Should().HaveCount(2);
+			_ = result[1].Money.Amount.Should().Be(98);
+		}
+
+		[Fact]
 		public async Task Calculate_ShouldThrowNotImplementedException_ForUnknownActivityType()
 		{
 			// Arrange
@@ -121,6 +141,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			   new RepayBondActivity { Date = date.AddDays(7), Amount = new Money(baseCurrency, 4) },
 			   new GiftFiatActivity { Date = date.AddDays(8), Amount = new Money(baseCurrency, 6) },
 			   new CorrectionActivity { Date = date.AddDays(9), Amount = new Money(baseCurrency, 1) },
+			   new TaxActivity { Date = date.AddDays(10), Amount = new Money(baseCurrency, 2) },
 		   ];
 
 			_ = mockExchangeRateService
@@ -131,7 +152,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			_ = result.Should().NotBeNull();
 			_ = result.Select(b => b.Money.Currency).Should().AllBeEquivalentTo(baseCurrency);
-			_ = result.Count.Should().Be(10);
+			_ = result.Count.Should().Be(11);
 			// At least one balance should be negative due to fees/taxes subtraction
 			_ = result.Any(b => b.Money.Amount < 0).Should().BeTrue();
 		}

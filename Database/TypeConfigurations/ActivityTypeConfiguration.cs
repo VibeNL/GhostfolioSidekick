@@ -30,6 +30,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<SendActivity>,
 		IEntityTypeConfiguration<ReceiveActivity>,
 		IEntityTypeConfiguration<StakingRewardActivity>,
+		IEntityTypeConfiguration<TaxActivity>,
 		IEntityTypeConfiguration<ValuableActivity>,
 		IEntityTypeConfiguration<CalculatedPriceTrace>
 	{
@@ -56,6 +57,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasValue<SendActivity>("Send")
 				.HasValue<ReceiveActivity>("Receive")
 				.HasValue<StakingRewardActivity>("StakingReward")
+				.HasValue<TaxActivity>("Tax")
 				.HasValue<ValuableActivity>("Valuable");
 
 			_ = builder.HasKey(a => a.Id);
@@ -175,6 +177,12 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
 		{
+		}
+
+		public void Configure(EntityTypeBuilder<TaxActivity> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(TaxActivity.Amount));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 		}
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)

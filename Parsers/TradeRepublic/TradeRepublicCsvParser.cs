@@ -1,11 +1,13 @@
 using CsvHelper;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<TradeRepublicCsvRecord>
+	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper, IApplicationSettings applicationSettings, ILogger<TradeRepublicCsvParser> logger) : RecordBaseImporter<TradeRepublicCsvRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(TradeRepublicCsvRecord record, int rowNumber)
 		{
@@ -22,6 +24,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				case "BONUS":
 				case "STOCKPERK":
 				case "TRANSFER_INSTANT_INBOUND":
+				case "TRANSFER_INBOUND": // Regular (non-instant) incoming transfer, same as the instant variant
 					lst.Add(PartialActivity.CreateCashDeposit(
 						currency,
 						date,
@@ -32,6 +35,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				case "CUSTOMER_OUTBOUND_REQUEST":
 				case "TRANSFER_INSTANT_OUTBOUND":
+				case "TRANSFER_OUTBOUND": // Regular (non-instant) outgoing transfer, same as the instant variant
 					lst.Add(PartialActivity.CreateCashWithdrawal(
 						currency,
 						date,
@@ -41,43 +45,45 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					break;
 
 				case "INTEREST_PAYMENT":
-						lst.Add(PartialActivity.CreateInterest(
+					lst.Add(PartialActivity.CreateInterest(
+						currency,
+						date,
+						record.Amount.GetValueOrDefault(),
+						record.Description ?? "Interest payment",
+						new Money(currency, record.Amount.GetValueOrDefault()),
+						transactionId));
+					if (record.Tax.HasValue && record.Tax.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateTax(
 							currency,
 							date,
-							record.Amount.GetValueOrDefault(),
-							record.Description ?? "Interest payment",
-							new Money(currency, record.Amount.GetValueOrDefault()),
+							Math.Abs(record.Tax.Value),
+							new Money(currency, Math.Abs(record.Tax.Value)),
 							transactionId));
-						if (record.Tax.HasValue && record.Tax.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateTax(
-								currency,
-								date,
-								Math.Abs(record.Tax.Value),
-								new Money(currency, Math.Abs(record.Tax.Value)),
-								transactionId));
-						}
-						break;
+					}
+					break;
 
-					case "DIVIDEND":
-						var dividendSymbolIds = CreateSymbolIdentifiers(record, currency);
-						lst.Add(PartialActivity.CreateDividend(
+				case "DIVIDEND":
+				case "DISTRIBUTION": // Payout of a distributing item (e.g. ETF), semantically the same as DIVIDEND including the tax column
+					var dividendSymbolIds = CreateSymbolIdentifiers(record, currency);
+					lst.Add(PartialActivity.CreateDividend(
+						currency,
+						date,
+						dividendSymbolIds,
+						record.Amount.GetValueOrDefault(),
+						new Money(currency, record.Amount.GetValueOrDefault()),
+						transactionId));
+					if (record.Tax.HasValue && record.Tax.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateTax(
 							currency,
 							date,
 							dividendSymbolIds,
-							record.Amount.GetValueOrDefault(),
-							new Money(currency, record.Amount.GetValueOrDefault()),
+							Math.Abs(record.Tax.Value),
+							new Money(currency, Math.Abs(record.Tax.Value)),
 							transactionId));
-						if (record.Tax.HasValue && record.Tax.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateTax(
-								currency,
-								date,
-								Math.Abs(record.Tax.Value),
-								new Money(currency, Math.Abs(record.Tax.Value)),
-								transactionId));
-						}
-						break;
+					}
+					break;
 
 				case "BUY":
 					var buySymbolIds = CreateSymbolIdentifiers(record, currency);
@@ -90,36 +96,36 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
 						transactionId));
 					if (record.Fee.HasValue && record.Fee.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateFee(
-								currency,
-								date,
-								Math.Abs(record.Fee.Value),
-								new Money(currency, Math.Abs(record.Fee.Value)),
-								transactionId));
-						}
-						break;
-
-					case "SELL":
-						var sellSymbolIds = CreateSymbolIdentifiers(record, currency);
-						lst.Add(PartialActivity.CreateSell(
+					{
+						lst.Add(PartialActivity.CreateFee(
 							currency,
 							date,
-							sellSymbolIds,
-							Math.Abs(record.Shares.GetValueOrDefault()),
-							new Money(currency, record.Price.GetValueOrDefault()),
-							new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
+							Math.Abs(record.Fee.Value),
+							new Money(currency, Math.Abs(record.Fee.Value)),
 							transactionId));
-						if (record.Fee.HasValue && record.Fee.Value != 0)
-						{
-							lst.Add(PartialActivity.CreateFee(
-								currency,
-								date,
-								Math.Abs(record.Fee.Value),
-								new Money(currency, Math.Abs(record.Fee.Value)),
-								transactionId));
-						}
-						break;
+					}
+					break;
+
+				case "SELL":
+					var sellSymbolIds = CreateSymbolIdentifiers(record, currency);
+					lst.Add(PartialActivity.CreateSell(
+						currency,
+						date,
+						sellSymbolIds,
+						Math.Abs(record.Shares.GetValueOrDefault()),
+						new Money(currency, record.Price.GetValueOrDefault()),
+						new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
+						transactionId));
+					if (record.Fee.HasValue && record.Fee.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateFee(
+							currency,
+							date,
+							Math.Abs(record.Fee.Value),
+							new Money(currency, Math.Abs(record.Fee.Value)),
+							transactionId));
+					}
+					break;
 
 				case "CARD_TRANSACTION":
 				case "CARD_TRANSACTION_INTERNATIONAL":
@@ -157,8 +163,37 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					// Ignored: this is a cash pre-payment reservation that gets settled by the actual TRADING/BUY entry, which handles the cash reduction.
 					break;
 
+				case "PRE_DETERMINED_TAX_BASE":
+				case "EARNINGS": // Vorabpauschale (advance tax on accumulating funds); booked as EARNINGS from 2025 onwards
+					if (record.Tax.HasValue && record.Tax.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateTax(
+							currency,
+							date,
+							CreateSymbolIdentifiers(record, currency),
+							Math.Abs(record.Tax.Value),
+							new Money(currency, Math.Abs(record.Tax.Value)),
+							transactionId));
+					}
+					else
+					{
+						logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) without tax; it carries no cash impact.", record.Type, rowNumber, transactionId);
+					}
+					break;
+
+				case "TAX_OPTIMIZATION": // Tax refund/correction; sign of amount determines direction
+					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Tax optimization");
+					break;
+				case "INTEREST_PAYMENT_CANCELLED": // Reversal of an interest payment (correction from Trade Republic)
+					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Interest payment cancelled");
+					break;
+				case "MANUAL_CASH_TRANSFER":
+				case "MANUAL_CASH_TRANSFER_CANCELLED":
+					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Manual cash transfer");
+					break;
+
 				default:
-					throw new NotSupportedException($"Trade Republic CSV transaction type '{record.Type}' is not supported.");
+					throw new UnknownTransactionTypeException("Trade Republic CSV", record.Type);
 			}
 
 			return lst;
@@ -171,6 +206,22 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, record.Symbol!, currency),
 				PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, record.Name!, currency),
 			];
+		}
+
+		private void AddCashMovementBySign(List<PartialActivity> lst, TradeRepublicCsvRecord record, int rowNumber, Currency currency, DateTime date, string transactionId, string description)
+		{
+			if (!record.Amount.HasValue || record.Amount.Value == 0)
+			{
+				logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) with zero amount.", record.Type, rowNumber, transactionId);
+				return;
+			}
+
+			var amount = record.Amount.Value;
+			var absoluteAmount = Math.Abs(amount);
+			var money = new Money(currency, absoluteAmount);
+			lst.Add(amount > 0
+				? PartialActivity.CreateCashDeposit(currency, date, absoluteAmount, money, transactionId, description)
+				: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, money, transactionId, description));
 		}
 
 		protected override CsvReaderOptions GetConfig()

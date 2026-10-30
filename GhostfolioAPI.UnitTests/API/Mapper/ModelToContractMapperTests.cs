@@ -164,6 +164,29 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		}
 
 		[Fact]
+		public async Task ConvertToGhostfolioActivity_ShouldMapTaxActivityCorrectly()
+		{
+			// Arrange
+			var taxActivity = _fixture.Build<TaxActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
+			var account = _fixture.Create<Account>();
+
+			// Act
+			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, null, taxActivity, account);
+
+			// Assert
+			result.Should().NotBeNull();
+			result!.SymbolProfile.Currency.Should().Be(taxActivity.Amount.Currency.Symbol);
+			result.SymbolProfile.Name.Should().Be(taxActivity.Description);
+			result.Comment.Should().NotBeNull();
+			result.Date.Should().Be(taxActivity.Date);
+			result.Quantity.Should().Be(1);
+			result.Type.Should().Be(ActivityType.FEE);
+			result.UnitPrice.Should().Be(taxActivity.Amount.Amount);
+			result.ReferenceCode.Should().Be(taxActivity.TransactionId);
+			result.AccountId.Should().Be(account.Id);
+		}
+
+		[Fact]
 		public async Task ConvertToGhostfolioActivity_ShouldMapValuableActivityCorrectly()
 		{
 			// Arrange

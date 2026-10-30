@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2024-03-20T10:05:45.789012Z","2024-03-20","DEFAULT","CASH","TAX_OPTIMIZATION","","","","","","12.500000","","","EUR","","","","Tax optimization refund","e5f6a7b8-c9d0-1234-efab-567890123456","","","",""

@@ -99,7 +99,8 @@ Also allows the following symbol settings
     "settings" : {
         "performance.primarycurrency": "USD",
         "dataprovider.preference.order": "COINGECKO;YAHOO",
-        "delete.unused.symbols": false
+        "delete.unused.symbols": false,
+        "parsers.skip.unknown.transaction.types": false
     },
     "platforms":[
         { "name": "De Giro", "url":"https://www.degiro.nl/" }
@@ -129,6 +130,7 @@ Also allows the following symbol settings
 > - `performance.primarycurrency`: default is `"EUR"`
 > - `dataprovider.preference.order`: default is `"YAHOO,COINGECKO"`
 > - `delete.unused.symbols`: default is `true`. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
+> - `parsers.skip.unknown.transaction.types`: default is `false`. When `true`, unknown transaction types in CSV exports (e.g. Trade Republic, Trading212, Coinbase, Bitvavo, Nexo, Trine, Centraal Beheer, Generic) are skipped with a warning instead of aborting the import. Skipped rows may include cash movements, so account balances can become inaccurate. 
 > - `sync-activities` is `true` by default; `sync-balance` is `true` by default.
 
 #### Settings

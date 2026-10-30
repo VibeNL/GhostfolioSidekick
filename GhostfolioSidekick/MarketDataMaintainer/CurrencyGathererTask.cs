@@ -60,6 +60,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
+					.OfType<TaxActivity>()
+					.AsNoTracking()
+					.Select(x => new { x.Amount!.Currency, x.Date })
+					.Distinct()
+					.ToListAsync(cancellationToken)
+				).Union(
+					await databaseContext.Activities
 					.OfType<InterestActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })

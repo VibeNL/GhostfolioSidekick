@@ -1,9 +1,12 @@
 using AutoFixture;
 using AwesomeAssertions;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.TradeRepublic;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -15,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
         public TradeRepublicCsvParserTests()
         {
-            parser = new TradeRepublicCsvParser(DummyCurrencyMapper.Instance);
+            parser = CreateParser();
 
             var fixture = CustomFixture.New();
             account = fixture
@@ -103,9 +106,43 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                 PartialActivity.CreateTax(
                     Currency.EUR,
                     new DateTime(2024, 01, 10, 0, 55, 48, 147, DateTimeKind.Utc).AddMicroseconds(672),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "US2546871060", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Walt Disney", Currency.EUR),
+                    ],
                     0.02m,
                     new Money(Currency.EUR, 0.02m),
                     "895b5983-4d52-4614-b521-a20eb7b7082c")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleDistribution_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_distribution.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateDividend(
+                    Currency.EUR,
+                    new DateTime(2021, 11, 30, 3, 39, 32, 849, DateTimeKind.Utc).AddMicroseconds(586),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B1XNHC34", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Global Clean Energy USD (Dist)", Currency.EUR),
+                    ],
+                    0.300000m,
+                    new Money(Currency.EUR, 0.300000m),
+                    "7bfb3aae-d026-4959-b8a9-50d36f3a7a38"),
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2021, 11, 30, 3, 39, 32, 849, DateTimeKind.Utc).AddMicroseconds(586),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B1XNHC34", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Global Clean Energy USD (Dist)", Currency.EUR),
+                    ],
+                    0.06m,
+                    new Money(Currency.EUR, 0.06m),
+                    "7bfb3aae-d026-4959-b8a9-50d36f3a7a38")
             ]);
         }
 
@@ -423,33 +460,221 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
         }
 
         [Fact]
-        public void ParseRow_UnsupportedType_ThrowsNotSupportedException()
+        public async Task ConvertActivitiesForAccount_SingleTransferInbound_Converted()
         {
-            var ex = Assert.Throws<NotSupportedException>(() =>
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_transfer_inbound.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2024, 06, 10, 9, 15, 30, 123, DateTimeKind.Utc).AddMicroseconds(456),
+                    500.000000m,
+                    new Money(Currency.EUR, 500.000000m),
+                    "a1b2c3d4-e5f6-7890-abcd-ef0123456789")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleTransferOutbound_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_transfer_outbound.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2024, 06, 12, 14, 22, 11, 654, DateTimeKind.Utc).AddMicroseconds(321),
+                    750.000000m,
+                    new Money(Currency.EUR, 750.000000m),
+                    "b2c3d4e5-f6a7-8901-bcde-f01234567890")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SinglePreDeterminedTaxBase_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_pre_determined_tax_base.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2024, 01, 15, 15, 18, 56, 293, DateTimeKind.Utc).AddMicroseconds(456),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B4L5Y983", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Core MSCI World USD (Acc)", Currency.EUR),
+                    ],
+                    2.96m,
+                    new Money(Currency.EUR, 2.96m),
+                    "c3d4e5f6-a7b8-9012-cdef-012345678901")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleEarningsVorabpauschale_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_earnings_vorabpauschale.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2025, 01, 28, 16, 26, 36, 134, DateTimeKind.Utc).AddMicroseconds(432),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00BFNM3B99", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "MSCI EMU ESG EUR (Acc)", Currency.EUR),
+                    ],
+                    1.93m,
+                    new Money(Currency.EUR, 1.93m),
+                    "d4e5f6a7-b8c9-0123-def0-123456789012")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleTaxOptimization_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_tax_optimization.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 20, 10, 5, 45, 789, DateTimeKind.Utc).AddMicroseconds(12),
+                    12.500000m,
+                    new Money(Currency.EUR, 12.500000m),
+                    "e5f6a7b8-c9d0-1234-efab-567890123456",
+                    "Tax optimization")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleInterestPaymentCancelled_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_interest_payment_cancelled.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 15, 9, 0, 0, DateTimeKind.Utc),
+                    50.000000m,
+                    new Money(Currency.EUR, 50.000000m),
+                    "f6a7b8c9-d0e1-2345-fabc-678901234567",
+                    "Interest payment cancelled")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleManualCashTransfer_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_manual_cash_transfer.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2026, 07, 8, 15, 29, 1, 228, DateTimeKind.Utc).AddMicroseconds(150),
+                    45.000000m,
+                    new Money(Currency.EUR, 45.000000m),
+                    "a7b8c9d0-e1f2-3456-abcd-789012345678",
+                    "Manual cash transfer")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleManualCashTransferCancelled_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_manual_cash_transfer_cancelled.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2026, 07, 13, 6, 22, 44, 742, DateTimeKind.Utc).AddMicroseconds(490),
+                    45.000000m,
+                    new Money(Currency.EUR, 45.000000m),
+                    "b8c9d0e1-f2a3-4567-bcde-890123456789",
+                    "Manual cash transfer")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleEarningsZeroTax_Ignored()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_earnings_zero_tax.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleManualCashTransferZeroAmount_Ignored()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_manual_cash_transfer_zero.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ParseRow_UnsupportedType_ThrowsUnknownTransactionTypeException()
+        {
+            var record = CreateUnknownTypeRecord();
+
+            var ex = Assert.Throws<UnknownTransactionTypeException>(() => InvokeParseRow(parser, record));
+
+            ex.TransactionType.Should().Be("UNKNOWN_TYPE_XYZ");
+        }
+
+        [Fact]
+        public void ParseRow_UnsupportedType_SkipEnabled_StillThrows_SkippingIsHandledByBaseImporter()
+        {
+            var parserWithSkip = CreateParser(skipUnknownTransactionTypes: true);
+
+            Assert.Throws<UnknownTransactionTypeException>(() => InvokeParseRow(parserWithSkip, CreateUnknownTypeRecord()));
+        }
+
+        private static TradeRepublicCsvRecord CreateUnknownTypeRecord()
+        {
+            return new TradeRepublicCsvRecord
             {
-                var record = new TradeRepublicCsvRecord
+                DateTime = DateTime.UtcNow,
+                Date = DateOnly.FromDateTime(DateTime.Today),
+                Category = "CASH",
+                Type = "UNKNOWN_TYPE_XYZ",
+                Currency = "EUR",
+                TransactionId = "test-id",
+            };
+        }
+
+        private static TradeRepublicCsvParser CreateParser(bool skipUnknownTransactionTypes = false)
+        {
+            var settingsMock = new Mock<IApplicationSettings>();
+            _ = settingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
+            {
+                Settings = new Settings
                 {
-                    DateTime = DateTime.UtcNow,
-                    Date = DateOnly.FromDateTime(DateTime.Today),
-                    Category = "CASH",
-                    Type = "UNKNOWN_TYPE_XYZ",
-                    Currency = "EUR",
-                    TransactionId = "test-id",
-                };
-                // Use reflection to call ParseRow
-                var method = typeof(TradeRepublicCsvParser).GetMethod("ParseRow",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                try
-                {
-                    method!.Invoke(parser, [record, 1]);
-                }
-                catch (System.Reflection.TargetInvocationException tie)
-                {
-                    throw tie.InnerException!;
-                }
+                    DataProviderPreference = "YAHOO;COINGECKO",
+                    PrimaryCurrency = "EUR",
+                    SkipUnknownTransactionTypes = skipUnknownTransactionTypes,
+                },
             });
 
-            ex.Message.Should().Contain("UNKNOWN_TYPE_XYZ");
+            return new TradeRepublicCsvParser(DummyCurrencyMapper.Instance, settingsMock.Object, NullLogger<TradeRepublicCsvParser>.Instance);
+        }
+
+        private static IEnumerable<PartialActivity> InvokeParseRow(TradeRepublicCsvParser parserToUse, TradeRepublicCsvRecord record)
+        {
+            // Use reflection to call ParseRow
+            var method = typeof(TradeRepublicCsvParser).GetMethod("ParseRow",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            try
+            {
+                return (IEnumerable<PartialActivity>)method!.Invoke(parserToUse, [record, 1])!;
+            }
+            catch (System.Reflection.TargetInvocationException tie)
+            {
+                throw tie.InnerException!;
+            }
         }
     }
 }
