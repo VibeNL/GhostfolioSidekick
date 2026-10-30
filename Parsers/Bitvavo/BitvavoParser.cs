@@ -1,4 +1,4 @@
-﻿using CsvHelper;
+using CsvHelper;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
