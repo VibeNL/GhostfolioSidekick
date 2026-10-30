@@ -18,6 +18,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		public required string Asset { get; set; }
 
 		[CsvColumn("Quantity Transacted")]
+		[CsvConverter(typeof(ExponentDecimalConverter))]
 		public decimal Quantity { get; set; }
 
 		[CsvColumn("Spot Price Currency", "Price Currency")]

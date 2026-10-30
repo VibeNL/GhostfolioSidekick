@@ -25,6 +25,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		public decimal? NumberOfShares { get; set; }
 
 		[CsvColumn("Price / share")]
+		[CsvConverter(typeof(ExponentNullableDecimalConverter))]
 		public decimal? Price { get; set; }
 
 		[CsvColumn("Currency (Price / share)")]
