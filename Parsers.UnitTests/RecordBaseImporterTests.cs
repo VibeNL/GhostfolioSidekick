@@ -1,15 +1,15 @@
-using AwesomeAssertions;
-using CsvHelper.Configuration;
+﻿using AwesomeAssertions;
+using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
-using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {
-	public class RecordBaseImporterTests
+	public partial class RecordBaseImporterTests
 	{
-		private class TestRecord
+		[CsvRecord]
+		internal partial class TestRecord
 		{
 			public string? Header1 { get; set; }
 		}
@@ -24,9 +24,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 				};
 			}
 
-			protected override CsvConfiguration GetConfig()
+			protected override CsvReaderOptions GetConfig()
 			{
-				return new CsvConfiguration(CultureInfo.InvariantCulture);
+				return CsvReaderOptions.Default;
 			}
 		}
 

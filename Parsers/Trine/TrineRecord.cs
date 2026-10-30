@@ -1,11 +1,12 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trine
 {
-	public class TrineRecord
+	[CsvRecord]
+	public partial class TrineRecord
 	{
-		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
+		[CsvConverter(typeof(UtcNullableDateTimeConverter))]
 		public DateTime? Date { get; set; }
 
 		public string? Loan { get; set; }

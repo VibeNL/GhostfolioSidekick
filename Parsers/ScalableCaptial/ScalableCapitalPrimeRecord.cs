@@ -1,58 +1,59 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
 	[ExcludeFromCodeCoverage]
-	public class ScalableCapitalPrimeRecord
+	[CsvRecord]
+	public partial class ScalableCapitalPrimeRecord
 	{
-		[Name("date")]
-		[Format("yyyy-MM-dd")]
+		[CsvColumn("date")]
+		[CsvFormat("yyyy-MM-dd")]
 		public DateOnly Date { get; set; }
 
-		[Name("time")]
-		[Format("HH:mm:ss")]
+		[CsvColumn("time")]
+		[CsvFormat("HH:mm:ss")]
 		public TimeOnly Time { get; set; }
 
-		[Name("status")]
+		[CsvColumn("status")]
 		public required string Status { get; set; }
 
-		[Name("reference")]
+		[CsvColumn("reference")]
 		public required string Reference { get; set; }
 
-		[Name("description")]
+		[CsvColumn("description")]
 		public required string Description { get; set; }
 
-		[Name("assetType")]
+		[CsvColumn("assetType")]
 		public required string AssetType { get; set; }
 
-		[Name("type")]
+		[CsvColumn("type")]
 		public required string Type { get; set; }
 
-		[Name("isin")]
+		[CsvColumn("isin")]
 		public required string Isin { get; set; }
 
-		[Name("shares")]
-		[CultureInfo("de-DE")]
+		[CsvColumn("shares")]
+		[CsvCulture("de-DE")]
 		public decimal? Shares { get; set; }
 
-		[Name("price")]
-		[CultureInfo("de-DE")]
+		[CsvColumn("price")]
+		[CsvCulture("de-DE")]
 		public decimal? Price { get; set; }
 
-		[Name("amount")]
-		[CultureInfo("de-DE")]
+		[CsvColumn("amount")]
+		[CsvCulture("de-DE")]
 		public required decimal Amount { get; set; }
 
-		[Name("fee")]
-		[CultureInfo("de-DE")]
+		[CsvColumn("fee")]
+		[CsvCulture("de-DE")]
 		public decimal? Fee { get; set; }
 
-		[Name("tax")]
-		[CultureInfo("de-DE")]
+		[CsvColumn("tax")]
+		[CsvCulture("de-DE")]
 		public decimal? Tax { get; set; }
 
-		[Name("currency")]
+		[CsvColumn("currency")]
 		public required string Currency { get; set; }
 	}
 }

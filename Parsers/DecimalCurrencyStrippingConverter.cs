@@ -1,16 +1,16 @@
 using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.TypeConversion;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public partial class DecimalCurrencyStrippingConverter : DefaultTypeConverter
+	public sealed partial class DecimalCurrencyStrippingConverter : ICsvConverter<decimal?>
 	{
-		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+		public decimal? Read(CsvReader reader, int index)
 		{
+			var text = reader.GetString(index);
 			if (string.IsNullOrWhiteSpace(text))
 			{
 				return null;
@@ -26,7 +26,13 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 				return value;
 			}
 
-			throw new TypeConverterException(this, memberMapData, text, row.Context, $"Cannot convert '{text}' to decimal.");
+			throw new FormatException($"Cannot convert '{text}' to decimal.");
+		}
+
+		[ExcludeFromCodeCoverage]
+		public void Write(CsvWriter writer, decimal? value)
+		{
+			writer.WriteField(value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty);
 		}
 
 		[GeneratedRegex("[^0-9.,-]+", RegexOptions.Compiled, 30000)]

@@ -1,59 +1,58 @@
-using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public class CentraalBeheerRecord
+	[CsvRecord]
+	public partial class CentraalBeheerRecord
 	{
-		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
-		[Format("dd/MM/yyyy")]
-		[Name("Boekdatum")]
+		[CsvColumn("Boekdatum")]
+		[CsvConverter(typeof(UtcDateTimeConverter))]
 		public DateTime BookingDate { get; set; }
 
-		[Name("Soort")]
+		[CsvColumn("Soort")]
 		public required string TransactionType { get; set; }
 
-		[Name("Fondsnaam")]
+		[CsvColumn("Fondsnaam")]
 		public string? FundName { get; set; }
 
-		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
-		[Format("dd/MM/yyyy")]
-		[Name("Transactiedatum")]
+		[CsvColumn("Transactiedatum")]
+		[CsvConverter(typeof(UtcDateTimeConverter))]
 		public DateTime TransactionDate { get; set; }
 
-		[Name("Aantal stukken")]
-		[CultureInfo("nl-NL")]
+		[CsvColumn("Aantal stukken")]
+		[CsvCulture("nl-NL")]
 		public decimal? NumberOfUnits { get; set; }
 
-		[Name("Koers")]
-		[CultureInfo("nl-NL")]
+		[CsvColumn("Koers")]
+		[CsvCulture("nl-NL")]
 		public decimal? Rate { get; set; }
 
-		[Name("Aankoopkosten")]
-		[CultureInfo("nl-NL")]
+		[CsvColumn("Aankoopkosten")]
+		[CsvCulture("nl-NL")]
 		public decimal? PurchaseCosts { get; set; }
 
-		[Name("Dividendbelasting")]
-		[CultureInfo("nl-NL")]
+		[CsvColumn("Dividendbelasting")]
+		[CsvCulture("nl-NL")]
 		public decimal? DividendTax { get; set; }
 
-		[Name("Af Bij")]
+		[CsvColumn("Af Bij")]
 		public string? DebitCredit { get; set; }
 
-		[Name("Bruto bedrag (EUR)")]
-		[CultureInfo("nl-NL")]
+		[CsvColumn("Bruto bedrag (EUR)")]
+		[CsvCulture("nl-NL")]
 		public decimal? GrossAmount { get; set; }
 
-		[Name("Netto bedrag (EUR)")]
-		[CultureInfo("nl-NL")]
+		[CsvColumn("Netto bedrag (EUR)")]
+		[CsvCulture("nl-NL")]
 		public decimal? NetAmount { get; set; }
 
-		[Name("Naam")]
+		[CsvColumn("Naam")]
 		public string? Name { get; set; }
 
-		[Name("Rekeningnummer")]
+		[CsvColumn("Rekeningnummer")]
 		public string? AccountNumber { get; set; }
 
-		[Name("Omschrijving")]
+		[CsvColumn("Omschrijving")]
 		public string? Description { get; set; }
 	}
 }

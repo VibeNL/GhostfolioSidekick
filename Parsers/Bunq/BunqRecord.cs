@@ -1,19 +1,19 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.Bunq
 {
-	public class BunqRecord
+	[CsvRecord]
+	public partial class BunqRecord
 	{
-		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
-		[Format("yyyy-MM-dd")]
+		[CsvConverter(typeof(UtcDateTimeConverter))]
 		public DateTime Date { get; set; }
 
 		[ExcludeFromCodeCoverage]
-		[Name("Interest Date")]
+		[CsvColumn("Interest Date")]
 		public required string InterestDate { get; set; }
 
-		[CultureInfo("nl-NL")]
+		[CsvCulture("nl-NL")]
 		public decimal Amount { get; set; }
 
 		public required string Name { get; set; }

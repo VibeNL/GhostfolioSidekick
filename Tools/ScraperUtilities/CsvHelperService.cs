@@ -1,9 +1,8 @@
-using CsvHelper;
+﻿using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers.Generic;
-using System.Globalization;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
@@ -18,9 +17,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 
 				var outputFile = Path.Combine(outputDirectory, $"{broker}_{accountIndex}.csv");
 
-				using var writer = new StreamWriter(outputFile);
-				using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
-				csv.Context.TypeConverterOptionsCache.GetOptions<DateTime>().Formats = ["o"];
+				using var csv = CsvWriter.ToFile(outputFile);
 				csv.WriteRecords(accountTransactions.Select(Transform).OrderBy(x => x.Date));
 			}
 		}

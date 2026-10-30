@@ -1,25 +1,25 @@
-using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
 
 namespace GhostfolioSidekick.Parsers.NIBC
 {
-	public class NIBCRecord
+	[CsvRecord]
+	public partial class NIBCRecord
 	{
-		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
-		[Name("Boekhdk. datum")]
-		[Format("dd-MM-yyyy")]
+		[CsvColumn("Boekhdk. datum")]
+		[CsvConverter(typeof(UtcDateTimeConverter))]
 		public DateTime Date { get; set; }
 
-		[Name("Beschrijving")]
+		[CsvColumn("Beschrijving")]
 		public required string Description { get; set; }
 
-		[Name("Bedrag v/d verrichting")]
-		[CultureInfo("nl-NL")]
+		[CsvColumn("Bedrag v/d verrichting")]
+		[CsvCulture("nl-NL")]
 		public decimal Amount { get; set; }
 
-		[Name("Munt")]
+		[CsvColumn("Munt")]
 		public required string Currency { get; set; }
 
-		[Name("Ref. v/d verrichting")]
+		[CsvColumn("Ref. v/d verrichting")]
 		public required string TransactionID { get; set; }
 	}
 }

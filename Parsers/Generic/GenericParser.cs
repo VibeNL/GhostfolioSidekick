@@ -1,4 +1,4 @@
-using CsvHelper.Configuration;
+﻿using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -204,13 +204,13 @@ namespace GhostfolioSidekick.Parsers.Generic
 			}
 		}
 
-		protected override CsvConfiguration GetConfig()
+		protected override CsvReaderOptions GetConfig()
 		{
-			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			return new CsvReaderOptions
 			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ",",
+				HasHeader = true,
+				PoolStrings = true,
+				Separator = ',',
 			};
 		}
 	}
