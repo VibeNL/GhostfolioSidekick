@@ -59,6 +59,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 
 		[Theory]
+		[InlineData("1.5E-05", "0.000015")]
+		[InlineData("€1.5E-05", "0.000015")]
+		[InlineData("EUR 2e3", "2000")]
+		[InlineData("€1,234.50", "1,234.50")]
+		[InlineData("-€5.25", "-5.25")]
+		public void DecimalCurrencyStrippingConverter_Read_ParsesValue(string input, string expected)
+		{
+			using var reader = ReadSingleRow($"\"{input}\"");
+
+			var result = new GhostfolioSidekick.Parsers.Coinbase.DecimalCurrencyStrippingConverter().Read(reader, 0);
+
+			result.Should().Be(decimal.Parse(expected, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture));
+		}
+
+		[Theory]
 		[InlineData("2023-08-07T19:56:02Z", 2023, 8, 7, 19, 56, 2)]
 		[InlineData("2023-08-07 19:56:02 UTC", 2023, 8, 7, 19, 56, 2)]
 		[InlineData("2023-08-07 19:56 UTC", 2023, 8, 7, 19, 56, 0)]

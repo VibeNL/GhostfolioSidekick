@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.Parsers
 				headerFound = headerFound || IsHeaderLine(line);
 				if (headerFound)
 				{
-					builder.AppendLine(line);
+					builder.Append(line).Append('\n');
 					if (headerOnly)
 					{
 						break;
