@@ -1,4 +1,4 @@
-using CsvHelper.Configuration;
+using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -131,21 +131,21 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			return (Math.Min(amountEn, amountNl), asset);
 		}
 
-		protected override CsvConfiguration GetConfig()
+		protected override CsvReaderOptions GetConfig()
 		{
-			bool hasStarted = false;
-			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			return new CsvReaderOptions
 			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ",",
-				ShouldSkipRecord = (r) =>
-				{
-					hasStarted = hasStarted || (r.Row[0]!.StartsWith("Timestamp") || r.Row[0]!.StartsWith("ID"));
-					return !hasStarted;
-				},
+				HasHeader = true,
+				PoolStrings = true,
+				Separator = ',',
 			};
 		}
+
+		protected override bool IsHeaderLine(string line) =>
+			line.StartsWith("Timestamp") ||
+			line.StartsWith("ID") ||
+			line.StartsWith("\"Timestamp\",") ||
+			line.StartsWith("\"ID\",");
 
 		private static CultureInfo GetCultureForParsingNumbersEn()
 		{

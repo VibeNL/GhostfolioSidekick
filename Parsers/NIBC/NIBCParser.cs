@@ -1,4 +1,4 @@
-using CsvHelper.Configuration;
+using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -44,15 +44,18 @@ namespace GhostfolioSidekick.Parsers.NIBC
 			return [];
 		}
 
-		protected override CsvConfiguration GetConfig()
+		protected override CsvReaderOptions GetConfig()
 		{
-			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			return new CsvReaderOptions
 			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ";",
-				ShouldSkipRecord = (r) => r.Row[0]!.StartsWith("Nr v/d rekening"),
+				HasHeader = true,
+				PoolStrings = true,
+				Separator = ';',
 			};
 		}
+
+		protected override bool IsHeaderLine(string line) =>
+			!line.StartsWith("Nr v/d rekening") &&
+			!line.StartsWith("\"Nr v/d rekening");
 	}
 }

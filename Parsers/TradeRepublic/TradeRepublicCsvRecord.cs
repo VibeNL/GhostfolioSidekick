@@ -1,76 +1,77 @@
-using CsvHelper.Configuration.Attributes;
+using CsvHelper;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-    public class TradeRepublicCsvRecord
+    [CsvRecord]
+    public partial class TradeRepublicCsvRecord
     {
-        [Name("datetime")]
+        [CsvColumn("datetime")]
         public DateTime DateTime { get; set; }
 
-        [Name("date")]
+        [CsvColumn("date")]
         public DateOnly Date { get; set; }
 
-        [Name("account_type")]
+        [CsvColumn("account_type")]
         public string? AccountType { get; set; }
 
-        [Name("category")]
+        [CsvColumn("category")]
         public required string Category { get; set; }
 
-        [Name("type")]
+        [CsvColumn("type")]
         public required string Type { get; set; }
 
-        [Name("asset_class")]
+        [CsvColumn("asset_class")]
         public string? AssetClass { get; set; }
 
-        [Name("name")]
+        [CsvColumn("name")]
         public string? Name { get; set; }
 
-        [Name("symbol")]
+        [CsvColumn("symbol")]
         public string? Symbol { get; set; }
 
-        [Name("shares")]
+        [CsvColumn("shares")]
         public decimal? Shares { get; set; }
 
-        [Name("price")]
+        [CsvColumn("price")]
         public decimal? Price { get; set; }
 
-        [Name("amount")]
+        [CsvColumn("amount")]
         public decimal? Amount { get; set; }
 
-        [Name("fee")]
+        [CsvColumn("fee")]
         public decimal? Fee { get; set; }
 
-        [Name("tax")]
+        [CsvColumn("tax")]
         public decimal? Tax { get; set; }
 
-        [Name("currency")]
+        [CsvColumn("currency")]
         public required string Currency { get; set; }
 
-        [Name("original_amount")]
+        [CsvColumn("original_amount")]
         public decimal? OriginalAmount { get; set; }
 
-        [Name("original_currency")]
+        [CsvColumn("original_currency")]
         public string? OriginalCurrency { get; set; }
 
-        [Name("fx_rate")]
+        [CsvColumn("fx_rate")]
         public decimal? FxRate { get; set; }
 
-        [Name("description")]
+        [CsvColumn("description")]
         public string? Description { get; set; }
 
-        [Name("transaction_id")]
+        [CsvColumn("transaction_id")]
         public required string TransactionId { get; set; }
 
-        [Name("counterparty_name")]
+        [CsvColumn("counterparty_name")]
         public string? CounterpartyName { get; set; }
 
-        [Name("counterparty_iban")]
+        [CsvColumn("counterparty_iban")]
         public string? CounterpartyIban { get; set; }
 
-        [Name("payment_reference")]
+        [CsvColumn("payment_reference")]
         public string? PaymentReference { get; set; }
 
-        [Name("mcc_code")]
+        [CsvColumn("mcc_code")]
         public string? MccCode { get; set; }
     }
 }

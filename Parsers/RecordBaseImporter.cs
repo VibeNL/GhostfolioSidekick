@@ -1,5 +1,4 @@
 using CsvHelper;
-using CsvHelper.Configuration;
 using GhostfolioSidekick.Model.Activities;
 using System.Text;
 
@@ -24,21 +23,21 @@ namespace GhostfolioSidekick.Parsers
 
 			try
 			{
-				CsvConfiguration csvConfig = GetConfig();
+				using var csvReader = CreateReader(filename, headerOnly: true);
+				var isValid = csvReader.TryValidateHeader<T>(out _);
 
-				using var streamReader = GetStreamReader(filename);
-				using var csvReader = new CsvReader(streamReader, csvConfig);
-				csvReader.Read();
-				csvReader.ReadHeader();
-
-				record = string.Join("|", csvReader.HeaderRecord!);
+				record = string.Join("|", csvReader.Headers);
 
 				if (KnownHeaderCache.TryGetValue(record, out var canParse))
 				{
 					return Task.FromResult(canParse);
 				}
 
-				csvReader.ValidateHeader<T>();
+				if (!isValid)
+				{
+					KnownHeaderCache.Add(record, false);
+					return Task.FromResult(false);
+				}
 			}
 			catch
 			{
@@ -56,11 +55,7 @@ namespace GhostfolioSidekick.Parsers
 
 		public Task ParseActivities(string filename, IActivityManager activityManager, string accountName)
 		{
-			var csvConfig = GetConfig();
-			using var streamReader = GetStreamReader(filename);
-			using var csvReader = new CsvReader(streamReader, csvConfig);
-			csvReader.Read();
-			csvReader.ReadHeader();
+			using var csvReader = CreateReader(filename);
 			var records = csvReader.GetRecords<T>().ToList();
 
 			for (int i = 0; i < records.Count; i++)
@@ -74,7 +69,31 @@ namespace GhostfolioSidekick.Parsers
 
 		protected abstract IEnumerable<PartialActivity> ParseRow(T record, int rowNumber);
 
-		protected abstract CsvConfiguration GetConfig();
+		protected abstract CsvReaderOptions GetConfig();
+
+		protected virtual bool IsHeaderLine(string line) => true;
+
+		private CsvReader CreateReader(string filename, bool headerOnly = false)
+		{
+			using var streamReader = GetStreamReader(filename);
+			var builder = new StringBuilder();
+			var headerFound = false;
+			string? line;
+			while ((line = streamReader.ReadLine()) != null)
+			{
+				headerFound = headerFound || IsHeaderLine(line);
+				if (headerFound)
+				{
+					builder.Append(line).Append('\n');
+					if (headerOnly)
+					{
+						break;
+					}
+				}
+			}
+
+			return CsvReader.FromText(builder.ToString(), GetConfig());
+		}
 
 		protected virtual Encoding Encoding => Encoding.UTF8;
 

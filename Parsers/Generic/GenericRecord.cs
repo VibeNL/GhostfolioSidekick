@@ -1,32 +1,30 @@
-using CsvHelper.Configuration.Attributes;
 using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.TypeConversion;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
-	public class GenericRecord
+	[CsvRecord]
+	public partial class GenericRecord
 	{
 		public PartialActivityType ActivityType { get; set; }
 
-		[Optional]
-		[TypeConverter(typeof(AssetClassListConverter))]
+		[CsvColumn(Optional = true)]
+		[CsvConverter(typeof(AssetClassListConverter))]
 		public List<AssetClass> AssetClass { get; set; } = [];
 
-		[Optional]
-		[TypeConverter(typeof(AssetSubClassListConverter))]
+		[CsvColumn(Optional = true)]
+		[CsvConverter(typeof(AssetSubClassListConverter))]
 		public List<AssetSubClass> AssetSubClass { get; set; } = [];
 
 		public string? Symbol { get; set; }
 
-		[Optional]
+		[CsvColumn(Optional = true)]
 		public string? ISIN { get; set; }
 
-		[Optional]
+		[CsvColumn(Optional = true)]
 		public string? Name { get; set; }
 
-		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
+		[CsvConverter(typeof(UtcDateTimeConverter))]
 		public DateTime Date { get; set; }
 
 		public required string Currency { get; set; }
@@ -35,20 +33,21 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		public decimal UnitPrice { get; set; }
 
-		[Optional]
+		[CsvColumn(Optional = true)]
 		public decimal? Fee { get; set; }
 
-		[Optional]
+		[CsvColumn(Optional = true)]
 		public decimal? Tax { get; set; }
 
-		[Optional]
+		[CsvColumn(Optional = true)]
 		public string? Id { get; set; }
 	}
 
-	public class AssetClassListConverter : DefaultTypeConverter
+	public sealed class AssetClassListConverter : ICsvConverter<List<AssetClass>>
 	{
-		public override object ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+		public List<AssetClass> Read(CsvReader reader, int index)
 		{
+			var text = reader.GetString(index);
 			if (string.IsNullOrWhiteSpace(text))
 			{
 				return new List<AssetClass>();
@@ -59,21 +58,17 @@ namespace GhostfolioSidekick.Parsers.Generic
 					.ToList();
 		}
 
-		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		public void Write(CsvWriter writer, List<AssetClass> value)
 		{
-			if (value is IEnumerable<AssetClass> list)
-			{
-				return string.Join(";", list);
-			}
-
-			return base.ConvertToString(value, row, memberMapData);
+			writer.WriteField(string.Join(";", value));
 		}
 	}
 
-	public class AssetSubClassListConverter : DefaultTypeConverter
+	public sealed class AssetSubClassListConverter : ICsvConverter<List<AssetSubClass>>
 	{
-		public override object ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+		public List<AssetSubClass> Read(CsvReader reader, int index)
 		{
+			var text = reader.GetString(index);
 			if (string.IsNullOrWhiteSpace(text))
 			{
 				return new List<AssetSubClass>();
@@ -85,14 +80,9 @@ namespace GhostfolioSidekick.Parsers.Generic
 					.ToList();
 		}
 
-		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		public void Write(CsvWriter writer, List<AssetSubClass> value)
 		{
-			if (value is IEnumerable<AssetSubClass> list)
-			{
-				return string.Join(";", list);
-			}
-
-			return base.ConvertToString(value, row, memberMapData);
+			writer.WriteField(string.Join(";", value));
 		}
 	}
 }
