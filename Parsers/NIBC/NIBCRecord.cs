@@ -1,4 +1,4 @@
-﻿using CsvHelper;
+using CsvHelper;
 
 namespace GhostfolioSidekick.Parsers.NIBC
 {

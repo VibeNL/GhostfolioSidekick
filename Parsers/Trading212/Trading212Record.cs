@@ -1,4 +1,4 @@
-﻿using CsvHelper;
+using CsvHelper;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
