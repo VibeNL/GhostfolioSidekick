@@ -1,5 +1,5 @@
-using GhostfolioSidekick.Configuration;
 using CsvHelper;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212
 {
-	public class Trading212Parser(ICurrencyMapper currencyMapper, ILogger<Trading212Parser> logger, IApplicationSettings? applicationSettings = null) : RecordBaseImporter<Trading212Record>(applicationSettings, logger)
+	public class Trading212Parser(ICurrencyMapper currencyMapper, ILogger<Trading212Parser> logger, IApplicationSettings applicationSettings) : RecordBaseImporter<Trading212Record>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
 		{

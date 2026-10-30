@@ -535,9 +535,6 @@
 		<None Update="TestFiles\TradeRepublic\CSV\single_dividend.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_distribution.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 		<None Update="TestFiles\TradeRepublic\CSV\single_interest.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -577,34 +574,7 @@
 		<None Update="TestFiles\TradeRepublic\CSV\single_migration.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_transfer_inbound.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_transfer_outbound.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_pre_determined_tax_base.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_earnings_vorabpauschale.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_tax_optimization.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_interest_payment_cancelled.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_manual_cash_transfer.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_manual_cash_transfer_cancelled.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_earnings_zero_tax.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\CSV\single_manual_cash_transfer_zero.csv">
+		<None Update="TestFiles\TradeRepublic\CSV\*.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

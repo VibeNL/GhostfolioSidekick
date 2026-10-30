@@ -1,14 +1,14 @@
-using Microsoft.Extensions.Logging;
+﻿using CsvHelper;
 using GhostfolioSidekick.Configuration;
-using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public partial class CoinbaseParser(ICurrencyMapper currencyMapper, IApplicationSettings? applicationSettings = null, ILogger<CoinbaseParser>? logger = null) : RecordBaseImporter<CoinbaseRecord>(applicationSettings, logger)
+	public partial class CoinbaseParser(ICurrencyMapper currencyMapper, IApplicationSettings applicationSettings, ILogger<CoinbaseParser> logger) : RecordBaseImporter<CoinbaseRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
 		{

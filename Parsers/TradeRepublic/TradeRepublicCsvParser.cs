@@ -1,5 +1,5 @@
-using GhostfolioSidekick.Configuration;
 using CsvHelper;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper, IApplicationSettings? applicationSettings = null, ILogger<TradeRepublicCsvParser>? logger = null) : RecordBaseImporter<TradeRepublicCsvRecord>(applicationSettings, logger)
+	public class TradeRepublicCsvParser(ICurrencyMapper currencyMapper, IApplicationSettings applicationSettings, ILogger<TradeRepublicCsvParser> logger) : RecordBaseImporter<TradeRepublicCsvRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(TradeRepublicCsvRecord record, int rowNumber)
 		{
@@ -78,6 +78,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						lst.Add(PartialActivity.CreateTax(
 							currency,
 							date,
+							dividendSymbolIds,
 							Math.Abs(record.Tax.Value),
 							new Money(currency, Math.Abs(record.Tax.Value)),
 							transactionId));
@@ -174,16 +175,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 							new Money(currency, Math.Abs(record.Tax.Value)),
 							transactionId));
 					}
+					else
+					{
+						logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) without tax; it carries no cash impact.", record.Type, rowNumber, transactionId);
+					}
 					break;
 
 				case "TAX_OPTIMIZATION": // Tax refund/correction; sign of amount determines direction
+					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Tax optimization");
+					break;
 				case "INTEREST_PAYMENT_CANCELLED": // Reversal of an interest payment (correction from Trade Republic)
+					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Interest payment cancelled");
+					break;
 				case "MANUAL_CASH_TRANSFER":
 				case "MANUAL_CASH_TRANSFER_CANCELLED":
-					if (record.Amount.HasValue && record.Amount.Value != 0)
-					{
-						lst.Add(CreateCashMovementBySign(currency, date, record.Amount.Value, transactionId));
-					}
+					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Manual cash transfer");
 					break;
 
 				default:
@@ -202,12 +208,20 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			];
 		}
 
-		private static PartialActivity CreateCashMovementBySign(Currency currency, DateTime date, decimal amount, string transactionId)
+		private void AddCashMovementBySign(List<PartialActivity> lst, TradeRepublicCsvRecord record, int rowNumber, Currency currency, DateTime date, string transactionId, string description)
 		{
+			if (!record.Amount.HasValue || record.Amount.Value == 0)
+			{
+				logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) with zero amount.", record.Type, rowNumber, transactionId);
+				return;
+			}
+
+			var amount = record.Amount.Value;
 			var absoluteAmount = Math.Abs(amount);
-			return amount >= 0
-				? PartialActivity.CreateCashDeposit(currency, date, absoluteAmount, new Money(currency, absoluteAmount), transactionId)
-				: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, new Money(currency, absoluteAmount), transactionId);
+			var money = new Money(currency, absoluteAmount);
+			lst.Add(amount > 0
+				? PartialActivity.CreateCashDeposit(currency, date, absoluteAmount, money, transactionId, description)
+				: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, money, transactionId, description));
 		}
 
 		protected override CsvReaderOptions GetConfig()

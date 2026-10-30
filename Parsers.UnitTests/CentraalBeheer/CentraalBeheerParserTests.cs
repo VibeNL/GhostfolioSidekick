@@ -153,7 +153,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 				]);
 		}
 
-		private class CustomCentraalBeheerParser : CentraalBeheerParser
+		private class CustomCentraalBeheerParser() : CentraalBeheerParser(TestParserSettings.Create(), TestParserSettings.Logger<CentraalBeheerParser>())
 		{
 			protected override Encoding Encoding => Encoding.UTF8; // Testfiles are in UTF-8
 		}

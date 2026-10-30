@@ -128,6 +128,46 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 
 		[Fact]
+		public async Task ParseActivities_UnknownType_SkipEnabled_MultipleUnknownRows_AllSkipped()
+		{
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(true).Object);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nunknown\nknown\nunknown\nunknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				await importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1");
+
+				mockActivityManager.Verify(m => m.AddPartialActivity(It.IsAny<string>(), It.IsAny<IEnumerable<PartialActivity>>()), Times.Once);
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
+			}
+		}
+
+		[Fact]
+		public async Task ParseActivities_UnknownType_SkipDisabled_ExceptionContainsRowAndFile()
+		{
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(false).Object);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				var ex = await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1"));
+
+				ex.Message.Should().Contain("row 2").And.Contain(tempFilePath);
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
+			}
+		}
+
+		[Fact]
 		public async Task CanParse_ReturnsFalse_WhenFileExtensionIsNotCsv()
 		{
 			var importer = new TestRecordBaseImporter();

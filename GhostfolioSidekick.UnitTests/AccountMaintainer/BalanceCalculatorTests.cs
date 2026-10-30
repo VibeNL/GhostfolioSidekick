@@ -78,6 +78,26 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		}
 
 		[Fact]
+		public async Task Calculate_TaxActivity_ReducesBalance()
+		{
+			Currency baseCurrency = Currency.USD;
+			List<Activity> activities =
+			[
+				new CashDepositActivity { Date = DateTime.UtcNow.AddDays(-1), Amount = new Money(baseCurrency, 100) },
+				new TaxActivity { Date = DateTime.UtcNow, Amount = new Money(baseCurrency, 2) },
+			];
+
+			_ = mockExchangeRateService
+				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
+				.ReturnsAsync((Money money, Currency currency, DateOnly d) => money);
+
+			List<Balance> result = await balanceCalculator.Calculate(baseCurrency, activities);
+
+			_ = result.Should().HaveCount(2);
+			_ = result[1].Money.Amount.Should().Be(98);
+		}
+
+		[Fact]
 		public async Task Calculate_ShouldThrowNotImplementedException_ForUnknownActivityType()
 		{
 			// Arrange

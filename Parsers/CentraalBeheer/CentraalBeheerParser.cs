@@ -1,5 +1,5 @@
+﻿using CsvHelper;
 using GhostfolioSidekick.Configuration;
-using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
@@ -8,7 +8,7 @@ using System.Text;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public class CentraalBeheerParser(IApplicationSettings? applicationSettings = null, ILogger<CentraalBeheerParser>? logger = null) : RecordBaseImporter<CentraalBeheerRecord>(applicationSettings, logger)
+	public class CentraalBeheerParser(IApplicationSettings applicationSettings, ILogger<CentraalBeheerParser> logger) : RecordBaseImporter<CentraalBeheerRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(CentraalBeheerRecord record, int rowNumber)
 		{

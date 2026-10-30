@@ -65,6 +65,7 @@ namespace GhostfolioSidekick.Parsers
 			using var csvReader = CreateReader(filename);
 			var records = csvReader.GetRecords<T>().ToList();
 
+			var skippedRows = 0;
 			for (int i = 0; i < records.Count; i++)
 			{
 				var rowNumber = i + 1;
@@ -76,10 +77,20 @@ namespace GhostfolioSidekick.Parsers
 				catch (UnknownTransactionTypeException ex) when (applicationSettings?.ConfigurationInstance.Settings.SkipUnknownTransactionTypes == true)
 				{
 					logger?.LogWarning(ex, "Skipping unsupported {Parser} transaction type '{Type}' on row {RowNumber} in {File}.", ex.ParserName, ex.TransactionType, rowNumber, filename);
+					skippedRows++;
 					continue;
+				}
+				catch (UnknownTransactionTypeException ex)
+				{
+					throw new UnknownTransactionTypeException(ex.ParserName, ex.TransactionType, rowNumber, filename);
 				}
 
 				activityManager.AddPartialActivity(accountName, partialActivity);
+			}
+
+			if (skippedRows > 0)
+			{
+				logger?.LogWarning("Skipped {SkippedRows} of {TotalRows} rows in {File} because of unsupported transaction types. Balances may be inaccurate.", skippedRows, records.Count, filename);
 			}
 
 			return Task.CompletedTask;

@@ -106,6 +106,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                 PartialActivity.CreateTax(
                     Currency.EUR,
                     new DateTime(2024, 01, 10, 0, 55, 48, 147, DateTimeKind.Utc).AddMicroseconds(672),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "US2546871060", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Walt Disney", Currency.EUR),
+                    ],
                     0.02m,
                     new Money(Currency.EUR, 0.02m),
                     "895b5983-4d52-4614-b521-a20eb7b7082c")
@@ -132,6 +136,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                 PartialActivity.CreateTax(
                     Currency.EUR,
                     new DateTime(2021, 11, 30, 3, 39, 32, 849, DateTimeKind.Utc).AddMicroseconds(586),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B1XNHC34", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "Global Clean Energy USD (Dist)", Currency.EUR),
+                    ],
                     0.06m,
                     new Money(Currency.EUR, 0.06m),
                     "7bfb3aae-d026-4959-b8a9-50d36f3a7a38")
@@ -535,7 +543,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     new DateTime(2024, 03, 20, 10, 5, 45, 789, DateTimeKind.Utc).AddMicroseconds(12),
                     12.500000m,
                     new Money(Currency.EUR, 12.500000m),
-                    "e5f6a7b8-c9d0-1234-efab-567890123456")
+                    "e5f6a7b8-c9d0-1234-efab-567890123456",
+                    "Tax optimization")
             ]);
         }
 
@@ -551,7 +560,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     new DateTime(2024, 03, 15, 9, 0, 0, DateTimeKind.Utc),
                     50.000000m,
                     new Money(Currency.EUR, 50.000000m),
-                    "f6a7b8c9-d0e1-2345-fabc-678901234567")
+                    "f6a7b8c9-d0e1-2345-fabc-678901234567",
+                    "Interest payment cancelled")
             ]);
         }
 
@@ -567,7 +577,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     new DateTime(2026, 07, 8, 15, 29, 1, 228, DateTimeKind.Utc).AddMicroseconds(150),
                     45.000000m,
                     new Money(Currency.EUR, 45.000000m),
-                    "a7b8c9d0-e1f2-3456-abcd-789012345678")
+                    "a7b8c9d0-e1f2-3456-abcd-789012345678",
+                    "Manual cash transfer")
             ]);
         }
 
@@ -583,7 +594,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     new DateTime(2026, 07, 13, 6, 22, 44, 742, DateTimeKind.Utc).AddMicroseconds(490),
                     45.000000m,
                     new Money(Currency.EUR, 45.000000m),
-                    "b8c9d0e1-f2a3-4567-bcde-890123456789")
+                    "b8c9d0e1-f2a3-4567-bcde-890123456789",
+                    "Manual cash transfer")
             ]);
         }
 

@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 
 		public NexoParserTests()
 		{
-			parser = new NexoParser(DummyCurrencyMapper.Instance);
+			parser = new NexoParser(DummyCurrencyMapper.Instance, TestParserSettings.Create(), TestParserSettings.Logger<NexoParser>());
 
 			var fixture = CustomFixture.New();
 			account = fixture

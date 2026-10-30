@@ -34,56 +34,56 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					await databaseContext.Activities
 					.OfType<CashDepositActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<CashWithdrawalActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<DividendActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<FeeActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<TaxActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<InterestActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<KnownBalanceActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				).Union(
 					await databaseContext.Activities
 					.OfType<RepayBondActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.Amount.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync(cancellationToken)
 				)

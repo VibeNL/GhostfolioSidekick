@@ -1,13 +1,13 @@
-using Microsoft.Extensions.Logging;
+﻿using CsvHelper;
 using GhostfolioSidekick.Configuration;
-using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trine
 {
-	public class TrineParser(IApplicationSettings? applicationSettings = null, ILogger<TrineParser>? logger = null) : RecordBaseImporter<TrineRecord>(applicationSettings, logger)
+	public class TrineParser(IApplicationSettings applicationSettings, ILogger<TrineParser> logger) : RecordBaseImporter<TrineRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(TrineRecord record, int rowNumber)
 		{
