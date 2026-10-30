@@ -92,20 +92,20 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						buySymbolIds,
 						record.Shares.GetValueOrDefault(),
 						new Money(currency, record.Price.GetValueOrDefault()),
-							new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
-								transactionId));
-							if (record.Fee.HasValue && record.Fee.Value != 0)
-							{
-								lst.Add(PartialActivity.CreateFee(
-									currency,
-									date,
-									Math.Abs(record.Fee.Value),
-									new Money(currency, Math.Abs(record.Fee.Value)),
-									transactionId));
-							}
-							break;
+						new Money(currency, Math.Abs(record.Amount.GetValueOrDefault())),
+						transactionId));
+					if (record.Fee.HasValue && record.Fee.Value != 0)
+					{
+						lst.Add(PartialActivity.CreateFee(
+							currency,
+							date,
+							Math.Abs(record.Fee.Value),
+							new Money(currency, Math.Abs(record.Fee.Value)),
+							transactionId));
+					}
+					break;
 
-						case "SELL":
+				case "SELL":
 					var sellSymbolIds = CreateSymbolIdentifiers(record, currency);
 					lst.Add(PartialActivity.CreateSell(
 						currency,
@@ -210,7 +210,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, new Money(currency, absoluteAmount), transactionId);
 		}
 
-				protected override CsvReaderOptions GetConfig()
+		protected override CsvReaderOptions GetConfig()
 		{
 			return new CsvReaderOptions
 			{

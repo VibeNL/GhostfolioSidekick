@@ -130,7 +130,7 @@ Also allows the following symbol settings
 > - `performance.primarycurrency`: default is `"EUR"`
 > - `dataprovider.preference.order`: default is `"YAHOO,COINGECKO"`
 > - `delete.unused.symbols`: default is `true`. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
-unknown transaction types in CSV exports (e.g. Trade Republic, Trading212, Coinbase, Bitvavo, Nexo, Trine, Centraal Beheer, Generic) are skipped with a warning instead of aborting the import.
+> - `parsers.skip.unknown.transaction.types`: default is `false`. When `true`, unknown transaction types in CSV exports (e.g. Trade Republic, Trading212, Coinbase, Bitvavo, Nexo, Trine, Centraal Beheer, Generic) are skipped with a warning instead of aborting the import.
 > - `sync-activities` is `true` by default; `sync-balance` is `true` by default.
 
 #### Settings
