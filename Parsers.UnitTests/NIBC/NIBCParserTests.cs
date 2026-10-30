@@ -40,6 +40,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
+		public async Task CanParseActivities_QuotedAccountPreamble_True()
+		{
+			var contents = await File.ReadAllTextAsync("./TestFiles/NIBC/CashTransactions/single_deposit.csv", TestContext.Current.CancellationToken);
+			contents = contents.Replace("Nr v/d rekening :;", "\"Nr v/d rekening :\";", StringComparison.Ordinal);
+			var temporaryFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.csv");
+			await File.WriteAllTextAsync(temporaryFile, contents, TestContext.Current.CancellationToken);
+
+			try
+			{
+				var canParse = await parser.CanParse(temporaryFile);
+
+				canParse.Should().BeTrue();
+			}
+			finally
+			{
+				File.Delete(temporaryFile);
+			}
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{
 			// Arrange

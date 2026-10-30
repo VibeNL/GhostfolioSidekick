@@ -54,6 +54,8 @@ namespace GhostfolioSidekick.Parsers.NIBC
 			};
 		}
 
-		protected override bool IsHeaderLine(string line) => !line.StartsWith("Nr v/d rekening");
+		protected override bool IsHeaderLine(string line) =>
+			!line.StartsWith("Nr v/d rekening") &&
+			!line.StartsWith("\"Nr v/d rekening");
 	}
 }

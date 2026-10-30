@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers.NIBC
 	public partial class NIBCRecord
 	{
 		[CsvColumn("Boekhdk. datum")]
-		[CsvConverter(typeof(UtcDateTimeConverter))]
+		[CsvConverter(typeof(DayFirstUtcDateTimeConverter))]
 		public DateTime Date { get; set; }
 
 		[CsvColumn("Beschrijving")]

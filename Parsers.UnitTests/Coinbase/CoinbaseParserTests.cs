@@ -39,6 +39,28 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			}
 		}
 
+		[Theory]
+		[InlineData("./TestFiles/Coinbase/CashTransactions/single_deposit.csv", "Timestamp,")]
+		[InlineData("./TestFiles/Coinbase/BuyOrders/single_buy_alt.csv", "ID,")]
+		public async Task CanParseActivities_QuotedHeader_True(string sourceFile, string headerPrefix)
+		{
+			var contents = await File.ReadAllTextAsync(sourceFile, TestContext.Current.CancellationToken);
+			contents = contents.Replace(headerPrefix, $"\"{headerPrefix[..^1]}\",", StringComparison.Ordinal);
+			var temporaryFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.csv");
+			await File.WriteAllTextAsync(temporaryFile, contents, TestContext.Current.CancellationToken);
+
+			try
+			{
+				var canParse = await parser.CanParse(temporaryFile);
+
+				canParse.Should().BeTrue();
+			}
+			finally
+			{
+				File.Delete(temporaryFile);
+			}
+		}
+
 		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{

@@ -3,6 +3,7 @@ using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
+using System.Text;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {
@@ -30,6 +31,28 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			}
 		}
 
+		private sealed class HeaderOnlyTestImporter : TestRecordBaseImporter
+		{
+			public TrackingStreamReader? Reader { get; private set; }
+
+			protected override StreamReader GetStreamReader(string file)
+			{
+				Reader = new TrackingStreamReader("Header1\nvalue1\nvalue2");
+				return Reader;
+			}
+		}
+
+		private sealed class TrackingStreamReader(string text) : StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(text)))
+		{
+			public int LinesRead { get; private set; }
+
+			public override string? ReadLine()
+			{
+				LinesRead++;
+				return base.ReadLine();
+			}
+		}
+
 		[Fact]
 		public async Task CanParse_ReturnsFalse_WhenFileExtensionIsNotCsv()
 		{
@@ -44,6 +67,17 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			var importer = new TestRecordBaseImporter();
 			var result = await importer.CanParse("invalid.csv");
 			result.Should().BeFalse();
+		}
+
+		[Fact]
+		public async Task CanParse_ReadsOnlyTheHeader()
+		{
+			var importer = new HeaderOnlyTestImporter();
+
+			var result = await importer.CanParse("test.csv");
+
+			result.Should().BeTrue();
+			importer.Reader!.LinesRead.Should().Be(1);
 		}
 
 		[Fact]
@@ -70,5 +104,3 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 	}
 }
-
-

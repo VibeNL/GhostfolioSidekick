@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 	public partial class CentraalBeheerRecord
 	{
 		[CsvColumn("Boekdatum")]
-		[CsvConverter(typeof(UtcDateTimeConverter))]
+		[CsvConverter(typeof(DayFirstUtcDateTimeConverter))]
 		public DateTime BookingDate { get; set; }
 
 		[CsvColumn("Soort")]
@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		public string? FundName { get; set; }
 
 		[CsvColumn("Transactiedatum")]
-		[CsvConverter(typeof(UtcDateTimeConverter))]
+		[CsvConverter(typeof(DayFirstUtcDateTimeConverter))]
 		public DateTime TransactionDate { get; set; }
 
 		[CsvColumn("Aantal stukken")]

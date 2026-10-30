@@ -64,8 +64,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		[InlineData("2023-08-07 19:56 UTC", 2023, 8, 7, 19, 56, 0)]
 		[InlineData("2023-08-07 19:56:02", 2023, 8, 7, 19, 56, 2)]
 		[InlineData("2023-08-07", 2023, 8, 7, 0, 0, 0)]
-		[InlineData("07/08/2023", 2023, 8, 7, 0, 0, 0)]
-		[InlineData("07-08-2023", 2023, 8, 7, 0, 0, 0)]
+		[InlineData("07/08/2023", 2023, 7, 8, 0, 0, 0)]
+		[InlineData("07-08-2023", 2023, 7, 8, 0, 0, 0)]
 		public void UtcDateTimeConverter_Read_ParsesAsUtc(string input, int year, int month, int day, int hour, int minute, int second)
 		{
 			using var reader = ReadSingleRow(input);
@@ -73,6 +73,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			var result = new UtcDateTimeConverter().Read(reader, 0);
 
 			result.ToUniversalTime().Should().Be(new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc));
+		}
+
+		[Theory]
+		[InlineData("07/08/2023")]
+		[InlineData("07-08-2023")]
+		public void DayFirstUtcDateTimeConverter_Read_ParsesDayFirst(string input)
+		{
+			using var reader = ReadSingleRow(input);
+
+			var result = new DayFirstUtcDateTimeConverter().Read(reader, 0);
+
+			result.Should().Be(new DateTime(2023, 8, 7, 0, 0, 0, DateTimeKind.Utc));
 		}
 
 		[Fact]

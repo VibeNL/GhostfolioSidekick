@@ -141,7 +141,11 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			};
 		}
 
-		protected override bool IsHeaderLine(string line) => line.StartsWith("Timestamp") || line.StartsWith("ID");
+		protected override bool IsHeaderLine(string line) =>
+			line.StartsWith("Timestamp") ||
+			line.StartsWith("ID") ||
+			line.StartsWith("\"Timestamp\",") ||
+			line.StartsWith("\"ID\",");
 
 		private static CultureInfo GetCultureForParsingNumbersEn()
 		{

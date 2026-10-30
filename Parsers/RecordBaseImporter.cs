@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Parsers
 
 			try
 			{
-				using var csvReader = CreateReader(filename);
+				using var csvReader = CreateReader(filename, headerOnly: true);
 				var isValid = csvReader.TryValidateHeader<T>(out _);
 
 				record = string.Join("|", csvReader.Headers);
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Parsers
 
 		protected virtual bool IsHeaderLine(string line) => true;
 
-		private CsvReader CreateReader(string filename)
+		private CsvReader CreateReader(string filename, bool headerOnly = false)
 		{
 			using var streamReader = GetStreamReader(filename);
 			var builder = new StringBuilder();
@@ -85,6 +85,10 @@ namespace GhostfolioSidekick.Parsers
 				if (headerFound)
 				{
 					builder.AppendLine(line);
+					if (headerOnly)
+					{
+						break;
+					}
 				}
 			}
 
