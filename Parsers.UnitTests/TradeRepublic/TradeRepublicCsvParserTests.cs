@@ -561,7 +561,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     50.000000m,
                     new Money(Currency.EUR, 50.000000m),
                     "f6a7b8c9-d0e1-2345-fabc-678901234567",
-                    "Interest payment cancelled")
+                    "Interest payment cancelled"),
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2024, 03, 15, 9, 0, 0, DateTimeKind.Utc),
+                    7.50m,
+                    new Money(Currency.EUR, 7.50m),
+                    "f6a7b8c9-d0e1-2345-fabc-678901234567",
+                    "Tax refund")
             ]);
         }
 
@@ -579,6 +586,30 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
                     new Money(Currency.EUR, 45.000000m),
                     "a7b8c9d0-e1f2-3456-abcd-789012345678",
                     "Manual cash transfer")
+            ]);
+        }
+
+        [Fact]
+        public async Task ConvertActivitiesForAccount_SingleManualCashTransferWithTax_Converted()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_manual_cash_transfer_with_tax.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2026, 07, 9, 11, 30, 0, 500, DateTimeKind.Utc),
+                    45.000000m,
+                    new Money(Currency.EUR, 45.000000m),
+                    "b8c9d0e1-f2a3-4567-bcde-890123456789",
+                    "Manual cash transfer"),
+                PartialActivity.CreateCashWithdrawal(
+                    Currency.EUR,
+                    new DateTime(2026, 07, 9, 11, 30, 0, 500, DateTimeKind.Utc),
+                    3.25m,
+                    new Money(Currency.EUR, 3.25m),
+                    "b8c9d0e1-f2a3-4567-bcde-890123456789",
+                    "Tax withheld")
             ]);
         }
 

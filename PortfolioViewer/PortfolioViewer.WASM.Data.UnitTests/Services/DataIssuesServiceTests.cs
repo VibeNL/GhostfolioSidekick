@@ -246,6 +246,36 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
+		public async Task GetActivitiesWithoutHoldingsAsync_WithTaxActivity_ShouldEnrichAmount()
+		{
+			// Arrange
+			Account account = CreateTestAccount("Test Account");
+			TaxActivity taxActivity = new TaxActivity(
+				account,
+				null,
+				[],
+				DateTime.Now.AddDays(-1),
+				new Money(Currency.USD, 75),
+				"TXN-TAX",
+				null,
+				"Test tax");
+
+			List<Activity> activities = [taxActivity];
+
+			_ = _mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+
+			// Act
+			List<DataIssueDisplayModel> result = await _dataIssuesService.GetActivitiesWithoutHoldingsAsync(CancellationToken.None);
+
+			// Assert
+			_ = result.Should().HaveCount(1);
+			DataIssueDisplayModel taxIssue = result[0];
+			_ = taxIssue.ActivityType.Should().Be("Tax");
+			_ = taxIssue.Amount.Should().NotBeNull();
+			_ = taxIssue.Amount!.Amount.Should().Be(75);
+		}
+
+		[Fact]
 		public async Task GetActivitiesWithoutHoldingsAsync_WithNullAccountName_ShouldHandleGracefully()
 		{
 			// Arrange

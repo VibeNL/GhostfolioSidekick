@@ -37,6 +37,13 @@ namespace GhostfolioSidekick.Parsers
 			TransactionType = transactionType;
 		}
 
+		public UnknownTransactionTypeException(string parserName, string? transactionType, int rowNumber, string filename, Exception? inner)
+			: base($"{parserName} transaction type '{transactionType}' on row {rowNumber} in '{filename}' is not supported.", inner)
+		{
+			ParserName = parserName;
+			TransactionType = transactionType;
+		}
+
 		public string ParserName { get; }
 
 		public string? TransactionType { get; }

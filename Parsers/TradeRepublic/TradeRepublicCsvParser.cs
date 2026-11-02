@@ -210,18 +210,30 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		private void AddCashMovementBySign(List<PartialActivity> lst, TradeRepublicCsvRecord record, int rowNumber, Currency currency, DateTime date, string transactionId, string description)
 		{
-			if (!record.Amount.HasValue || record.Amount.Value == 0)
+			var amount = record.Amount.GetValueOrDefault();
+			if (amount != 0)
 			{
-				logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) with zero amount.", record.Type, rowNumber, transactionId);
-				return;
+				var absoluteAmount = Math.Abs(amount);
+				var money = new Money(currency, absoluteAmount);
+				lst.Add(amount > 0
+					? PartialActivity.CreateCashDeposit(currency, date, absoluteAmount, money, transactionId, description)
+					: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, money, transactionId, description));
 			}
 
-			var amount = record.Amount.Value;
-			var absoluteAmount = Math.Abs(amount);
-			var money = new Money(currency, absoluteAmount);
-			lst.Add(amount > 0
-				? PartialActivity.CreateCashDeposit(currency, date, absoluteAmount, money, transactionId, description)
-				: PartialActivity.CreateCashWithdrawal(currency, date, absoluteAmount, money, transactionId, description));
+			var tax = record.Tax.GetValueOrDefault();
+			if (tax != 0)
+			{
+				var absoluteTax = Math.Abs(tax);
+				var money = new Money(currency, absoluteTax);
+				lst.Add(tax > 0
+					? PartialActivity.CreateCashDeposit(currency, date, absoluteTax, money, transactionId, "Tax refund")
+					: PartialActivity.CreateCashWithdrawal(currency, date, absoluteTax, money, transactionId, "Tax withheld"));
+			}
+
+			if (amount == 0 && tax == 0)
+			{
+				logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) with zero amount.", record.Type, rowNumber, transactionId);
+			}
 		}
 
 		protected override CsvReaderOptions GetConfig()

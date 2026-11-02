@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.Parsers
 				}
 				catch (UnknownTransactionTypeException ex)
 				{
-					throw new UnknownTransactionTypeException(ex.ParserName, ex.TransactionType, rowNumber, filename);
+					throw new UnknownTransactionTypeException(ex.ParserName, ex.TransactionType, rowNumber, filename, ex);
 				}
 
 				activityManager.AddPartialActivity(accountName, partialActivity);

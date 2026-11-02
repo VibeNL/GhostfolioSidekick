@@ -39,8 +39,11 @@ namespace GhostfolioSidekick.Activities
 		{
 			PartialActivity sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Count != 0) ?? transactions[0];
 
-			List<PartialActivity> fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
-			List<PartialActivity> taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
+			var supportsFees = sourceTransaction.ActivityType is PartialActivityType.Buy or PartialActivityType.Sell or PartialActivityType.Dividend or PartialActivityType.Receive or PartialActivityType.Send;
+			var supportsTaxes = sourceTransaction.ActivityType is PartialActivityType.Buy or PartialActivityType.Sell or PartialActivityType.Dividend;
+
+			List<PartialActivity> fees = supportsFees ? transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList() : [];
+			List<PartialActivity> taxes = supportsTaxes ? transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList() : [];
 
 			IEnumerable<PartialActivity> otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
 
@@ -76,9 +79,9 @@ namespace GhostfolioSidekick.Activities
 					sourceTransaction.TransactionId + $"_{counter++}",
 					[],
 					[],
-					null,
+					transaction.TotalTransactionAmount,
 					transaction.SortingPriority,
-					sourceTransaction.Description);
+					transaction.Description ?? sourceTransaction.Description);
 
 				if (activity != null)
 				{

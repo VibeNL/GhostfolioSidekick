@@ -422,6 +422,30 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 
 		[Fact]
+		public async Task GenerateActivities_ShouldCreateStandaloneTaxActivity_WhenSourceDoesNotSupportCosts()
+		{
+			// Arrange
+			List<PartialActivity> partialActivities =
+			[
+				PartialActivity.CreateInterest(Currency.USD, DateTime.Now, 50, "Interest payment", new Money(Currency.USD, 50), "T1"),
+				PartialActivity.CreateTax(Currency.USD, DateTime.Now, 7.5m, new Money(Currency.USD, 7.5m), "T1")
+			];
+			_activityManager.AddPartialActivity("Account1", partialActivities);
+
+			// Act
+			var activities = await _activityManager.GenerateActivities();
+
+			// Assert
+			_ = activities.Should().HaveCount(2);
+			InterestActivity? interestActivity = activities.OfType<InterestActivity>().Single();
+			TaxActivity? taxActivity = activities.OfType<TaxActivity>().Single();
+			_ = interestActivity.Amount.Amount.Should().Be(50);
+			_ = taxActivity!.TransactionId.Should().Be("T1_2");
+			_ = taxActivity.Amount.Amount.Should().Be(7.5m);
+			_ = taxActivity.Description.Should().Be("Tax");
+		}
+
+		[Fact]
 		public async Task GenerateActivities_ShouldHandleKnownBalanceActivity_WithCorrectCalculation()
 		{
 			// Arrange
