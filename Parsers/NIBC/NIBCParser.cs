@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Parsers.NIBC
 					record.TransactionID)];
 			}
 
-			return [];
+			throw new UnknownTransactionTypeException("NIBC", record.Description);
 		}
 
 		protected override CsvReaderOptions GetConfig()

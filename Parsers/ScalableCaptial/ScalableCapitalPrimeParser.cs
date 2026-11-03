@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateCashWithdrawal(currency, dateTime, Math.Abs(record.Amount), new Money(currency, Math.Abs(record.Amount)), record.Reference);
 					break;
 				default:
-					yield break;
+					throw new UnknownTransactionTypeException("ScalableCapitalPrime", record.Type);
 			}
 
 			if (record.Tax.GetValueOrDefault() != 0)

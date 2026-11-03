@@ -142,15 +142,15 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_InvalidDescription_Empty()
+		public async Task ConvertActivitiesForAccount_InvalidDescription_ThrowsUnknownTransactionTypeException()
 		{
 			// Arrange
 
-			// Act
-			await parser.ParseActivities("./TestFiles/NIBC/Invalid/invalid_description.csv", activityManager, account.Name);
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => parser.ParseActivities("./TestFiles/NIBC/Invalid/invalid_description.csv", activityManager, account.Name));
 
-			// Assert
-			activityManager.PartialActivities.Should().BeEmpty();
+			ex.ParserName.Should().Be("NIBC");
+			ex.TransactionType.Should().Be("Invalid");
 		}
 	}
 }

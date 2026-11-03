@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						record.TransactionId!);
 					break;
 				default:
-					throw new NotSupportedException();
+					throw new UnknownTransactionTypeException("DeGiro", activityType.ToString());
 			}
 
 			return [knownBalance, partialActivity];
