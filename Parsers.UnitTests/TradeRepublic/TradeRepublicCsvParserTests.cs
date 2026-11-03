@@ -559,6 +559,23 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
         }
 
         [Fact]
+        public async Task ConvertActivitiesForAccount_SingleEarningsWithAmountNoTax_ConvertsCashOnly()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_earnings_with_amount_no_tax.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2025, 01, 28, 16, 26, 36, 134, DateTimeKind.Utc).AddMicroseconds(432),
+                    50m,
+                    new Money(Currency.EUR, 50m),
+                    "d4e5f6a7-b8c9-0123-def0-123456789012",
+                    "Earnings")
+            ]);
+        }
+
+        [Fact]
         public async Task ConvertActivitiesForAccount_SingleTaxOptimization_Converted()
         {
             await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_tax_optimization.csv", activityManager, account.Name);
