@@ -175,7 +175,16 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 							new Money(currency, Math.Abs(record.Tax.Value)),
 							transactionId));
 					}
-					else
+
+					var earningsAmount = record.Amount.GetValueOrDefault();
+					if (earningsAmount != 0)
+					{
+						var absoluteEarningsAmount = Math.Abs(earningsAmount);
+						lst.Add(earningsAmount > 0
+							? PartialActivity.CreateCashDeposit(currency, date, absoluteEarningsAmount, new Money(currency, absoluteEarningsAmount), transactionId, "Earnings")
+							: PartialActivity.CreateCashWithdrawal(currency, date, absoluteEarningsAmount, new Money(currency, absoluteEarningsAmount), transactionId, "Earnings"));
+					}
+					else if (!record.Tax.HasValue || record.Tax.Value == 0)
 					{
 						logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) without tax; it carries no cash impact.", record.Type, rowNumber, transactionId);
 					}

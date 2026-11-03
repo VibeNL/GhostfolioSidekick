@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 					break;
 
 				default:
-					throw new UnknownTransactionTypeException("Trine", record.Type?.ToString());
+					throw new UnknownTransactionTypeException("Trine", record.Type);
 			}
 		}
 

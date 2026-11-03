@@ -532,6 +532,33 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
         }
 
         [Fact]
+        public async Task ConvertActivitiesForAccount_SingleEarningsWithAmount_ConvertsCashAndTax()
+        {
+            await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_earnings_with_amount.csv", activityManager, account.Name);
+
+            activityManager.PartialActivities.Should().BeEquivalentTo(
+            [
+                PartialActivity.CreateTax(
+                    Currency.EUR,
+                    new DateTime(2025, 01, 28, 16, 26, 36, 134, DateTimeKind.Utc).AddMicroseconds(432),
+                    [
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00BFNM3B99", Currency.EUR),
+                        PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.Name, "MSCI EMU ESG EUR (Acc)", Currency.EUR),
+                    ],
+                    1.93m,
+                    new Money(Currency.EUR, 1.93m),
+                    "d4e5f6a7-b8c9-0123-def0-123456789012"),
+                PartialActivity.CreateCashDeposit(
+                    Currency.EUR,
+                    new DateTime(2025, 01, 28, 16, 26, 36, 134, DateTimeKind.Utc).AddMicroseconds(432),
+                    50m,
+                    new Money(Currency.EUR, 50m),
+                    "d4e5f6a7-b8c9-0123-def0-123456789012",
+                    "Earnings")
+            ]);
+        }
+
+        [Fact]
         public async Task ConvertActivitiesForAccount_SingleTaxOptimization_Converted()
         {
             await parser.ParseActivities("./TestFiles/TradeRepublic/CSV/single_tax_optimization.csv", activityManager, account.Name);
