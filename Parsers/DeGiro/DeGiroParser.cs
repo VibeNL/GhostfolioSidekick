@@ -1,11 +1,13 @@
 using CsvHelper;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
-	public class DeGiroParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<DeGiroRecord>
+	public class DeGiroParser(ICurrencyMapper currencyMapper, IApplicationSettings applicationSettings, ILogger<DeGiroParser> logger) : RecordBaseImporter<DeGiroRecord>(applicationSettings, logger)
 	{
 		private static readonly DeGiroMultiStrategy strategy = new(
 				new DeGiroEnglishStrategy(),

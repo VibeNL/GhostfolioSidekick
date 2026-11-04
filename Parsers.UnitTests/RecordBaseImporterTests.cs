@@ -18,6 +18,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 
 		private class TestRecordBaseImporter : RecordBaseImporter<TestRecord>
 		{
+			public TestRecordBaseImporter()
+				: base(TestParserSettings.Create(), TestParserSettings.Logger<TestRecordBaseImporter>())
+			{
+			}
+
 			protected override IEnumerable<PartialActivity> ParseRow(TestRecord record, int rowNumber)
 			{
 				return new List<PartialActivity>
@@ -54,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			}
 		}
 
-		private class UnknownTypeRecordBaseImporter(IApplicationSettings? applicationSettings) : RecordBaseImporter<TestRecord>(applicationSettings)
+		private class UnknownTypeRecordBaseImporter(IApplicationSettings applicationSettings) : RecordBaseImporter<TestRecord>(applicationSettings, TestParserSettings.Logger<UnknownTypeRecordBaseImporter>())
 		{
 			protected override IEnumerable<PartialActivity> ParseRow(TestRecord record, int rowNumber)
 			{
@@ -109,10 +114,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 
 		[Theory]
 		[InlineData(false)]
-		[InlineData(null)]
-		public async Task ParseActivities_UnknownType_SkipDisabled_Throws(bool? skipUnknownTransactionTypes)
+		public async Task ParseActivities_UnknownType_SkipDisabled_Throws(bool skipUnknownTransactionTypes)
 		{
-			var importer = new UnknownTypeRecordBaseImporter(skipUnknownTransactionTypes.HasValue ? CreateSettings(skipUnknownTransactionTypes.Value).Object : null);
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(skipUnknownTransactionTypes).Object);
 			var mockActivityManager = new Mock<IActivityManager>();
 			var tempFilePath = Path.GetTempFileName();
 			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown", TestContext.Current.CancellationToken);

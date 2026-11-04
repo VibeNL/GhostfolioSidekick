@@ -10,10 +10,10 @@ namespace GhostfolioSidekick.Parsers
 	{
 		private readonly Dictionary<string, bool> KnownHeaderCache = [];
 
-		private readonly IApplicationSettings? applicationSettings;
-		private readonly ILogger? logger;
+		private readonly IApplicationSettings applicationSettings;
+		private readonly ILogger logger;
 
-		protected RecordBaseImporter(IApplicationSettings? applicationSettings = null, ILogger? logger = null)
+		protected RecordBaseImporter(IApplicationSettings applicationSettings, ILogger logger)
 		{
 			this.applicationSettings = applicationSettings;
 			this.logger = logger;
@@ -74,9 +74,9 @@ namespace GhostfolioSidekick.Parsers
 				{
 					partialActivity = [.. ParseRow(records[i], rowNumber)];
 				}
-				catch (UnknownTransactionTypeException ex) when (applicationSettings?.ConfigurationInstance.Settings.SkipUnknownTransactionTypes == true)
+				catch (UnknownTransactionTypeException ex) when (applicationSettings.ConfigurationInstance.Settings.SkipUnknownTransactionTypes)
 				{
-					logger?.LogWarning(ex, "Skipping unsupported {Parser} transaction type '{Type}' on row {RowNumber} in {File}.", ex.ParserName, ex.TransactionType, rowNumber, filename);
+					logger.LogWarning(ex, "Skipping unsupported {Parser} transaction type '{Type}' on row {RowNumber} in {File}.", ex.ParserName, ex.TransactionType, rowNumber, filename);
 					skippedRows++;
 					continue;
 				}
@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.Parsers
 
 			if (skippedRows > 0)
 			{
-				logger?.LogWarning("Skipped {SkippedRows} of {TotalRows} rows in {File} because of unsupported transaction types. Balances may be inaccurate.", skippedRows, records.Count, filename);
+				logger.LogWarning("Skipped {SkippedRows} of {TotalRows} rows in {File} because of unsupported transaction types. Balances may be inaccurate.", skippedRows, records.Count, filename);
 			}
 
 			return Task.CompletedTask;
