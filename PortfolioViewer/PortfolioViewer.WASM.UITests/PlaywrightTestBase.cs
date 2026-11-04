@@ -30,10 +30,12 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	private HomePage? _homePage;
 	private PriceTargetsPage? _priceTargetsPage;
 	private HoldingsPriceTargetsPage? _holdingsPriceTargetsPage;
+	private ChatPageObject? _chatPageObject;
 	protected LoginPage LoginPage => _loginPage ??= new LoginPage(Page!);
 	protected HomePage HomePage => _homePage ??= new HomePage(Page!);
 	protected PriceTargetsPage PriceTargetsPage => _priceTargetsPage ??= new PriceTargetsPage(Page!);
 	protected HoldingsPriceTargetsPage HoldingsPriceTargetsPage => _holdingsPriceTargetsPage ??= new HoldingsPriceTargetsPage(Page!);
+	protected ChatPageObject ChatPageObject => _chatPageObject ??= new ChatPageObject(Page!);
 
 	protected static CancellationToken CancellationToken => TestContext.Current?.CancellationToken ?? CancellationToken.None;
 

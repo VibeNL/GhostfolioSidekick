@@ -16,6 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private string CurrentMessage = "";
 		private bool IsBotTyping;
 		private bool IsInitialized; // Flag to track initialization
+		private string? initializationError; // Set when model initialization fails; shown in the loading panel with a retry option
 		private bool wakeLockActive; // Track wake lock status
 
 		private readonly Progress<InitializeProgress> progress = new();
@@ -25,6 +26,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private readonly List<ChatMessage> memory = [];
 		private readonly AgentOrchestrator orchestrator;
 		private readonly AgentLogger agentLogger;
+		private readonly SqlitePersistence sqlitePersistence;
 
 		internal string CurrentAgentName => agentLogger.CurrentAgentName;
 
@@ -32,10 +34,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-		public ChatOverlay(IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
+		public ChatOverlay(IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger, SqlitePersistence sqlitePersistence)
 		{
 			orchestrator = agentOrchestrator;
 			this.agentLogger = agentLogger;
+			this.sqlitePersistence = sqlitePersistence;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
 
@@ -43,11 +46,36 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			agentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
 		}
 
-		private void ClearChat()
+		protected override async Task OnInitializedAsync()
+		{
+			// Restore the conversation from the database so it survives page refreshes.
+			try
+			{
+				memory.AddRange(await orchestrator.HistoryAsync());
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed to restore chat history: {ex.Message}");
+			}
+
+			StateHasChanged();
+		}
+
+		private async Task ClearChat()
 		{
 			memory.Clear();
-			orchestrator.ClearMemory();
+			await orchestrator.ClearMemoryAsync();
 			CurrentMessage = string.Empty;
+
+			// Persist the deletion so a page refresh does not resurrect the cleared conversation.
+			try
+			{
+				await sqlitePersistence.SaveChangesAsync();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed to sync chat history after clear: {ex.Message}");
+			}
 		}
 
 		private async Task ToggleChat()
@@ -109,12 +137,38 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		{
 			try
 			{
+				initializationError = null;
 				await orchestrator.InitializeAsync(progress);
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e.Message);
-				throw;
+				Console.WriteLine(e);
+				// Surface the failure in the loading panel instead of leaving "Loading assistant..." up forever.
+				initializationError = e.Message;
+				IsInitialized = false; // Allow a retry when the chat is reopened or Retry is pressed
+				StateHasChanged();
+			}
+		}
+
+		private bool initializationInProgress;
+
+		private async Task RetryInitialization()
+		{
+			if (initializationInProgress)
+			{
+				return; // Guard against double-click starting two concurrent engine initializations
+			}
+
+			initializationInProgress = true;
+			try
+			{
+				IsInitialized = true; // Prevent duplicate initialization while this retry runs
+				lastProgress = new InitializeProgress(0);
+				await InitializeLlmAsync();
+			}
+			finally
+			{
+				initializationInProgress = false;
 			}
 		}
 
@@ -139,47 +193,83 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI
 
+			memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = "User" });
+
 			try
 			{
-				memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = "User" });
-
-				// Send the messages to the chat client and process the response
-				await foreach (var response in orchestrator.AskQuestion(input))
+				await StreamAnswerAsync(input);
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				// GPU buffer state can get corrupted mid-stream (mlc-ai/web-llm#497, common on mobile).
+				// Reinitialize the engine for fresh buffers and retry once before surfacing the error.
+				Console.WriteLine($"Stream failed ({ex.Message}); reinitializing engine and retrying");
+				try
 				{
-					// Append the bot's streaming response
-					streamingAuthor = response.AuthorName ?? string.Empty;
+					await InitializeLlmAsync();
+					await StreamAnswerAsync(input);
+				}
+				catch (Exception retryEx) when (retryEx is not OperationCanceledException)
+				{
+					memory.Add(new ChatMessage(ChatRole.System, $"Error: {retryEx.Message}") { AuthorName = "System" });
 
-					var lastMemory = memory.LastOrDefault();
-					if (lastMemory?.AuthorName != streamingAuthor)
-					{
-						lastMemory = new ChatMessage(ChatRole.Assistant, response.Text ?? string.Empty) { AuthorName = streamingAuthor };
-						memory.Add(lastMemory);
-					}
-
-					var existingText = lastMemory.Text ?? string.Empty;
-					lastMemory.Contents = [new TextContent(existingText + (response.Text ?? string.Empty))];
+					// Unstick the UI: a failed stream must not leave the typing indicator up and input disabled.
+					IsBotTyping = false;
+					streamingAuthor = string.Empty;
 					StateHasChanged();
+					return;
+				}
+			}
 
-					// Scroll to the bottom of the chat
-					await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
+			await FinalizeTurnAsync();
+		}
+
+		private async Task StreamAnswerAsync(string input)
+		{
+			// Send the messages to the chat client and process the response
+			await foreach (var response in orchestrator.AskQuestion(input))
+			{
+				// Append the bot's streaming response
+				streamingAuthor = response.AuthorName ?? string.Empty;
+
+				var lastMemory = memory.LastOrDefault();
+				if (lastMemory?.AuthorName != streamingAuthor)
+				{
+					lastMemory = new ChatMessage(ChatRole.Assistant, response.Text ?? string.Empty) { AuthorName = streamingAuthor };
+					memory.Add(lastMemory);
 				}
 
-				memory.Clear();
-				memory.AddRange(orchestrator.History());
-
-				IsBotTyping = false;
-				streamingAuthor = string.Empty;
-
+				var existingText = lastMemory.Text ?? string.Empty;
+				lastMemory.Contents = [new TextContent(existingText + (response.Text ?? string.Empty))];
 				StateHasChanged();
 
 				// Scroll to the bottom of the chat
 				await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 			}
+		}
+
+		private async Task FinalizeTurnAsync()
+		{
+			memory.Clear();
+			memory.AddRange(await orchestrator.HistoryAsync());
+
+			IsBotTyping = false;
+			streamingAuthor = string.Empty;
+
+			StateHasChanged();
+
+			// Persist the new turn to IndexedDB so it survives a page refresh.
+			try
+			{
+				await sqlitePersistence.SaveChangesAsync();
+			}
 			catch (Exception ex)
 			{
-				memory.Clear();
-				memory.Add(new ChatMessage(ChatRole.System, $"Error: {ex.Message}"));
+				Console.WriteLine($"Failed to sync chat history: {ex.Message}");
 			}
+
+			// Scroll to the bottom of the chat
+			await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 		}
 
 		private void OnCurrentAgentNameChanged()

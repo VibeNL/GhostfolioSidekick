@@ -2,6 +2,7 @@ using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 
 namespace GhostfolioSidekick.AI.Agents
 {
@@ -12,21 +13,9 @@ namespace GhostfolioSidekick.AI.Agents
 			services.AddSingleton<AgentLogger>();
 			services.AddSingleton<AgentOrchestrator>();
 
-			// Register Google Search service with MCP pattern
-			services.AddHttpClient<GoogleSearchService>();
-			services.AddSingleton<IGoogleSearchService, GoogleSearchService>();
-			services.AddSingleton((s) =>
-			{
-				var httpClient = s.GetRequiredService<HttpClient>();
-				// Create a context for the GoogleSearchService
-				var context = new GoogleSearchContext
-				{
-					HttpClient = httpClient,
-					// Default URLs are already set in the context class
-				};
-				// Return the service with the context
-				return new GoogleSearchService(context);
-			});
+			// Typed client gives us a resolvable GoogleSearchService + HttpClient; standard resilience adds retries, timeout and circuit breaker.
+			services.AddHttpClient<GoogleSearchService>().AddStandardResilienceHandler();
+			services.AddSingleton<IGoogleSearchService>(s => s.GetRequiredService<GoogleSearchService>());
 
 			services.AddSingleton<IAgentToolProvider, ResearchAgentToolProvider>();
 		}

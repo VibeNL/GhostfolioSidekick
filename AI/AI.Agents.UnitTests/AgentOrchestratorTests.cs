@@ -63,13 +63,13 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		}
 
 		[Fact]
-		public void History_ShouldReturnEmptyCollection_WhenNoConversation()
+		public async Task HistoryAsync_ShouldReturnEmptyCollection_WhenNoConversation()
 		{
 			// Arrange
 			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
 
 			// Act
-			var history = orchestrator.History();
+			var history = await orchestrator.HistoryAsync();
 
 			// Assert
 			Assert.NotNull(history);
