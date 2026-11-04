@@ -11,6 +11,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		public ConcurrentQueue<WebLLMCompletion> WebLLMCompletions { get; init; } = new();
 
+		/// <summary>The first error that occurred during the current stream, if any.</summary>
+		public Exception? StreamError { get; private set; }
+
 		public void SetProgressReporter(IProgress<InitializeProgress> progress)
 		{
 			_progress = progress ?? throw new ArgumentNullException(nameof(progress));
@@ -39,6 +42,26 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			// Add the response to the queue
 			WebLLMCompletions.Enqueue(response);
 		}
+
+		/// <summary>Reports a streaming error from the JavaScript side so that stream consumers can observe it instead of waiting forever.</summary>
+		[JSInvokable]
+		public void ReportStreamError(string message)
+		{
+			SetStreamError(new InvalidOperationException(message));
+		}
+
+		internal void SetStreamError(Exception error)
+		{
+			ArgumentNullException.ThrowIfNull(error);
+
+			// First error wins so the root cause is preserved.
+			if (StreamError is null)
+			{
+				StreamError = error;
+			}
+		}
+
+		internal void ClearStreamError() => StreamError = null;
 
 		internal static IEnumerable<Message> ConvertMessage(IEnumerable<ChatMessage> chatMessages)
 		{

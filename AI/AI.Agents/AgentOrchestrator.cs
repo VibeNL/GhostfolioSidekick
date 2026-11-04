@@ -2,6 +2,7 @@ using GhostfolioSidekick.AI.Common;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.AI.Agents
@@ -14,20 +15,30 @@ namespace GhostfolioSidekick.AI.Agents
 		private readonly ICustomChatClient chatClient;
 		private AgentSession? session;
 
-		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
+		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger, ILogger<AgentOrchestrator> log)
 		{
 			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
 
-			var toolProviders = (serviceProvider.GetService(typeof(IEnumerable<IAgentToolProvider>)) as IEnumerable<IAgentToolProvider>)
-				?.ToList() ?? [];
+			var toolProviders = serviceProvider.GetServices<IAgentToolProvider>().ToList();
 			var allTools = new List<AITool>();
 
 			foreach (var provider in toolProviders)
 			{
-				allTools.AddRange(provider.GetTools());
+				foreach (var tool in provider.GetTools())
+				{
+					if (!allTools.Any(t => string.Equals(t.Name, tool.Name, StringComparison.OrdinalIgnoreCase)))
+					{
+						allTools.Add(tool);
+					}
+					else
+					{
+						log.LogWarning("Duplicate AI tool '{ToolName}' from provider '{ProviderName}'; keeping the first registration.", tool.Name, provider.ProviderName);
+					}
+				}
 			}
 
-			mainAgent = GhostfolioSidekick.Create(chatClient, allTools);
+			var capabilities = string.Join(Environment.NewLine, toolProviders.Select(p => $"- {p.ProviderName}: {p.ProviderDescription}"));
+			mainAgent = GhostfolioSidekick.Create(chatClient, allTools, capabilities);
 
 			this.logger = logger;
 		}
@@ -39,60 +50,16 @@ namespace GhostfolioSidekick.AI.Agents
 				return [];
 			}
 
-			FixupMemory();
-
-			if (session.TryGetInMemoryChatHistory(out var chatHistory))
+			if (!session.TryGetInMemoryChatHistory(out var chatHistory))
 			{
-				return chatHistory.Where(x => x.Text != null).ToList();
+				return [];
 			}
 
-			return [];
-		}
-
-		private void FixupMemory()
-		{
-			if (session == null)
-			{
-				return;
-			}
-
-			List<ChatMessage> cleanedChatHistory = [];
-			if (session.TryGetInMemoryChatHistory(out var chatHistory))
-			{
-				// Add toolcall messages as additional properties to the next message from the agent, so that they can be displayed in the UI.
-				List<ChatMessage> toolsCalls = [];
-				foreach (var message in chatHistory.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
-				{
-					if (message.Role == ChatRole.Tool)
-					{
-						toolsCalls.Add(message);
-					}
-					else
-					{
-						if (message.Role == ChatRole.User)
-						{
-							message.AuthorName = "User";
-						}
-
-						message.AdditionalProperties ??= [];
-
-						if (!message.AdditionalProperties.Any(x => x.Key == "tool_call"))
-						{
-							message.AdditionalProperties.TryAdd("tool_call", "");
-						}
-
-						if (toolsCalls.Count != 0)
-						{
-							message.AdditionalProperties["tool_call"] = string.Join(", ", toolsCalls.Select(tc => tc.Text ?? string.Empty));
-							toolsCalls.Clear();
-						}
-
-						cleanedChatHistory.Add(message);
-					}
-				}
-			}
-
-			session.SetInMemoryChatHistory(cleanedChatHistory);
+			// Project the history for display: drop tool turns (their results are already folded into the final answer) and normalize user author names.
+			return chatHistory
+				.Where(x => x.Text != null && x.Role != ChatRole.Tool)
+				.Select(x => x.Role == ChatRole.User ? new ChatMessage(ChatRole.User, x.Text) { AuthorName = "User" } : x)
+				.ToList();
 		}
 
 		public async IAsyncEnumerable<AgentResponseUpdate> AskQuestion(string input)
