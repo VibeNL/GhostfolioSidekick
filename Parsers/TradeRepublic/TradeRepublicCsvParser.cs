@@ -190,11 +190,19 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					}
 					break;
 
-				case "TAX_OPTIMIZATION": // Tax refund/correction; sign of amount determines direction
-					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Tax optimization");
+				case "TAX_OPTIMIZATION": // Tax refund/correction; booked as signed tax corrections so the original withholding is offset in balances and Ghostfolio
+					AddSignedTaxCorrection(lst, record.Amount.GetValueOrDefault(), currency, date, transactionId);
+					AddSignedTaxCorrection(lst, record.Tax.GetValueOrDefault(), currency, date, transactionId);
 					break;
 				case "INTEREST_PAYMENT_CANCELLED": // Reversal of an interest payment (correction from Trade Republic)
-					AddCashMovementBySign(lst, record, rowNumber, currency, date, transactionId, "Interest payment cancelled");
+					var cancelledInterest = record.Amount.GetValueOrDefault();
+					if (cancelledInterest != 0)
+					{
+						lst.Add(PartialActivity.CreateSignedInterest(
+							currency, date, cancelledInterest, "Interest payment cancelled", new Money(currency, cancelledInterest), transactionId));
+					}
+
+					AddSignedTaxCorrection(lst, record.Tax.GetValueOrDefault(), currency, date, transactionId);
 					break;
 				case "MANUAL_CASH_TRANSFER":
 				case "MANUAL_CASH_TRANSFER_CANCELLED":
@@ -243,6 +251,16 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			{
 				logger.LogDebug("Ignoring Trade Republic {Type} row {RowNumber} ({TransactionId}) with zero amount.", record.Type, rowNumber, transactionId);
 			}
+		}
+
+		private static void AddSignedTaxCorrection(List<PartialActivity> lst, decimal amount, Currency currency, DateTime date, string transactionId)
+		{
+			if (amount == 0)
+			{
+				return;
+			}
+
+			lst.Add(PartialActivity.CreateSignedTax(currency, date, -amount, new Money(currency, -amount), transactionId));
 		}
 
 		protected override CsvReaderOptions GetConfig()

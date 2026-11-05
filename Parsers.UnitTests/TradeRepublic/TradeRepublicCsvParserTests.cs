@@ -582,13 +582,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
             activityManager.PartialActivities.Should().BeEquivalentTo(
             [
-                PartialActivity.CreateCashDeposit(
+                PartialActivity.CreateSignedTax(
                     Currency.EUR,
                     new DateTime(2024, 03, 20, 10, 5, 45, 789, DateTimeKind.Utc).AddMicroseconds(12),
-                    12.500000m,
-                    new Money(Currency.EUR, 12.500000m),
-                    "e5f6a7b8-c9d0-1234-efab-567890123456",
-                    "Tax optimization")
+                    -12.5m,
+                    new Money(Currency.EUR, -12.5m),
+                    "e5f6a7b8-c9d0-1234-efab-567890123456")
             ]);
         }
 
@@ -599,20 +598,19 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
             activityManager.PartialActivities.Should().BeEquivalentTo(
             [
-                PartialActivity.CreateCashWithdrawal(
+                PartialActivity.CreateSignedInterest(
                     Currency.EUR,
                     new DateTime(2024, 03, 15, 9, 0, 0, DateTimeKind.Utc),
-                    50.000000m,
-                    new Money(Currency.EUR, 50.000000m),
-                    "f6a7b8c9-d0e1-2345-fabc-678901234567",
-                    "Interest payment cancelled"),
-                PartialActivity.CreateCashDeposit(
+                    -50m,
+                    "Interest payment cancelled",
+                    new Money(Currency.EUR, -50m),
+                    "f6a7b8c9-d0e1-2345-fabc-678901234567"),
+                PartialActivity.CreateSignedTax(
                     Currency.EUR,
                     new DateTime(2024, 03, 15, 9, 0, 0, DateTimeKind.Utc),
-                    7.50m,
-                    new Money(Currency.EUR, 7.50m),
-                    "f6a7b8c9-d0e1-2345-fabc-678901234567",
-                    "Tax refund")
+                    -7.5m,
+                    new Money(Currency.EUR, -7.5m),
+                    "f6a7b8c9-d0e1-2345-fabc-678901234567")
             ]);
         }
 

@@ -174,6 +174,38 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
+				// Signed variants for corrections (e.g. Trade Republic INTEREST_PAYMENT_CANCELLED / TAX_OPTIMIZATION rows).
+		// A negative interest reverses previously booked income; a negative tax refunds previously withheld tax.
+		public static PartialActivity CreateSignedInterest(
+			Currency currency,
+			DateTime date,
+			decimal amount,
+			string description,
+			Money totalTransactionAmount,
+			string transactionId)
+		{
+			return new PartialActivity(PartialActivityType.Interest, date, currency, totalTransactionAmount, transactionId)
+			{
+				Amount = amount,
+				Description = description,
+			};
+		}
+
+		public static PartialActivity CreateSignedTax(
+			Currency currency,
+			DateTime date,
+			decimal amount,
+			Money totalTransactionAmount,
+			string transactionId)
+		{
+			return new PartialActivity(PartialActivityType.Tax, date, currency, totalTransactionAmount, transactionId)
+			{
+				SymbolIdentifiers = [],
+				Amount = amount,
+				Description = "Tax",
+			};
+		}
+
 		public static PartialActivity CreateFee(
 			Currency currency,
 			DateTime date,
