@@ -1,11 +1,13 @@
 using CsvHelper;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
-	public class GenericParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<GenericRecord>
+	public class GenericParser(ICurrencyMapper currencyMapper, IApplicationSettings applicationSettings, ILogger<GenericParser> logger) : RecordBaseImporter<GenericRecord>(applicationSettings, logger)
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(GenericRecord record, int rowNumber)
 		{
@@ -177,7 +179,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 					}
 					break;
 				default:
-					throw new NotSupportedException();
+					throw new UnknownTransactionTypeException("Generic", record.ActivityType.ToString());
 			}
 
 			return lst.ToList();

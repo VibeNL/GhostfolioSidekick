@@ -36,6 +36,7 @@ namespace GhostfolioSidekick
 			var settings = applicationSettings.ConfigurationInstance.Settings;
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
+			sb.AppendLine($"SkipUnknownTransactionTypes : {settings.SkipUnknownTransactionTypes}");
 
 			PrintUsedMappings(sb);
 

@@ -81,6 +81,50 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 
 		[Fact]
+		public async Task DoWork_ShouldKeepExistingActivities_WhenImportFails()
+		{
+			// Arrange
+			var directory = "test/path/dir2";
+			Directory.CreateDirectory(directory);
+			File.WriteAllText(Path.Combine(directory, "transactions.csv"), "type;amount\nDeposit;100\n");
+
+			int accountId;
+			using (var setupContext = _dbContextFactory.CreateDbContext())
+			{
+				var account = new Account { Name = "dir2" };
+				setupContext.Accounts.Add(account);
+				await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+				accountId = account.Id;
+			}
+
+			using (var setupContext = _dbContextFactory.CreateDbContext())
+			{
+				var trackedAccount = await setupContext.Accounts.FindAsync([accountId], TestContext.Current.CancellationToken);
+				setupContext.Activities.Add(new BuyActivity { TransactionId = "T1", Account = trackedAccount! });
+				await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+			}
+
+			_memoryCache.Set(nameof(FileImporterTask), "knownHash");
+
+			var importer = new Mock<IActivityFileImporter>();
+			importer.Setup(x => x.CanParse(It.IsAny<string>())).ReturnsAsync(true);
+			importer.Setup(x => x.ParseActivities(It.IsAny<string>(), It.IsAny<IActivityManager>(), It.IsAny<string>()))
+				.Throws(new UnknownTransactionTypeException("Test", "Unknown"));
+			_importers.Clear();
+			_importers.Add(importer.Object);
+
+			// Act
+			await _fileImporterTask.DoWork(_mockLogger.Object, CancellationToken.None);
+
+			// Assert: the failed import must not delete existing transactions of that account
+			using var verifyContext = _dbContextFactory.CreateDbContext();
+			var remaining = await verifyContext.Activities.Include(x => x.Account).ToListAsync(TestContext.Current.CancellationToken);
+			remaining.Should().ContainSingle(a => a.TransactionId == "T1");
+
+			_mockLogger.VerifyLog(logger => logger.LogWarning("Skipping reconciliation for {Count} account(s) with failed imports ({Accounts}); their existing transactions remain untouched.", 1, "dir2"), Times.Once);
+		}
+
+		[Fact]
 		public async Task StoreAll_ShouldDeduplicateAndStoreActivities()
 		{
 			// Arrange - Set up account in database first
@@ -130,7 +174,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			};
 
 			// Execute the method under test
-			await FileImporterTask.StoreAll(testContext, newActivities);
+			await FileImporterTask.StoreAll(testContext, newActivities, ["TestAccount"]);
 
 			// Verify results in the same context to avoid additional complexity
 			var finalActivities = await testContext.Activities

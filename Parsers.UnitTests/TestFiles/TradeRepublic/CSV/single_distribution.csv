@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2021-11-30T03:39:32.849586Z","2021-11-30","DEFAULT","CASH","DISTRIBUTION","FUND","Global Clean Energy USD (Dist)","IE00B1XNHC34","7.1236000000","","0.300000","","-0.06","EUR","0.27","USD","1.129300","","7bfb3aae-d026-4959-b8a9-50d36f3a7a38","","","",""

@@ -203,6 +203,50 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
             Assert.Equal("Tax", activity.Description);
         }
 
+        [Fact]
+        public void CreateTax_WithSymbolIdentifiers_ShouldSucceed()
+        {
+            var identifiers = new List<PartialSymbolIdentifier?>
+            {
+                PartialSymbolIdentifier.CreateStockBondAndETF(IdentifierType.ISIN, "IE00B4L5Y983", Currency.USD),
+            };
+
+            var activity = PartialActivity.CreateTax(Currency.USD, TestDate, identifiers, 20, new Money(Currency.USD, 20), "tx");
+
+            Assert.Equal(20, activity.Amount);
+            Assert.Equal(PartialActivityType.Tax, activity.ActivityType);
+            Assert.Equal("Tax", activity.Description);
+            Assert.Single(activity.SymbolIdentifiers);
+        }
+
+        // ── CreateSignedInterest / CreateSignedTax ───────────────────────────
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(1)]
+        public void CreateSignedInterest_ShouldAllowAnySign(decimal amount)
+        {
+            var activity = PartialActivity.CreateSignedInterest(Currency.USD, TestDate, amount, "Reversal", new Money(Currency.USD, amount), "tx");
+
+            Assert.Equal(amount, activity.Amount);
+            Assert.Equal(PartialActivityType.Interest, activity.ActivityType);
+            Assert.Equal("Reversal", activity.Description);
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(1)]
+        public void CreateSignedTax_ShouldAllowAnySign(decimal amount)
+        {
+            var activity = PartialActivity.CreateSignedTax(Currency.USD, TestDate, amount, new Money(Currency.USD, amount), "tx");
+
+            Assert.Equal(amount, activity.Amount);
+            Assert.Equal(PartialActivityType.Tax, activity.ActivityType);
+            Assert.Empty(activity.SymbolIdentifiers);
+        }
+
         // ── CreateFee ─────────────────────────────────────────────────────────
 
         [Theory]

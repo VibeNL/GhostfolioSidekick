@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 
 		public CoinbaseParserTests()
 		{
-			parser = new CoinbaseParser(DummyCurrencyMapper.Instance);
+			parser = new CoinbaseParser(DummyCurrencyMapper.Instance, TestParserSettings.Create(), TestParserSettings.Logger<CoinbaseParser>());
 
 			var fixture = CustomFixture.New();
 			account = fixture

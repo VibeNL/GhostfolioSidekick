@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 
 		public ScalableCapitalPrimeParserTests()
 		{
-			parser = new ScalableCapitalPrimeParser(DummyCurrencyMapper.Instance);
+			parser = new ScalableCapitalPrimeParser(DummyCurrencyMapper.Instance, TestParserSettings.Create(), TestParserSettings.Logger<ScalableCapitalPrimeParser>());
 
 			var fixture = CustomFixture.New();
 			account = fixture
@@ -229,11 +229,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 		{
 			// Arrange
 
-			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/Invalid/invalid_type.csv", activityManager, account.Name);
+							// Act & Assert
+							var ex = await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => parser.ParseActivities("./TestFiles/ScalableCapital/Prime/Invalid/invalid_type.csv", activityManager, account.Name));
 
-			// Assert
-			activityManager.PartialActivities.Should().BeEmpty();
+							ex.ParserName.Should().Be("ScalableCapitalPrime");
+							ex.TransactionType.Should().Be("Invalid");
 		}
 	}
 }

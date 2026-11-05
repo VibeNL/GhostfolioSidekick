@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using GhostfolioSidekick.Configuration;
 using CsvHelper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -17,6 +18,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 
 		private class TestRecordBaseImporter : RecordBaseImporter<TestRecord>
 		{
+			public TestRecordBaseImporter()
+				: base(TestParserSettings.Create(), TestParserSettings.Logger<TestRecordBaseImporter>())
+			{
+			}
+
 			protected override IEnumerable<PartialActivity> ParseRow(TestRecord record, int rowNumber)
 			{
 				return new List<PartialActivity>
@@ -50,6 +56,117 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			{
 				LinesRead++;
 				return base.ReadLine();
+			}
+		}
+
+		private class UnknownTypeRecordBaseImporter(IApplicationSettings applicationSettings) : RecordBaseImporter<TestRecord>(applicationSettings, TestParserSettings.Logger<UnknownTypeRecordBaseImporter>())
+		{
+			protected override IEnumerable<PartialActivity> ParseRow(TestRecord record, int rowNumber)
+			{
+				if (record.Header1 == "unknown")
+				{
+					throw new UnknownTransactionTypeException("Test", record.Header1);
+				}
+
+				return [new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "txn1")];
+			}
+
+			protected override CsvReaderOptions GetConfig()
+			{
+				return new CsvReaderOptions();
+			}
+		}
+
+		private static Mock<IApplicationSettings> CreateSettings(bool skipUnknownTransactionTypes)
+		{
+			var settingsMock = new Mock<IApplicationSettings>();
+			settingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
+			{
+				Settings = new Settings
+				{
+					DataProviderPreference = "YAHOO;COINGECKO",
+					PrimaryCurrency = "EUR",
+					SkipUnknownTransactionTypes = skipUnknownTransactionTypes,
+				},
+			});
+			return settingsMock;
+		}
+
+		[Fact]
+		public async Task ParseActivities_UnknownType_SkipEnabled_SkipsRowAndKeepsOthers()
+		{
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(true).Object);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown\nknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				await importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1");
+
+				mockActivityManager.Verify(m => m.AddPartialActivity(It.IsAny<string>(), It.IsAny<IEnumerable<PartialActivity>>()), Times.Exactly(2));
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
+			}
+		}
+
+		[Fact]
+		public async Task ParseActivities_UnknownType_SkipDisabled_Throws()
+		{
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(false).Object);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1"));
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
+			}
+		}
+
+		[Fact]
+		public async Task ParseActivities_UnknownType_SkipEnabled_MultipleUnknownRows_AllSkipped()
+		{
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(true).Object);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nunknown\nknown\nunknown\nunknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				await importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1");
+
+				mockActivityManager.Verify(m => m.AddPartialActivity(It.IsAny<string>(), It.IsAny<IEnumerable<PartialActivity>>()), Times.Once);
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
+			}
+		}
+
+		[Fact]
+		public async Task ParseActivities_UnknownType_SkipDisabled_ExceptionContainsRowAndFile()
+		{
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(false).Object);
+			var mockActivityManager = new Mock<IActivityManager>();
+			var tempFilePath = Path.GetTempFileName();
+			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown", TestContext.Current.CancellationToken);
+
+			try
+			{
+				var ex = await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => importer.ParseActivities(tempFilePath, mockActivityManager.Object, "account1"));
+
+				ex.Message.Should().Contain("row 2").And.Contain(tempFilePath);
+			}
+			finally
+			{
+				File.Delete(tempFilePath);
 			}
 		}
 

@@ -240,6 +240,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[InlineData(PartialActivityType.Dividend, typeof(DividendActivity))]
 		[InlineData(PartialActivityType.Interest, typeof(InterestActivity))]
 		[InlineData(PartialActivityType.Fee, typeof(FeeActivity))]
+		[InlineData(PartialActivityType.Tax, typeof(TaxActivity))]
 		[InlineData(PartialActivityType.CashDeposit, typeof(CashDepositActivity))]
 		[InlineData(PartialActivityType.CashWithdrawal, typeof(CashWithdrawalActivity))]
 		[InlineData(PartialActivityType.KnownBalance, typeof(KnownBalanceActivity))]
@@ -421,6 +422,30 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 
 		[Fact]
+		public async Task GenerateActivities_ShouldCreateStandaloneTaxActivity_WhenSourceDoesNotSupportCosts()
+		{
+			// Arrange
+			List<PartialActivity> partialActivities =
+			[
+				PartialActivity.CreateInterest(Currency.USD, DateTime.Now, 50, "Interest payment", new Money(Currency.USD, 50), "T1"),
+				PartialActivity.CreateTax(Currency.USD, DateTime.Now, 7.5m, new Money(Currency.USD, 7.5m), "T1")
+			];
+			_activityManager.AddPartialActivity("Account1", partialActivities);
+
+			// Act
+			var activities = await _activityManager.GenerateActivities();
+
+			// Assert
+			_ = activities.Should().HaveCount(2);
+			InterestActivity? interestActivity = activities.OfType<InterestActivity>().Single();
+			TaxActivity? taxActivity = activities.OfType<TaxActivity>().Single();
+			_ = interestActivity.Amount.Amount.Should().Be(50);
+			_ = taxActivity!.TransactionId.Should().Be("T1_2");
+			_ = taxActivity.Amount.Amount.Should().Be(7.5m);
+			_ = taxActivity.Description.Should().Be("Tax");
+		}
+
+		[Fact]
 		public async Task GenerateActivities_ShouldHandleKnownBalanceActivity_WithCorrectCalculation()
 		{
 			// Arrange
@@ -580,6 +605,23 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_ = feeActivity!.Amount.Amount.Should().Be(25);
 		}
 
+		[Fact]
+		public async Task GenerateActivities_ShouldPreserveSymbolIdentifiers_ForTaxActivity()
+		{
+			// Arrange
+			PartialActivity partialActivity = PartialActivity.CreateTax(Currency.USD, DateTime.Now, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 5, new Money(Currency.USD, 5), "T1");
+			_activityManager.AddPartialActivity("Account1", [partialActivity]);
+
+			// Act
+			var activities = await _activityManager.GenerateActivities();
+
+			// Assert
+			TaxActivity? taxActivity = activities.First() as TaxActivity;
+			_ = taxActivity.Should().NotBeNull();
+			_ = taxActivity!.Amount.Amount.Should().Be(5);
+			_ = taxActivity.PartialSymbolIdentifiers.Should().HaveCount(1);
+		}
+
 		private static PartialActivity CreatePartialActivityByType(PartialActivityType activityType, DateTime date, string transactionId)
 		{
 			return activityType switch
@@ -590,6 +632,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				PartialActivityType.Send => PartialActivity.CreateSend(date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 10, transactionId),
 				PartialActivityType.Dividend => PartialActivity.CreateDividend(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 100, new Money(Currency.USD, 100), transactionId),
 				PartialActivityType.Interest => PartialActivity.CreateInterest(Currency.USD, date, 50, "Interest", new Money(Currency.USD, 50), transactionId),
+				PartialActivityType.Tax => PartialActivity.CreateTax(Currency.USD, date, [PartialSymbolIdentifier.CreateGeneric(IdentifierType.Default, "SYMBOL1", null)], 5, new Money(Currency.USD, 5), transactionId),
 				PartialActivityType.Fee => PartialActivity.CreateFee(Currency.USD, date, 5, new Money(Currency.USD, 5), transactionId),
 				PartialActivityType.CashDeposit => PartialActivity.CreateCashDeposit(Currency.USD, date, 100, new Money(Currency.USD, 100), transactionId),
 				PartialActivityType.CashWithdrawal => PartialActivity.CreateCashWithdrawal(Currency.USD, date, 100, new Money(Currency.USD, 100), transactionId),
