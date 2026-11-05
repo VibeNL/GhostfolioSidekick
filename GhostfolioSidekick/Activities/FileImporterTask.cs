@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.Activities
 
 			var activities = allActivities.Where(x => reconciledAccounts.Contains(x.Account.Name)).ToList();
 
-			// write to the dababase.
+			// write to the database.
 			await StoreAll(databaseContext, activities, accountNames);
 
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
@@ -267,11 +267,6 @@ namespace GhostfolioSidekick.Activities
 								x.Account.Id == AccountId)
 					.OrderBy(x => x.SortingPriority)
 					.ThenBy(x => x.Description);
-
-				if (AccountId == 4 && newActivity.First() is BuyActivity)
-				{
-					// HELLO
-				}
 
 				if (!AreActivitiesEqual(existingActivity, newActivity))
 				{

@@ -125,7 +125,6 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					// Ignore
 					break;
 				default:
-					logger.LogError("Unsupported Trading212 action '{Action}' at row {RowNumber} (RecordId: {RecordId}, Time: {Time}).", record.Action, rowNumber, record.Id, record.Time);
 					throw new UnknownTransactionTypeException("Trading212", record.Action);
 			}
 

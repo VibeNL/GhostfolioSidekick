@@ -112,11 +112,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			}
 		}
 
-		[Theory]
-		[InlineData(false)]
-		public async Task ParseActivities_UnknownType_SkipDisabled_Throws(bool skipUnknownTransactionTypes)
+		[Fact]
+		public async Task ParseActivities_UnknownType_SkipDisabled_Throws()
 		{
-			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(skipUnknownTransactionTypes).Object);
+			var importer = new UnknownTypeRecordBaseImporter(CreateSettings(false).Object);
 			var mockActivityManager = new Mock<IActivityManager>();
 			var tempFilePath = Path.GetTempFileName();
 			await File.WriteAllTextAsync(tempFilePath, "Header1\nknown\nunknown", TestContext.Current.CancellationToken);
