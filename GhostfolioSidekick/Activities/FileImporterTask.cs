@@ -50,10 +50,20 @@ namespace GhostfolioSidekick.Activities
 			await ParseFiles(logger, importers, directories, activityManager, accountNames);
 
 			logger.LogDebug("Generating activities");
-			var activities = await activityManager.GenerateActivities();
+			var allActivities = await activityManager.GenerateActivities();
 
-			// write to the dababase.
-			await StoreAll(databaseContext, activities);
+			// Only reconcile accounts whose import completed; a failed import would otherwise delete existing transactions missing from the incomplete result.
+			var reconciledAccounts = accountNames.ToHashSet();
+			var skippedAccounts = directories.Select(x => new DirectoryInfo(x).Name).Except(accountNames).ToList();
+			if (skippedAccounts.Count > 0)
+			{
+				logger.LogWarning("Skipping reconciliation for {Count} account(s) with failed imports ({Accounts}); their existing transactions remain untouched.", skippedAccounts.Count, string.Join(", ", skippedAccounts));
+			}
+
+			var activities = allActivities.Where(x => reconciledAccounts.Contains(x.Account.Name)).ToList();
+
+			// write to the database.
+			await StoreAll(databaseContext, activities, accountNames);
 
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
 
@@ -128,10 +138,10 @@ namespace GhostfolioSidekick.Activities
 			return sb.ToString();
 		}
 
-		public static async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+		public static async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities, IEnumerable<string> reconciledAccountNames)
 		{
 			await UpdatePartialSymbolIdentifiers(databaseContext, activities);
-			await SyncActivities(databaseContext, activities);
+			await SyncActivities(databaseContext, activities, reconciledAccountNames);
 			await databaseContext.SaveChangesAsync(CancellationToken.None);
 		}
 
@@ -155,7 +165,7 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		private static async Task SyncActivities(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+		private static async Task SyncActivities(DatabaseContext databaseContext, IEnumerable<Activity> activities, IEnumerable<string> reconciledAccountNames)
 		{
 			var existingActivities = await databaseContext
 				.Activities
@@ -164,6 +174,10 @@ namespace GhostfolioSidekick.Activities
 
 			// Ensure all account entities in activities are properly tracked
 			await EnsureAccountsAreTracked(databaseContext, activities);
+
+			// Only reconcile the accounts that were imported successfully; leave other accounts' transactions untouched.
+			var reconciled = reconciledAccountNames.ToHashSet();
+			existingActivities = [.. existingActivities.Where(x => reconciled.Contains(x.Account.Name))];
 
 			var existingTransactionKeys = GetTransactionKeys(existingActivities);
 			var newTransactionKeys = GetTransactionKeys(activities);
@@ -253,11 +267,6 @@ namespace GhostfolioSidekick.Activities
 								x.Account.Id == AccountId)
 					.OrderBy(x => x.SortingPriority)
 					.ThenBy(x => x.Description);
-
-				if (AccountId == 4 && newActivity.First() is BuyActivity)
-				{
-					// HELLO
-				}
 
 				if (!AreActivitiesEqual(existingActivity, newActivity))
 				{

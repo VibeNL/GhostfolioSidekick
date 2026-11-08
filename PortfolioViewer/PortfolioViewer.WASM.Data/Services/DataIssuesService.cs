@@ -130,6 +130,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				{
 					dataIssue.Amount = feeActivity.Amount;
 				}
+				else if (activity is TaxActivity taxActivity)
+				{
+					dataIssue.Amount = taxActivity.Amount;
+				}
 				else if (activity is CashDepositActivity cashActivity)
 				{
 					dataIssue.Amount = cashActivity.Amount;

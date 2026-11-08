@@ -51,7 +51,8 @@ namespace GhostfolioSidekick.Model.Activities
 			DateTime date,
 			decimal amount,
 			Money totalTransactionAmount,
-			string transactionId)
+			string transactionId,
+			string? description = null)
 		{
 			GuardNonNegative(amount, nameof(amount));
 			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -59,6 +60,7 @@ namespace GhostfolioSidekick.Model.Activities
 			return new PartialActivity(PartialActivityType.CashDeposit, date, currency, totalTransactionAmount, transactionId)
 			{
 				Amount = amount,
+				Description = description,
 			};
 		}
 
@@ -67,7 +69,8 @@ namespace GhostfolioSidekick.Model.Activities
 			DateTime date,
 			decimal amount,
 			Money totalTransactionAmount,
-			string transactionId)
+			string transactionId,
+			string? description = null)
 		{
 			GuardNonNegative(amount, nameof(amount));
 			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
@@ -75,6 +78,7 @@ namespace GhostfolioSidekick.Model.Activities
 			return new PartialActivity(PartialActivityType.CashWithdrawal, date, currency, totalTransactionAmount, transactionId)
 			{
 				Amount = amount,
+				Description = description,
 			};
 		}
 
@@ -148,11 +152,55 @@ namespace GhostfolioSidekick.Model.Activities
 			Money totalTransactionAmount,
 			string transactionId)
 		{
+			return CreateTax(currency, date, [], amount, totalTransactionAmount, transactionId);
+		}
+
+		public static PartialActivity CreateTax(
+			Currency currency,
+			DateTime date,
+			ICollection<PartialSymbolIdentifier?> symbolIdentifiers,
+			decimal amount,
+			Money totalTransactionAmount,
+			string transactionId)
+		{
 			GuardNonNegative(amount, nameof(amount));
 			GuardNonNegativeMoney(totalTransactionAmount, nameof(totalTransactionAmount), "TotalTransactionAmount cannot be negative.");
 
 			return new PartialActivity(PartialActivityType.Tax, date, currency, totalTransactionAmount, transactionId)
 			{
+				SymbolIdentifiers = symbolIdentifiers,
+				Amount = amount,
+				Description = "Tax",
+			};
+		}
+
+		// Signed variants for corrections (e.g. Trade Republic INTEREST_PAYMENT_CANCELLED / TAX_OPTIMIZATION rows).
+		// A negative interest reverses previously booked income; a negative tax refunds previously withheld tax.
+		public static PartialActivity CreateSignedInterest(
+			Currency currency,
+			DateTime date,
+			decimal amount,
+			string description,
+			Money totalTransactionAmount,
+			string transactionId)
+		{
+			return new PartialActivity(PartialActivityType.Interest, date, currency, totalTransactionAmount, transactionId)
+			{
+				Amount = amount,
+				Description = description,
+			};
+		}
+
+		public static PartialActivity CreateSignedTax(
+			Currency currency,
+			DateTime date,
+			decimal amount,
+			Money totalTransactionAmount,
+			string transactionId)
+		{
+			return new PartialActivity(PartialActivityType.Tax, date, currency, totalTransactionAmount, transactionId)
+			{
+				SymbolIdentifiers = [],
 				Amount = amount,
 				Description = "Tax",
 			};

@@ -145,6 +145,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						ReferenceCode = activity.TransactionId,
 						AccountId = account?.Id
 					};
+				case TaxActivity taxActivity:
+					return new Contract.Activity
+					{
+						SymbolProfile = Contract.SymbolProfile.Empty(taxActivity.Amount.Currency, taxActivity.Description),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = 1,
+						Type = Contract.ActivityType.FEE,
+						UnitPrice = taxActivity.Amount.Amount,
+						ReferenceCode = activity.TransactionId,
+						AccountId = account?.Id
+					};
 				case CorrectionActivity correctionActivity:
 					return new Contract.Activity
 					{

@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2026-07-09T11:30:00.500000Z","2026-07-09","DEFAULT","CASH","MANUAL_CASH_TRANSFER","","","","","","45.000000","","-3.25","EUR","","","","Manual cash transfer with tax","b8c9d0e1-f2a3-4567-bcde-890123456789","","","",""
