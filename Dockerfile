@@ -28,7 +28,7 @@ WORKDIR /src
 # Install Python, wasm-tools workload, and supervisord in a single layer
 RUN apt-get update && \
     apt-get install -y python3 python3-pip supervisor && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get install -y nodejs && \
     dotnet workload install wasm-tools && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
