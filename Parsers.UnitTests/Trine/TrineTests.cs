@@ -123,6 +123,30 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCardPayment_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trine/single_card_payment.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashWithdrawal(
+						Currency.EUR,
+						new DateTime(2026, 9, 5, 0, 0, 0, DateTimeKind.Utc),
+						12.34m,
+						new Money(Currency.EUR, 12.34M),
+						"Card payment__2026-09-05_33.30"),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2026, 9, 5, 0, 0, 0, DateTimeKind.Utc),
+						33.30m)
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleFriendVoucher_Converted()
 		{
 			// Arrange

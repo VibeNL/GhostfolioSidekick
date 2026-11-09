@@ -59,6 +59,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 					);
 					break;
 				case "Withdrawal":
+				case "Card payment":
 					yield return PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
 						date,

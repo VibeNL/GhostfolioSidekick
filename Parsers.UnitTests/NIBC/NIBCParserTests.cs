@@ -80,6 +80,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleOpeningTermDeposit_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_opening_term_deposit.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2023, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+						5000M,
+						new Money(Currency.EUR, 5000M),
+						"C3O05TD0000A000Q")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
 		{
 			// Arrange

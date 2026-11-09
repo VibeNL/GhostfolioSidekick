@@ -112,6 +112,14 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
+				case "ADR Fee":
+					lst.Add(PartialActivity.CreateFee(
+						currency,
+						record.Time,
+						Math.Abs(record.Total.GetValueOrDefault()),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
+					break;
 				case string d when d.Contains("Dividend"):
 					lst.Add(PartialActivity.CreateDividend(
 						currency,
