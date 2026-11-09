@@ -142,6 +142,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleAdrFeePositiveTotal_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_adr_fee_positive_total.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("ADR Fee");
+			ex.Message.Should().Contain("1.5");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleCashback_Converted()
 		{
 			// Arrange

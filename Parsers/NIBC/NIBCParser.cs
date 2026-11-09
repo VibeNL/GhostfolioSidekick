@@ -14,6 +14,11 @@ namespace GhostfolioSidekick.Parsers.NIBC
 			var currency = currencyMapper.Map(record.Currency);
 			if (record.Description == "Inkomende overboeking" || record.Description == "Opening termijndeposito")
 			{
+				if (record.Amount <= 0)
+				{
+					throw new NotSupportedException($"Cannot parse {record.Description} with non-positive amount {record.Amount.ToString(CultureInfo.InvariantCulture)} on row {rowNumber}.");
+				}
+
 				return [PartialActivity.CreateCashDeposit(
 					currency,
 					record.Date,

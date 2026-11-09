@@ -60,6 +60,11 @@ namespace GhostfolioSidekick.Parsers.Trine
 					break;
 				case "Withdrawal":
 				case "Card payment":
+					if (record.AvailableBalanceChange >= 0)
+					{
+						throw new NotSupportedException($"Cannot parse {record.Type} with non-negative available balance change {record.AvailableBalanceChange.ToString(CultureInfo.InvariantCulture)} on row {rowNumber}.");
+					}
+
 					yield return PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
 						date,

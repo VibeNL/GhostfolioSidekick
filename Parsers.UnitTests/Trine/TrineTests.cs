@@ -147,6 +147,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_CardPaymentPositiveChange_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/card_payment_positive_change.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Card payment");
+			ex.Message.Should().Contain("12.34");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleFriendVoucher_Converted()
 		{
 			// Arrange

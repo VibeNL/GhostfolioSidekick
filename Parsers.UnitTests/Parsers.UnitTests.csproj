@@ -370,6 +370,9 @@
 		<None Update="TestFiles\NIBC\CashTransactions\single_interest.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\NIBC\CashTransactions\negative_opening_term_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\NIBC\CashTransactions\single_opening_term_deposit.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -451,6 +454,9 @@
 		<None Update="TestFiles\Trading212\CashTransactions\single_adr_fee.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Trading212\CashTransactions\single_adr_fee_positive_total.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Trading212\CashTransactions\single_card_credit.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -521,6 +527,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trine\committed_investment_then_settled.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trine\card_payment_positive_change.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trine\single_card_payment.csv">

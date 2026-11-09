@@ -113,6 +113,11 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Id));
 					break;
 				case "ADR Fee":
+					if (record.Total.GetValueOrDefault() >= 0)
+					{
+						throw new NotSupportedException($"Cannot parse {record.Action} with non-negative total {record.Total.GetValueOrDefault().ToString(CultureInfo.InvariantCulture)} on row {rowNumber}.");
+					}
+
 					lst.Add(PartialActivity.CreateFee(
 						currency,
 						record.Time,

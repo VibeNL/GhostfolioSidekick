@@ -100,6 +100,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_NegativeOpeningTermDeposit_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/NIBC/CashTransactions/negative_opening_term_deposit.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Opening termijndeposito");
+			ex.Message.Should().Contain("-5000");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
 		{
 			// Arrange
