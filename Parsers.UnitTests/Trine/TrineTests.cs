@@ -133,29 +133,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashWithdrawal(
+					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
 						new DateTime(2026, 9, 5, 0, 0, 0, DateTimeKind.Utc),
 						12.34m,
 						new Money(Currency.EUR, 12.34M),
-						"Card payment__2026-09-05_33.30"),
+						"Card payment__2026-09-05_45.64"),
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
 						new DateTime(2026, 9, 5, 0, 0, 0, DateTimeKind.Utc),
-						33.30m)
+						45.64m)
 				]);
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_CardPaymentPositiveChange_ThrowsNotSupportedException()
+		public async Task ConvertActivitiesForAccount_NegativeCardPayment_ThrowsNotSupportedException()
 		{
 			// Arrange
 
 			// Act & Assert
-			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/card_payment_positive_change.csv", activityManager, account.Name));
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/negative_card_payment.csv", activityManager, account.Name));
 
 			ex.Message.Should().Contain("Card payment");
-			ex.Message.Should().Contain("12.34");
+			ex.Message.Should().Contain("-12.34");
 		}
 
 		[Fact]

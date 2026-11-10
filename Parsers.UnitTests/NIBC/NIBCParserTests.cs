@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_SingleOpeningTermDeposit_Converted()
+		public async Task ConvertActivitiesForAccount_OpeningTermDeposit_Ignored()
 		{
 			// Arrange
 
@@ -88,27 +88,19 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_opening_term_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			activityManager.PartialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateCashDeposit(
-						Currency.EUR,
-						new DateTime(2023, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-						5000M,
-						new Money(Currency.EUR, 5000M),
-						"C3O05TD0000A000Q")
-				]);
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_NegativeOpeningTermDeposit_ThrowsNotSupportedException()
+		public async Task ConvertActivitiesForAccount_NegativeOpeningTermDeposit_Ignored()
 		{
 			// Arrange
 
-			// Act & Assert
-			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/NIBC/CashTransactions/negative_opening_term_deposit.csv", activityManager, account.Name));
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/negative_opening_term_deposit.csv", activityManager, account.Name);
 
-			ex.Message.Should().Contain("Opening termijndeposito");
-			ex.Message.Should().Contain("-5000");
+			// Assert
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]

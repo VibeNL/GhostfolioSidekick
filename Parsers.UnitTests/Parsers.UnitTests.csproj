@@ -529,7 +529,7 @@
 		<None Update="TestFiles\Trine\committed_investment_then_settled.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\Trine\card_payment_positive_change.csv">
+		<None Update="TestFiles\Trine\negative_card_payment.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trine\single_card_payment.csv">

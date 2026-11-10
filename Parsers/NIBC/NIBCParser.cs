@@ -12,7 +12,13 @@ namespace GhostfolioSidekick.Parsers.NIBC
 		protected override IEnumerable<PartialActivity> ParseRow(NIBCRecord record, int rowNumber)
 		{
 			var currency = currencyMapper.Map(record.Currency);
-			if (record.Description == "Inkomende overboeking" || record.Description == "Opening termijndeposito")
+			if (record.Description == "Opening termijndeposito")
+			{
+				// Opening of a term deposit at the bank; no money leaves or enters this account.
+				return [];
+			}
+
+			if (record.Description == "Inkomende overboeking")
 			{
 				if (record.Amount <= 0)
 				{

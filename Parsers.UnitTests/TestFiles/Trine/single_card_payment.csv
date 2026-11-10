@@ -1,2 +1,2 @@
 Date,Loan,InvestmentId,Type,AvailableBalanceChange,OutstandingPortfolioChange,RepaidCapital,RepaidInterest,LateFee,AvailableBalance,OutstandingPortfolio,Total
-2026-09-05,,,Card payment,-12.34,0,,,,8.66,24.64,33.30
+2026-09-05,,,Card payment,12.34,0,,,,21.00,24.64,45.64
