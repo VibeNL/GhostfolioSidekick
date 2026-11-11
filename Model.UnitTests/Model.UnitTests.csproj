@@ -18,6 +18,7 @@
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" />
 		<PackageReference Include="AwesomeAssertions" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Logging" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
 		<PackageReference Include="Moq" />

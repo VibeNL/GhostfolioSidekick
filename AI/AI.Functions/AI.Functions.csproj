@@ -12,6 +12,7 @@
 		<PackageReference Include="Microsoft.Agents.AI" />
 		<PackageReference Include="Microsoft.Agents.AI.Workflows" />
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<ProjectReference Include="..\AI.Common\AI.Common.csproj" />
 	</ItemGroup>
 
