@@ -8,6 +8,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsAspireHost>true</IsAspireHost>
+		<!-- Keep orchestration dependencies NuGet-restored instead of delegating to an installed Aspire CLI; declared intent per https://aka.ms/aspire/diagnostics/aspire010 -->
+		<AspireUseCliBundle>false</AspireUseCliBundle>
+		<NoWarn>$(NoWarn);ASPIRE010</NoWarn>
 		<UserSecretsId>0e39bd1b-92a1-40c4-9a12-5e743e8b5a3b</UserSecretsId>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
