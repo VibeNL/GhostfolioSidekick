@@ -159,6 +159,42 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_NonNegativeWithdrawal_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/non_negative_withdrawal.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Withdrawal");
+			ex.Message.Should().Contain("12.34");
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_MissingDate_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/missing_date.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Withdrawal");
+			ex.Message.Should().Contain("without a date");
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsUnknownTransactionTypeException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => parser.ParseActivities("./TestFiles/Trine/Invalid/invalid_type.csv", activityManager, account.Name));
+
+			ex.ParserName.Should().Be("Trine");
+			ex.TransactionType.Should().Be("Something else");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleFriendVoucher_Converted()
 		{
 			// Arrange

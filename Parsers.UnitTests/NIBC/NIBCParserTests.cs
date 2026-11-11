@@ -104,6 +104,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_NegativeIncomingTransfer_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/NIBC/CashTransactions/negative_incoming_transfer.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Inkomende overboeking");
+			ex.Message.Should().Contain("-500");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
 		{
 			// Arrange
