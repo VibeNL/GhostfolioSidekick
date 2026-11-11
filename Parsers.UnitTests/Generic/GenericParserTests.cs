@@ -359,7 +359,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_dividend.csv", activityManager, account.Name);
 
 			// Assert
-			const decimal Amount = (decimal)(0.3247 * 0.27);
+			const decimal Amount = 0.087669M;
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				  [
 					  PartialActivity.CreateDividend(
