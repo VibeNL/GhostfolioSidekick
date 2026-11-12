@@ -379,6 +379,9 @@
 		<None Update="TestFiles\NIBC\CashTransactions\single_opening_term_deposit.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\NIBC\CashTransactions\single_uitkering_term_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\NIBC\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

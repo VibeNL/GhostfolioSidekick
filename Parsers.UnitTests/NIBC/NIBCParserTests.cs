@@ -104,6 +104,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_UitkeringTermDeposit_Ignored()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_uitkering_term_deposit.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_NegativeIncomingTransfer_ThrowsNotSupportedException()
 		{
 			// Arrange
