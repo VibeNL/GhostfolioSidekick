@@ -59,6 +59,11 @@ namespace GhostfolioSidekick.Parsers.Trine
 					);
 					break;
 				case "Withdrawal":
+					if (record.AvailableBalanceChange >= 0)
+					{
+						throw new NotSupportedException($"Cannot parse {record.Type} with non-negative available balance change {record.AvailableBalanceChange.ToString(CultureInfo.InvariantCulture)} on row {rowNumber}.");
+					}
+
 					yield return PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
 						date,
@@ -66,6 +71,19 @@ namespace GhostfolioSidekick.Parsers.Trine
 						new Money(Currency.EUR, record.AvailableBalanceChange * -1),
 						transactionsId
 					);
+					break;
+				case "Card payment":
+					if (record.AvailableBalanceChange <= 0)
+					{
+						throw new NotSupportedException($"Cannot parse {record.Type} with non-positive available balance change {record.AvailableBalanceChange.ToString(CultureInfo.InvariantCulture)} on row {rowNumber}.");
+					}
+
+					yield return PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						date,
+						record.AvailableBalanceChange,
+						new Money(Currency.EUR, record.AvailableBalanceChange),
+						transactionsId);
 					break;
 				case string when record.Type.Contains("Activated friend voucher from"):
 					yield return PartialActivity.CreateGift(

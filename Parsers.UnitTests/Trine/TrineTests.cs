@@ -123,6 +123,78 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCardPayment_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trine/single_card_payment.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2026, 9, 5, 0, 0, 0, DateTimeKind.Utc),
+						12.34m,
+						new Money(Currency.EUR, 12.34M),
+						"Card payment__2026-09-05_45.64"),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2026, 9, 5, 0, 0, 0, DateTimeKind.Utc),
+						45.64m)
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_NegativeCardPayment_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/negative_card_payment.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Card payment");
+			ex.Message.Should().Contain("-12.34");
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_NonNegativeWithdrawal_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/non_negative_withdrawal.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Withdrawal");
+			ex.Message.Should().Contain("12.34");
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_MissingDate_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trine/missing_date.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Withdrawal");
+			ex.Message.Should().Contain("without a date");
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsUnknownTransactionTypeException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<UnknownTransactionTypeException>(() => parser.ParseActivities("./TestFiles/Trine/Invalid/invalid_type.csv", activityManager, account.Name));
+
+			ex.ParserName.Should().Be("Trine");
+			ex.TransactionType.Should().Be("Something else");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleFriendVoucher_Converted()
 		{
 			// Arrange

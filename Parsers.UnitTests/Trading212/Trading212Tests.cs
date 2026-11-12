@@ -122,6 +122,38 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleAdrFee_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_adr_fee.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2026, 11, 5, 8, 0, 0, DateTimeKind.Utc),
+						1.50M,
+						new Money(Currency.EUR, 1.50M),
+						"f47ac10d-58cc-4372-a567-0e02b2c3d479")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleAdrFeePositiveTotal_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_adr_fee_positive_total.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("ADR Fee");
+			ex.Message.Should().Contain("1.5");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleCashback_Converted()
 		{
 			// Arrange

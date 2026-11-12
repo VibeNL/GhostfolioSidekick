@@ -80,6 +80,54 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_OpeningTermDeposit_Ignored()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_opening_term_deposit.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_NegativeOpeningTermDeposit_Ignored()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/negative_opening_term_deposit.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_UitkeringTermDeposit_Ignored()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_uitkering_term_deposit.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_NegativeIncomingTransfer_ThrowsNotSupportedException()
+		{
+			// Arrange
+
+			// Act & Assert
+			var ex = await Assert.ThrowsAsync<NotSupportedException>(() => parser.ParseActivities("./TestFiles/NIBC/CashTransactions/negative_incoming_transfer.csv", activityManager, account.Name));
+
+			ex.Message.Should().Contain("Inkomende overboeking");
+			ex.Message.Should().Contain("-500");
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
 		{
 			// Arrange
