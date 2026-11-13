@@ -464,8 +464,15 @@ query OvernightTransactions(
 			{
 				"BrokerSecurityTransaction" => MapSecurityTrade(detail),
 				"BrokerCashTransaction" => MapCashTransaction(id, entry, detail),
+				"BrokerNonTradeSecurityTransaction" => SkipNonTradeSecurity(id),
 				_ => throw new CliApiException($"Unknown transaction type '{typename}'.")
 			};
+		}
+
+		private ActivityWithSymbol? SkipNonTradeSecurity(string id)
+		{
+			_logger.LogWarning("Ignoring unsupported CLI non-trade security transaction {TransactionId}", id);
+			return null;
 		}
 
 		private ActivityWithSymbol MapSecurityTrade(JsonObject detail)
