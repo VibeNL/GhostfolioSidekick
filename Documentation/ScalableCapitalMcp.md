@@ -1,15 +1,12 @@
 # Scalable Capital MCP scraper
 
-The ScraperUtilities tool can fetch Scalable Capital transactions through the official
-[Scalable Capital MCP server](https://mcp.scalable.capital/mcp) instead of (or in addition to)
-the Playwright browser scrape. Both paths produce the same `Dictionary<int, IEnumerable<ActivityWithSymbol>>`
-and are saved with the same CSV helper, so output files (`ScalableCapital_N.csv`) are interchangeable.
+The ScraperUtilities tool fetches Scalable Capital transactions through the official
+[Scalable Capital MCP server](https://mcp.scalable.capital/mcp). It produces a
+`Dictionary<int, IEnumerable<ActivityWithSymbol>>` that is saved with the CSV helper as
+`ScalableCapital_N.csv` files (one per account index).
 
-Select **2 - Scalable Capital (MCP server)** in the tool menu to use this path. It does not need
-a Chrome/CDP connection; it only needs network access and one interactive login (see below).
-
-Note: the tool still starts a minimized Chrome instance on startup for the Playwright paths and
-terminates it on exit — that window is unused by the MCP path and can be ignored.
+It does not need a browser or CDP connection; it only needs network access and one interactive
+login (see below).
 
 # How authentication works
 
@@ -43,10 +40,10 @@ The local callback listener binds `localhost` only and is closed as soon as the 
 | kind `non_trade_security` (e.g. share transfer) | skipped + warning log | Non-trade security transactions are not mapped to an activity type. |
 | cash, `DEPOSIT` | `CashDepositActivity` | Amount taken as-is (positive). |
 | cash, `WITHDRAWAL` | `CashWithdrawalActivity` | Amount is negative in the API and used as-is. |
-| cash, `CASH_TRANSFER_OUT` (internal transfer) | skipped + warning log | Parity with Playwright: internal transfers are ignored. |
+| cash, `CASH_TRANSFER_OUT` (internal transfer) | skipped + warning log | Internal transfers are ignored. |
 | cash, `DISTRIBUTION` with `relatedIsin` | `DividendActivity` | Quantity 0; ISIN/Symbol from `relatedIsin`. |
 | cash, `INTEREST` / `INTEREST_PAYMENT` | `InterestActivity` | — |
-| anything else (unknown type, other status) | skipped + warning log | Keeps CSV output compatible with the Playwright path. |
+| anything else (unknown type, other status) | skipped + warning log | Unsupported types never abort the scrape. |
 
 ## Overnight savings account
 
@@ -62,7 +59,7 @@ index after all broker portfolios: a user with one broker portfolio and an overn
 | same, `INTEREST` / `INTEREST_PAYMENT` | `InterestActivity` | Monthly overnight interest payouts. |
 | same, `DISTRIBUTION` with `relatedIsin` | `DividendActivity` | Quantity 0; ISIN/Symbol from `relatedIsin`. |
 | same, `CASH_TRANSFER_IN` / `CASH_TRANSFER_OUT` (internal transfer) | skipped + warning log | Internal broker↔overnight transfers are ignored on both sides. |
-| anything else (unknown type, other status, cancelled entry) | skipped + warning/debug log | Keeps CSV output compatible with the Playwright path. |
+| anything else (unknown type, other status, cancelled entry) | skipped + warning/debug log | Unsupported types never abort the scrape. |
 
 Overnight dates come from `lastEventAt` (ISO 8601 UTC). The MCP server has no tool to enumerate
 overnight accounts: the call is made without an explicit `savingsAccountId` and relies on
@@ -83,7 +80,7 @@ All numeric values in the MCP payload are JSON strings; they are parsed with inv
 # Known limitations
 
 - One login per machine; tokens live in a plain JSON file under your user profile (same trust level as other local tool state).
-- The MCP API does not expose the broker's "account" grouping used by the Playwright path, so `Account` stays null on all activities (the CSV writer ignores it anyway).
+- The MCP API does not expose the broker's "account" grouping, so `Account` stays null on all activities (the CSV writer ignores it anyway).
 - Only one active overnight account is scraped (auto-resolved by the MCP server); if several are active, the overnight part is skipped with a warning.
 - Transactions with status `PENDING`/`CANCELLED` are skipped; a cancelled order that later re-filled appears only once.
 - If Scalable Capital changes the MCP tool names or payload shapes, mapping errors surface as per-transaction warnings and skipped rows rather than a crash.

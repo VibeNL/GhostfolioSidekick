@@ -10,9 +10,9 @@ using GhostfolioSidekick.Tools.ScraperUtilities;
 namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 {
 	/// <summary>
-	/// Scrapes Scalable Capital transactions via the official MCP server instead of browser automation.
+	/// Scrapes Scalable Capital transactions via the official MCP server.
 	/// Broker portfolios are scraped first, followed by the active overnight savings account when available.
-	/// Produces the same output contract as the Playwright-based scraper: account index to activities.
+	/// Output contract: account index to activities.
 	/// </summary>
 	public class McpScraper
 	{
@@ -372,7 +372,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				return true;
 			}
 
-			// Wall-clock parity with the Playwright path: no timezone conversion for local timestamps; Z-suffixed UTC values convert to UTC.
+			// No timezone conversion for local timestamps; Z-suffixed UTC values convert to UTC.
 			return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out date);
 		}
 
