@@ -14,16 +14,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 	/// Broker portfolios are scraped first, followed by the active overnight savings account when available.
 	/// Output contract: account index to activities.
 	/// </summary>
-	public class McpScraper
+	public class McpScraper(IMcpClient client, ILogger logger)
 	{
-		private readonly McpClient _client;
-		private readonly ILogger _logger;
-
-		public McpScraper(McpClient client, ILogger logger)
-		{
-			_client = client;
-			_logger = logger;
-		}
+		private readonly IMcpClient _client = client;
+		private readonly ILogger _logger = logger;
 
 		public async Task<Dictionary<int, IEnumerable<ActivityWithSymbol>>> ScrapeTransactionsAsync(CancellationToken cancellationToken)
 		{
@@ -249,7 +243,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 			var trade = detail["securityTrade"];
 			var side = trade?["side"]?.ToString() ?? string.Empty;
-			var quantity = ParseDecimal(trade?["numberOfShares"]?["filled"]);
+			// The MCP server may report sell quantities with a negative sign; the side determines direction.
+			var rawQuantity = ParseDecimal(trade?["numberOfShares"]?["filled"]);
+			decimal? quantity = rawQuantity is null ? null : Math.Abs(rawQuantity.Value);
 			var unitPrice = ParseMoney(trade?["averagePrice"], detail);
 			if (quantity is null || quantity <= 0m || unitPrice is null)
 			{
@@ -301,6 +297,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 		private ActivityWithSymbol? BuildCashActivity(string id, string type, Money amount, DateTime date, string? description, string? relatedIsin)
 		{
+			// The MCP server reports outflows (e.g. withdrawals) with a negative sign; the activity model requires non-negative amounts.
+			amount = new Money(amount.Currency, Math.Abs(amount.Amount));
+
 			Activity? activity = type switch
 			{
 				"DEPOSIT" => new CashDepositActivity { Amount = amount, Date = date, TransactionId = id },
