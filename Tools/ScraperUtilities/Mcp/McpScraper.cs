@@ -10,34 +10,37 @@ using GhostfolioSidekick.Tools.ScraperUtilities;
 namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 {
 	/// <summary>
-	/// Scrapes Scalable Capital transactions via the official MCP server instead of browser automation.
-	/// Produces the same output contract as the Playwright-based scraper: account index to activities.
+	/// Scrapes Scalable Capital transactions via the official MCP server.
+	/// Broker portfolios are scraped first, followed by the active overnight savings account when available.
+	/// Output contract: account index to activities.
 	/// </summary>
-	public class McpScraper
+	public class McpScraper(IMcpClient client, ILogger logger)
 	{
-		private readonly McpClient _client;
-		private readonly ILogger _logger;
-
-		public McpScraper(McpClient client, ILogger logger)
-		{
-			_client = client;
-			_logger = logger;
-		}
+		private readonly IMcpClient _client = client;
+		private readonly ILogger _logger = logger;
 
 		public async Task<Dictionary<int, IEnumerable<ActivityWithSymbol>>> ScrapeTransactionsAsync(CancellationToken cancellationToken)
 		{
-			var portfolios = await GetPortfoliosAsync(cancellationToken);
-			if (portfolios.Count == 0)
+			var result = new Dictionary<int, IEnumerable<ActivityWithSymbol>>();
+			var index = 0;
+
+			foreach (var portfolioId in await GetPortfoliosAsync(cancellationToken))
 			{
-				throw new McpException("No accessible Scalable Capital portfolios were returned by the MCP server.");
+				index++;
+				_logger.LogInformation("Scraping Scalable Capital MCP transactions for portfolio {PortfolioId}", portfolioId);
+				result[index] = await ScrapePortfolioAsync(portfolioId, cancellationToken);
 			}
 
-			var result = new Dictionary<int, IEnumerable<ActivityWithSymbol>>();
-			foreach (var (index, portfolioId) in portfolios.Select((id, i) => (i + 1, id)))
+			var overnightActivities = await ScrapeOvernightAccountAsync(cancellationToken);
+			if (overnightActivities != null)
 			{
-				_logger.LogInformation("Scraping Scalable Capital MCP transactions for portfolio {PortfolioId}", portfolioId);
-				var activities = await ScrapePortfolioAsync(portfolioId, cancellationToken);
-				result[index] = activities;
+				index++;
+				result[index] = overnightActivities;
+			}
+
+			if (result.Count == 0)
+			{
+				throw new McpException("No accessible Scalable Capital portfolios or overnight accounts were returned by the MCP server.");
 			}
 
 			return result;
@@ -100,6 +103,97 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			return activities;
 		}
 
+		private async Task<IEnumerable<ActivityWithSymbol>?> ScrapeOvernightAccountAsync(CancellationToken cancellationToken)
+		{
+			var transactions = new List<JsonObject>();
+			string? cursor = null;
+
+			try
+			{
+				do
+				{
+					var arguments = new JsonObject { ["pageSize"] = 100 };
+					if (cursor != null)
+					{
+						arguments["cursor"] = cursor;
+					}
+
+					var page = await _client.CallToolAsync("list_overnight_transactions", arguments, cancellationToken);
+					foreach (var transaction in page["transactions"]?.AsArray() ?? Enumerable.Empty<JsonNode?>())
+					{
+						if (transaction is JsonObject item)
+						{
+							transactions.Add(item);
+						}
+					}
+
+					cursor = page["page"]?["nextCursor"]?.ToString();
+				} while (!string.IsNullOrWhiteSpace(cursor));
+			}
+			catch (McpException ex)
+			{
+				// The MCP server has no tool to enumerate overnight accounts, so this covers both "no active account"
+				// and "multiple active accounts without an explicit savingsAccountId".
+				_logger.LogWarning(ex, "Skipping Scalable Capital overnight transactions: {Message}", ex.Message);
+				return null;
+			}
+
+			var activities = new List<ActivityWithSymbol>();
+			foreach (var transaction in transactions)
+			{
+				try
+				{
+					var activity = MapOvernightTransaction(transaction);
+					if (activity != null)
+					{
+						activities.Add(activity);
+					}
+				}
+				catch (McpException ex)
+				{
+					_logger.LogWarning(ex, "Skipping MCP overnight transaction {TransactionId}: {Message}", transaction["id"]?.ToString(), ex.Message);
+				}
+			}
+
+			return activities;
+		}
+
+		private ActivityWithSymbol? MapOvernightTransaction(JsonObject entry)
+		{
+			var id = entry["id"]?.ToString();
+			if (string.IsNullOrWhiteSpace(id))
+			{
+				return null;
+			}
+
+			var status = entry["status"]?.ToString() ?? string.Empty;
+			if (status is not ("SETTLED" or "FILLED"))
+			{
+				_logger.LogDebug("Skipping MCP overnight transaction {TransactionId} with status {Status}", id, status);
+				return null;
+			}
+
+			if (entry["isCancellation"]?.GetValueKind() == JsonValueKind.True)
+			{
+				_logger.LogDebug("Skipping cancelled MCP overnight transaction {TransactionId}", id);
+				return null;
+			}
+
+			var type = entry["cashTransactionType"]?.ToString() ?? string.Empty;
+			var amount = ParseMoney(entry["amount"], entry);
+			if (amount is null)
+			{
+				throw new McpException($"Overnight transaction {id} has no amount.");
+			}
+
+			if (!TryParseDate(entry["lastEventAt"]?.ToString(), out var date))
+			{
+				throw new McpException($"Overnight transaction {id} has no parseable timestamp.");
+			}
+
+			return BuildCashActivity(id, type, amount, date, entry["description"]?.ToString(), entry["relatedIsin"]?.ToString());
+		}
+
 		private async Task<ActivityWithSymbol?> MapTransactionAsync(string portfolioId, JsonObject transaction, CancellationToken cancellationToken)
 		{
 			var id = transaction["id"]?.ToString();
@@ -126,9 +220,16 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			{
 				"security_trade" => MapSecurityTrade(detail),
 				"cash" => MapCashTransaction(id, transaction, detail),
+				"non_trade_security" => SkipNonTradeSecurity(id),
 				_ => throw new McpException($"Unknown transaction kind '{kind}'.")
 			};
 
+		}
+
+		private ActivityWithSymbol? SkipNonTradeSecurity(string id)
+		{
+			_logger.LogWarning("Ignoring unsupported MCP non-trade security transaction {TransactionId}", id);
+			return null;
 		}
 
 		private ActivityWithSymbol? MapSecurityTrade(JsonObject detail)
@@ -142,7 +243,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 			var trade = detail["securityTrade"];
 			var side = trade?["side"]?.ToString() ?? string.Empty;
-			var quantity = ParseDecimal(trade?["numberOfShares"]?["filled"]);
+			// The MCP server may report sell quantities with a negative sign; the side determines direction.
+			var rawQuantity = ParseDecimal(trade?["numberOfShares"]?["filled"]);
+			decimal? quantity = rawQuantity is null ? null : Math.Abs(rawQuantity.Value);
 			var unitPrice = ParseMoney(trade?["averagePrice"], detail);
 			if (quantity is null || quantity <= 0m || unitPrice is null)
 			{
@@ -189,12 +292,20 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			var description = cash["description"]?.ToString() ?? listEntry["description"]?.ToString();
 			var relatedIsin = cash["relatedIsin"]?.ToString() ?? listEntry["cash"]?["relatedIsin"]?.ToString();
 
+			return BuildCashActivity(id, type, amount, date, description, relatedIsin);
+		}
+
+		private ActivityWithSymbol? BuildCashActivity(string id, string type, Money amount, DateTime date, string? description, string? relatedIsin)
+		{
+			// The MCP server reports outflows (e.g. withdrawals) with a negative sign; the activity model requires non-negative amounts.
+			amount = new Money(amount.Currency, Math.Abs(amount.Amount));
+
 			Activity? activity = type switch
 			{
 				"DEPOSIT" => new CashDepositActivity { Amount = amount, Date = date, TransactionId = id },
 				"WITHDRAWAL" => new CashWithdrawalActivity { Amount = amount, Date = date, TransactionId = id },
 				"DISTRIBUTION" => new DividendActivity { Amount = amount, Quantity = 0m, Fees = [], Taxes = [], Date = date, TransactionId = id },
-				"CASH_TRANSFER_OUT" => null,
+				"CASH_TRANSFER_OUT" or "CASH_TRANSFER_IN" => null,
 				"INTEREST" or "INTEREST_PAYMENT" => new InterestActivity { Amount = amount, Date = date, TransactionId = id },
 				_ => null
 			};
@@ -205,12 +316,11 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				return null;
 			}
 
-			var symbolName = description ?? listEntry["description"]?.ToString();
 			return new ActivityWithSymbol
 			{
 				Activity = activity,
 				Symbol = string.IsNullOrWhiteSpace(relatedIsin) ? default! : relatedIsin,
-				SymbolName = symbolName,
+				SymbolName = description,
 				ISIN = string.IsNullOrWhiteSpace(relatedIsin) ? null : relatedIsin
 			};
 		}
@@ -261,7 +371,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				return true;
 			}
 
-			// Wall-clock parity with the Playwright path: no timezone conversion for local timestamps; Z-suffixed UTC values convert to UTC.
+			// No timezone conversion for local timestamps; Z-suffixed UTC values convert to UTC.
 			return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out date);
 		}
 

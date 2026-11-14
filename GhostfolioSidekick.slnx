@@ -17,6 +17,7 @@
   </Folder>
   <Folder Name="/Tools/">
     <Project Path="Tools/ScraperUtilities/ScraperUtilities.csproj" />
+    <Project Path="Tools/ScraperUtilities.UnitTests/ScraperUtilities.UnitTests.csproj" />
     <Project Path="Tools/TestUtilities/TestUtilities.csproj" />
     <Project Path="Tools/TestUtilities.UnitTests/TestUtilities.UnitTests.csproj" />
   </Folder>
