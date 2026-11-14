@@ -172,7 +172,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.UnitTests
 			Assert.Equal(new Money(Currency.EUR, 100.5m), buy.UnitPrice);
 			Assert.Equal(new Money(Currency.EUR, 1.89m), Assert.Single(buy.Fees));
 			Assert.Empty(buy.Taxes);
-			Assert.Equal(new DateTime(2025, 6, 30, 10, 0, 0, DateTimeKind.Utc), buy.Date);
+			// Naive timestamps are treated as UTC; compare instants so the assertion is machine-timezone independent.
+			Assert.Equal(new DateTime(2025, 6, 30, 10, 0, 0, DateTimeKind.Utc), buy.Date.ToUniversalTime());
 			Assert.Equal("t1", buy.TransactionId);
 		}
 
@@ -261,6 +262,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.UnitTests
 				"list_portfolio_transactions" when arguments?["cursor"] is null => TransactionPageWithCursor(ListEntry("t1"), "c2"),
 				"list_portfolio_transactions" => TransactionPage([ListEntry("t2")]),
 				"get_transaction_details" => Detail(details[arguments?["transactionId"]?.ToString()!]),
+				"list_overnight_transactions" => throw new McpException("No active overnight savings account."),
 				_ => throw new InvalidOperationException($"Unexpected MCP tool '{toolName}'.")
 			});
 			var scraper = new McpScraper(client, NullLogger.Instance);
