@@ -229,7 +229,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 		private ActivityWithSymbol? MapSecurityTrade(JsonObject detail)
 		{
 			var security = detail["security"];
-			var isin = security?["isin"]?.ToString();
+			if (security is null)
+			{
+				throw new McpException("Security transaction has no ISIN.");
+			}
+
+			var isin = security["isin"]?.ToString();
 			if (string.IsNullOrWhiteSpace(isin))
 			{
 				throw new McpException("Security transaction has no ISIN.");
@@ -263,7 +268,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			{
 				Activity = activity,
 				Symbol = isin,
-				SymbolName = security?["name"]?.ToString(),
+				SymbolName = security["name"]?.ToString(),
 				ISIN = isin
 			};
 		}
@@ -334,7 +339,11 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				_ => string.Empty
 			};
 
-			string? symbol = entry.ISIN is null ? null : string.IsNullOrWhiteSpace(entry.SymbolName) ? entry.ISIN : $"{entry.SymbolName} ({entry.ISIN})";
+			string? symbol = null;
+			if (entry.ISIN is not null)
+			{
+				symbol = string.IsNullOrWhiteSpace(entry.SymbolName) ? entry.ISIN : $"{entry.SymbolName} ({entry.ISIN})";
+			}
 			return $"{activity.GetType().Name} {value} on {activity.Date:yyyy-MM-dd}{(symbol is null ? string.Empty : $" for {symbol}")}".Trim();
 		}
 
