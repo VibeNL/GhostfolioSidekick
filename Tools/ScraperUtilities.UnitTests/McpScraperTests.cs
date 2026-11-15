@@ -29,6 +29,27 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.UnitTests
 		}
 		""";
 
+		private const string FeeAndTaxTradeDetail = """
+		{
+			"id": "t-fees",
+			"kind": "security_trade",
+			"currency": "EUR",
+			"status": "SETTLED",
+			"lastEventAt": "2025-06-30T00:00:00.000Z",
+			"security": { "isin": "IE00B4L5Y983", "name": "Vanguard FTSE All-World" },
+			"history": [
+				{ "state": "FILLED", "timestamp": "2025-06-30T10:00:00" }
+			],
+			"securityTrade": {
+				"side": "BUY",
+				"numberOfShares": { "filled": "4" },
+				"averagePrice": "50",
+				"fee": "1.89",
+				"tradeTransactionAmounts": { "venueFee": "0.35", "taxAmount": "2.10" }
+			}
+		}
+		""";
+
 		private const string SellTradeDetail = """
 		{
 			"id": "t3",
@@ -200,6 +221,37 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.UnitTests
 			var sell = Assert.IsType<SellActivity>(Assert.Single(Assert.Single(result).Value).Activity);
 			Assert.Equal(10m, sell.Quantity);
 			Assert.Equal(new Money(Currency.EUR, 200m), sell.UnitPrice);
+		}
+
+		[Fact]
+		public async Task ScrapeTransactionsAsync_TradeWithMultipleFeesAndTaxes_CollectsAllSources()
+		{
+			var client = CreateClient(["t-fees"], new() { ["t-fees"] = FeeAndTaxTradeDetail });
+			var scraper = new McpScraper(client, NullLogger.Instance);
+
+			var result = await scraper.ScrapeTransactionsAsync(CancellationToken.None);
+
+			var buy = Assert.IsType<BuyActivity>(Assert.Single(Assert.Single(result).Value).Activity);
+			Assert.Equal([new Money(Currency.EUR, 1.89m), new Money(Currency.EUR, 0.35m)], buy.Fees.ToArray());
+			Assert.Equal([new Money(Currency.EUR, 2.10m)], buy.Taxes.ToArray());
+		}
+
+		[Fact]
+		public async Task ScrapeTransactionsAsync_PendingTransaction_IsSkippedWithoutDetailLookup()
+		{
+			var client = new FakeMcpClient((toolName, _) => toolName switch
+			{
+				"list_accessible_portfolios" => Portfolios("P1"),
+				"list_portfolio_transactions" => TransactionPage(ListEntry("t-pending", "PENDING")),
+				"list_overnight_transactions" => throw new McpException("No active overnight savings account."),
+				_ => throw new InvalidOperationException($"Unexpected MCP tool '{toolName}'.")
+			});
+			var scraper = new McpScraper(client, NullLogger.Instance);
+
+			var result = await scraper.ScrapeTransactionsAsync(CancellationToken.None);
+
+			Assert.Empty(Assert.Single(result).Value);
+			Assert.DoesNotContain(client.Calls, call => call.ToolName == "get_transaction_details");
 		}
 
 		[Fact]

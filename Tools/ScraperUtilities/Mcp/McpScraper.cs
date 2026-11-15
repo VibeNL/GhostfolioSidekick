@@ -58,20 +58,25 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			return portfolios.Select(p => p?["portfolioId"]?.ToString()).Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id!).ToList();
 		}
 
-		private async Task<IEnumerable<ActivityWithSymbol>> ScrapePortfolioAsync(string portfolioId, CancellationToken cancellationToken)
+		private async Task<List<JsonObject>> FetchTransactionsAsync(string toolName, string? portfolioId, CancellationToken cancellationToken)
 		{
 			var transactions = new List<JsonObject>();
 			string? cursor = null;
 
 			do
 			{
-				var arguments = new JsonObject { ["portfolioId"] = portfolioId, ["pageSize"] = 100 };
+				var arguments = new JsonObject { ["pageSize"] = 100 };
+				if (portfolioId != null)
+				{
+					arguments["portfolioId"] = portfolioId;
+				}
+
 				if (cursor != null)
 				{
 					arguments["cursor"] = cursor;
 				}
 
-				var page = await _client.CallToolAsync("list_portfolio_transactions", arguments, cancellationToken);
+				var page = await _client.CallToolAsync(toolName, arguments, cancellationToken);
 				foreach (var transaction in page["transactions"]?.AsArray() ?? Enumerable.Empty<JsonNode?>())
 				{
 					if (transaction is JsonObject item)
@@ -82,6 +87,13 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 				cursor = page["page"]?["nextCursor"]?.ToString();
 			} while (!string.IsNullOrWhiteSpace(cursor));
+
+			return transactions;
+		}
+
+		private async Task<IEnumerable<ActivityWithSymbol>> ScrapePortfolioAsync(string portfolioId, CancellationToken cancellationToken)
+		{
+			var transactions = await FetchTransactionsAsync("list_portfolio_transactions", portfolioId, cancellationToken);
 
 			var activities = new List<ActivityWithSymbol>();
 			foreach (var transaction in transactions)
@@ -106,30 +118,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 		private async Task<IEnumerable<ActivityWithSymbol>?> ScrapeOvernightAccountAsync(CancellationToken cancellationToken)
 		{
-			var transactions = new List<JsonObject>();
-			string? cursor = null;
-
+			List<JsonObject> transactions;
 			try
 			{
-				do
-				{
-					var arguments = new JsonObject { ["pageSize"] = 100 };
-					if (cursor != null)
-					{
-						arguments["cursor"] = cursor;
-					}
-
-					var page = await _client.CallToolAsync("list_overnight_transactions", arguments, cancellationToken);
-					foreach (var transaction in page["transactions"]?.AsArray() ?? Enumerable.Empty<JsonNode?>())
-					{
-						if (transaction is JsonObject item)
-						{
-							transactions.Add(item);
-						}
-					}
-
-					cursor = page["page"]?["nextCursor"]?.ToString();
-				} while (!string.IsNullOrWhiteSpace(cursor));
+				transactions = await FetchTransactionsAsync("list_overnight_transactions", null, cancellationToken);
 			}
 			catch (McpException ex)
 			{
@@ -225,7 +217,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 				"non_trade_security" => SkipNonTradeSecurity(id),
 				_ => throw new McpException($"Unknown transaction kind '{kind}'.")
 			};
-
 		}
 
 		private ActivityWithSymbol? SkipNonTradeSecurity(string id)
@@ -259,11 +250,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			var currency = detail["currency"]?.ToString() ?? "EUR";
 			var fees = CollectAmounts(currency, trade?["fee"], trade?["transactionalFee"], trade?["tradeTransactionAmounts"]?["transactionFee"], trade?["tradeTransactionAmounts"]?["venueFee"]);
 			var taxes = CollectAmounts(currency, trade?["taxes"], trade?["tradeTransactionAmounts"]?["taxAmount"]);
+			var transactionId = detail["id"]?.ToString() ?? string.Empty;
 
 			Activity activity = side switch
 			{
-				"BUY" => new BuyActivity { Quantity = quantity.Value, UnitPrice = unitPrice, Fees = fees, Taxes = taxes, Date = date, TransactionId = detail["id"]?.ToString() ?? string.Empty },
-				"SELL" => new SellActivity { Quantity = quantity.Value, UnitPrice = unitPrice, Fees = fees, Taxes = taxes, Date = date, TransactionId = detail["id"]?.ToString() ?? string.Empty },
+				"BUY" => new BuyActivity { Quantity = quantity.Value, UnitPrice = unitPrice, Fees = fees, Taxes = taxes, Date = date, TransactionId = transactionId },
+				"SELL" => new SellActivity { Quantity = quantity.Value, UnitPrice = unitPrice, Fees = fees, Taxes = taxes, Date = date, TransactionId = transactionId },
 				_ => throw new McpException($"Unknown trade side '{side}'.")
 			};
 
@@ -329,26 +321,26 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 		}
 
 		private static string DescribeActivity(ActivityWithSymbol entry)
-	{
-		var activity = entry.Activity;
-		string value = activity switch
 		{
-			BuyActivity buy => $"{buy.Quantity} @ {FormatMoney(buy.UnitPrice)}",
-			SellActivity sell => $"{sell.Quantity} @ {FormatMoney(sell.UnitPrice)}",
-			DividendActivity dividend => FormatMoney(dividend.Amount),
-			CashDepositActivity deposit => FormatMoney(deposit.Amount),
-			CashWithdrawalActivity withdrawal => FormatMoney(withdrawal.Amount),
-			InterestActivity interest => FormatMoney(interest.Amount),
-			_ => string.Empty
-		};
+			var activity = entry.Activity;
+			string value = activity switch
+			{
+				BuyActivity buy => $"{buy.Quantity} @ {FormatMoney(buy.UnitPrice)}",
+				SellActivity sell => $"{sell.Quantity} @ {FormatMoney(sell.UnitPrice)}",
+				DividendActivity dividend => FormatMoney(dividend.Amount),
+				CashDepositActivity deposit => FormatMoney(deposit.Amount),
+				CashWithdrawalActivity withdrawal => FormatMoney(withdrawal.Amount),
+				InterestActivity interest => FormatMoney(interest.Amount),
+				_ => string.Empty
+			};
 
-		string? symbol = entry.ISIN is null ? null : string.IsNullOrWhiteSpace(entry.SymbolName) ? entry.ISIN : $"{entry.SymbolName} ({entry.ISIN})";
-		return $"{activity.GetType().Name} {value} on {activity.Date:yyyy-MM-dd}{(symbol is null ? string.Empty : $" for {symbol}")}".Trim();
-	}
+			string? symbol = entry.ISIN is null ? null : string.IsNullOrWhiteSpace(entry.SymbolName) ? entry.ISIN : $"{entry.SymbolName} ({entry.ISIN})";
+			return $"{activity.GetType().Name} {value} on {activity.Date:yyyy-MM-dd}{(symbol is null ? string.Empty : $" for {symbol}")}".Trim();
+		}
 
-	private static string FormatMoney(Money money) => $"{money.Amount} {money.Currency.Symbol}";
+		private static string FormatMoney(Money money) => $"{money.Amount} {money.Currency.Symbol}";
 
-	private static DateTime GetFilledDate(JsonObject detail)
+		private static DateTime GetFilledDate(JsonObject detail)
 		{
 			var history = detail["history"]?.AsArray();
 			if (history != null)
