@@ -91,6 +91,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 					var activity = await MapTransactionAsync(portfolioId, transaction, cancellationToken);
 					if (activity != null)
 					{
+						_logger.LogDebug("Added MCP transaction {TransactionId}: {Details}", activity.Activity.TransactionId, DescribeActivity(activity));
 						activities.Add(activity);
 					}
 				}
@@ -146,6 +147,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 					var activity = MapOvernightTransaction(transaction);
 					if (activity != null)
 					{
+						_logger.LogDebug("Added MCP transaction {TransactionId}: {Details}", activity.Activity.TransactionId, DescribeActivity(activity));
 						activities.Add(activity);
 					}
 				}
@@ -228,7 +230,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 
 		private ActivityWithSymbol? SkipNonTradeSecurity(string id)
 		{
-			_logger.LogWarning("Ignoring unsupported MCP non-trade security transaction {TransactionId}", id);
+			// Internal fund swaps (e.g. share class conversions) are expected and not worth a warning.
+			_logger.LogTrace("Skipping MCP non-trade security transaction {TransactionId}", id);
 			return null;
 		}
 
@@ -300,12 +303,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			// The MCP server reports outflows (e.g. withdrawals) with a negative sign; the activity model requires non-negative amounts.
 			amount = new Money(amount.Currency, Math.Abs(amount.Amount));
 
+			// Internal transfers between the user's own accounts are imported as deposit/withdrawal so both sides stay balanced.
 			Activity? activity = type switch
 			{
-				"DEPOSIT" => new CashDepositActivity { Amount = amount, Date = date, TransactionId = id },
-				"WITHDRAWAL" => new CashWithdrawalActivity { Amount = amount, Date = date, TransactionId = id },
+				"DEPOSIT" or "CASH_TRANSFER_IN" => new CashDepositActivity { Amount = amount, Date = date, TransactionId = id },
+				"WITHDRAWAL" or "CASH_TRANSFER_OUT" => new CashWithdrawalActivity { Amount = amount, Date = date, TransactionId = id },
 				"DISTRIBUTION" => new DividendActivity { Amount = amount, Quantity = 0m, Fees = [], Taxes = [], Date = date, TransactionId = id },
-				"CASH_TRANSFER_OUT" or "CASH_TRANSFER_IN" => null,
 				"INTEREST" or "INTEREST_PAYMENT" => new InterestActivity { Amount = amount, Date = date, TransactionId = id },
 				_ => null
 			};
@@ -325,7 +328,27 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 			};
 		}
 
-		private static DateTime GetFilledDate(JsonObject detail)
+		private static string DescribeActivity(ActivityWithSymbol entry)
+	{
+		var activity = entry.Activity;
+		string value = activity switch
+		{
+			BuyActivity buy => $"{buy.Quantity} @ {FormatMoney(buy.UnitPrice)}",
+			SellActivity sell => $"{sell.Quantity} @ {FormatMoney(sell.UnitPrice)}",
+			DividendActivity dividend => FormatMoney(dividend.Amount),
+			CashDepositActivity deposit => FormatMoney(deposit.Amount),
+			CashWithdrawalActivity withdrawal => FormatMoney(withdrawal.Amount),
+			InterestActivity interest => FormatMoney(interest.Amount),
+			_ => string.Empty
+		};
+
+		string? symbol = entry.ISIN is null ? null : string.IsNullOrWhiteSpace(entry.SymbolName) ? entry.ISIN : $"{entry.SymbolName} ({entry.ISIN})";
+		return $"{activity.GetType().Name} {value} on {activity.Date:yyyy-MM-dd}{(symbol is null ? string.Empty : $" for {symbol}")}".Trim();
+	}
+
+	private static string FormatMoney(Money money) => $"{money.Amount} {money.Currency.Symbol}";
+
+	private static DateTime GetFilledDate(JsonObject detail)
 		{
 			var history = detail["history"]?.AsArray();
 			if (history != null)

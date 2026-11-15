@@ -112,6 +112,18 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.UnitTests
 		}
 		""";
 
+	private const string TransferInDetail = """
+		{
+			"id": "t-transfer-in",
+			"kind": "cash",
+			"currency": "EUR",
+			"status": "SETTLED",
+			"lastEventAt": "2025-07-01T00:00:00.000Z",
+			"history": [ { "state": "FILLED", "timestamp": "2025-07-01T09:30:00" } ],
+			"cash": { "transactionType": "CASH_TRANSFER_IN", "amount": "75" }
+		}
+		""";
+
 		private const string NonTradeSecurityDetail = """
 		{
 			"id": "t-nts",
@@ -215,14 +227,27 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.UnitTests
 		}
 
 		[Fact]
-		public async Task ScrapeTransactionsAsync_CashTransferOut_IsSkipped()
+		public async Task ScrapeTransactionsAsync_CashTransferOut_MapsToCashWithdrawal()
 		{
 			var client = CreateClient(["t-transfer"], new() { ["t-transfer"] = TransferOutDetail });
 			var scraper = new McpScraper(client, NullLogger.Instance);
 
 			var result = await scraper.ScrapeTransactionsAsync(CancellationToken.None);
 
-			Assert.Empty(Assert.Single(result).Value);
+			var withdrawal = Assert.IsType<CashWithdrawalActivity>(Assert.Single(Assert.Single(result).Value).Activity);
+			Assert.Equal(new Money(Currency.EUR, 75m), withdrawal.Amount);
+		}
+
+		[Fact]
+		public async Task ScrapeTransactionsAsync_CashTransferIn_MapsToCashDeposit()
+		{
+			var client = CreateClient(["t-transfer-in"], new() { ["t-transfer-in"] = TransferInDetail });
+			var scraper = new McpScraper(client, NullLogger.Instance);
+
+			var result = await scraper.ScrapeTransactionsAsync(CancellationToken.None);
+
+			var deposit = Assert.IsType<CashDepositActivity>(Assert.Single(Assert.Single(result).Value).Activity);
+			Assert.Equal(new Money(Currency.EUR, 75m), deposit.Amount);
 		}
 
 		[Fact]
