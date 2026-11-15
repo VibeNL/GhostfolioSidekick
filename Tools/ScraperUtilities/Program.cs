@@ -16,7 +16,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			Host.CreateDefaultBuilder(args)
 				.ConfigureServices((context, services) =>
 				{
-					services.AddLogging(configure => configure.AddConsole());
+					services.AddLogging(configure => configure
+						.SetMinimumLevel(LogLevel.Debug)
+						.AddConsole());
 					services.AddHostedService<ScraperService>();
 				});
 
