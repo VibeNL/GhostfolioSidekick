@@ -8,19 +8,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.Mcp
 	/// <summary>
 	/// Minimal stateless JSON-RPC 2.0 client for the Scalable Capital MCP server (streamable HTTP transport).
 	/// </summary>
-	public class McpClient : IDisposable
+	public class McpClient(HttpClient httpClient, McpTokenProvider tokenProvider, ILogger logger) : IMcpClient
 	{
-		private readonly HttpClient _httpClient;
-		private readonly McpTokenProvider _tokenProvider;
-		private readonly ILogger _logger;
+		private readonly HttpClient _httpClient = httpClient;
+		private readonly McpTokenProvider _tokenProvider = tokenProvider;
+		private readonly ILogger _logger = logger;
 		private int _nextId = 1;
-
-		public McpClient(HttpClient httpClient, McpTokenProvider tokenProvider, ILogger logger)
-		{
-			_httpClient = httpClient;
-			_tokenProvider = tokenProvider;
-			_logger = logger;
-		}
 
 		public async Task<JsonObject> CallToolAsync(string toolName, JsonObject arguments, CancellationToken cancellationToken)
 		{
