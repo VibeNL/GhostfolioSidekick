@@ -46,8 +46,8 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
-      - name: Install .NET 10 WASM workload
+          dotnet-version: '11.0.x'
+      - name: Install .NET 11 WASM workload
         run: |
           dotnet workload install wasm-tools
           dotnet workload restore
@@ -126,7 +126,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
       - name: Install cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3.3.0
@@ -204,8 +204,8 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
-      - name: Install .NET 10 WASM workload
+          dotnet-version: '11.0.x'
+      - name: Install .NET 11 WASM workload
         run: |
           dotnet workload install wasm-tools
           dotnet workload restore

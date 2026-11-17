@@ -68,7 +68,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			IsLoading = true;
 			HasError = false;
 			ErrorMessage = string.Empty;
-			StateHasChanged();
 			await Task.Yield();
 			try
 			{
@@ -94,7 +93,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			finally
 			{
 				IsLoading = false;
-				StateHasChanged();
 			}
 		}
 

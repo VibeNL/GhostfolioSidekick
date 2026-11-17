@@ -1,5 +1,5 @@
 # Base runtime image for the API
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:10.0 AS base
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:11.0 AS base
 
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -17,7 +17,7 @@ RUN echo "Targeting ${TARGETOS} and ${TARGETARCH} with optional variant ${TARGET
 WORKDIR /app
 
 # Build stage for the API and Sidekick
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:11.0 AS build
 
 ARG TARGETARCH
 ARG VERSION
@@ -79,7 +79,7 @@ RUN dotnet publish -a "$TARGETARCH" \
 
 
 # Final runtime image
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:11.0 AS final
 
 WORKDIR /app
 

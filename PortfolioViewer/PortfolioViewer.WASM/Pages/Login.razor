@@ -63,8 +63,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Check if user is already authenticated
+        // The login page reads the authentication state once on init and then navigates away,
+        // so subscribing to AuthenticationStateChanged is not required.
+#pragma warning disable BL0013
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+#pragma warning restore BL0013
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             Navigation.NavigateTo("/", replace: true);
@@ -75,7 +78,6 @@
     {
         _isLoading = true;
         _errorMessage = string.Empty;
-        StateHasChanged();
 
         try
         {
@@ -97,7 +99,6 @@
         finally
         {
             _isLoading = false;
-            StateHasChanged();
         }
     }
 

@@ -158,13 +158,20 @@ Format function calls like this:
 			var model = modelIds[ChatMode];
 			_ = Task.Run(async () =>
 			{
-				await (await GetModule()).InvokeVoidAsync(
-					"completeStreamWebLLM",
-					InteropInstance.ConvertMessage(convertedMessages),
-					model,
-					ChatMode == ChatMode.ChatWithThinking,
-					null
-				);
+				try
+				{
+					await (await GetModule()).InvokeVoidAsync(
+						"completeStreamWebLLM",
+						InteropInstance.ConvertMessage(convertedMessages),
+						model,
+						ChatMode == ChatMode.ChatWithThinking,
+						null
+					);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Failed to start WebLLM streaming completion");
+				}
 			}, cancellationToken);
 		}
 
@@ -448,16 +455,31 @@ Format function calls like this:
 		{
 			// Call the `initialize` function in the JavaScript module
 			interopInstance.SetProgressReporter(OnProgress);
-			await (await GetModule()).InvokeVoidAsync(
-				"initializeWebLLM",
-				modelIds.Select(x => x.Value).Distinct(),
-				DotNetObjectReference.Create(interopInstance));
+			try
+			{
+				await (await GetModule()).InvokeVoidAsync(
+					"initializeWebLLM",
+					modelIds.Select(x => x.Value).Distinct(),
+					DotNetObjectReference.Create(interopInstance));
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to initialize WebLLM module");
+				throw;
+			}
 		}
 
 		public static async Task<IJSObjectReference> LoadJsModuleAsync(IJSRuntime jsRuntime, string path)
 		{
-			return await jsRuntime.InvokeAsync<IJSObjectReference>(
-				"import", path);
+			try
+			{
+				return await jsRuntime.InvokeAsync<IJSObjectReference>(
+					"import", path);
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				throw;
+			}
 		}
 
 		private async Task<IJSObjectReference> GetModule()

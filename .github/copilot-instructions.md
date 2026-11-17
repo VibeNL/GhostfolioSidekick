@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-**GhostfolioSidekick**: .NET 10.0 sidecar for [Ghostfolio](https://github.com/ghostfolio/ghostfolio) (wealth mgmt platform). Contains:
+**GhostfolioSidekick**: .NET 11.0 sidecar for [Ghostfolio](https://github.com/ghostfolio/ghostfolio) (wealth mgmt platform). Contains:
 
 1. **GhostfolioSidekick** - Docker container, auto-imports broker/crypto transactions to Ghostfolio hourly
 2. **PortfolioViewer** - Blazor WebAssembly + .NET Aspire for portfolio analysis/visualization
@@ -10,15 +10,15 @@
 4. **Supporting Libraries** - Parsers, DB, API integrations, utilities
 
 **Size**: ~45 projects, single solution  
-**Lang**: C# 14.0 (preview)  
-**Framework**: .NET 10.0 (preview)  
+**Lang**: C# 15.0  
+**Framework**: .NET 11.0  
 **Tech**: Blazor WebAssembly, .NET Aspire, EF Core, Playwright (UI testing), xUnit
 
 ## Build & Validation
 
 ### Prerequisites
 
-- **.NET 10 SDK** (10.0.102+)
+- **.NET 11 SDK** (11.0.100+)
 - **WASM workload**: `dotnet workload install wasm-tools` before first build
 - **Playwright**: Browsers install during test runs
 - **Mono** (Linux CI only): Some build tasks
@@ -135,7 +135,7 @@ dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
 
 - **Framework**: xUnit
 - **UI Testing**: Playwright for `PortfolioViewer.WASM.UITests`
-- **Playwright Setup**: `pwsh <test-project>/bin/Debug/net10.0/playwright.ps1 install` before first UI run
+- **Playwright Setup**: `pwsh <test-project>/bin/Debug/net11.0/playwright.ps1 install` before first UI run
 - **Mocking**: Moq + custom fixtures (`*UnitTests/`)
 - **Test Output**: Screenshots (`playwright-screenshots/`) + videos (`playwright-videos/`) captured per test
   - Each test gets its own video directory: `playwright-videos/<TestName>/`
@@ -151,7 +151,7 @@ Runs on: push to `master`, PRs to `master`, manual dispatch.
 **Workflow Steps**:
 
 1. **Checkout**: Full history (`fetch-depth: 0`)
-2. **Setup**: JDK 21, .NET 10, Mono, WASM workload
+2. **Setup**: JDK 21, .NET 11, Mono, WASM workload
 3. **Install Playwright**: `npx playwright install` + per-project via `playwright.ps1`
 4. **Install Tools**: `dotnet-sonarscanner`, `dotnet-coverage` (global)
 5. **Build**: `dotnet build` (no errors)
@@ -211,7 +211,7 @@ Before submit:
 3. ✅ `.editorconfig` - tabs, CRLF, UTF-8
 4. ✅ WASM changes → `dotnet workload restore`
 5. ✅ UI changes → consider Playwright tests
-6. ✅ New deps → .NET 10.0 compatible
+6. ✅ New deps → .NET 11.0 compatible
 7. ✅ Code matches patterns (repo pattern, DI, etc.)
 8. ✅ DB changes → add migrations, test apply/rollback
 

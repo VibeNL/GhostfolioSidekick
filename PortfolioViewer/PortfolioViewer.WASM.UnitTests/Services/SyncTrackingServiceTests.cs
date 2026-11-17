@@ -71,7 +71,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
 			await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
 
 			// Assert
+			// The InvokeVoidAsync extension delegates to the interface method InvokeAsync<object>, which is what Moq must target; BL0010 does not apply inside mock expressions.
+#pragma warning disable BL0010
 			_jsRuntimeMock.Verify(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()), Times.Once);
+#pragma warning restore BL0010
 		}
 
 		[Fact]
@@ -122,7 +125,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
 		{
 			// Arrange
 			var syncTime = DateTime.Now;
+			// The InvokeVoidAsync extension delegates to the interface method InvokeAsync<object>, which is what Moq must target; BL0010 does not apply inside mock expressions.
+#pragma warning disable BL0010
 			_jsRuntimeMock.Setup(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+#pragma warning restore BL0010
 						 .ThrowsAsync(new InvalidOperationException());
 
 			// Act

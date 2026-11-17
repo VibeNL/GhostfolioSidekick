@@ -24,7 +24,7 @@ Trigger naturally with:
 ## Repo-specific notes
 
 - Test project: `PortfolioViewer\PortfolioViewer.WASM.UITests\PortfolioViewer.WASM.UITests.csproj`
-- Browser install script: `PortfolioViewer\PortfolioViewer.WASM.UITests\bin\Debug\net10.0\playwright.ps1`
+- Browser install script: `PortfolioViewer\PortfolioViewer.WASM.UITests\bin\Debug\net11.0\playwright.ps1`
 - Diagnostics artifacts:
   - `playwright-screenshots/`
   - `playwright-videos/<TestName>/`

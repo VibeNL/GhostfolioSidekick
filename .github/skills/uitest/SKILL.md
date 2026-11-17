@@ -37,7 +37,7 @@ Use this skill when user asks any of:
    - Build test project so script exists:
      - `dotnet build PortfolioViewer\PortfolioViewer.WASM.UITests\PortfolioViewer.WASM.UITests.csproj`
    - Install browsers:
-     - `pwsh PortfolioViewer\PortfolioViewer.WASM.UITests\bin\Debug\net10.0\playwright.ps1 install`
+     - `pwsh PortfolioViewer\PortfolioViewer.WASM.UITests\bin\Debug\net11.0\playwright.ps1 install`
 
 2. Run focused UI tests first:
    - `dotnet test --project PortfolioViewer\PortfolioViewer.WASM.UITests\PortfolioViewer.WASM.UITests.csproj --filter "<pattern>"`

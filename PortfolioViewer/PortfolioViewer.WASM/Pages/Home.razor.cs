@@ -65,8 +65,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private async Task RefreshPage()
 		{
 			IsReloading = true;
-			StateHasChanged();
-			await JSRuntime.InvokeVoidAsync("forceBlazorReload");
+			try
+			{
+				await JSRuntime.InvokeVoidAsync("forceBlazorReload");
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Console.WriteLine($"Failed to force Blazor reload: {ex.Message}");
+				throw;
+			}
 		}
 
 		private async Task StartFullSync()
@@ -140,8 +147,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private async Task DeleteAllData()
 		{
 			// Show confirmation dialog
-			var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
-				"Are you sure you want to delete all data? This action cannot be undone and will remove all synced data from your local database.");
+			bool confirmed;
+			try
+			{
+				confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+					"Are you sure you want to delete all data? This action cannot be undone and will remove all synced data from your local database.");
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Console.WriteLine($"Failed to show confirmation dialog: {ex.Message}");
+				throw;
+			}
 
 			if (!confirmed)
 			{
@@ -169,7 +185,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				// Reload dashboard data to refresh the UI
 				await LoadDashboardDataAsync();
-				StateHasChanged(); // Ensure UI is refreshed after data reload
 
 				_statusMessage = "All data has been successfully deleted.";
 				_isError = false;
@@ -184,7 +199,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				IsSyncing = false;
 				CurrentAction = "Idle";
 				Progress = 0;
-				StateHasChanged();
 			}
 		}
 
@@ -313,7 +327,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 
 			IsLoading = false;
-			StateHasChanged();
 		}
 
 		private async Task CheckForUpdates()
