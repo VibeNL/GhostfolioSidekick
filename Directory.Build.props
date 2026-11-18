@@ -1,8 +1,6 @@
 <Project>
 	<PropertyGroup>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<!-- Runtime Async (.NET 11 preview): async suspension/resumption handled by the runtime instead of compiler-generated state machines -->
-		<Features>runtime-async=on</Features>
 
 		<!-- VersionPrefix: yyyy.MM.dd -->
 		<VersionPrefix>$([System.DateTime]::UtcNow.ToString('yyyy.MM.dd'))</VersionPrefix>
