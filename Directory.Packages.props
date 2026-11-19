@@ -37,7 +37,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Bcl.TimeProvider" Version="11.0.0" />
-    <!-- Pinned to 10.x: EF Core 11 regresses complex-property value converters (INSERT throws InvalidCastException) and scalar aggregate materialization over empty tables; revisit once fixed upstream -->
+    <!-- Pinned to 10.x: EF Core 11 regresses complex-property value converters (INSERT throws InvalidCastException) and scalar aggregate materialization over empty tables; retested against 11.0.0 on 2026-11-19 — still failing; revisit once fixed upstream -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.15" />
