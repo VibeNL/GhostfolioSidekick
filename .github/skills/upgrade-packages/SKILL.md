@@ -60,6 +60,12 @@ A new branch is ALWAYS required — never commit upgrades directly to the defaul
 
    **Completeness invariant (mandatory):** the audit must account for *every* package pinned in `Directory.Packages.props`. After collecting per-project output, cross-check each pin against its referencing project's section. A pin that appears neither as an update row nor in a "no updates" section means that project's scan failed — re-audit it (flatcontainer fallback) before concluding anything about that package.
 
+   **Missed-package fix (mandatory whenever the invariant fails):**
+   1. Find the referencing project: `grep -r 'PackageReference Include="<Pkg>"' --include=*.csproj .`
+   2. Query NuGet directly for the full version list — no CLI, no restore needed: `Invoke-RestMethod https://api.nuget.org/v3-flatcontainer/<pkg-lowercase>/index.json`
+   3. Latest = highest stable semver in that list; if the current pin is a prerelease, also consider the latest prerelease of the same version line.
+   4. Report it as an update row marked "flatcontainer fallback" and risk-tier it like any other finding — never skip a pin just because the CLI output missed it.
+
 2. Identify breaking-change risks:
    - Major version bumps are high risk
    - Note .NET runtime/SDK version constraints
@@ -67,7 +73,7 @@ A new branch is ALWAYS required — never commit upgrades directly to the defaul
    - Version-locked families (`Aspire.Hosting.*`, `Microsoft.EntityFrameworkCore.*`) must be bumped together. If one family member shows an update but another does not, check the other's project section first — its scan may have crashed (see above) — before treating it as up to date.
    - Prerelease pins: for packages pinned to a prerelease version, `--outdated` may report `Not found at the sources` for Latest; verify actual availability via the flatcontainer index including `-preview` versions.
    - Multi-major jumps (Latest several majors ahead with no intermediate versions on NuGet) are Tier 3 even when the family is complete — attempt only after confirming every family member has a target version, and be ready to revert.
-   - `Aspire.Hosting.*` 13 → 17 migration: no stable versions exist between 13.6.5 and 17.0.0 (Blazor is preview-only in the 17 line). In 17, `AspireUseCliBundle=true` is mandatory — ASPIRE013 cannot be suppressed, so flip any explicit opt-out to true, and set `<AspireCliInvocationMode>dnxpinned</AspireCliInvocationMode>` in the AppHost project so the CLI restores from NuGet (`aspire.cli`, pinned to the AppHost version) via the SDK's `dnx` host — no installed aspire command needed; CI works with any .NET 10+ SDK. Also migrate per ASPIRE012: remove `<Sdk Name="Aspire.AppHost.Sdk">`, add a CPM pin + PackageReference for `Aspire.Hosting.Dotnet`, drop the resource `<ProjectReference>` items, and replace `AddProject<T>()` / generic Blazor calls with path-based `AddDotnetProject(name, path)` / `AddBlazorWasmApp(name, path)`.
+   - `Aspire.Hosting.*` is intentionally pinned at 17.x — **do not upgrade unless the user explicitly requests it** (see the props comment). Every major of this family ships mandatory breaking migrations (e.g. 13 → 17 forced the CLI-bundle mandate ASPIRE013 and retired `Aspire.AppHost.Sdk` per ASPIRE012), so treat any future update as a Tier 3 deferral, not an upgrade candidate.
 
 **Required output:** per-project outdated table (Package / Requested / Resolved / Latest) for every project, plus the risk-tier grouping from below.
 

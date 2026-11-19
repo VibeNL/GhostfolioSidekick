@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AngleSharp" Version="1.10.5" />
+    <!-- Intentionally pinned at 17.x: every major of this family ships mandatory breaking migrations (CLI bundle mandate, AppHost SDK retirement); do not upgrade unless explicitly requested -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="17.0.0" />
     <PackageVersion Include="Aspire.Hosting.Blazor" Version="17.0.0-preview.1.26567.5" />
     <PackageVersion Include="Aspire.Hosting.Dotnet" Version="17.0.0" />
