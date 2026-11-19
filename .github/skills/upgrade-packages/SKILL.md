@@ -73,7 +73,7 @@ A new branch is ALWAYS required — never commit upgrades directly to the defaul
    - Version-locked families (`Aspire.Hosting.*`, `Microsoft.EntityFrameworkCore.*`) must be bumped together. If one family member shows an update but another does not, check the other's project section first — its scan may have crashed (see above) — before treating it as up to date.
    - Prerelease pins: for packages pinned to a prerelease version, `--outdated` may report `Not found at the sources` for Latest; verify actual availability via the flatcontainer index including `-preview` versions.
    - Multi-major jumps (Latest several majors ahead with no intermediate versions on NuGet) are Tier 3 even when the family is complete — attempt only after confirming every family member has a target version, and be ready to revert.
-   - `Aspire.Hosting.*` is intentionally pinned at 17.x — **do not upgrade unless the user explicitly requests it** (see the props comment). Every major of this family ships mandatory breaking migrations (e.g. 13 → 17 forced the CLI-bundle mandate ASPIRE013 and retired `Aspire.AppHost.Sdk` per ASPIRE012), so treat any future update as a Tier 3 deferral, not an upgrade candidate.
+   - The `Aspire.Hosting.*` family is **upgradeable when possible** (Tier 3): every major ships mandatory breaking migrations — e.g. 13 → 17 forced the CLI-bundle mandate (`AspireUseCliBundle=true`, `AspireCliInvocationMode=dnxpinned`; ASPIRE013, not suppressible) and retired `Aspire.AppHost.Sdk` in favor of the `Aspire.Hosting.Dotnet` package + path-based resource registration (ASPIRE012). Attempt it like any other Tier 3 major: bump the whole family together, then verify with a full build + test suite.
 
 **Required output:** per-project outdated table (Package / Requested / Resolved / Latest) for every project, plus the risk-tier grouping from below.
 
@@ -84,7 +84,7 @@ A new branch is ALWAYS required — never commit upgrades directly to the defaul
    <PackageVersion Include="PackageName" Version="<newVersion>" />
    ```
    - Under CPM, `dotnet add <project>.csproj package X --version Y` does NOT work (versions are centralized) — edit `Directory.Packages.props` directly.
-   - Read `Directory.Packages.props` comments before bumping: pins documented with a comment (e.g. EF Core pinned to 10.x due to an upstream regression) are Tier 3 deferrals — do not upgrade unless the user explicitly overrides or the upstream issue is confirmed fixed
+   - Read `Directory.Packages.props` comments before bumping: only pins whose comment marks them as deferred/hold (e.g. EF Core pinned to 10.x due to an upstream regression) are Tier 3 deferrals — do not upgrade unless the user explicitly overrides or the upstream issue is confirmed fixed. A migration-note comment (e.g. the Aspire family) documents required work, not a hold
    - Upgrade minor/patch versions first (lower risk)
    - Upgrade major versions one at a time, verify between each
    - Keep .NET runtime/SDK packages aligned
