@@ -3,18 +3,20 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AngleSharp" Version="1.10.4" />
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.6.5" />
-    <PackageVersion Include="Aspire.Hosting.Blazor" Version="13.6.5-preview.1.26559.7" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.6.5" />
+    <PackageVersion Include="AngleSharp" Version="1.10.5" />
+    <!-- Upgradeable when possible (Tier 3): every major ships mandatory breaking migrations — CLI-bundle mandate (AspireUseCliBundle=true + AspireCliInvocationMode=dnxpinned) and AppHost SDK retirement (use the Aspire.Hosting.Dotnet package); bump the whole family together -->
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="17.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Blazor" Version="17.0.0-preview.1.26567.5" />
+    <PackageVersion Include="Aspire.Hosting.Dotnet" Version="17.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="17.0.0" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="Bit.Besql" Version="10.7.0" />
     <PackageVersion Include="bunit" Version="2.15.2" />
-    <PackageVersion Include="CoinGecko.Net" Version="6.6.0" />
+    <PackageVersion Include="CoinGecko.Net" Version="7.0.0" />
     <PackageVersion Include="CompareNETObjects" Version="4.84.0" />
     <PackageVersion Include="coverlet.collector" Version="10.1.1" />
-    <PackageVersion Include="CsvHelper" Version="34.0.0" />
+    <PackageVersion Include="CsvHelper" Version="34.1.0" />
     <PackageVersion Include="Fastenshtein" Version="1.1.1" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
     <PackageVersion Include="Google.Protobuf" Version="3.36.2" />
@@ -35,7 +37,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Bcl.TimeProvider" Version="11.0.0" />
-    <!-- Pinned to 10.x: EF Core 11 regresses complex-property value converters (INSERT throws InvalidCastException) and scalar aggregate materialization over empty tables; revisit once fixed upstream -->
+    <!-- Pinned to 10.x: EF Core 11 regresses complex-property value converters (INSERT throws InvalidCastException) and scalar aggregate materialization over empty tables; retested against 11.0.0 on 2026-11-19 — still failing; revisit once fixed upstream -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.15" />
@@ -52,7 +54,7 @@
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="11.0.0" />
     <PackageVersion Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="11.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
-    <PackageVersion Include="Microsoft.Playwright" Version="1.64.1" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.65.1" />
     <PackageVersion Include="Microsoft.TypeScript.MSBuild" Version="7.0.1" />
     <PackageVersion Include="Moq" Version="4.21.0" />
     <PackageVersion Include="Moq.EntityFrameworkCore" Version="10.0.0.2" />
@@ -65,7 +67,7 @@
     <PackageVersion Include="Plotly.Blazor" Version="7.2.0" />
     <PackageVersion Include="Polly" Version="8.9.1" />
     <PackageVersion Include="RestSharp" Version="114.1.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="3.0.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="3.0.2" />
     <PackageVersion Include="SSH.NET" Version="2026.0.1" />
     <PackageVersion Include="Testcontainers" Version="4.17.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.17.0" />
