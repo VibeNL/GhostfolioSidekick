@@ -80,7 +80,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				_isRefreshing = true;
 				_refreshStatus = "Syncing task status...";
 				_refreshProgress = 0;
-				StateHasChanged();
 
 				// Create a progress reporter for the task-only sync operation
 				var progress = new Progress<(string action, int progress)>(update =>
@@ -124,7 +123,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			finally
 			{
 				_isRefreshing = false;
-				StateHasChanged();
 			}
 		}
 
@@ -222,7 +220,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private void CloseErrorDetails()
 		{
 			_selectedTaskError = null;
-			StateHasChanged();
 		}
 
 		private async Task ShowLogs(TaskRun task)
@@ -245,7 +242,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			_selectedTaskLogs = null;
 			_taskLogs = null;
-			StateHasChanged();
 		}
 
 		private IEnumerable<TaskRunLog> GetFilteredLogs()

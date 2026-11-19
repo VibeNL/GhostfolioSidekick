@@ -63,7 +63,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private async Task OnAccountChanged(ChangeEventArgs e)
 		{
 			IsLoading = true;
-			StateHasChanged();
 
 			await Task.Delay(100); // Allow UI to update
 
@@ -79,7 +78,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 
 			IsLoading = false;
-			StateHasChanged();
 		}
 
 		private async Task LoadForSelectedAccount()

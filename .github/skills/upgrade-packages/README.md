@@ -15,7 +15,7 @@ Upgrade NuGet packages across the GhostfolioSidekick solution with safe, verifie
 ## Workflow
 
 1. **Branch (mandatory)** — always start on a fresh branch from the default branch; never upgrade directly on it
-2. **Audit** — `dotnet list package --outdated` per project (solution-level invocation fails on .NET 10)
+2. **Audit** — `dotnet list package --outdated` per project (solution-level invocation fails on .NET 11)
 3. **Upgrade** — bump `<PackageVersion>` entries in `Directory.Packages.props` (central package management), then `dotnet restore`
 4. **Consolidate** — verify no per-project `Version=` overrides remain and every project resolves one version per package
 5. **Build** — `dotnet build` (must be 0 errors, 0 warnings)
@@ -27,7 +27,7 @@ Upgrade NuGet packages across the GhostfolioSidekick solution with safe, verifie
 
 All package versions are pinned in `Directory.Packages.props` (`ManagePackageVersionsCentrally=true`). `.csproj` files hold version-less `<PackageReference>` entries only — upgrades happen by editing the props file, not per project. Under CPM, `dotnet add <project> package X --version Y` does not work.
 
-## .NET 10 CLI Notes
+## .NET 11 CLI Notes
 
 - `dotnet list package ...` at the solution root fails (`error: Sequence contains no matching element`) — run it inside each project directory.
 - Outdated output header is "has the following updates to its packages" with columns `Top-level Package | Requested | Resolved | Latest`; up-to-date projects print "has no updates given the current sources".

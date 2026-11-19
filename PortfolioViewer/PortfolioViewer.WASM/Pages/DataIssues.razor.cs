@@ -184,7 +184,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private void ToggleListExpansion()
 		{
 			IsListExpanded = !IsListExpanded;
-			StateHasChanged();
 		}
 
 		private async Task ExportToCsv()

@@ -1,7 +1,7 @@
 ---
 name: upgrade-packages
 description: >
-  Upgrade NuGet packages across the GhostfolioSidekick .NET 10 solution using
+  Upgrade NuGet packages across the GhostfolioSidekick .NET 11 solution using
   central package management (Directory.Packages.props). Always starts on a new
   branch, finds outdated packages, upgrades them, always validates with build +
   tests, fixes compile issues, and verifies no security vulnerabilities.
@@ -14,7 +14,7 @@ Upgrade NuGet packages across the GhostfolioSidekick solution safely.
 ## Scope
 
 - ~45 .csproj files in the solution
-- .NET 10.0 (preview) — must remain compatible
+- .NET 11.0 — must remain compatible
 - **Central package management**: all versions pinned in `Directory.Packages.props` (`ManagePackageVersionsCentrally=true`). `.csproj` files contain version-less `<PackageReference>` entries only.
 - TreatWarningsAsErrors=true globally — no new warnings allowed
 - SonarCloud quality gate must pass
@@ -42,9 +42,9 @@ A new branch is ALWAYS required — never commit upgrades directly to the defaul
    ```
    If already on an existing upgrade branch with uncommitted work, continue there instead of creating another.
 
-### Phase 1: Audit (.NET 10 specifics)
+### Phase 1: Audit (.NET 11 specifics)
 
-.NET 10 CLI behavior — required to know:
+.NET 11 CLI behavior — required to know:
 - `dotnet list package --outdated` at the **solution root fails** (`error: Sequence contains no matching element`). It must be run **per project**: cd into each project directory first.
 - Output format differs from older SDKs. Per-project output is either:
   - `The given project \`X\` has no updates given the current sources.` — up to date, or
@@ -142,7 +142,7 @@ With CPM, versions are single-sourced by design — no package can have multiple
 
 ### Phase 5: Security Verification
 
-Run per project (like Phase 1) — solution-level `dotnet list package` fails on .NET 10.
+Run per project (like Phase 1) — solution-level `dotnet list package` fails on .NET 11.
 
 12. Scan for vulnerable packages:
    ```
@@ -205,7 +205,7 @@ Before marking upgrade complete:
 6. ✅ `dotnet list package --vulnerable` — no vulnerabilities
 7. ✅ `dotnet list package --deprecated` — no deprecated packages
 8. ✅ No `.editorconfig` violations (tabs, CRLF, UTF-8)
-9. ✅ .NET 10.0 compatibility maintained
+9. ✅ .NET 11.0 compatibility maintained
 
 ## Boundaries
 

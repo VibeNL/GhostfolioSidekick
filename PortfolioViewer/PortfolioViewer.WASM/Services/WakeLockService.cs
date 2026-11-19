@@ -11,8 +11,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		public WakeLockService(IJSRuntime jsRuntime)
 		{
 			_jsRuntime = jsRuntime;
-			_wakeLockModule = new Lazy<Task<IJSObjectReference>>(
-				() => _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/wakelock.js").AsTask());
+			_wakeLockModule = new Lazy<Task<IJSObjectReference>>(LoadWakeLockModuleAsync);
+		}
+
+		private async Task<IJSObjectReference> LoadWakeLockModuleAsync()
+		{
+			try
+			{
+				return await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/wakelock.js");
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Console.WriteLine($"Failed to load wake lock module: {ex.Message}");
+				throw;
+			}
 		}
 
 		private async Task<IJSObjectReference> GetWakeLockModuleAsync()

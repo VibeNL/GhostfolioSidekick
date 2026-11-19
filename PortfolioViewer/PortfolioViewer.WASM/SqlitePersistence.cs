@@ -19,39 +19,71 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 
 		public async Task InitializeDatabase()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
+			try
+			{
+				module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
-			Console.WriteLine("JavaScript module loaded");
+				Console.WriteLine("JavaScript module loaded");
 
-			await module.InvokeVoidAsync("setupDatabase", DatabaseContext.DbFileName);
-			Console.WriteLine("Database setup completed");
+				await module.InvokeVoidAsync("setupDatabase", DatabaseContext.DbFileName);
+				Console.WriteLine("Database setup completed");
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Console.WriteLine($"Failed to initialize database: {ex.Message}");
+				throw;
+			}
 		}
 
 		public async Task SaveChangesAsync()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
+			try
+			{
+				module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
-			Console.WriteLine("Syncing database to IndexedDB");
+				Console.WriteLine("Syncing database to IndexedDB");
 
-			await module.InvokeVoidAsync("syncDatabaseToIndexedDb", DatabaseContext.DbFileName);
-			Console.WriteLine("Database sync completed");
+				await module.InvokeVoidAsync("syncDatabaseToIndexedDb", DatabaseContext.DbFileName);
+				Console.WriteLine("Database sync completed");
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Console.WriteLine($"Failed to sync database: {ex.Message}");
+				throw;
+			}
 		}
 
 		public async Task ClearDatabaseFromIndexedDb()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
+			try
+			{
+				module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
-			Console.WriteLine("Clearing database from IndexedDB");
+				Console.WriteLine("Clearing database from IndexedDB");
 
-			await module.InvokeVoidAsync("clearDatabaseFromIndexedDb");
-			Console.WriteLine("Database cleared from IndexedDB");
+				await module.InvokeVoidAsync("clearDatabaseFromIndexedDb");
+				Console.WriteLine("Database cleared from IndexedDB");
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Console.WriteLine($"Failed to clear database from IndexedDB: {ex.Message}");
+				throw;
+			}
 		}
 
 		public async Task DebugFileSystem()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
+			try
+			{
+				module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
-			await module.InvokeVoidAsync("debugFileSystem", DatabaseContext.DbFileName);
+				await module.InvokeVoidAsync("debugFileSystem", DatabaseContext.DbFileName);
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Console.WriteLine($"Failed to debug file system: {ex.Message}");
+				throw;
+			}
 		}
 	}
 }

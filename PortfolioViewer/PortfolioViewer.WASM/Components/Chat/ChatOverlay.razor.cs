@@ -137,7 +137,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			// Add the user's message to the chat
 			CurrentMessage = ""; // Clear the input field
 			IsBotTyping = true; // Indicate that the bot is typing
-			StateHasChanged(); // Update the UI
 
 			try
 			{
@@ -158,7 +157,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 					var existingText = lastMemory.Text ?? string.Empty;
 					lastMemory.Contents = [new TextContent(existingText + (response.Text ?? string.Empty))];
-					StateHasChanged();
 
 					// Scroll to the bottom of the chat
 					await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
@@ -222,8 +220,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			// Release wake lock on disposal — fire-and-forget is intentional here as Dispose cannot be async
 			if (wakeLockActive)
 			{
-				_ = JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
-				wakeLockActive = false;
+				_ = ReleaseWakeLock();
 			}
 
 			// Unsubscribe from AgentLogger event

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
+		<TargetFramework>net11.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
@@ -12,7 +12,6 @@
 	  <PackageReference Include="CoinGecko.Net" />
 	  <PackageReference Include="HtmlAgilityPack" />
 	  <PackageReference Include="Microsoft.Extensions.Logging" />
-	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	  <PackageReference Include="Polly" />
 	  <PackageReference Include="YahooFinanceApiNext" />
 	</ItemGroup>

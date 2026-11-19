@@ -100,7 +100,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (!string.IsNullOrEmpty(SelectedTable))
 			{
 				await LoadTableDataAsync(SelectedTable);
-				StateHasChanged();
 			}
 		}
 
@@ -205,7 +204,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (!string.IsNullOrEmpty(SelectedTable))
 			{
 				await LoadTableDataAsync(SelectedTable);
-				StateHasChanged();
 			}
 		}
 

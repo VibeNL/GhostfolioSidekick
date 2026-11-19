@@ -603,7 +603,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 				_pendingFilterState = PendingFilterState.FromFilterState(FilterState);
 				await DetectCurrentDateRange();
 				await UpdateFilteredOptionsAsync();
-				StateHasChanged();
 				Logger?.LogInformation("Reset pending filter changes");
 			}
 		}
