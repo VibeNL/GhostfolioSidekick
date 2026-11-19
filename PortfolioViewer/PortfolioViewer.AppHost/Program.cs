@@ -1,8 +1,8 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var blazorapp = builder.AddBlazorWasmProject<Projects.PortfolioViewer_WASM>("blazorapp");
-var apiService = builder.AddProject<Projects.PortfolioViewer_ApiService>("apiservice");
-builder.AddProject<Projects.PortfolioViewer_WASM>("blazorServer")
+var blazorapp = builder.AddBlazorWasmApp("blazorapp", "../PortfolioViewer.WASM/PortfolioViewer.WASM.csproj");
+var apiService = builder.AddDotnetProject("apiservice", "../PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj");
+builder.AddDotnetProject("blazorServer", "../PortfolioViewer.WASM/PortfolioViewer.WASM.csproj")
 						.WithExternalHttpEndpoints()
 						.WithBlazorClientApp(blazorapp)
 						.WithReference(apiService);

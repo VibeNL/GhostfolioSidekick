@@ -1,16 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<Sdk Name="Aspire.AppHost.Sdk" Version="13.6.1" />
-
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net11.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsAspireHost>true</IsAspireHost>
-		<!-- Keep orchestration dependencies NuGet-restored instead of delegating to an installed Aspire CLI; declared intent per https://aka.ms/aspire/diagnostics/aspire010 -->
-		<AspireUseCliBundle>false</AspireUseCliBundle>
-		<NoWarn>$(NoWarn);ASPIRE010</NoWarn>
+		<!-- Aspire 17 mandates the CLI bundle (ASPIRE013 is not suppressible); dnxpinned keeps the CLI NuGet-restored via the SDK dnx host instead of an installed aspire command -->
+		<AspireUseCliBundle>true</AspireUseCliBundle>
+		<AspireCliInvocationMode>dnxpinned</AspireCliInvocationMode>
 		<UserSecretsId>0e39bd1b-92a1-40c4-9a12-5e743e8b5a3b</UserSecretsId>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
@@ -26,13 +24,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
-		<ProjectReference Include="..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Aspire.Hosting.AppHost" />
 		<PackageReference Include="Aspire.Hosting.Blazor" />
+		<PackageReference Include="Aspire.Hosting.Dotnet" />
 		<PackageReference Include="Grpc.AspNetCore" />
 		<PackageReference Include="Grpc.Net.Client" />
 		<PackageReference Include="Grpc.Tools" />
