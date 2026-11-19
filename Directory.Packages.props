@@ -11,7 +11,7 @@
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="Bit.Besql" Version="10.7.0" />
     <PackageVersion Include="bunit" Version="2.15.2" />
-    <PackageVersion Include="CoinGecko.Net" Version="6.6.0" />
+    <PackageVersion Include="CoinGecko.Net" Version="6.7.1" />
     <PackageVersion Include="CompareNETObjects" Version="4.84.0" />
     <PackageVersion Include="coverlet.collector" Version="10.1.1" />
     <PackageVersion Include="CsvHelper" Version="34.1.0" />
@@ -65,7 +65,7 @@
     <PackageVersion Include="Plotly.Blazor" Version="7.2.0" />
     <PackageVersion Include="Polly" Version="8.9.1" />
     <PackageVersion Include="RestSharp" Version="114.1.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="3.0.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="3.0.2" />
     <PackageVersion Include="SSH.NET" Version="2026.0.1" />
     <PackageVersion Include="Testcontainers" Version="4.17.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.17.0" />
