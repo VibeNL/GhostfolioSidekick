@@ -13,7 +13,6 @@
     <File Path="Directory.Build.targets" />
     <File Path="Dockerfile" />
     <File Path="README.md" />
-    <File Path="supervisord.conf" />
   </Folder>
   <Folder Name="/Tools/">
     <Project Path="Tools/ScraperUtilities/ScraperUtilities.csproj" />
@@ -38,6 +37,7 @@
   </Folder>
   <Project Path="Configuration.UnitTests/Configuration.UnitTests.csproj" />
   <Project Path="Configuration/Configuration.csproj" />
+  <Project Path="ContainerHost/ContainerHost.csproj" />
   <Project Path="Cryptocurrency.UnitTests/Cryptocurrency.UnitTests.csproj" />
   <Project Path="Cryptocurrency/Cryptocurrency.csproj" />
   <Project Path="Database.UnitTests/Database.UnitTests.csproj" />

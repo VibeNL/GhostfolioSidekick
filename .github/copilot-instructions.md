@@ -59,10 +59,15 @@ Launches Aspire dashboard + API service + Blazor WASM client.
 
 **GhostfolioSidekick Console App**:
 dotnet run --project GhostfolioSidekick/GhostfolioSidekick.csproj
+
+**Container Host (unified single-process host used by the Docker image)**:
+dotnet run --project ContainerHost/ContainerHost.csproj
+Runs API service + sidekick importer in one process.
+
 **Docker Build** (see `Dockerfile`):
 - Multi-stage build
-- Installs Python, Node.js, wasm-tools, supervisord
-- Builds PortfolioViewer.ApiService, PortfolioViewer.WASM, GhostfolioSidekick
+- Installs Node.js + wasm-tools (build stage); final image is Ubuntu chiseled (distroless, no shell)
+- Builds ContainerHost (unified API service + sidekick host), PortfolioViewer.WASM
 - Platform-specific via `TARGETARCH`
 
 ## Project Layout & Architecture
@@ -221,7 +226,7 @@ Before submit:
 - **Documentation/Parsers/**: Parser docs
 - **Examples/**: Config examples
 - **GitHub Workflow**: `.github/workflows/docker-publish.yml` - definitive build/deploy
-- **Dockerfile**: Prod deploy + supervisord for multi-process
+- **Dockerfile**: Prod deploy; ContainerHost runs API service + sidekick in one process (chiseled runtime image)
 
 ---
 

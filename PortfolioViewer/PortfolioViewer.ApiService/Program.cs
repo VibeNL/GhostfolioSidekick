@@ -19,7 +19,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Protected constructor to prevent instantiation
 		}
 
-		public static Task Main(string[] args)
+		public static async Task Main(string[] args)
+		{
+			var app = BuildApp(args);
+			await app.RunAsync();
+		}
+
+		public static WebApplication BuildApp(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
@@ -115,7 +121,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			});
 			app.MapFallbackToFile("index.html");
 
-			return app.RunAsync();
+			return app;
 		}
 	}
 }

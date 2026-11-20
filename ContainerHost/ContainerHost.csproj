@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net11.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+		<!-- This host is not Blazor; skip JS module manifest generation, which fails endpoint validation on the referenced API service's dev-only hot-reload assets. -->
+		<GenerateJSModuleManifest>false</GenerateJSModuleManifest>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
+		<ProjectReference Include="..\PortfolioViewer\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
+	</ItemGroup>
+
+	<!-- The API service's dev-only Blazor hot-reload browser tools assets cannot resolve endpoints when flowing into this project (breaks JS module validation and compression negotiation). They are never published, so drop them from static web asset resolution. -->
+	<Target Name="RemoveReferencedHotReloadAssets" AfterTargets="ResolveReferencedProjectsStaticWebAssets">
+		<ItemGroup>
+			<_RemovedHotReloadAsset Include="@(StaticWebAsset)" Condition="'%(SourceId)' == 'GhostfolioSidekick.PortfolioViewer.ApiService' AND $([System.String]::Copy('%(RelativePath)').Contains('Microsoft.NET.Sdk.BlazorWeb.HotReload'))" />
+			<StaticWebAsset Remove="@(_RemovedHotReloadAsset)" />
+		</ItemGroup>
+	</Target>
+
+	<!-- The referenced projects ship their own appsettings.json as publish items (via GetCopyToPublishDirectoryItems); keep only this host's merged config in the publish output. -->
+	<Target Name="RemoveInheritedAppSettingsJson" BeforeTargets="_ComputeCopyToPublishDirectoryItems">
+		<ItemGroup>
+			<_SourceItemsToCopyToPublishDirectoryAlways Remove="@(_SourceItemsToCopyToPublishDirectoryAlways)" Condition="'%(TargetPath)' == 'appsettings.json'" />
+			<_SourceItemsToCopyToPublishDirectory Remove="@(_SourceItemsToCopyToPublishDirectory)" Condition="'%(TargetPath)' == 'appsettings.json'" />
+			<_SourceItemsToCopyToPublishDirectoryIfDifferent Remove="@(_SourceItemsToCopyToPublishDirectoryIfDifferent)" Condition="'%(TargetPath)' == 'appsettings.json'" />
+			<!-- Re-add this host's merged config, which was removed along with the inherited ones. -->
+			<_SourceItemsToCopyToPublishDirectory Include="$(MSBuildProjectDirectory)\appsettings.json" TargetPath="appsettings.json" />
+		</ItemGroup>
+	</Target>
+
+</Project>

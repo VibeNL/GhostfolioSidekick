@@ -1,22 +1,4 @@
-# Base runtime image for the API
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:11.0 AS base
-
-ARG TARGETPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-ARG BUILDPLATFORM
-ARG BUILDOS
-ARG BUILDARCH
-ARG BUILDVARIANT
-
-RUN echo "Building on $BUILDPLATFORM, targeting $TARGETPLATFORM"
-RUN echo "Building on ${BUILDOS} and ${BUILDARCH} with optional variant ${BUILDVARIANT}"
-RUN echo "Targeting ${TARGETOS} and ${TARGETARCH} with optional variant ${TARGETVARIANT}"
-
-WORKDIR /app
-
-# Build stage for the API and Sidekick
+# Build stage for the unified container host and WASM client
 FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:11.0 AS build
 
 ARG TARGETARCH
@@ -25,15 +7,14 @@ ARG SourceRevisionId
 
 WORKDIR /src
 
-# Install Python, wasm-tools workload, and supervisord in a single layer
+# Install Node.js (TypeScript compilation) and the wasm-tools workload in a single layer
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip supervisor && \
     curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get install -y nodejs && \
     dotnet workload install wasm-tools && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy and restore projects
+# Copy and restore projects to warm the NuGet package cache (transitive project references are restored again after the full source copy below). ContainerHost has no packages of its own, so it needs no pre-restore.
 COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer.ApiService/"]
 COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer.WASM/"]
 COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
@@ -47,16 +28,11 @@ RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer.ApiService/PortfolioViewer.
 # Copy the entire source code
 COPY . .
 
-# Build all projects
-RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build && \
-    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build && \
-    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build
-
-# Publish each project
-FROM build AS publish-api
-WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
+# Publish the unified host (includes the API service and sidekick assemblies)
+FROM build AS publish-containerhost
+WORKDIR "/src/ContainerHost"
 RUN dotnet publish -a "$TARGETARCH" \
-    "PortfolioViewer.ApiService.csproj" \
+    "ContainerHost.csproj" \
     -c Release \
     -o /app/publish \
     /p:SourceRevisionId="$SourceRevisionId"
@@ -69,32 +45,16 @@ RUN dotnet publish -a "$TARGETARCH" \
     -o /app/publish-wasm \
     /p:SourceRevisionId="$SourceRevisionId"
 
-FROM build AS publish-sidekick
-WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish -a "$TARGETARCH" \
-    "GhostfolioSidekick.csproj" \
-    -c Release \
-    -o /app/publish-sidekick \
-    /p:SourceRevisionId="$SourceRevisionId"
 
-
-# Final runtime image
-FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:11.0 AS final
+# Final runtime image — Ubuntu chiseled (distroless form factor): no shell, no package manager.
+# The "-extra" variant adds ICU + tzdata, required for culture-specific parsing in the sidekick.
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra AS final
 
 WORKDIR /app
 
-# Install supervisord
-RUN apt-get update && \
-    apt-get install -y supervisor && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Copy published outputs
-COPY --from=publish-api /app/publish ./
+# Copy published outputs (the unified host runs the API service and sidekick importer in one process)
+COPY --from=publish-containerhost /app/publish ./
 COPY --from=publish-wasm /app/publish-wasm/wwwroot ./wwwroot
-COPY --from=publish-sidekick /app/publish-sidekick ./
-
-# Copy supervisord config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy SSL certificate and key (ensure these files are available in your build context)
 COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
@@ -104,8 +64,12 @@ ENV ASPNETCORE_URLS="http://+:80;https://+:443"
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
 ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
 
+# Privileged ports (80/443) require root; matches previous image behavior.
+USER 0:0
+
 EXPOSE 80
 EXPOSE 443
 
-# Start app via supervisord
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Single process: the unified host runs the API service and sidekick importer in-process.
+# The chiseled base image sets ENTRYPOINT ["/usr/bin/dotnet"], so CMD is just the app to run.
+CMD ["/app/GhostfolioSidekick.ContainerHost.dll"]
