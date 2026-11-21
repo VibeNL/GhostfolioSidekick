@@ -35,13 +35,7 @@ namespace GhostfolioSidekick
 		[ExcludeFromCodeCoverage]
 		private static async Task Main()
 		{
-			IHostBuilder hostBuilder = CreateHostBuilder();
-			using IHost host = hostBuilder.Build();
-			FlurlHttp.Configure(settings =>
-			{
-				settings.HttpClientFactory = new InternalCacheHttpFactory(host.Services);
-			});
-			await host.RunAsync();
+			await SidekickHost.RunAsync();
 		}
 
 		internal static IHostBuilder CreateHostBuilder()

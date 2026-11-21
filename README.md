@@ -263,6 +263,12 @@ ghostfoliosidekick:
 		condition: service_started
 ```
 
+The container runs as an unprivileged user (`app`, uid `1654`). If your data volume was created by an older image version that ran as root, change its owner once before upgrading:
+
+```
+docker run --rm -v /volume1/docker/ghostfolio/sidekick:/data alpine chown 1654:1654 /data
+```
+
 ### Settings
 | Envs |Description  |
 |--|--|

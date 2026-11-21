@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.Configuration
 		{
 			get
 			{
-				string url = ghostfolioUrl;
+				string url = ghostfolioUrl ?? throw new InvalidOperationException("Ghostfolio URL is not configured. Set the GHOSTFOLIO_URL environment variable.");
 				if (url.EndsWith('/'))
 				{
 					url = url[..^1];
