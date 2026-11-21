@@ -1,3 +1,6 @@
+using GhostfolioSidekick.Configuration;
+using Moq;
+
 namespace GhostfolioSidekick.UnitTests
 {
 	public class DatabaseContextFactoryTests : IDisposable
@@ -30,6 +33,21 @@ namespace GhostfolioSidekick.UnitTests
 
 			Assert.Contains("chown 1654:1654", message);
 			Assert.Contains(dbPath, message);
+		}
+
+		[Fact]
+		public void CreateDbContext_MissingDirectory_ThrowsInvalidOperationException()
+		{
+			string dbPath = Path.Combine(tempDirectory, "missing", "ghostfolio.db");
+			var settingsMock = new Mock<IApplicationSettings>();
+			settingsMock.Setup(x => x.DatabaseFilePath).Returns(dbPath);
+			var serviceProviderMock = new Mock<IServiceProvider>();
+			serviceProviderMock.Setup(x => x.GetService(typeof(IApplicationSettings))).Returns(settingsMock.Object);
+
+			DatabaseContextFactory factory = new(serviceProviderMock.Object);
+
+			InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => factory.CreateDbContext());
+			Assert.Contains("does not exist", exception.Message);
 		}
 
 		public void Dispose()

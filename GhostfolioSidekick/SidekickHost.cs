@@ -1,5 +1,6 @@
 using Flurl.Http;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick
 {
@@ -23,6 +24,7 @@ namespace GhostfolioSidekick
 		}
 
 		/// <summary>Builds and runs the sidekick host until it is stopped.</summary>
+		[ExcludeFromCodeCoverage]
 		public static async Task RunAsync()
 		{
 			using IHost host = Build();
