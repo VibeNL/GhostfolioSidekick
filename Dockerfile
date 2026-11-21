@@ -45,7 +45,6 @@ RUN dotnet publish -a "$TARGETARCH" \
     -o /app/publish-wasm \
     /p:SourceRevisionId="$SourceRevisionId"
 
-
 # Final runtime image — Ubuntu chiseled (distroless form factor): no shell, no package manager.
 # The "-extra" variant adds ICU + tzdata, required for culture-specific parsing in the sidekick.
 FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra AS final
@@ -64,8 +63,8 @@ ENV ASPNETCORE_URLS="http://+:80;https://+:443"
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
 ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
 
-# Privileged ports (80/443) require root; matches previous image behavior.
-USER 0:0
+# Runs as the base image's unprivileged user (uid 1654, "app"). Docker grants
+# CAP_NET_BIND_SERVICE by default, so Kestrel can still bind ports 80/443.
 
 EXPOSE 80
 EXPOSE 443
