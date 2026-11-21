@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.ContainerHost
 			{
 				// Stop both hosts when either one stops (shutdown signal or crash).
 				await Task.WhenAny(webTask, sidekickTask).ConfigureAwait(false);
-				shutdown.Cancel();
+				await shutdown.CancelAsync().ConfigureAwait(false);
 				await Task.WhenAll(webTask, sidekickTask).ConfigureAwait(false);
 			}
 			finally
