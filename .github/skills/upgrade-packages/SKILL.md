@@ -46,20 +46,34 @@ A new branch is ALWAYS required — never commit upgrades directly to the defaul
 
 .NET 11 CLI behavior — required to know:
 - `dotnet list package --outdated` at the **solution root fails** (`error: Sequence contains no matching element`). It must be run **per project**: cd into each project directory first.
+- The same `error: Sequence contains no matching element` crash can occur **inside a single-project directory** (observed on the .NET 11 SDK, e.g. `PortfolioViewer.Tests.csproj`) — even with an explicit `--project <path>`. Plain `dotnet list package` still works there. Detect this error line in each project's captured output and treat that project as **un-audited**; fall back to per-package NuGet flatcontainer checks (`https://api.nuget.org/v3-flatcontainer/<id>/index.json`) for its direct dependencies.
 - Output format differs from older SDKs. Per-project output is either:
   - `The given project \`X\` has no updates given the current sources.` — up to date, or
   - `Project \`X\` has the following updates to its packages` followed by a table with columns `Top-level Package | Requested | Resolved | Latest`; rows for direct dependencies are prefixed `> `.
+- Table parsing gotchas: column widths vary between projects, some rows carry trailing whitespace (especially when `Latest` is a long string), and `Latest` can be non-numeric (`Not found at the sources`). Never anchor parsers to end-of-line or fixed columns — trim and split on runs of whitespace.
 
 1. List outdated packages per project:
    ```
    dotnet list package --outdated --include-transitive
    ```
-   Run in every project directory (~45 projects). Capture all results.
+   Run in every project directory (~45 projects). Capture all results, including error lines.
+
+   **Completeness invariant (mandatory):** the audit must account for *every* package pinned in `Directory.Packages.props`. After collecting per-project output, cross-check each pin against its referencing project's section. A pin that appears neither as an update row nor in a "no updates" section means that project's scan failed — re-audit it (flatcontainer fallback) before concluding anything about that package.
+
+   **Missed-package fix (mandatory whenever the invariant fails):**
+   1. Find the referencing project: `grep -r 'PackageReference Include="<Pkg>"' --include=*.csproj .`
+   2. Query NuGet directly for the full version list — no CLI, no restore needed: `Invoke-RestMethod https://api.nuget.org/v3-flatcontainer/<pkg-lowercase>/index.json`
+   3. Latest = highest stable semver in that list; if the current pin is a prerelease, also consider the latest prerelease of the same version line.
+   4. Report it as an update row marked "flatcontainer fallback" and risk-tier it like any other finding — never skip a pin just because the CLI output missed it.
 
 2. Identify breaking-change risks:
    - Major version bumps are high risk
    - Note .NET runtime/SDK version constraints
    - Flag packages with known vulnerabilities
+   - Version-locked families (`Aspire.Hosting.*`, `Microsoft.EntityFrameworkCore.*`) must be bumped together. If one family member shows an update but another does not, check the other's project section first — its scan may have crashed (see above) — before treating it as up to date.
+   - Prerelease pins: for packages pinned to a prerelease version, `--outdated` may report `Not found at the sources` for Latest; verify actual availability via the flatcontainer index including `-preview` versions.
+   - Multi-major jumps (Latest several majors ahead with no intermediate versions on NuGet) are Tier 3 even when the family is complete — attempt only after confirming every family member has a target version, and be ready to revert.
+   - The `Aspire.Hosting.*` family is **upgradeable when possible** (Tier 3): every major ships mandatory breaking migrations — e.g. 13 → 17 forced the CLI-bundle mandate (`AspireUseCliBundle=true`, `AspireCliInvocationMode=dnxpinned`; ASPIRE013, not suppressible) and retired `Aspire.AppHost.Sdk` in favor of the `Aspire.Hosting.Dotnet` package + path-based resource registration (ASPIRE012). Attempt it like any other Tier 3 major: bump the whole family together, then verify with a full build + test suite.
 
 **Required output:** per-project outdated table (Package / Requested / Resolved / Latest) for every project, plus the risk-tier grouping from below.
 
@@ -70,6 +84,7 @@ A new branch is ALWAYS required — never commit upgrades directly to the defaul
    <PackageVersion Include="PackageName" Version="<newVersion>" />
    ```
    - Under CPM, `dotnet add <project>.csproj package X --version Y` does NOT work (versions are centralized) — edit `Directory.Packages.props` directly.
+   - Read `Directory.Packages.props` comments before bumping: only pins whose comment marks them as deferred/hold (e.g. EF Core pinned to 10.x due to an upstream regression) are Tier 3 deferrals — do not upgrade unless the user explicitly overrides or the upstream issue is confirmed fixed. A migration-note comment (e.g. the Aspire family) documents required work, not a hold
    - Upgrade minor/patch versions first (lower risk)
    - Upgrade major versions one at a time, verify between each
    - Keep .NET runtime/SDK packages aligned
@@ -193,6 +208,7 @@ The dedicated branch was created in Phase 0 — never commit upgrades directly t
 - .NET runtime/SDK upgrades
 - EF Core major version changes
 - Framework packages with API surface changes
+- Multi-major framework jumps with no intermediate versions on NuGet (e.g. `Aspire.Hosting.*` 13 → 17) — verify the whole family has a target version before attempting; revert and flag if refactoring is extensive
 
 ## Validation Checklist
 
