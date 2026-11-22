@@ -8,6 +8,15 @@
 
 [Deep Wiki](https://deepwiki.com/VibeNL/GhostfolioSidekick)
 
+> **⚠️ Breaking change for upgraders: the container now runs as non-root (uid `1654`).**
+> If you are upgrading from an older image version, your data volume is probably owned by `root` and the new container cannot write to it. Before starting the new image, change ownership once:
+>
+> ```bash
+> docker run --rm -v /volume1/docker/ghostfolio/sidekick:/data alpine chown 1654:1654 /data
+> ```
+>
+> (Replace `/volume1/docker/ghostfolio/sidekick` with your host path.) If you skip this, the container will start but the importer cannot open its database until ownership is fixed; the logs contain an error message telling you exactly what to run.
+
 Continuous running Docker container (sidecar) that automatically imports files from brokers & crypto exchanges. 
 Program checks every hour for new transactions and inserts them in ghostfolio. 
 Can also correct & remove transactions if changed or source file deleted.
