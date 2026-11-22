@@ -80,6 +80,18 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 		}
 
 		[Fact]
+		public void GhostfolioUrl_MissingEnvironmentVariable_ThrowsInvalidOperationException()
+		{
+			// Arrange
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", null);
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
+
+			// Act & Assert
+			var exception = Assert.Throws<InvalidOperationException>(() => settings.GhostfolioUrl);
+			Assert.Contains("GHOSTFOLIO_URL", exception.Message);
+		}
+
+		[Fact]
 		public void ConfigurationInstance_ReturnsNonNullInstance()
 		{
 			// Arrange

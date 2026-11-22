@@ -8,6 +8,8 @@
 
 [Deep Wiki](https://deepwiki.com/VibeNL/GhostfolioSidekick)
 
+> **⚠️ Upgrading from an older image version?** The container now runs as non-root (uid `1654`) — read the [release notes](./RELEASE_NOTES.md) before upgrading; old data volumes need a one-time `chown`.
+
 Continuous running Docker container (sidecar) that automatically imports files from brokers & crypto exchanges. 
 Program checks every hour for new transactions and inserts them in ghostfolio. 
 Can also correct & remove transactions if changed or source file deleted.
@@ -262,6 +264,15 @@ ghostfoliosidekick:
 	ghostfolio:
 		condition: service_started
 ```
+
+The container runs as an unprivileged user (`app`, uid `1654`). If your data volume was created by an older image version that ran as root, change its owner once before upgrading:
+
+```
+docker run --rm -v /volume1/docker/ghostfolio/sidekick:/data alpine chown 1654:1654 /data
+```
+
+### What's new / upgrading?
+See [RELEASE_NOTES.md](./RELEASE_NOTES.md) — highlights: PortfolioViewer is now served from this container on ports 80/443, and the image runs as a non-root user (uid `1654`).
 
 ### Settings
 | Envs |Description  |

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "ContainerHost": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53416;http://localhost:53417"
+    }
+  }
+}
