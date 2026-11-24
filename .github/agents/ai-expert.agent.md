@@ -24,4 +24,7 @@ You own the AI features of this .NET 11 solution. The stack is **Microsoft.Agent
 - Package versions change in `Directory.Packages.props` only (CPM); bumping `Microsoft.Agents.AI*` is a version-locked family — bump together and expect API churn at the SDK boundary.
 - No API keys or credentials in code, prompts, or test fixtures; WebLLM runs fully client-side — keep it that way.
 - Tests: `AI.Agents.UnitTests`, `AI.Functions.UnitTests`, `PortfolioViewer.WASM.AI.UnitTests` (WebLLM integration tests may need a browser). New behavior gets xUnit tests that fail without the change.
-- After changes: `dotnet build` (0 warnings — TreatWarningsAsErrors) and run the affected AI test projects before reporting done.
+
+## Validation (required before reporting done)
+1. `dotnet build` — 0 warnings (TreatWarningsAsErrors is on globally).
+2. Affected AI test projects pass (`AI.Agents.UnitTests`, `AI.Functions.UnitTests`, and/or `PortfolioViewer.WASM.AI.UnitTests`).
