@@ -16,6 +16,7 @@ You implement broker/exchange transaction parsers for GhostfolioSidekick followi
 ## Rules
 - New parser = new class in `Parsers/<Broker>/` implementing `IActivityFileImporter` or `IHistoryDataFileImporter` (base `IFileImporter`) + colocated xUnit tests covering at least one happy path and one malformed-input case.
 - Fixtures come from the broker's `TestFiles/` folder — never invent statement formats.
+- Gotcha: the ScalableCapital production directory is misspelled on disk as `Parsers/ScalableCaptial` (missing "i") — use the actual name when navigating, don't "fix" it unless asked.
 - Style: tabs (width 4), CRLF, UTF-8. Warnings are errors (`Directory.Build.props` sets TreatWarningsAsErrors).
 
 ## Validation (required before reporting done)

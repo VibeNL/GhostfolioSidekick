@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Coordinator that decomposes cross-cutting work and delegates it to the domain experts (ai-expert, parser-expert, ui-expert, dotnet-expert, architecture-expert, package-expert, infra-expert), then synthesizes results. Use for multi-area tasks like "add broker X end-to-end" or anything touching 2+ of parsers/UI/packages/infra/architecture.
+description: Coordinator that decomposes cross-cutting work and delegates it to the domain experts (ai-expert, parser-expert, ui-expert, dotnet-expert, architecture-expert, package-expert, infra-expert), then synthesizes results. Use for multi-area tasks like "add broker X end-to-end" or anything touching 2+ of AI/parsers/UI/packages/infra/architecture.
 ---
 
 # Orchestrator
