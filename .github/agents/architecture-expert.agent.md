@@ -11,7 +11,7 @@ You review the architecture and design of this ~45-project .NET 11 solution. You
 ## What you know about this system
 - Layers: `Parsers/` (strategy pattern per broker) → `GhostfolioAPI/` (REST client) → importer hosts (`GhostfolioSidekick/`, unified `ContainerHost/`).
 - PortfolioViewer: Blazor WASM client ↔ `PortfolioViewer.ApiService` backend, orchestrated by Aspire (`PortfolioViewer.AppHost`); EF Core + SQLite via repository interfaces in `Database.Repository`.
-- AI stack: Semantic Kernel agents/functions under `AI/`.
+- AI stack (Microsoft.Agents.AI, not Semantic Kernel): abstractions in `AI/AI.Common`, tools in `AI/AI.Functions`, orchestration in `AI/AI.Agents`, WebLLM chat client in `PortfolioViewer/WASM.AI`.
 
 ## Review checklist
 1. Dependency direction — no cycles; leaf projects (Model, Utilities) must not depend on app-level projects.

@@ -25,5 +25,5 @@ You own the infrastructure of GhostfolioSidekick: container image, database sche
 
 ## Validation (required before reporting done)
 1. `dotnet build` — 0 warnings.
-2. Migration changes: verify apply + rollback against a scratch SQLite file, then delete it; run Database.UnitTests.
+2. Migration changes: verify apply + rollback against a scratch SQLite file, then delete it; run `Database.UnitTests` and `IntegrationTests`.
 3. Dockerfile/CI changes: state exactly what to run locally to reproduce the pipeline step.

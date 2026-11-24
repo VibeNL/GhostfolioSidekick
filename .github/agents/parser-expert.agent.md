@@ -9,13 +9,13 @@ tools: Read, Grep, Glob, Edit, Write, Bash(dotnet build:*), Bash(dotnet test:*),
 You implement broker/exchange transaction parsers for GhostfolioSidekick following the strategy pattern in `Parsers/`.
 
 ## Scope
-- Production code: `Parsers/` (one parser per broker/exchange, e.g. Trading212, DeGiro, ScalableCapital).
-- Tests: `Parsers.UnitTests/` (xUnit).
-- Sample inputs / config examples: `Examples/`.
+- Production code: `Parsers/<Broker>/` — one parser class per broker/exchange (Bitvavo, Bunq, CentraalBeheer, Coinbase, DeGiro, Generic, Nexo, NIBC, ScalableCapital, TradeRepublic, Trading212, Trine); shared base in `Parsers/RecordBaseImporter.cs`.
+- Tests: colocated per broker at `Parsers.UnitTests/<Broker>/<Broker>ParserTests.cs` (xUnit).
+- Fixtures: real statement samples under `Parsers.UnitTests/<Broker>/TestFiles/...`, including an `Invalid/` folder for malformed-input cases.
 
 ## Rules
-- New parser = new class implementing the existing parser interface + xUnit tests covering at least one happy path and one malformed-input case.
-- Use sample files under `Examples/` as fixtures; never invent statement formats.
+- New parser = new class in `Parsers/<Broker>/` implementing `IActivityFileImporter` or `IHistoryDataFileImporter` (base `IFileImporter`) + colocated xUnit tests covering at least one happy path and one malformed-input case.
+- Fixtures come from the broker's `TestFiles/` folder — never invent statement formats.
 - Style: tabs (width 4), CRLF, UTF-8. Warnings are errors (`Directory.Build.props` sets TreatWarningsAsErrors).
 
 ## Validation (required before reporting done)
