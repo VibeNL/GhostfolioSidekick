@@ -3,9 +3,10 @@ using GhostfolioSidekick.Tools.TestUtilities;
 namespace PortfolioViewer.WASM.UITests;
 
 /// <summary>
-/// Cross-viewport rendering smoke tests: every top-level screen must render without horizontal overflow at
-/// phone, laptop and ultrawide widths. Catches the class of clipping bug where content wider than the viewport
-/// gets cut off-screen (see Dashboard_ShouldNotClipTablesAtMobileViewport for the original mobile regression).
+/// Cross-viewport rendering smoke tests: every top-level screen plus the deterministic parameterized screens must
+/// render without horizontal overflow at phone, laptop and ultrawide widths. Catches the class of clipping bug where
+/// content wider than the viewport gets cut off-screen (see Dashboard_ShouldNotClipTablesAtMobileViewport for the
+/// original mobile regression).
 /// </summary>
 [Collection("WebApplicationFactory")]
 public class ViewportRenderingTests(CustomWebApplicationFactory fixture, BrowserFixture browserFixture) : PlaywrightTestBase(fixture, browserFixture)
@@ -17,6 +18,10 @@ public class ViewportRenderingTests(CustomWebApplicationFactory fixture, Browser
 		"/top-movers", "/transactions", "/dividends", "/task-status", "/data-issues",
 		"/holding-identifier-mappings", "/tables", "/transaction-debug", "/price-targets"
 	];
+
+	// Deterministic parameterized routes — the symbols are seeded by TestDataSeeder so these resolve to real data.
+	// (/accounts/{id} and /tax-report/account/{id}/{year} need a runtime account id and are covered in the Runnable.)
+	private static readonly string[] ParameterizedRoutes = ["/holding/AAPL"];
 
 	[Theory]
 	[InlineData("phone", 390, 844)]
@@ -35,6 +40,7 @@ public class ViewportRenderingTests(CustomWebApplicationFactory fixture, Browser
 		await SetupAsync();
 
 		var context = $"{name} viewport {width}x{height}";
+		string? accountDetailHref = null;
 		foreach (var route in AllRoutes)
 		{
 			Console.WriteLine($"[Viewport] {context} → {route}");
@@ -43,8 +49,8 @@ public class ViewportRenderingTests(CustomWebApplicationFactory fixture, Browser
 			if (route == "/accounts")
 			{
 				// Best-effort detail-page coverage: drill into the first account row when data rows are present.
-				var detailHref = await GetFirstElementAttributeAsync("a[href^='/accounts/']", "href");
-				if (detailHref != null)
+				accountDetailHref = await GetFirstElementAttributeAsync("a[href^='/accounts/']", "href");
+				if (accountDetailHref != null)
 				{
 					if (name == "phone")
 					{
@@ -56,14 +62,30 @@ public class ViewportRenderingTests(CustomWebApplicationFactory fixture, Browser
 						}
 					}
 
-					Console.WriteLine($"[Viewport] {context} → {detailHref} (account detail)");
-					await AssertRouteRendersWithoutOverflowAsync(detailHref, $"{context} (account detail)");
+					Console.WriteLine($"[Viewport] {context} → {accountDetailHref} (account detail)");
+					await AssertRouteRendersWithoutOverflowAsync(accountDetailHref, $"{context} (account detail)");
 				}
 				else
 				{
 					Console.WriteLine("[Viewport] No account rows rendered — skipping account detail page.");
 				}
 			}
+		}
+
+		foreach (var route in ParameterizedRoutes)
+		{
+			Console.WriteLine($"[Viewport] {context} → {route}");
+			await AssertRouteRendersWithoutOverflowAsync(route, context);
+		}
+
+		if (accountDetailHref != null)
+		{
+			// /tax-report/account/{id}/{year}: account id comes from the seeded "Test Account" row; the seeder anchors data to UtcNow so the
+			// current year is populated (the page renders fine even for a year without rows).
+			var accountId = accountDetailHref.Split('/', 3)[2];
+			var yearSummaryRoute = $"/tax-report/account/{accountId}/{DateTime.UtcNow.Year}";
+			Console.WriteLine($"[Viewport] {context} → {yearSummaryRoute} (account year summary)");
+			await AssertRouteRendersWithoutOverflowAsync(yearSummaryRoute, $"{context} (account year summary)");
 		}
 	}
 
