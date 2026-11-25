@@ -18,9 +18,20 @@ You own the user interface of PortfolioViewer: Blazor WebAssembly components in 
 - Before changing a page, capture its current screenshot from the latest UI test run; after the change, re-run that page's tests and compare screenshots.
 - Every visual change ships with an updated/added assertion where behavior is observable (rendered state, no Blazor error UI) — not just "it looks right".
 
+## CSS placement conventions
+Three mechanisms exist; pick by scope, and **never define one selector in two places** (cross-mechanism duplication is what caused the mobile table-nowrap bug):
+1. `wwwroot/css/app.css` — permanent global rules (loaded once via index.html). App-wide conventions belong here: table typography, mobile media queries (≤768px), shared utilities.
+2. `<Component>.razor.css` — build-time scoped to that component (attribute selector → higher specificity than app.css). Component-private styling belongs here; use `::deep` for descendants.
+3. Inline `<style>` blocks in `.razor` markup — **global at runtime** while the page is mounted, removed on navigation. Legacy pattern: do not add new ones. Bare/common selectors there leak app-wide during mount (e.g. `.badge`, `.modal { display:block }` in HoldingIdentifierMappings; `footer` in Home; `.btn-group .btn`/`.btn-outline-success:hover` in TaskStatus).
+
+Consolidation playbook (when moving rules between mechanisms):
+- An inline-block rule is "page-scoped" only by page lifetime, not by selector. Before moving a rule to app.css, grep the target class across all `.razor` markup **and** `.razor.css` files (scoped copies count too): if non-owner pages use it, the move restyles those pages and needs per-page Playwright screenshot verification first.
+- 2026-11 audit of `PortfolioViewer.WASM`: duplicated rules across inline blocks — `.spinner-border {3rem}` ×8 pages, sticky `.table th` ×6, table padding/white-space ×4 (each of these three also has a scoped copy in `Transactions.razor.css`), chart-container block ×4 (`.account-chart-container`/`.price-chart-container`/`.treemap-container`), card border-success/danger + `.text-white-50` block ×2 identical (TopMovers/PortfolioTimeSeries), `.card.border-primary` override ×2, `.bg-light` override ×2, `.price-target-row{,:hover}` pair ×2.
+- Consolidation safety varies per rule: the chart-container classes are used only in their owner pages' markup → safe to move to app.css; spinner/table/card/badge classes are also used on non-override pages (Dividends, TaxReport, Transactions, Home, Login, CommonFilters, TaskStatus, TransactionDebug, AccountYearSummary, Tables) → moving them restyles those pages. Treat consolidation as a dedicated task with before/after screenshots per affected page, not an opportunistic cleanup.
+
 ## Mobile / responsive work
 - Viewport regression pattern: set a phone-class viewport (e.g. 390×844) with `SetViewportSizeAsync(390, 844)` — this Playwright version takes two ints, not a `ViewportSize` object — **before** `SetupAsync()` so login + sync render at mobile width; then assert no horizontal overflow: `documentElement.scrollWidth <= innerWidth + tolerance` (2px) and each `.table-responsive` wrapper fits (`scrollWidth - clientWidth <= 2`). Reference test: `Dashboard_ShouldNotClipTablesAtMobileViewport`.
-- CSS facts learned the hard way: global table rules live in `wwwroot/css/app.css` (mobile media query ≤768px) — don't duplicate page-level overrides of a global rule. Inline `<style>` blocks in `.razor` markup are **global** at runtime (build-time scoping applies only to `.razor.css` files), so keep element selectors there unique or move the rule into a `.razor.css` file.
+- CSS facts learned the hard way: global table rules live in `wwwroot/css/app.css` (mobile media query ≤768px) — see **CSS placement conventions** above; never duplicate a global rule per page.
 - Long unbreakable tokens (e.g. the footer version string `date+githash`) overflow the line box without widening any element rect — fix with `overflow-wrap: anywhere`, not by shrinking fonts.
 
 ## Triage gotchas
