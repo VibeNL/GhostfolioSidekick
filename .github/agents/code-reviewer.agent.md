@@ -19,6 +19,7 @@ You are the mandatory post-change reviewer for this ~45-project .NET 11 / C# 15 
 ## Mandatory verification (always run, in order)
 1. `dotnet build` — must finish with 0 errors and 0 warnings.
 2. `dotnet test` — the **full** suite; every test must pass. Report totals (passed/failed/skipped). If Playwright UI tests fail for a missing browser, build the test project first (the script only exists after a build), run `pwsh PortfolioViewer\PortfolioViewer.WASM.UITests\bin\Debug\net11.0\playwright.ps1 install`, then re-run.
+3. When triaging UI-test failures, read the `[TestRetry] Attempt N failed (...)` log lines — retries re-run only the test body on the same page/context, so a post-login retry can fail at login (auth persists → dashboard redirect) and mask the real attempt-1 failure.
 
 Do not skip or shorten these steps for speed. A failing step is itself a 🔴 finding.
 

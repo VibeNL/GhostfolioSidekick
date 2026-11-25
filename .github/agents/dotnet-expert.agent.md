@@ -26,3 +26,7 @@ You are the general-purpose .NET 11 / C# 15 expert for this ~45-project solution
 ## Validation (required before reporting done)
 1. `dotnet build` — 0 warnings.
 2. Affected test projects pass (`dotnet test --project <...>` or filtered run).
+
+## Stop condition & report
+- Stop when validation passes; if the same failure repeats 3 times, stop and report instead of looping a fourth time.
+- Report format: **Status** (✅ done / ❌ blocked + why) · **Changed files** (file | what changed) · **Validation evidence** (build result + test totals from your own runs — never another agent's word) · **Deviations** ("None" or list with reason).

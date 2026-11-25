@@ -28,3 +28,7 @@ You own the AI features of this .NET 11 solution. The stack is **Microsoft.Agent
 ## Validation (required before reporting done)
 1. `dotnet build` — 0 warnings (TreatWarningsAsErrors is on globally).
 2. Affected AI test projects pass (`AI.Agents.UnitTests`, `AI.Functions.UnitTests`, and/or `PortfolioViewer.WASM.AI.UnitTests`).
+
+## Stop condition & report
+- Stop when validation passes; if the same failure repeats 3 times, stop and report instead of looping a fourth time.
+- Report format: **Status** (✅ done / ❌ blocked + why) · **Changed files** (file | what changed) · **Validation evidence** (build result + test totals from your own runs — never another agent's word) · **Deviations** ("None" or list with reason).

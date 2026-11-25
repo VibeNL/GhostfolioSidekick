@@ -27,3 +27,7 @@ You own the infrastructure of GhostfolioSidekick: container image, database sche
 1. `dotnet build` — 0 warnings.
 2. Migration changes: verify apply + rollback against a scratch SQLite file, then delete it; run `Database.UnitTests` and `IntegrationTests`.
 3. Dockerfile/CI changes: state exactly what to run locally to reproduce the pipeline step.
+
+## Stop condition & report
+- Stop when validation passes; if the same failure repeats 3 times, stop and report instead of looping a fourth time.
+- Report format: **Status** (✅ done / ❌ blocked + why) · **Changed files** (file | what changed) · **Validation evidence** (build result + test totals from your own runs — never another agent's word) · **Deviations** ("None" or list with reason).

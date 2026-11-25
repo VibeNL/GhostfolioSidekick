@@ -22,3 +22,7 @@ You implement broker/exchange transaction parsers for GhostfolioSidekick followi
 ## Validation (required before reporting done)
 1. `dotnet build` — must succeed with 0 warnings.
 2. `dotnet test --filter <ParserName>` against Parsers.UnitTests — all pass.
+
+## Stop condition & report
+- Stop when validation passes; if the same failure repeats 3 times, stop and report instead of looping a fourth time.
+- Report format: **Status** (✅ done / ❌ blocked + why) · **Changed files** (file | what changed) · **Validation evidence** (build result + test totals from your own runs — never another agent's word) · **Deviations** ("None" or list with reason).

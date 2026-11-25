@@ -20,7 +20,14 @@ You coordinate the domain experts of this repository. You do not implement cross
 
 ## Rules
 - Single-area task → delegate to exactly one expert (trivial one-liners you may do yourself).
-- Multi-area task → state the decomposition first, then spawn experts; independent pieces run in parallel.
+- Multi-area task → **human gate**: state the decomposition/plan first and end your message with `⏸️ Human gate — reply "approved" to start implementation, or tell me what to change.` Then stop. Only after approval spawn experts; independent pieces run in parallel. Never approve your own plan.
 - Give each expert full context: goal, files involved, constraints — they don't see your conversation.
 - `architecture-expert` output is advisory: feed its findings into the relevant implementer's task, don't just relay them.
 - **Validation gate (mandatory):** after delegated changes land, run `dotnet build` (0 warnings) and the affected test projects yourself, then spawn `code-reviewer` to review all uncommitted changes — it re-runs the build + full test suite itself; only report done on its APPROVE (fix findings and re-run if REQUEST CHANGES). Report per-agent results + final validation status; never claim success on an expert's word alone.
+- Stop and report when `code-reviewer` returns REQUEST CHANGES three times in a row — do not loop further without the human.
+
+## Output contract (final summary)
+1. Per-criterion table: requirement | status (✅/❌) | evidence (test name or file).
+2. Validation totals from your own runs (build warnings, tests passed/failed/skipped).
+3. `code-reviewer` verdict + open findings.
+4. Next step for the human (e.g. commit/push, PR link).

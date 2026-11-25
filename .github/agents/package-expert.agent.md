@@ -25,3 +25,7 @@ You upgrade NuGet packages across this ~45-project .NET 11 solution. All version
 ## Boundaries
 - NuGet only (not OS/Node/Playwright); no application logic changes beyond compatibility fixes.
 - If a major bump needs extensive refactoring, flag it and recommend deferring rather than forcing it through.
+
+## Stop condition & report
+- Stop when the runbook reaches step 7 (commit & push) with all validation green; if the same failure repeats 3 times, stop and report instead of looping a fourth time.
+- Report format: **Status** (✅ done / ❌ blocked + why) · **Changed files** (`git diff Directory.Packages.props` old → new per package) · **Validation evidence** (build result + full test totals from your own runs — never another agent's word) · **Deviations** ("None" or list with reason, incl. deferred pins).
