@@ -221,7 +221,9 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 
 	private static string SanitizeFileName(string fileName)
 	{
-		var invalid = Path.GetInvalidFileNameChars();
+		// Fixed set (not Path.GetInvalidFileNameChars, which is platform-dependent and misses these on Linux CI):
+		// GitHub artifact upload rejects " : < > | * ? CR LF in file paths on all platforms.
+		var invalid = new[] { '"', ':', '<', '>', '|', '*', '?', '\r', '\n', '/', '\\' };
 		var sanitized = string.Join("_", fileName.Split(invalid, StringSplitOptions.RemoveEmptyEntries));
 
 		if (sanitized.Length > 100)
