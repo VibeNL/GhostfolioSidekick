@@ -352,6 +352,12 @@ else
 }
 
 <style>
+    /* The version string contains an unbreakable git hash token that overflows the line box on narrow screens */
+    footer
+    {
+        overflow-wrap: anywhere;
+    }
+
     @@media (max-width: 767.98px)
     {
         .dashboard-action-group
@@ -380,7 +386,6 @@ else
         {
             padding: 0.55rem 0.5rem;
             font-size: 0.88rem;
-            white-space: nowrap;
         }
     }
 </style>
