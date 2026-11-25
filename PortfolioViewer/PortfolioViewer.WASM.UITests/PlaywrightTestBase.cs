@@ -102,6 +102,7 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 	{
 		if (Page == null) return;
 
+		testName = SanitizeFileName(testName); // Theory display names contain ':' and '"' which are invalid in file names.
 		var timestamp = $"{DateTime.Now:yyyyMMdd-HHmmss}";
 		var baseName = $"{testName}-failure-{timestamp}";
 

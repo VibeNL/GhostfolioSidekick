@@ -56,44 +56,14 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		}
 
 		/// <summary>
-		/// Standard page load wait: spinner hidden → any stable state (heading/empty/error/table).
+		/// Standard page load wait: any stable state (heading/empty/error/table) visible + loading spinner gone.
 		/// Override in derived classes only if the page has unique load requirements.
 		/// </summary>
 		protected async Task WaitForPageLoadAsync(IEnumerable<string> stableStateSelectors, int timeout = 30000, CancellationToken ct = default)
 		{
 			await ExecuteWithErrorCheckAsync(async () =>
 			{
-				// Wait for loading spinner to disappear (optional — may not exist)
-				try
-				{
-					await _page.WaitForSelectorAsync(".spinner-border", new PageWaitForSelectorOptions { State = WaitForSelectorState.Hidden, Timeout = Math.Min(5000, timeout / 2) })
-						.WaitAsync(ct);
-				}
-				catch
-				{
-					// No spinner or already hidden — continue
-				}
-
-				// Wait for any stable state. Single shared deadline so the
-				// per-selector attempts split the budget instead of each
-				// consuming the full timeout.
-				var deadline = DateTime.UtcNow.AddMilliseconds(timeout);
-				foreach (var selector in stableStateSelectors)
-				{
-					try
-					{
-						await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions { Timeout = Math.Max(1, (long)(deadline - DateTime.UtcNow).TotalMilliseconds) })
-							.WaitAsync(ct);
-						return;
-					}
-					catch
-					{
-						// Try next selector
-					}
-				}
-
-				// None matched — throw with list of attempted selectors
-				throw new TimeoutException($"WaitForPageLoadAsync: none of the stable state selectors matched within {timeout}ms. Tried: {string.Join(", ", stableStateSelectors)}");
+				await PageRenderAssertions.WaitForStableStateAsync(_page, stableStateSelectors, timeout, ct);
 			}, ct);
 		}
 

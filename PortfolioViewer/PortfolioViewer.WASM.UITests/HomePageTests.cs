@@ -42,23 +42,14 @@ public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture b
 
 		await SetupAsync();
 
-		const int tolerancePx = 2; // Sub-pixel rounding tolerance for layout metrics
-
 		// No page-level horizontal overflow: the document must fit within the viewport width.
-		var (innerWidth, docScrollWidth) = await HomePage.GetHorizontalOverflowMetricsAsync();
-		string[] overflowingElements = [];
-		if (docScrollWidth > innerWidth + tolerancePx)
-		{
-			overflowingElements = await HomePage.GetOverflowingElementsAsync();
-		}
-		Assert.True(docScrollWidth <= innerWidth + tolerancePx,
-			$"Dashboard at mobile viewport ({innerWidth}px wide) overflows horizontally: document scrollWidth is {docScrollWidth}px — content wider than the viewport gets clipped off-screen. Offending elements: [{string.Join("; ", overflowingElements)}]. Check playwright-screenshots/ for the actual layout.");
+		await PageRenderAssertions.AssertNoHorizontalOverflowAsync(Page!, "Dashboard at mobile viewport");
 
 		// The global mobile CSS override must be in effect: table cells wrap instead of nowrap.
 		// Checked via a probe element so this holds even when no data rows render (empty/error dashboard state).
 		var cellWhiteSpaces = await HomePage.GetComputedTableCellWhiteSpacesAsync();
 		Assert.False(cellWhiteSpaces.Contains("nowrap"),
-			$"Table cells must not use white-space: nowrap at mobile viewport ({innerWidth}px) — computed values were [{string.Join(", ", cellWhiteSpaces)}]. A re-introduced 'white-space: nowrap' on .table td/th clips table content off the right edge.");
+			$"Table cells must not use white-space: nowrap at mobile viewport — computed values were [{string.Join(", ", cellWhiteSpaces)}]. A re-introduced 'white-space: nowrap' on .table td/th clips table content off the right edge.");
 
 		var hasTables = await HomePage.WaitForDashboardTablesAsync(ct: CancellationToken);
 		if (!hasTables)
@@ -69,7 +60,7 @@ public class HomePageTests(CustomWebApplicationFactory fixture, BrowserFixture b
 		var wrapperOverflows = await HomePage.GetTableWrapperOverflowsAsync();
 		for (var i = 0; i < wrapperOverflows.Length; i++)
 		{
-			Assert.True(wrapperOverflows[i] <= tolerancePx,
+			Assert.True(wrapperOverflows[i] <= 2, // Sub-pixel rounding tolerance for layout metrics
 				$"Table {i + 1} in .table-responsive is wider than its wrapper at mobile viewport by {wrapperOverflows[i]}px — content gets clipped or scrolls inside the card. Check playwright-screenshots/ for the actual layout.");
 		}
 	}

@@ -192,17 +192,6 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		}
 
 		/// <summary>
-		/// Measures horizontal overflow at the current viewport: window.innerWidth and documentElement.scrollWidth.
-		/// scrollWidth greater than innerWidth means the page scrolls horizontally, i.e. content is clipped off-screen on mobile.
-		/// </summary>
-		public async Task<(int InnerWidth, int DocumentScrollWidth)> GetHorizontalOverflowMetricsAsync()
-		{
-			var innerWidth = await _page.EvaluateAsync<int>("() => window.innerWidth");
-			var documentScrollWidth = await _page.EvaluateAsync<int>("() => document.documentElement.scrollWidth");
-			return (innerWidth, documentScrollWidth);
-		}
-
-		/// <summary>
 		/// Returns the computed white-space of a table header cell and body cell at the current viewport.
 		/// A temporary probe element is used so this works even when no data rows are rendered
 		/// (empty/error dashboard state) — it still guards the global .table td/th CSS rules.
@@ -240,32 +229,7 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 		/// elements whose removal brings documentElement.scrollWidth back within the viewport. Catches fixed-positioned
 		/// and otherwise invisible-to-bounding-box contributors that a plain rect scan misses.
 		/// </summary>
-		public async Task<string[]> GetOverflowingElementsAsync()
-		{
-			const string script = "() => { " +
-				"const vw = window.innerWidth; const TOL = 2; " +
-				"const sw = () => document.documentElement.scrollWidth; " +
-				"if (sw() <= vw + TOL) return ['no-overflow']; " +
-				"const out = []; " +
-				"function describe(el) { const r = el.getBoundingClientRect(); " +
-				"const cls = typeof el.className === 'string' ? '.' + el.className.trim().split(/\\s+/).slice(0, 3).join('.') : ''; " +
-				"return el.tagName.toLowerCase() + cls + ' [left=' + Math.round(r.left) + ', right=' + Math.round(r.right) + ', w=' + Math.round(r.width) + ']'; } " +
-				"function descend(el, depth) { " +
-				"if (depth > 15 || el.children.length === 0) { out.push(describe(el)); return; } " +
-				"let anyChildCauses = false; " +
-				"for (const child of el.children) { " +
-				"const prev = child.style.display; " +
-				"child.style.display = 'none'; " +
-				"const removed = sw() <= vw + TOL; " +
-				"child.style.display = prev; " +
-				"if (removed) { anyChildCauses = true; descend(child, depth + 1); } " +
-				"} " +
-				"if (!anyChildCauses) out.push(describe(el)); " +
-				"} " +
-				"descend(document.body, 0); " +
-				"return out.slice(0, 20); }";
-			return await _page.EvaluateAsync<string[]>(script);
-		}
+		public Task<string[]> GetOverflowingElementsAsync() => PageRenderAssertions.GetOverflowingElementsAsync(_page);
 
 		/// <summary>
 		/// Returns per-.table-responsive overflow in px (scrollWidth - clientWidth).

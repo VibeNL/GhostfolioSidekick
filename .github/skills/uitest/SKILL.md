@@ -18,7 +18,7 @@ Core files/patterns:
 - `PlaywrightTestBase.cs` for browser lifecycle, login + sync setup, screenshots/videos, console logging. `DisposeAsync` automatically captures failure artifacts (screenshot/HTML/console log) using `TestContext.Current.TestState.Result` — no per-test try/catch needed.
 - `CustomWebApplicationFactory.cs` for Kestrel host, in-memory SQLite, seeded data, WASM publish-to-wwwroot bootstrap. The `dotnet build`/`dotnet publish` child processes use **bounded** `WaitForExit(TimeSpan)` (5min/10min) with `Kill(entireProcessTree: true)` on timeout — never revert to unbounded `WaitForExit()`, that previously caused whole-test-host hangs (see hangdump files historically found under `TestResults/`).
 - `WebApplicationFactoryCollection.cs` disables parallelization for shared DB safety.
-- `PageObjects/BasePageObject.cs` for shared `WaitForPageLoadAsync` (spinner hidden → any stable state, waits are wrapped in `.WaitAsync(ct)` for cancellation responsiveness), `ExecuteWithErrorCheckAsync` (auto Blazor error check), `CheckForBlazorErrorAsync`.
+- `PageObjects/BasePageObject.cs` for shared `WaitForPageLoadAsync` (any stable state visible → loading spinner gone; delegates to `PageRenderAssertions.WaitForStableStateAsync`; waits are wrapped in `.WaitAsync(ct)` for cancellation responsiveness), `ExecuteWithErrorCheckAsync` (auto Blazor error check), `CheckForBlazorErrorAsync`.
 - `PageRenderAssertions.cs` (test project root) — shared helper for the common "page rendered" tri-state assertion (`AssertRendered(pageName, hasRows, isEmpty, hasError)`) and `AssertSeededSymbolsWhenRowsPresentAsync(...)` for tightening checks against `TestDataSeeder` data only when rows are actually present. **Use these instead of copy-pasting `Assert.True(hasRows || isEmpty || hasError, ...)` blocks.**
 - `PageObjects/*` for page objects — all use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)`.
 - Flaky-tolerant tests: plain `[Fact]` + body `Assert.True(await TestRetry.RunAsync(MyTest_Runnable), "...");` (helper in `Tools/TestUtilities/TestRetry.cs`, `using GhostfolioSidekick.Tools.TestUtilities;`) — retries up to 3 attempts, rethrows the exception of the final failed attempt; the `Assert.True` keeps the test method assertion-bearing (Sonar S2699). **No xRetry dependency.**
@@ -65,7 +65,7 @@ Use this skill when user asks any of:
 - Add stable waits (`WaitForSelectorAsync`, `WaitForURLAsync`) over sleeps/timeouts.
 - Keep assertions behavior-focused (visible state, no error UI, expected records loaded).
 - Preserve collection fixture model; do not enable parallel execution for this suite.
-- Use `base.WaitForPageLoadAsync([selectors], timeout, ct)` from `BasePageObject` — it waits for spinner hidden then any stable state selector.
+- Use `base.WaitForPageLoadAsync([selectors], timeout, ct)` from `BasePageObject` (or `PageRenderAssertions.WaitForStableStateAsync(page, [selectors], timeout, ct)` outside page objects) — it waits for any stable state selector then confirms the loading spinner is gone.
 - Use `ExecuteWithErrorCheckAsync()` for navigation actions to auto-catch Blazor errors.
 - All page objects use `NavigateDirectAsync(string? relativePath = null, CancellationToken ct = default)` — pass full URL for absolute paths.
 - In test env, pages may render `.alert-danger` when Ghostfolio API is not configured — assertions must accept error state as valid render.

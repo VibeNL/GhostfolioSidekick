@@ -64,6 +64,12 @@
 }
 
 /* Desktop Filters */
+/* Let the filter bar drop below the nav links when the viewport is too narrow for a single row. */
+.navbar-collapse {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+}
+
 .navbar-filters {
     min-width: 600px;
     max-width: 800px;
