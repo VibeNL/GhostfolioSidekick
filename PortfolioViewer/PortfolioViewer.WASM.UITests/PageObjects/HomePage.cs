@@ -190,5 +190,60 @@ namespace PortfolioViewer.WASM.UITests.PageObjects
 			await OpenOptionsMenuAsync();
 			await _page.ClickAsync(DeleteAllDataSelector);
 		}
+
+		/// <summary>
+		/// Returns the computed white-space of a table header cell and body cell at the current viewport.
+		/// A temporary probe element is used so this works even when no data rows are rendered
+		/// (empty/error dashboard state) — it still guards the global .table td/th CSS rules.
+		/// </summary>
+		public async Task<string[]> GetComputedTableCellWhiteSpacesAsync()
+		{
+			const string script = "() => { const probe = document.createElement('div'); " +
+				"probe.className = 'table-responsive'; " +
+				"probe.innerHTML = '<table class=\"table\"><tbody><tr><th>label</th><td>value</td></tr></tbody></table>'; " +
+				"document.body.appendChild(probe); " +
+				"try { return [getComputedStyle(probe.querySelector('th')).whiteSpace, getComputedStyle(probe.querySelector('td')).whiteSpace]; } " +
+				"finally { probe.remove(); } }";
+			return await _page.EvaluateAsync<string[]>(script);
+		}
+
+		/// <summary>
+		/// Waits up to <paramref name="timeout"/> ms for dashboard tables (.table-responsive) to render.
+		/// Returns true when at least one table wrapper is present, false for the empty/error state.
+		/// </summary>
+		public async Task<bool> WaitForDashboardTablesAsync(int timeout = 10000, CancellationToken ct = default)
+		{
+			try
+			{
+				await _page.WaitForSelectorAsync(".table-responsive", new PageWaitForSelectorOptions { Timeout = timeout }).WaitAsync(ct);
+				return true;
+			}
+			catch (TimeoutException)
+			{
+				return false; // Empty/error dashboard state — no tables rendered.
+			}
+		}
+
+		/// <summary>
+		/// Diagnoses document-level horizontal overflow by hide-and-measure descent: recursively finds the deepest DOM
+		/// elements whose removal brings documentElement.scrollWidth back within the viewport. Catches fixed-positioned
+		/// and otherwise invisible-to-bounding-box contributors that a plain rect scan misses.
+		/// </summary>
+		public Task<string[]> GetOverflowingElementsAsync() => PageRenderAssertions.GetOverflowingElementsAsync(_page);
+
+		/// <summary>
+		/// Returns per-.table-responsive overflow in px (scrollWidth - clientWidth).
+		/// Positive values mean the table content is wider than its wrapper and gets clipped or scrolls inside the card.
+		/// </summary>
+		public async Task<int[]> GetTableWrapperOverflowsAsync()
+		{
+			var wrappers = await _page.QuerySelectorAllAsync(".table-responsive");
+			var overflows = new int[wrappers.Count];
+			for (var i = 0; i < wrappers.Count; i++)
+			{
+				overflows[i] = await wrappers[i].EvaluateAsync<int>("el => el.scrollWidth - el.clientWidth");
+			}
+			return overflows;
+		}
 	}
 }

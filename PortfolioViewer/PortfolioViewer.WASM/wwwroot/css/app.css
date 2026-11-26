@@ -140,5 +140,7 @@ code {
         font-size: 0.9rem;
         padding-left: 0.25rem;
         padding-right: 0.25rem;
+        /* Allow wrapping on small screens so tables fit the viewport instead of clipping at the right edge */
+        white-space: normal;
     }
 }

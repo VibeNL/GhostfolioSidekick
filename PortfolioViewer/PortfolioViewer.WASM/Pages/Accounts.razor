@@ -155,9 +155,9 @@
                                             <tr>
                                                 <th scope="col">Account Name</th>
                                                 <th scope="col" class="text-end">Total Value</th>
-                                                <th scope="col" class="text-end">Asset Value</th>
-                                                <th scope="col" class="text-end">Cash Balance</th>
-                                                <th scope="col" class="text-end">Gain/Loss</th>
+                                                <th scope="col" class="text-end d-none d-md-table-cell">Asset Value</th>
+                                                <th scope="col" class="text-end d-none d-md-table-cell">Cash Balance</th>
+                                                <th scope="col" class="text-end d-none d-md-table-cell">Gain/Loss</th>
                                                 <th scope="col" class="text-end">Gain/Loss %</th>
                                             </tr>
                                         </thead>
@@ -173,13 +173,13 @@
                                                     <td class="text-end">
                                                         <strong><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)" /></strong>
                                                     </td>
-                                                    <td class="text-end">
+                                                    <td class="text-end d-none d-md-table-cell">
                                                         <span class="text-info"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.Value.Subtract(@latest.Balance))" /></span>
                                                     </td>
-                                                    <td class="text-end">
+                                                    <td class="text-end d-none d-md-table-cell">
                                                         <span class="text-success"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)" /></span>
                                                     </td>
-                                                    <td class="text-end">
+                                                    <td class="text-end d-none d-md-table-cell">
                                                         <span class="@(latest.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
                                                             <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)" />
                                                         </span>
@@ -200,13 +200,13 @@
                                                 <td class="text-end">
                                                     <strong class="text-primary"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)" /></strong>
                                                 </td>
-                                                <td class="text-end">
+                                                <td class="text-end d-none d-md-table-cell">
                                                     <strong class="text-info"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)" /></strong>
                                                 </td>
-                                                <td class="text-end">
+                                                <td class="text-end d-none d-md-table-cell">
                                                     <strong class="text-success"><PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)" /></strong>
                                                 </td>
-                                                <td class="text-end">
+                                                <td class="text-end d-none d-md-table-cell">
                                                     <strong class="@(TotalGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
                                                         <PrivacyValue Value="@CurrencyDisplay.DisplaySignAndAmount(TotalGainLoss)" />
                                                     </strong>
@@ -412,7 +412,6 @@
     }
     
     .table td, .table th {
-        white-space: nowrap;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
