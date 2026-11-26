@@ -1,3 +1,4 @@
+using Microsoft.Playwright;
 using GhostfolioSidekick.Tools.TestUtilities;
 
 namespace PortfolioViewer.WASM.UITests;
@@ -91,12 +92,12 @@ public class ViewportRenderingTests(CustomWebApplicationFactory fixture, Browser
 
 	private async Task AssertRouteRendersWithoutOverflowAsync(string route, string context)
 	{
-		await Page!.GotoAsync(AbsoluteUrl(route));
+		await NavigateToRouteAsync(route);
 
 		// nav.navbar is rendered by MainLayout on every page; some screens (e.g., /tables) only show controls in their initial state.
 		await PageRenderAssertions.WaitForStableStateAsync(Page!, ["nav.navbar", ".table", ".card", ".alert-danger"], 20_000, CancellationToken);
 
-		var errorElement = await Page.QuerySelectorAsync("#blazor-error-ui");
+		var errorElement = await Page!.QuerySelectorAsync("#blazor-error-ui");
 		if (errorElement != null && await errorElement.IsVisibleAsync())
 		{
 			throw new InvalidOperationException($"{context} {route}: Blazor framework error UI is visible — {(await errorElement.TextContentAsync() ?? string.Empty).Trim()}");
@@ -105,11 +106,28 @@ public class ViewportRenderingTests(CustomWebApplicationFactory fixture, Browser
 		await PageRenderAssertions.AssertNoHorizontalOverflowAsync(Page!, $"{context} {route}");
 	}
 
+	/// <summary>
+	/// Client-side navigation: Blazor's router intercepts internal anchor clicks, so the app re-renders the route
+	/// instead of restarting the whole WASM runtime (a hard GotoAsync per route would reboot the app 18 times per case).
+	/// </summary>
+	private async Task NavigateToRouteAsync(string route)
+	{
+		await Page!.EvaluateAsync("route => { const anchor = document.createElement('a'); anchor.href = route; document.body.appendChild(anchor); anchor.click(); anchor.remove(); }", route);
+
+		// The router updates the URL synchronously during client-side navigation; wait for it before measuring anything.
+		try
+		{
+			await Page!.WaitForFunctionAsync("route => window.location.pathname === route", route, new PageWaitForFunctionOptions { Timeout = 15_000 });
+		}
+		catch (TimeoutException ex)
+		{
+			throw new InvalidOperationException($"{route}: pathname did not change within 15s — router may not have intercepted the anchor click (app not booted?)", ex);
+		}
+	}
+
 	private async Task<string?> GetFirstElementAttributeAsync(string selector, string attribute)
 	{
 		var element = await Page!.QuerySelectorAsync(selector);
 		return element == null ? null : await element.GetAttributeAsync(attribute);
 	}
-
-	private string AbsoluteUrl(string path) => new Uri(new Uri(ServerAddress), path).ToString();
 }

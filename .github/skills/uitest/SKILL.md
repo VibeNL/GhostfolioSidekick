@@ -72,6 +72,7 @@ Use this skill when user asks any of:
 - Use `PageRenderAssertions.AssertRendered(...)` for the rows/empty/error tri-state check instead of a new inline `Assert.True(hasRows || isEmpty || hasError, ...)`. Use `PageRenderAssertions.AssertSeededSymbolsWhenRowsPresentAsync(...)` to verify specific `TestDataSeeder` symbols only when `hasRows` is true.
 - Always use interpolated strings (`$"...{variable}"`) in assertion messages — a plain non-interpolated string containing `{variable}` silently prints the literal text and hides the actual failure value. Double-check this when writing/reviewing new assertions.
 - Any new child `Process.Start(...)` usage (e.g. build/publish helpers) must use a bounded `WaitForExit(TimeSpan)` with a kill-on-timeout fallback — never an unbounded `WaitForExit()`, since a stuck child process hangs the entire test host with no diagnostics.
+- For multi-route flows *after* the initial hard `GotoAsync` that boots the WASM app, navigate client-side instead of calling `Page.GotoAsync` per route: each Goto restarts the whole Blazor WASM app (~10s boot), while dispatching an internal anchor click via `EvaluateAsync` and waiting for `window.location.pathname` keeps the same runtime (see `ViewportRenderingTests.NavigateToRouteAsync`).
 
 ## Hang Debugging
 
