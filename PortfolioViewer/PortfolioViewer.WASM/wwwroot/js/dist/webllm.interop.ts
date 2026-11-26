@@ -23,6 +23,23 @@ export class WebLLMInterop {
 
 	constructor() { }
 
+	private static async ensureWebGpu(): Promise<void> {
+		const gpu = (navigator as any).gpu;
+		if (!gpu) {
+			throw new Error("WebGPU is not available in this browser. Use a recent Chrome/Edge (or Safari 26+) with WebGPU enabled.");
+		}
+		if (!(await gpu.requestAdapter())) {
+			throw new Error("No WebGPU adapter found. This device cannot run the on-device AI model.");
+		}
+	}
+
+	private static createWorker(): Worker {
+		const code = `import { WebWorkerMLCEngineHandler } from "https://esm.run/@mlc-ai/web-llm";
+const handler = new WebWorkerMLCEngineHandler();
+self.onmessage = (msg) => handler.onmessage(msg);`;
+		return new Worker(URL.createObjectURL(new Blob([code], { type: "text/javascript" })), { type: "module" });
+	}
+
 	// Callback for initialization progress
 	private initProgressCallback = (initProgress: InitProgressReport): void => {
 		console.log(initProgress);
@@ -32,10 +49,18 @@ export class WebLLMInterop {
 	// Initialize the engine
 	public async initialize(selectedModels: string[], dotnet: DotNetInstance): Promise<void> {
 		this.dotnetInstance = dotnet; // Store the .NET instance
-		this.engine = await webllm.CreateMLCEngine(
-			selectedModels,
-			{ initProgressCallback: this.initProgressCallback }, // engineConfig
-		);
+		if (this.engine) {
+			return; // reuse the already loaded engine
+		}
+
+		await WebLLMInterop.ensureWebGpu();
+		const models = selectedModels;
+		const config = { initProgressCallback: this.initProgressCallback };
+
+		// Run the model in a worker so the UI thread stays responsive
+		this.engine = typeof Worker !== "undefined"
+			? await webllm.CreateWebWorkerMLCEngine(WebLLMInterop.createWorker(), models, config, { context_window_size: 4096 })
+			: await webllm.CreateMLCEngine(models, config);
 	}
 
 	// Stream completion
@@ -49,6 +74,7 @@ export class WebLLMInterop {
 				messages,
 				temperature: 0,
 				seed: 42,
+				max_tokens: 1024,
 				model: modelId,
 				tool_choice: "auto",
 				tools: undefined,
@@ -65,6 +91,15 @@ export class WebLLMInterop {
 			}
 		} catch (error) {
 			console.error("Error during streaming completion:", error);
+			// Always finish the stream so the .NET side never waits forever
+			await this.dotnetInstance?.invokeMethodAsync("ReceiveChunkCompletion", {
+				id: "error", object: "error", model: modelId, system_fingerprint: "",
+				choices: [{ index: 0, delta: { role: "assistant", content: `The AI model failed to respond: ${error}` }, logprobs: "", finish_reason: "error" }],
+			});
+			await this.dotnetInstance?.invokeMethodAsync("ReceiveChunkCompletion", {
+				id: "error", object: "error", model: modelId, system_fingerprint: "", choices: [],
+				usage: { completion_tokens: 0, prompt_tokens: 0, total_tokens: 0 },
+			});
 		}
 	}
 }
