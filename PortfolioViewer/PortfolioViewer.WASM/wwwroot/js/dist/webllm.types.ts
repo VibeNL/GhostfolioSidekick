@@ -19,6 +19,17 @@
         }
     ): Promise<MLCEngine>;
 
+    export function CreateWebWorkerMLCEngine(
+        worker: Worker,
+        model: string | string[],
+        engineConfig: {
+            initProgressCallback: (progress: any) => void,
+        },
+        chatOpts?: {
+            context_window_size?: number;
+        }
+    ): Promise<MLCEngine>;
+
     interface Message {
         role: string;
         content: string;
@@ -33,6 +44,7 @@
         messages: Message[];
         temperature: number;
         seed: number;
+        max_tokens?: number;
         model: string;
         stream: boolean;
         stream_options: { include_usage: boolean };

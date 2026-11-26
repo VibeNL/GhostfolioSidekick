@@ -40,6 +40,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			WebLLMCompletions.Enqueue(response);
 		}
 
+		internal static WebLLMCompletion CreateErrorCompletion(string model, string error)
+		{
+			return new WebLLMCompletion(
+				"error", "error", model, string.Empty,
+				[new Choice(0, new Message("assistant", $"The AI model failed to respond: {error}"), string.Empty, "error")],
+				new Usage(0, 0, 0));
+		}
+
 		internal static IEnumerable<Message> ConvertMessage(IEnumerable<ChatMessage> chatMessages)
 		{
 			return chatMessages.Select(chatMessage =>

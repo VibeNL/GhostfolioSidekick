@@ -17,6 +17,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private IJSObjectReference? module;
 		private static readonly JsonSerializerOptions options = new() { WriteIndented = true };
 
+		// First token can take long while the model warms up on slow devices
+		private static readonly TimeSpan ResponseIdleTimeout = TimeSpan.FromMinutes(3);
+		private const int MaxToolResultLength = 6000;
+
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
 		private const string SystemPromptWithFunctions = """
@@ -171,6 +175,7 @@ Format function calls like this:
 				catch (Exception ex)
 				{
 					logger.LogError(ex, "Failed to start WebLLM streaming completion");
+					interopInstance.ReceiveChunkCompletion(InteropInstance.CreateErrorCompletion(model, ex.Message));
 				}
 			}, cancellationToken);
 		}
@@ -181,16 +186,23 @@ Format function calls like this:
 			[EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			var totalTextBuilder = new StringBuilder();
+			var lastActivity = DateTime.UtcNow;
 
 			while (true)
 			{
 				var response = TryDequeueResponse();
 				if (response == null)
 				{
-					await Task.Delay(1, cancellationToken);
+					if (DateTime.UtcNow - lastActivity > ResponseIdleTimeout)
+					{
+						throw new TimeoutException("The AI model did not respond in time.");
+					}
+
+					await Task.Delay(20, cancellationToken);
 					continue;
 				}
 
+				lastActivity = DateTime.UtcNow;
 				if (response.IsStreamComplete)
 				{
 					await foreach (var finalUpdate in HandleStreamComplete(originalMessages, options, totalTextBuilder, cancellationToken))
@@ -525,7 +537,7 @@ Format function calls like this:
 				var result = await tool.InvokeAsync(aiArgs);
 				var output = result?.ToString() ?? "[Function returned null]";
 				logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
-				return output;
+				return output.Length > MaxToolResultLength ? output[..MaxToolResultLength] + "\n[truncated]" : output;
 			}
 			catch (Exception ex)
 			{
