@@ -7,6 +7,11 @@
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+		<!-- Memory footprint: workstation, non-concurrent GC avoids per-core heaps and the background GC thread; invariant globalization skips loading ICU. -->
+		<ServerGarbageCollection>false</ServerGarbageCollection>
+		<ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<TieredPGO>false</TieredPGO>
 		<!-- This host is not Blazor; skip JS module manifest generation, which fails endpoint validation on the referenced API service's dev-only hot-reload assets. -->
 		<GenerateJSModuleManifest>false</GenerateJSModuleManifest>
 	</PropertyGroup>
