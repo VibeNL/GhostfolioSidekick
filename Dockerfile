@@ -63,6 +63,10 @@ ENV ASPNETCORE_URLS="http://+:80;https://+:443"
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
 ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
 
+# Keep the managed heap small: cap it at 75% of the container limit (hex) and return memory to the OS more eagerly.
+ENV DOTNET_GCHeapHardLimitPercent=0x4B
+ENV DOTNET_GCConserveMemory=5
+
 # Runs as the base image's unprivileged user (uid 1654, "app"). Docker grants
 # CAP_NET_BIND_SERVICE by default, so Kestrel can still bind ports 80/443.
 
